@@ -16,6 +16,10 @@ export class DndStatblockSettingsController {
     }
 
 	// ---- methods ----
+	async initialize() {
+		await this.loadSettings();
+	}
+
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.#plugin.loadData());
 	}
