@@ -1,0 +1,6 @@
+.obsidian-dnd-statblock-side-panel-bestiary-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}

@@ -34,6 +34,10 @@ export class Bestiary {
         return await this.#fetchCreatureFromAPI(url);
     }
 
+    async getFullMonsterBySmallMonster(smallMonster: SmallMonster): Promise<FullMonster | null> {
+        return await this.getFullMonsterByUrl(smallMonster.url);
+    }
+
     async getFullMonsterByName(monsterName: string): Promise<FullMonster | null> {
         const allSmallMosnters = await this.getAllSmallMonsters();
         const smallMonster = allSmallMosnters.find(smallMonster => smallMonster.name.rus == monsterName);
