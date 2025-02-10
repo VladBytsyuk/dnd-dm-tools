@@ -6,3 +6,76 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+
+.layout-5e {
+    box-shadow: 0 0 1.5rem #867453;
+    display: inline-block;
+}
+
+.layout-5e-statblock {
+    text-align: left;
+    font-size: 12.5px;
+    line-height: 1.2em;
+    display: inline-block;
+    vertical-align: top;
+    width: 400px;
+    background: #FDF1DC;
+    background-size: cover;
+    background-position: center;
+    background-image: url(../dndimages/statblockparch.jpg);
+    padding: 10px 10px 20px;
+    box-sizing: border-box;
+    font-family: 'Noto Sans', 'Myriad Pro', Calibri, Helvetica, Arial, sans-serif;
+}
+
+.layout-5e-statblock-header {
+    margin: 0 0 10px 0
+}
+
+.layout-5e-statblock-header-name {
+    font-family: 'Libre Baskerville', 'Lora', 'Calisto MT', 'Bookman Old Style', Bookman, 'Goudy Old Style', Garamond, 'Hoefler Text', 'Bitstream Charter', Georgia, serif;
+    color: #922610;
+    font-size: 21px;
+    line-height: 1.2em;
+    margin: 10px 0 0;
+    letter-spacing: 1px;
+    font-variant: small-caps;
+    font-weight: bold;
+}
+
+.layout-5e-statblock-header-subtitle {
+    font-family: 'Noto Sans', 'Myriad Pro', Calibri, Helvetica, Arial, sans-serif;    
+    color: #000000;
+    opacity: 0.75;
+    font-weight: normal;
+    font-style: italic;
+    font-size: 12px;
+    line-height: 1.2em;
+    margin: 0;
+}
+
+.layout-5e-statblock-base-info {
+    margin: 0 0 10px 0
+}
+
+.layout-5e-statblock-base-info-item {
+    color: #922610;
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.2em;
+}
+
+.layout-5e-statblock-scores-table {
+    text-align: center;
+    color: #922610;
+    margin: 0 0 10px 0
+}
+
+.layout-5e-statblock-scores-table-item {
+    display: inline-block;
+    vertical-align: middle;
+    width: 15.5%;
+    min-width: 40px;
+    font-size: 12px;
+    line-height: 1em;
+}

@@ -1,10 +1,9 @@
-import { Plugin, type WorkspaceLeaf } from 'obsidian';
-import { DndStatblockSettingsController } from "src/settings/settings_controller";
-import { DndStatblockSettingTab } from "src/settings/settings_tab";
+import { Plugin } from 'obsidian';
 import { Bestiary } from "src/data/bestiary";
-import { TEXTS } from "src/res/texts";
-import { openSidePanelBestiary, SIDE_PANEL_BESTIARY_VIEW, SidePanelBestiaryView } from "src/view/side_panel_bestiary";
-import { MonsterSuggester } from './suggest/monster_suggester';
+import { DndStatblockSettingsController } from "src/settings/settings_controller";
+import { registerSettingsTab } from "src/settings/settings_tab";
+import { registerMonsterMdCodeBlockProcessor } from "src/view/monster_md_code_block_processor";
+import { registerSidePanelBestiary } from "src/view/side_panel_bestiary";
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -14,35 +13,28 @@ export default class DndStatblockPlugin extends Plugin {
 
 	// ---- callbacks ----
 	async onload() {
-		this.#initialize()
-		this.#setupSettings()
-		this.#setupSidePanelBestiary()
+		this.#initialize(() => {
+			registerSettingsTab(this, this.#settingsController);
+			registerSidePanelBestiary(this, this.#bestiary);
+			registerMonsterMdCodeBlockProcessor(this, this.#bestiary);
+			console.log("obsidian-dnd-statblock has been loaded.");
+		});
 	}
 
 	onunload() {
-
+		console.log("obsidian-dnd-statblock has been unloaded.");
 	}
 
 	// ---- private methods ----
-	async #initialize() {
+	async #initialize(
+		callback: () => void,
+	) {
 		this.#settingsController = new DndStatblockSettingsController(this);
 		await this.#settingsController.initialize();
 
 		this.#bestiary = new Bestiary(`${this.manifest.dir}`, this.app.vault.adapter);
 		await this.#bestiary.initialize();
-	}
 
-	#setupSettings() {
-		this.addSettingTab(new DndStatblockSettingTab(this.app, this, this.#settingsController));
-	}
-
-	#setupSidePanelBestiary() {
-		this.registerView(
-            SIDE_PANEL_BESTIARY_VIEW,
-            (leaf: WorkspaceLeaf) => new SidePanelBestiaryView(leaf, this, this.#bestiary)
-        );
-		this.addRibbonIcon("skull", TEXTS.ribbonActionTitle, async (mouseEvent) => {
-			openSidePanelBestiary(mouseEvent.getModifierState("Meta"), this.app.workspace)
-		});
+		callback();
 	}
 }

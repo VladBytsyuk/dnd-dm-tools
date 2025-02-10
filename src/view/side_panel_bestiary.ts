@@ -1,18 +1,27 @@
-import { 
-    ItemView, 
-    Workspace, 
-    type WorkspaceLeaf, 
-    SearchComponent,
-} from "obsidian";
+import { ItemView, Workspace, type WorkspaceLeaf, SearchComponent } from "obsidian";
+import DndStatblockPlugin from "src/main";
 import { Bestiary } from "src/data/bestiary";
 import { FullMonster } from "src/domain/monster";
-import DndStatblockPlugin from "src/main";
 import { TEXTS } from "src/res/texts";
 import { MonsterSuggester } from "src/suggest/monster_suggester";
+import { renderLayout5e } from "./layout/layout_5e";
 
-export const SIDE_PANEL_BESTIARY_VIEW = "obsidian-dnd-statblock-side-panel-bestiary";
+export function registerSidePanelBestiary(
+    plugin: DndStatblockPlugin,
+    bestiary: Bestiary,
+) {
+    plugin.registerView(
+        SIDE_PANEL_BESTIARY_VIEW,
+        (leaf: WorkspaceLeaf) => new SidePanelBestiaryView(leaf, plugin, bestiary)
+    );
+    plugin.addRibbonIcon("skull", TEXTS.ribbonActionTitle, async (mouseEvent) => {
+        openSidePanelBestiary(mouseEvent.getModifierState("Meta"), plugin.app.workspace)
+    });
+}
 
-export class SidePanelBestiaryView extends ItemView {
+const SIDE_PANEL_BESTIARY_VIEW = "obsidian-dnd-statblock-side-panel-bestiary";
+
+class SidePanelBestiaryView extends ItemView {
     
     // ---- fields ----
     #plugin: DndStatblockPlugin;
@@ -53,15 +62,14 @@ export class SidePanelBestiaryView extends ItemView {
         const headerEl = container.createDiv(`obsidian-dnd-statblock-side-panel-bestiary-header`);
         const searchEl = new SearchComponent(headerEl).setPlaceholder(TEXTS.sidePanelBestiarySearchPlaceholder);
         const suggester = new MonsterSuggester(this.#plugin.app, searchEl, this.#bestiary);
-        suggester.onSelectMonster(fullMonster => this.#render(fullMonster));
-    }
-
-    async #render(monster: Partial<FullMonster>) {
-        console.log(`render monster: ${monster.name?.rus} + ${monster.hits?.average}`)
+        suggester.onSelectMonster(fullMonster => {
+            renderLayout5e(container, fullMonster);
+            suggester.close();
+        });
     }
 }
 
-export async function openSidePanelBestiary(isSidePanelOpened: boolean = false, workspace: Workspace) {
+async function openSidePanelBestiary(isSidePanelOpened: boolean = false, workspace: Workspace) {
 
     let leaf: WorkspaceLeaf;
     const sidePanelLeaves = workspace.getLeavesOfType(SIDE_PANEL_BESTIARY_VIEW);
