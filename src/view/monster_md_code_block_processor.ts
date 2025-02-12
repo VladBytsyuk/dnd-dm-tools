@@ -23,8 +23,10 @@ async function monsterMdCodeBlockProcessor(
     const parameters = parseYaml(source);
     if (!parameters.creature) return;
 
+    const isTwoColumns = parameters.twoColumns ?? false
+
     const fullMonster = await bestiary.getFullMonsterByName(parameters.creature);
     if (fullMonster == null) return;
 
-    renderLayout5e(el, fullMonster);
+    renderLayout5e(el, fullMonster, isTwoColumns);
 }

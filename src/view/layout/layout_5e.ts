@@ -3,11 +3,11 @@ import { TEXTS } from "src/res/texts";
 
 type BlockData = { name: string; value: string };
 
-export function renderLayout5e(container: Element, monster: FullMonster) {
+export function renderLayout5e(container: Element, monster: FullMonster, isTwoColumns: boolean = false) {
     console.log(`Render monster: ${monster.name.eng}`);
     container.classList.add('layout-5e');
 
-    const statblock = createElement(container, 'div', 'layout-5e-statblock');
+    const statblock = createElement(container, 'div', isTwoColumns ? 'layout-5e-statblock-wide' : 'layout-5e-statblock');
     
     addSectionLeft(statblock, monster);
     addSectionRight(statblock, monster);
@@ -31,7 +31,7 @@ function createElement(
 }
 
 function addSectionLeft(parent: HTMLElement, monster: FullMonster) {
-    const leftSection = createElement(parent, 'div', '', '')
+    const leftSection = createElement(parent, 'div', 'layout-5e-statblock-section', '')
 
     addHeader(leftSection, monster);
     addDivider(leftSection);
@@ -44,7 +44,7 @@ function addSectionLeft(parent: HTMLElement, monster: FullMonster) {
 }
 
 function addSectionRight(parent: HTMLElement, monster: FullMonster) {
-    const rightSection = createElement(parent, 'div', '', '')
+    const rightSection = createElement(parent, 'div', 'layout-5e-statblock-section', '')
 
     addAbilities(rightSection, monster);
     addActionBlock(rightSection, monster.actions, TEXTS.layoutActions);

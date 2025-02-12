@@ -8,7 +8,6 @@ If your plugin does not need CSS, delete this file.
 */
 
 .layout-5e {
-    box-shadow: 0 0 1.5rem #867453;
     display: inline-block;
 }
 
@@ -18,13 +17,34 @@ If your plugin does not need CSS, delete this file.
     line-height: 1.2em;
     display: inline-block;
     vertical-align: top;
-    width: 400px;
+    width: 100%;
     background: #FDF1DC;
     background-size: cover;
     background-position: center;
     padding: 1em;
     box-sizing: border-box;
     font-family: 'Noto Sans', 'Myriad Pro', Calibri, Helvetica, Arial, sans-serif;
+}
+
+.layout-5e-statblock-wide {
+    text-align: left;
+    font-size: 12.5px;
+    line-height: 1.2em;
+    display: flex;
+    gap: 1em;
+    vertical-align: top;
+    width: 100%;
+    background: #FDF1DC;
+    background-size: cover;
+    background-position: center;
+    padding: 1em;
+    box-sizing: border-box;
+    font-family: 'Noto Sans', 'Myriad Pro', Calibri, Helvetica, Arial, sans-serif;
+}
+
+.layout-5e-statblock-section {
+    flex: 1;
+    max-width: 400px;
 }
 
 .layout-5e-statblock-header {
