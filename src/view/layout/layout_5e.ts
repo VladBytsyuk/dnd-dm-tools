@@ -78,7 +78,7 @@ function addScoresTable(parent: HTMLElement, { ability }: FullMonster) {
     
     const addScore = (label: string, value: number) => {
         const item = createElement(table, 'div', 'layout-5e-statblock-scores-table-item');
-        createElement(item, 'h6', '', label);
+        createElement(item, 'div', 'layout-5e-statblock-scores-table-item-title', `<b>${label}</b>`);
         createElement(item, 'div', '', `${value} (${formatModifier(value)})`);
     };
 
@@ -162,11 +162,11 @@ function addGenericBlock(
     createElement(block, 'div', 'layout-5e-statblock-block-header', title);
     
     if (description) {
-        createElement(block, 'div', '', description);
+        createElement(block, 'div', 'layout-5e-statblock-generic-description', description.replace(/<\/?p\b[^>]*>/gi, ''));
     }
 
     items.forEach(({ name, value }) => 
-        createElement(block, 'div', '', `<b>${name}.</b> ${value.replace(/<\/?p>/g, '')}`)
+        createElement(block, 'div', '', `<b>${name}.</b> ${value.replace(/<\/?p\b[^>]*>/gi, '')}`)
     );
 }
 

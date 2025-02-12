@@ -22,14 +22,13 @@ If your plugin does not need CSS, delete this file.
     background: #FDF1DC;
     background-size: cover;
     background-position: center;
-    background-image: url(../dndimages/statblockparch.jpg);
-    padding: 10px 10px 20px;
+    padding: 1em;
     box-sizing: border-box;
     font-family: 'Noto Sans', 'Myriad Pro', Calibri, Helvetica, Arial, sans-serif;
 }
 
 .layout-5e-statblock-header {
-    margin: 0 0 10px 0
+    margin: 0 0 0.5em;
 }
 
 .layout-5e-statblock-header-name {
@@ -37,7 +36,7 @@ If your plugin does not need CSS, delete this file.
     color: #922610;
     font-size: 21px;
     line-height: 1.2em;
-    margin: 10px 0 0;
+    margin: 0 0 2px;
     letter-spacing: 1px;
     font-variant: small-caps;
     font-weight: bold;
@@ -51,16 +50,14 @@ If your plugin does not need CSS, delete this file.
     font-style: italic;
     font-size: 12px;
     line-height: 1.2em;
-    margin: 0;
 }
 
 .layout-5e-statblock-base-info {
-    margin: 0 0 10px 0
+    margin: 0.5em 0 0.5em
 }
 
 .layout-5e-statblock-base-info-item {
     color: #922610;
-    margin: 0;
     font-size: 12.5px;
     line-height: 1.2em;
 }
@@ -68,7 +65,7 @@ If your plugin does not need CSS, delete this file.
 .layout-5e-statblock-scores-table {
     text-align: center;
     color: #922610;
-    margin: 0 0 10px 0
+    margin: 0.5em 0 0.5em;
 }
 
 .layout-5e-statblock-scores-table-item {
@@ -80,10 +77,13 @@ If your plugin does not need CSS, delete this file.
     line-height: 1em;
 }
 
-.layout-5e-statblock-property-block {
-    padding: 10px 2px 0;
-    color: #000000;
+.layout-5e-statblock-scores-table-item-title {
+    margin: 0 0 0.5em;
+}
 
+.layout-5e-statblock-property-block {
+    padding: 0.5em 0 0;
+    color: #000000;
 }
 
 .layout-5e-statblock-block-header {
@@ -93,9 +93,13 @@ If your plugin does not need CSS, delete this file.
     font-variant: small-caps;
     font-weight: normal;
     letter-spacing: 1px;
-    margin: 20px 0 0;
+    margin: 0.5em 0 0.125em;
     padding: 0 0 10px;
     text-indent: 5px;
+}
+
+.layout-5e-statblock-generic-description {
+    margin: 0.5em 0 0.125em;
 }
 
 .tapered-rule {
