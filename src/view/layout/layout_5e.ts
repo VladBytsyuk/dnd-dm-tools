@@ -1,32 +1,45 @@
 import { FullMonster } from "src/domain/monster";
 import { TEXTS } from "src/res/texts";
 
+type BlockData = { name: string; value: string };
+
 export function renderLayout5e(container: Element, monster: FullMonster) {
     console.log(`Render monster: ${monster.name.eng}`);
-    container.addClass('layout-5e');
+    container.classList.add('layout-5e');
 
-    const statblock = document.createElement('div');
-    statblock.addClass('layout-5e-statblock');
-    container.appendChild(statblock)
+    const statblock = createElement(container, 'div', 'layout-5e-statblock');
+    
+    addHeader(statblock, monster)
+    addDivider(statblock)
+    addBaseInfo(statblock, monster)
+    addDivider(statblock)
+    addScoresTable(statblock, monster)
+    addDivider(statblock)
+    addAdditionalProperties(statblock, monster)
+    addDivider(statblock)
+    addAbilities(statblock, monster)
+    addActionBlock(statblock, monster.actions, TEXTS.layoutActions)
+    addActionBlock(statblock, monster.bonusActions, TEXTS.layoutBonusActions)
+    addActionBlock(statblock, monster.reactions, TEXTS.layoutReactions)
+    addLegendaryBlock(statblock, monster)
+    addLairBlocks(statblock, monster)
+}
 
-    addHeader(statblock, monster);
-    addDivider(statblock);
-    addBaseInfo(statblock, monster);
-    addDivider(statblock);
-    addScoresTable(statblock, monster);
-    addDivider(statblock);
-    addBaseInfoProperties(statblock, monster);
-    addDivider(statblock);
-    addAbilities(statblock, monster);
-    addBlock(statblock, monster.actions, TEXTS.layoutActions);
-    addBlock(statblock, monster.bonusActions, TEXTS.layoutBonusActions);
-    addBlock(statblock, monster.reactions, TEXTS.layoutReactions);
-    addBlock(statblock, monster.legendary.list, TEXTS.layoutLegendaryActions, monster.legendary.description);
-    if (monster.lair) {
-        addBlock(statblock, [], TEXTS.layoutLair, monster.lair.description);
-        addBlock(statblock, [], TEXTS.layoutLairActions, monster.lair.action);
-        addBlock(statblock, [], TEXTS.layoutRegionalEffects, monster.lair.effect);
+function createElement(
+    parent: HTMLElement | Element,
+    tag: string,
+    className?: string,
+    content?: string | HTMLElement
+): HTMLElement {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    if (content) {
+        typeof content === 'string' 
+            ? (element.innerHTML = content)
+            : element.appendChild(content);
     }
+    parent.appendChild(element);
+    return element;
 }
 
 function addDivider(parent: HTMLElement) {
@@ -34,164 +47,130 @@ function addDivider(parent: HTMLElement) {
     svg.setAttribute('height', '5');
     svg.setAttribute('width', '100%');
     svg.addClass('tapered-rule');
+    
     const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
     polyline.setAttribute('points', '0,0 400,2.5 0,5');
     svg.appendChild(polyline);
-
+    
     parent.appendChild(svg);
 }
 
-function addHeader(parent: HTMLElement, monster: FullMonster) {
-    const header = createDiv(parent, 'layout-5e-statblock-header');
-    createDiv(header, 'layout-5e-statblock-header-name', monster.name.rus);
-    createDiv(header, 'layout-5e-statblock-header-subtitle', `${monster.size.rus} ${monster.type.name}, ${monster.alignment}`);
+function addHeader(parent: HTMLElement, { name, size, type, alignment }: FullMonster) {
+    const header = createElement(parent, 'div', 'layout-5e-statblock-header');
+    createElement(header, 'div', 'layout-5e-statblock-header-name', name.rus);
+    createElement(header, 'div', 'layout-5e-statblock-header-subtitle', `${size.rus} ${type.name}, ${alignment}`);
 }
 
 function addBaseInfo(parent: HTMLElement, monster: FullMonster) {
-    const baseInfoBlock = createDiv(parent, 'layout-5e-statblock-base-info');
-    createDivHtml(
-        baseInfoBlock, 'layout-5e-statblock-base-info-item', 
-        `<b>${TEXTS.layoutArmorClass}:</b> ${monster.armorClass}`,
+    const { armorClass, hits, speed } = monster;
+    const block = createElement(parent, 'div', 'layout-5e-statblock-base-info');
+
+    const formatLine = (label: string, value: string) => 
+        createElement(block, 'div', 'layout-5e-statblock-base-info-item', `<b>${label}:</b> ${value}`);
+
+    formatLine(TEXTS.layoutArmorClass, armorClass.toString());
+    formatLine(TEXTS.layoutHits, `${hits.average} (${hits.formula})`);
+    formatLine(TEXTS.layoutSpeed, speed.map(s => `${s.name ?? ''} ${s.value} ${TEXTS.layoutFt}.`).join(', '));
+}
+
+function addScoresTable(parent: HTMLElement, { ability }: FullMonster) {
+    const table = createElement(parent, 'div', 'layout-5e-statblock-scores-table');
+    
+    const addScore = (label: string, value: number) => {
+        const item = createElement(table, 'div', 'layout-5e-statblock-scores-table-item');
+        createElement(item, 'h6', '', label);
+        createElement(item, 'div', '', `${value} (${formatModifier(value)})`);
+    };
+
+    addScore(TEXTS.layoutStr, ability.str);
+    addScore(TEXTS.layoutDex, ability.dex);
+    addScore(TEXTS.layoutCon, ability.con);
+    addScore(TEXTS.layoutInt, ability.int);
+    addScore(TEXTS.layoutWis, ability.wiz);
+    addScore(TEXTS.layoutCha, ability.cha);
+}
+
+function addAdditionalProperties(parent: HTMLElement, monster: FullMonster) {
+    const { 
+        savingThrows, skills, damageVulnerabilities, damageResistances,
+        damageImmunities, conditionImmunities, senses, languages, challengeRating 
+    } = monster;
+    
+    const block = createElement(parent, 'div', 'layout-5e-statblock-base-info');
+
+    const addProperty = (label: string, values: unknown[]) => {
+        if (!values?.length) return;
+        const content = values.join(', ');
+        createElement(block, 'div', 'layout-5e-statblock-base-info-item', `<b>${label}:</b> ${content}`);
+    };
+
+    savingThrows && addProperty(TEXTS.layoutSaves, savingThrows.map(st => `${st.name} ${formatModifier(st.value)}`));
+    skills && addProperty(TEXTS.layoutSkills, skills.map(s => `${s.name} ${formatModifier(s.value)}`));
+    addProperty(TEXTS.layoutDamageVulnerabilities, damageVulnerabilities);
+    addProperty(TEXTS.layoutDamageResistances, damageResistances);
+    addProperty(TEXTS.layoutDamageImmunities, damageImmunities);
+    addProperty(TEXTS.layoutConditionImmunities, conditionImmunities);
+    
+    senses && createElement(block, 'div', 'layout-5e-statblock-base-info-item', 
+        `<b>${TEXTS.layoutSenses}:</b> ${TEXTS.layoutPassivePerception} ${senses.passivePerception}`);
+    
+    addProperty(TEXTS.layoutLanguages, languages);
+    
+    if (challengeRating) {
+        const xp = monster.experience ? ` (${monster.experience} XP)` : '';
+        createElement(block, 'div', 'layout-5e-statblock-base-info-item', 
+            `<b>${TEXTS.layoutChallengeRating}:</b> ${challengeRating}${xp}`);
+    }
+}
+
+function addAbilities(parent: HTMLElement, { feats }: FullMonster) {
+    const block = createElement(parent, 'div', 'layout-5e-statblock-property-block');
+    feats.forEach(({ name, value }) => 
+        createElement(block, 'div', '', `<b>${name}.</b> ${value.replace(/<\/?p>/g, '')}`)
     );
-    createDivHtml(
-        baseInfoBlock, 'layout-5e-statblock-base-info-item', 
-        `<b>${TEXTS.layoutHits}:</b> ${monster.hits.average} (${monster.hits.formula})`,
-    );
-    createDivHtml(
-        baseInfoBlock, 'layout-5e-statblock-base-info-item', 
-        `<b>${TEXTS.layoutSpeed}:</b> ${monster.speed.map(speed => `${speed.name ?? ''} ${speed.value} фт.`).join(", ")}`,
-    );
 }
 
-function addScoresTable(parent: HTMLElement, monster: FullMonster) {
-    const scoresTable = createDiv(parent, 'layout-5e-statblock-scores-table');
-    createDivTable(scoresTable, TEXTS.layoutStr, monster.ability.str);
-    createDivTable(scoresTable, TEXTS.layoutDex, monster.ability.dex);
-    createDivTable(scoresTable, TEXTS.layoutCon, monster.ability.con);
-    createDivTable(scoresTable, TEXTS.layoutInt, monster.ability.int);
-    createDivTable(scoresTable, TEXTS.layoutWis, monster.ability.wiz);
-    createDivTable(scoresTable, TEXTS.layoutCha, monster.ability.cha);
-}
-
-function addBaseInfoProperties(parent: HTMLElement, monster: FullMonster) {
-    const baseInfoBlock = createDiv(parent, 'layout-5e-statblock-base-info');
-    if (monster.savingThrows) {
-        createDivProperty(baseInfoBlock, `<b>${TEXTS.layoutSaves}:</b> ${monster.savingThrows.map(it => `${it.name} ${modifierStr(it.value)}`).join(', ')}`);
-    }
-    if (monster.skills) {
-        createDivProperty(baseInfoBlock, `<b>${TEXTS.layoutSkills}:</b> ${monster.skills.map(it => `${it.name} ${modifierStr(it.value)}`).join(', ')}`);
-    }
-    if (monster.damageVulnerabilities) {
-        createDivProperty(baseInfoBlock, `<b>${TEXTS.layoutDamageVulnerabilities}:</b> ${monster.damageVulnerabilities.join(', ')}`);
-    }
-    if (monster.damageResistances) {
-        createDivProperty(baseInfoBlock, `<b>${TEXTS.layoutDamageResistances}:</b> ${monster.damageResistances.join(', ')}`);
-    }
-    if (monster.damageImmunities) {
-        createDivProperty(baseInfoBlock, `<b>${TEXTS.layoutDamageImmunities}:</b> ${monster.damageImmunities.join(', ')}`);
-    }
-    if (monster.conditionImmunities) {
-        createDivProperty(baseInfoBlock, `<b>${TEXTS.layoutConditionImmunities}:</b> ${monster.conditionImmunities.join(', ')}`);
-    }
-    if (monster.senses) {
-        createDivProperty(baseInfoBlock, `<b>${TEXTS.layoutSenses}:</b> пассивная внимательность ${monster.senses.passivePerception}`);
-    }
-    if (monster.languages) {
-        createDivProperty(baseInfoBlock, `<b>${TEXTS.layoutLanguages}:</b> ${monster.languages.join(", ")}`);
-    }
-    if (monster.challengeRating) {
-        createDivProperty(baseInfoBlock, `<b>${TEXTS.layoutChallengeRating}:</b> ${monster.challengeRating} ${monster.experience ? `(${monster.experience} XP)` : ``}`);
-    }
-}
-
-function addAbilities(parent: HTMLElement, monster: FullMonster) {
-    const abilities = document.createElement('div');
-    abilities.addClass('layout-5e-statblock-property-block');
-    monster.feats.forEach(feat => {
-        createProperty(abilities, feat.name, feat.value.replace('<p>', '').replace('</p>', ''));
-    });
-    parent.appendChild(abilities);
-}
-
-function addBlock(
+function addActionBlock(
     parent: HTMLElement,
-    data: { name: string, value: string }[],
+    data: BlockData[],
     title: string,
-    description: string | null = null,
 ) {
-    if (!data) return;
-    const container = document.createElement('div');
-    container.addClass('layout-5e-statblock-property-block');
+    if (!data?.length) return;
+    addGenericBlock(parent, data, title);
+}
 
-    const header = document.createElement('div');
-    header.addClass('layout-5e-statblock-block-header');
-    header.setText(title);
-    container.appendChild(header);
+function addLegendaryBlock(parent: HTMLElement, { legendary }: FullMonster) {
+    if (!legendary?.list.length) return;
+    addGenericBlock(parent, legendary.list, TEXTS.layoutLegendaryActions, legendary.description);
+}
 
+function addLairBlocks(parent: HTMLElement, { lair }: FullMonster) {
+    if (!lair) return;
+    
+    addGenericBlock(parent, [], TEXTS.layoutLair, lair.description);
+    addGenericBlock(parent, [], TEXTS.layoutLairActions, lair.action);
+    addGenericBlock(parent, [], TEXTS.layoutRegionalEffects, lair.effect);
+}
+
+function addGenericBlock(
+    parent: HTMLElement,
+    items: BlockData[],
+    title: string,
+    description?: string | null
+) {
+    const block = createElement(parent, 'div', 'layout-5e-statblock-property-block');
+    createElement(block, 'div', 'layout-5e-statblock-block-header', title);
+    
     if (description) {
-        const desc = document.createElement('div');
-        desc.innerHTML = description;
-        container.appendChild(desc);
+        createElement(block, 'div', '', description);
     }
 
-    data.forEach(item => {
-        createProperty(container, item.name, item.value.replace('<p>', '').replace('</p>', ''));
-    });
-    parent.appendChild(container);
+    items.forEach(({ name, value }) => 
+        createElement(block, 'div', '', `<b>${name}.</b> ${value.replace(/<\/?p>/g, '')}`)
+    );
 }
 
-function createDiv(parent: HTMLElement, style: string | null = null, text: string | null = null): HTMLElement {
-    const item = document.createElement('div');
-    if (style != null) item.addClass(style);
-    if (text != null) item.setText(text);
-    parent.appendChild(item);
-    return item;
-}
-
-function createDivHtml(parent: HTMLElement, style: string | null = null, text: string | null = null): HTMLElement {
-    const item = document.createElement('div');
-    if (style != null) item.addClass(style);
-    if (text != null) item.innerHTML = text;
-    parent.appendChild(item);
-    return item;
-}
-
-function createDivProperty(parent: HTMLElement, text: string): HTMLElement {
-    return createDivHtml(parent, 'layout-5e-statblock-base-info-item', text)
-}
-
-function createDivTable(parent: HTMLElement, header: string, value: number): HTMLElement {
-    const item = document.createElement('div');
-    item.addClass('layout-5e-statblock-scores-table-item');
-    parent.appendChild(item);
-
-    const scoreName = document.createElement('h6');
-    scoreName.setText(header);
-    item.appendChild(scoreName);
-
-    const scoreValue = document.createElement('div');
-    scoreValue.setText(`${value} (${valueToModifier(value)})`);
-    item.appendChild(scoreValue);
-
-    return item;
-}
-
-function createProperty(parent: HTMLElement, name: string, value: string): HTMLElement {
-    const item = document.createElement('div');
-    item.innerHTML = `<b>${name}.</b> ${value}`;
-    parent.appendChild(item);
-    return item;
-}
-
-function valueToModifier(value: number): string {
-    const modifier = (value - 10) / 2;
-    return modifierStr(modifier);
-}
-
-function modifierStr(modifier: number): string {
-    if (modifier >= 0) {
-        return `+${modifier}`;
-    } else {
-        return `${modifier}`;
-    }
+function formatModifier(value: number): string {
+    return Math.floor((value - 10) / 2).toString()
+        .replace(/^(-?)(\d+)/, (_, sign, num) => Number(num) >= 0 ? `+${num}` : `${sign}${num}`);
 }
