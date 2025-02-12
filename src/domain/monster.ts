@@ -89,6 +89,12 @@ interface Legendary {
     description: string;
 }
 
+interface Lair {
+    description: string;
+    action: string;
+    effect: string;
+}
+
 interface Tag {
     name: string;
     description: string;
@@ -115,13 +121,19 @@ export interface FullMonster extends SmallMonster {
     ability: Ability;
     savingThrows: SavingThrow[];
     skills: Skill[];
+    damageVulnerabilities: string[];
+    damageResistances: string[];
     damageImmunities: string[];
     conditionImmunities: string[];
     senses: Senses;
     languages: string[];
     feats: Feat[];
     actions: Action[];
+    bonusActions: Action[];
+    reactions: Action[];
     legendary: Legendary;
+    mythic: Legendary;
+    lair: Lair,
     tags: Tag[];
     images: string[];
 }
