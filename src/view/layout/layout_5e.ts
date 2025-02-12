@@ -9,20 +9,8 @@ export function renderLayout5e(container: Element, monster: FullMonster) {
 
     const statblock = createElement(container, 'div', 'layout-5e-statblock');
     
-    addHeader(statblock, monster)
-    addDivider(statblock)
-    addBaseInfo(statblock, monster)
-    addDivider(statblock)
-    addScoresTable(statblock, monster)
-    addDivider(statblock)
-    addAdditionalProperties(statblock, monster)
-    addDivider(statblock)
-    addAbilities(statblock, monster)
-    addActionBlock(statblock, monster.actions, TEXTS.layoutActions)
-    addActionBlock(statblock, monster.bonusActions, TEXTS.layoutBonusActions)
-    addActionBlock(statblock, monster.reactions, TEXTS.layoutReactions)
-    addLegendaryBlock(statblock, monster)
-    addLairBlocks(statblock, monster)
+    addSectionLeft(statblock, monster);
+    addSectionRight(statblock, monster);
 }
 
 function createElement(
@@ -40,6 +28,30 @@ function createElement(
     }
     parent.appendChild(element);
     return element;
+}
+
+function addSectionLeft(parent: HTMLElement, monster: FullMonster) {
+    const leftSection = createElement(parent, 'div', '', '')
+
+    addHeader(leftSection, monster);
+    addDivider(leftSection);
+    addBaseInfo(leftSection, monster);
+    addDivider(leftSection);
+    addScoresTable(leftSection, monster);
+    addDivider(leftSection);
+    addAdditionalProperties(leftSection, monster);
+    addDivider(leftSection);
+}
+
+function addSectionRight(parent: HTMLElement, monster: FullMonster) {
+    const rightSection = createElement(parent, 'div', '', '')
+
+    addAbilities(rightSection, monster);
+    addActionBlock(rightSection, monster.actions, TEXTS.layoutActions);
+    addActionBlock(rightSection, monster.bonusActions, TEXTS.layoutBonusActions);
+    addActionBlock(rightSection, monster.reactions, TEXTS.layoutReactions);
+    addLegendaryBlock(rightSection, monster);
+    addLairBlocks(rightSection, monster);
 }
 
 function addDivider(parent: HTMLElement) {
