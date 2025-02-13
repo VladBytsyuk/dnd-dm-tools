@@ -138,13 +138,26 @@ function addHeader(parent: HTMLElement, { name, size, type, alignment }: FullMon
 }
 
 function addBaseInfo(parent: HTMLElement, monster: FullMonster) {
-    const { armorClass, hits, speed } = monster;
+    const { armorClass, armors, hits, speed } = monster;
     const block = createElement(parent, 'div', 'layout-5e-statblock-base-info');
 
     const formatLine = (label: string, value: string) => 
         createElement(block, 'div', 'layout-5e-statblock-base-info-item', `<b>${label}:</b> ${value}`);
 
-    if (armorClass) formatLine(TEXTS.layoutArmorClass, armorClass.toString());
+    if (armorClass) {
+        let text = armorClass.toString()
+        if (armors) {
+            text = text.concat(` (`);
+            armors.forEach((it, index) => {
+                text = text.concat(it.name);
+                if (index != armors.length - 1) {
+                    text = text.concat(', ');
+                }
+            });
+            text = text.concat(`)`);
+        }
+        formatLine(TEXTS.layoutArmorClass, text);
+    }
     if (hits) {
         let text = ""
         if (hits.average) text = text.concat(hits.average.toString());
