@@ -128,11 +128,11 @@ function addHeader(parent: HTMLElement, { name, size, type, alignment }: FullMon
     }
     if (size || type || alignment) {
         let text = ""
-        if (size) text.concat(size.rus);
-        if (size && type) text.concat(" ");
-        if (type) text.concat(type.name);
-        if ((size || type) && alignment) text.concat(", ");
-        if (alignment) text.concat(alignment);
+        if (size) text = text.concat(size.rus);
+        if (size && type) text = text.concat(" ");
+        if (type) text = text.concat(type.name);
+        if ((size || type) && alignment) text = text.concat(", ");
+        if (alignment) text = text.concat(alignment);
         createElement(header, 'div', 'layout-5e-statblock-header-subtitle', text);
     }
 }
@@ -147,9 +147,13 @@ function addBaseInfo(parent: HTMLElement, monster: FullMonster) {
     if (armorClass) formatLine(TEXTS.layoutArmorClass, armorClass.toString());
     if (hits) {
         let text = ""
-        if (hits.average) text.concat(hits.average.toString());
-        if (hits.average && hits.formula) text.concat(" ");
-        if (hits.formula) text.concat(`(${hits.average.toString()})`);
+        if (hits.average) text = text.concat(hits.average.toString());
+        if (hits.average && hits.formula) text = text.concat(" ");
+        if (hits.formula) {
+            text = text.concat(`(${hits.formula.toString()}`);
+            if (hits.sign && hits.bonus) text = text.concat(hits.sign, hits.bonus.toString());
+            text = text.concat(')');
+        }
         formatLine(TEXTS.layoutHits, text);
     }
     if (speed) formatLine(TEXTS.layoutSpeed, speed.map(s => `${s.name ?? ''} ${s.value} ${TEXTS.layoutFt}.`).join(', '));
