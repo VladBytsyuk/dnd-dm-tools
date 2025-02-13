@@ -1,11 +1,11 @@
 import { FullMonster } from "src/domain/monster";
-import { copyMonsterToClipboard } from "src/domain/monster_parser";
-import { TEXTS } from "src/res/texts";
+import { copyMonsterToClipboard } from "src/data/clipboard";
+import { TEXTS } from "src/res/texts_ru";
 
 type BlockData = { name: string; value: string };
 
-export function renderLayout5e(container: Element, monster: FullMonster, isTwoColumns: boolean = false) {
-    console.log(`Render monster: ${monster.name.eng}`);
+export function renderLayoutTtg(container: Element, monster: FullMonster, isTwoColumns: boolean = false) {
+    console.log(`Render monster ttg: ${monster.name.eng}`);
     const layout5e = createElement(container, 'div', 'layout-5e', '')
 
     const statblock = createElement(layout5e, 'div', isTwoColumns ? 'layout-5e-statblock-wide' : 'layout-5e-statblock');

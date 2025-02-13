@@ -1,6 +1,8 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import type DndStatblockPlugin from "src/main";
-import type { DndStatblockSettingsController } from "src/settings/settings_controller";
+import { TEXTS } from 'src/res/texts_ru';
+import { DndStatblockSettingsController } from './settings_controller';
+import { LayoutStyle } from './layout_style';
 
 export function registerSettingsTab(
 	plugin: DndStatblockPlugin,
@@ -32,14 +34,16 @@ export class DndStatblockSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.#controller.settings.mySetting)
+			.setName(TEXTS.settingsLayout)
+			.setDesc(TEXTS.settingsLayoutDescription)
+			.addDropdown(cb => cb
+				.addOption(LayoutStyle.Dnd5e, TEXTS.settingsLayout5e)
+				.addOption(LayoutStyle.TtgClub, TEXTS.settingsLayoutTtg)
+				.setValue(this.#controller.settings.layoutStyle)
 				.onChange(async (value) => {
-					this.#controller.settings.mySetting = value;
+					this.#controller.settings.layoutStyle = value as LayoutStyle;
 					await this.#controller.saveSettings();
-				}));
+				})
+			)
 	}
 }

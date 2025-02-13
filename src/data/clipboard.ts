@@ -1,6 +1,6 @@
 import { Notice, stringifyYaml } from "obsidian";
-import { FullMonster } from "./monster";
-import { TEXTS } from "src/res/texts";
+import { FullMonster } from "../domain/monster";
+import { TEXTS } from "src/res/texts_ru";
 
 export function copyMonsterToClipboard(monster: FullMonster) {
     const yamlMonster = stringifyYaml(monster);

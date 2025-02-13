@@ -1,6 +1,6 @@
 import { Editor } from "obsidian";
 import DndStatblockPlugin from "src/main";
-import { TEXTS } from "src/res/texts";
+import { TEXTS } from "src/res/texts_ru";
 
 const ADD_STATBLOCK_COMMAND_ID = 'add-statblock-command-id';
 const ADD_WIDE_STATBLOCK_COMMAND_ID = 'add-wide-statblock-command-id';

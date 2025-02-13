@@ -1,8 +1,9 @@
 import DndStatblockPlugin from "src/main";
-import type { DndStatblockPluginSettings } from "src/settings/settings";
+import type { DndStatblockPluginSettings } from "src/ui/components/settings/settings";
+import { LayoutStyle } from "./layout_style";
 
 const DEFAULT_SETTINGS: DndStatblockPluginSettings = {
-	mySetting: 'default'
+	layoutStyle: LayoutStyle.Dnd5e
 }
 
 export class DndStatblockSettingsController {

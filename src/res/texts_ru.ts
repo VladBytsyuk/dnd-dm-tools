@@ -1,4 +1,8 @@
 export const TEXTS = {
+    settingsLayout: "Стиль статблока",
+    settingsLayoutDescription: "Внешний вид и разметка статблока",
+    settingsLayout5e: "D&D 5 редакции",
+    settingsLayoutTtg: "TTG Club",
     noticeClipboardSuccess: " - успешно скопировано.",
     ribbonActionTitle: "Открыть бестиарий",
     sidePanelBestiaryTitle: "Бестиарий",

@@ -1,18 +1,18 @@
 import { ItemView, Workspace, type WorkspaceLeaf, SearchComponent, ButtonComponent } from "obsidian";
 import DndStatblockPlugin from "src/main";
 import { Bestiary } from "src/data/bestiary";
-import { FullMonster } from "src/domain/monster";
-import { TEXTS } from "src/res/texts";
-import { MonsterSuggester } from "src/suggest/monster_suggester";
-import { renderLayout5e } from "./layout/layout_5e";
+import { TEXTS } from "src/res/texts_ru";
+import { MonsterSuggester } from "src/ui/components/suggest/monster_suggester";
+import { LayoutManager } from "../settings/layout_manager";
 
 export function registerSidePanelBestiary(
     plugin: DndStatblockPlugin,
     bestiary: Bestiary,
+    layoutManager: LayoutManager,
 ) {
     plugin.registerView(
         SIDE_PANEL_BESTIARY_VIEW,
-        (leaf: WorkspaceLeaf) => new SidePanelBestiaryView(leaf, plugin, bestiary)
+        (leaf: WorkspaceLeaf) => new SidePanelBestiaryView(leaf, plugin, bestiary, layoutManager),
     );
     plugin.addRibbonIcon("skull", TEXTS.ribbonActionTitle, async (mouseEvent) => {
         openSidePanelBestiary(mouseEvent.getModifierState("Meta"), plugin.app.workspace)
@@ -26,11 +26,18 @@ class SidePanelBestiaryView extends ItemView {
     // ---- fields ----
     #plugin: DndStatblockPlugin;
     #bestiary: Bestiary;
+    #layoutManager: LayoutManager;
 
-    constructor(leaf: WorkspaceLeaf, plugin: DndStatblockPlugin, bestiary: Bestiary) {
+    constructor(
+        leaf: WorkspaceLeaf, 
+        plugin: DndStatblockPlugin, 
+        bestiary: Bestiary,
+        layoutManager: LayoutManager,
+    ) {
         super(leaf);
         this.#plugin = plugin;
         this.#bestiary = bestiary;
+        this.#layoutManager = layoutManager;
     }
 
     // ---- callbacks ----
@@ -82,7 +89,7 @@ class SidePanelBestiaryView extends ItemView {
         const suggester = new MonsterSuggester(this.#plugin.app, searchEl, this.#bestiary);
         suggester.onSelectMonster(fullMonster => {
             statblockContainer.empty();
-            renderLayout5e(statblockContainer, fullMonster);
+            this.#layoutManager.renderLayout(statblockContainer, fullMonster);
             suggester.close();
         });
     }
