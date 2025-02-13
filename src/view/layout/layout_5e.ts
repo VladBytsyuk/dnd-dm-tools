@@ -5,9 +5,9 @@ type BlockData = { name: string; value: string };
 
 export function renderLayout5e(container: Element, monster: FullMonster, isTwoColumns: boolean = false) {
     console.log(`Render monster: ${monster.name.eng}`);
-    container.classList.add('layout-5e');
+    const layout5e = createElement(container, 'div', '', '')
 
-    const statblock = createElement(container, 'div', isTwoColumns ? 'layout-5e-statblock-wide' : 'layout-5e-statblock');
+    const statblock = createElement(layout5e, 'div', isTwoColumns ? 'layout-5e-statblock-wide' : 'layout-5e-statblock');
     
     addSectionLeft(statblock, monster);
     addSectionRight(statblock, monster);

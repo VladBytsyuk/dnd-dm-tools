@@ -7,6 +7,19 @@ If your plugin does not need CSS, delete this file.
 
 */
 
+.side-panel-bestiary-header {
+    display: flex;
+}
+
+.search-input-container {
+    flex: 1;
+    margin: 0 0.5em 0 0
+}
+
+.side-panel-bestiary-statblock-container {
+    padding: 1em;
+}
+
 .layout-5e {
     display: inline-block;
 }
@@ -44,7 +57,6 @@ If your plugin does not need CSS, delete this file.
 
 .layout-5e-statblock-section {
     flex: 1;
-    max-width: 400px;
 }
 
 .layout-5e-statblock-header {

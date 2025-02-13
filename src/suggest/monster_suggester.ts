@@ -20,12 +20,19 @@ export class MonsterSuggester extends AbstractInputSuggest<FuzzyMatch<SmallMonst
 
     // ---- callbacks ----
     async getSuggestions(query: string) {
+        if (query.length < 3) return [];
         const smallMonsters = await this.#bestiary.getAllSmallMonsters();
         const simpleSearchFn = prepareSimpleSearch(query);
         const results = [];
         for (const item of smallMonsters) {
-            const match = simpleSearchFn(item.name.rus);
-            if (match) results.push({ item, match });
+            const rusMatch = simpleSearchFn(item.name.rus);
+            const engMatch = simpleSearchFn(item.name.eng);
+            if (rusMatch) {
+                results.push({ item, match: rusMatch });
+            }
+            if (engMatch) {
+                results.push({ item, match: engMatch });
+            }
         }
         return results;
     }

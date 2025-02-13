@@ -1,4 +1,4 @@
-import { ItemView, Workspace, type WorkspaceLeaf, SearchComponent } from "obsidian";
+import { ItemView, Workspace, type WorkspaceLeaf, SearchComponent, ButtonComponent } from "obsidian";
 import DndStatblockPlugin from "src/main";
 import { Bestiary } from "src/data/bestiary";
 import { FullMonster } from "src/domain/monster";
@@ -59,11 +59,29 @@ class SidePanelBestiaryView extends ItemView {
     #fillContainer(container: Element) {
         container.empty();
         
-        const headerEl = container.createDiv(`obsidian-dnd-statblock-side-panel-bestiary-header`);
+        const headerEl = container.createDiv(`side-panel-bestiary-header`);
         const searchEl = new SearchComponent(headerEl).setPlaceholder(TEXTS.sidePanelBestiarySearchPlaceholder);
+        
+        searchEl.clearButtonEl.addEventListener('click', () => {
+            searchEl.setValue("");
+            statblockContainer.empty();
+            suggester.close();
+        });
+        const clearButton = new ButtonComponent(headerEl).setIcon("eraser");
+        clearButton.onClick((evt) => {
+            searchEl.setValue("");
+            statblockContainer.empty();
+            suggester.close();
+        })
+
+        const statblockContainer = document.createElement('div');
+        statblockContainer.addClass('side-panel-bestiary-statblock-container');
+        container.appendChild(statblockContainer);
+        
         const suggester = new MonsterSuggester(this.#plugin.app, searchEl, this.#bestiary);
         suggester.onSelectMonster(fullMonster => {
-            renderLayout5e(container, fullMonster);
+            statblockContainer.empty();
+            renderLayout5e(statblockContainer, fullMonster);
             suggester.close();
         });
     }
