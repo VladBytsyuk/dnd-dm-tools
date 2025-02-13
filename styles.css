@@ -22,6 +22,18 @@ If your plugin does not need CSS, delete this file.
 
 .layout-5e {
     display: inline-block;
+    position: relative;
+}
+
+.layout-5e-copy-button {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    top: 8px;
+    right: 40px;
+    z-index: 1;
+    color: #922610;
 }
 
 .layout-5e-statblock {

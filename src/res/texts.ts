@@ -1,4 +1,5 @@
 export const TEXTS = {
+    noticeClipboardSuccess: " - успешно скопировано.",
     ribbonActionTitle: "Открыть бестиарий",
     sidePanelBestiaryTitle: "Бестиарий",
     sidePanelBestiarySearchPlaceholder: "Поиск по имени в бестиарии",

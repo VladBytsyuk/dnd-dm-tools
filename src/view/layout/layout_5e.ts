@@ -1,16 +1,18 @@
 import { FullMonster } from "src/domain/monster";
+import { copyMonsterToClipboard } from "src/domain/monster_parser";
 import { TEXTS } from "src/res/texts";
 
 type BlockData = { name: string; value: string };
 
 export function renderLayout5e(container: Element, monster: FullMonster, isTwoColumns: boolean = false) {
     console.log(`Render monster: ${monster.name.eng}`);
-    const layout5e = createElement(container, 'div', '', '')
+    const layout5e = createElement(container, 'div', 'layout-5e', '')
 
     const statblock = createElement(layout5e, 'div', isTwoColumns ? 'layout-5e-statblock-wide' : 'layout-5e-statblock');
     
     addSectionLeft(statblock, monster);
     addSectionRight(statblock, monster);
+    addActionButtons(layout5e, monster);
 }
 
 function createElement(
@@ -30,6 +32,58 @@ function createElement(
     return element;
 }
 
+function addActionButtons(parent: HTMLElement, monster: FullMonster) {
+    // Создаем SVG-элемент
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svg.setAttribute('width', '24');
+    svg.setAttribute('height', '24');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    svg.classList.add('layout-5e-copy-button', 'lucide', 'lucide-clipboard-copy'); // Добавляем классы
+
+    // Создаем элемент <rect>
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('width', '8');
+    rect.setAttribute('height', '4');
+    rect.setAttribute('x', '8');
+    rect.setAttribute('y', '2');
+    rect.setAttribute('rx', '1');
+    rect.setAttribute('ry', '1');
+    svg.appendChild(rect);
+
+    // Создаем первый <path>
+    const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path1.setAttribute('d', 'M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2');
+    svg.appendChild(path1);
+
+    // Создаем второй <path>
+    const path2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path2.setAttribute('d', 'M16 4h2a2 2 0 0 1 2 2v4');
+    svg.appendChild(path2);
+
+    // Создаем третий <path>
+    const path3 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path3.setAttribute('d', 'M21 14H11');
+    svg.appendChild(path3);
+
+    // Создаем четвертый <path>
+    const path4 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path4.setAttribute('d', 'm15 10-4 4 4 4');
+    svg.appendChild(path4);
+
+    svg.addEventListener('click', () => {
+        copyMonsterToClipboard(monster);
+    })
+
+    // Добавляем SVG в родительский элемент
+    parent.appendChild(svg);
+}
+
 function addSectionLeft(parent: HTMLElement, monster: FullMonster) {
     const leftSection = createElement(parent, 'div', 'layout-5e-statblock-section', '')
 
@@ -38,7 +92,7 @@ function addSectionLeft(parent: HTMLElement, monster: FullMonster) {
     addBaseInfo(leftSection, monster);
     addDivider(leftSection);
     addScoresTable(leftSection, monster);
-    addDivider(leftSection);
+    if (monster.ability) addDivider(leftSection);
     addAdditionalProperties(leftSection, monster);
     addDivider(leftSection);
 }
@@ -69,8 +123,18 @@ function addDivider(parent: HTMLElement) {
 
 function addHeader(parent: HTMLElement, { name, size, type, alignment }: FullMonster) {
     const header = createElement(parent, 'div', 'layout-5e-statblock-header');
-    createElement(header, 'div', 'layout-5e-statblock-header-name', name.rus);
-    createElement(header, 'div', 'layout-5e-statblock-header-subtitle', `${size.rus} ${type.name}, ${alignment}`);
+    if (name) {
+        createElement(header, 'div', 'layout-5e-statblock-header-name', name.rus);
+    }
+    if (size || type || alignment) {
+        let text = ""
+        if (size) text.concat(size.rus);
+        if (size && type) text.concat(" ");
+        if (type) text.concat(type.name);
+        if ((size || type) && alignment) text.concat(", ");
+        if (alignment) text.concat(alignment);
+        createElement(header, 'div', 'layout-5e-statblock-header-subtitle', text);
+    }
 }
 
 function addBaseInfo(parent: HTMLElement, monster: FullMonster) {
@@ -80,12 +144,19 @@ function addBaseInfo(parent: HTMLElement, monster: FullMonster) {
     const formatLine = (label: string, value: string) => 
         createElement(block, 'div', 'layout-5e-statblock-base-info-item', `<b>${label}:</b> ${value}`);
 
-    formatLine(TEXTS.layoutArmorClass, armorClass.toString());
-    formatLine(TEXTS.layoutHits, `${hits.average} (${hits.formula})`);
-    formatLine(TEXTS.layoutSpeed, speed.map(s => `${s.name ?? ''} ${s.value} ${TEXTS.layoutFt}.`).join(', '));
+    if (armorClass) formatLine(TEXTS.layoutArmorClass, armorClass.toString());
+    if (hits) {
+        let text = ""
+        if (hits.average) text.concat(hits.average.toString());
+        if (hits.average && hits.formula) text.concat(" ");
+        if (hits.formula) text.concat(`(${hits.average.toString()})`);
+        formatLine(TEXTS.layoutHits, text);
+    }
+    if (speed) formatLine(TEXTS.layoutSpeed, speed.map(s => `${s.name ?? ''} ${s.value} ${TEXTS.layoutFt}.`).join(', '));
 }
 
 function addScoresTable(parent: HTMLElement, { ability }: FullMonster) {
+    if (!ability) return;
     const table = createElement(parent, 'div', 'layout-5e-statblock-scores-table');
     
     const addScore = (label: string, value: number) => {
@@ -136,6 +207,7 @@ function addAdditionalProperties(parent: HTMLElement, monster: FullMonster) {
 }
 
 function addAbilities(parent: HTMLElement, { feats }: FullMonster) {
+    if (!feats) return;
     const block = createElement(parent, 'div', 'layout-5e-statblock-property-block');
     feats.forEach(({ name, value }) => 
         createElement(block, 'div', '', `<b>${name}.</b> ${value.replace(/<\/?p>/g, '')}`)
