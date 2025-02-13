@@ -4,6 +4,7 @@ import { DndStatblockSettingsController } from "src/settings/settings_controller
 import { registerSettingsTab } from "src/settings/settings_tab";
 import { registerMonsterMdCodeBlockProcessor } from "src/view/monster_md_code_block_processor";
 import { registerSidePanelBestiary } from "src/view/side_panel_bestiary";
+import { registerAddStatblockCommand, registerAddWideStatblockCommand } from './command/add_statblock_command';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -17,6 +18,8 @@ export default class DndStatblockPlugin extends Plugin {
 			registerSettingsTab(this, this.#settingsController);
 			registerSidePanelBestiary(this, this.#bestiary);
 			registerMonsterMdCodeBlockProcessor(this, this.#bestiary);
+			registerAddStatblockCommand(this);
+			registerAddWideStatblockCommand(this);
 			console.log("obsidian-dnd-statblock has been loaded.");
 		});
 	}

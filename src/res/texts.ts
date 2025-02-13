@@ -30,4 +30,6 @@ export const TEXTS = {
     layoutLair: "Логово",
     layoutLairActions: "Действия логова",
     layoutRegionalEffects: "Региональные эффекты",
+    commandAddStatblock: "Добавить статблок",
+    commandAddWideStatblock: "Добавить широкий статблок",
 }
