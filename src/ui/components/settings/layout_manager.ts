@@ -1,15 +1,19 @@
-import { FullMonster } from "src/domain/monster";
-import { DndStatblockPluginSettings } from "./settings";
+import type { FullMonster } from "src/domain/monster";
+import type { DndStatblockPluginSettings } from "./settings";
 import { LayoutStyle } from "./layout_style";
-import { renderLayout5e } from "src/ui/layout/layout_5e";
-import { renderLayoutTtg } from "src/ui/layout/lauot_ttg";
+import { Layout5eItemView } from "src/ui/layout/5e/Layout5eItem";
+import { LayoutTtgItemView } from "src/ui/layout/ttg/LayoutTtgItem";
+import type DndStatblockPlugin from "src/main";
+import type { LayoutItemView } from "src/ui/layout/LayoutItemView";
 
 export class LayoutManager {
 
 	// ---- fields ----
+    #plugin: DndStatblockPlugin;
     #settings: DndStatblockPluginSettings;
 
-    constructor(settings: DndStatblockPluginSettings) {
+    constructor(plugin: DndStatblockPlugin, settings: DndStatblockPluginSettings) {
+        this.#plugin = plugin;
         this.#settings = settings;
     }
 
@@ -20,13 +24,18 @@ export class LayoutManager {
         isTwoColumns: boolean = false,
     ) {
         const layoutStyle = this.#settings.layoutStyle
+        const viewContainer = container.createDiv("statblock-view-container");
+        let itemView: LayoutItemView
         switch (layoutStyle) {
             case LayoutStyle.Dnd5e:
-                renderLayout5e(container, monster, isTwoColumns)
+                itemView = new Layout5eItemView(monster, isTwoColumns);
                 break;
             case LayoutStyle.TtgClub:
-                renderLayoutTtg(container, monster, isTwoColumns)
+                itemView = new LayoutTtgItemView(monster, isTwoColumns);
                 break;
+            default:
+                throw new Error(`Unknown layout style: ${layoutStyle}`);
         } 
+        itemView.render(viewContainer);
     }
 }

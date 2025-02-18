@@ -73,7 +73,7 @@ interface Feat {
     value: string;
 }
 
-interface Action {
+export interface Action {
     name: string;
     value: string;
 }

@@ -40,7 +40,7 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#bestiary = new Bestiary(`${this.manifest.dir}`, this.app.vault.adapter);
 		await this.#bestiary.initialize();
 
-		this.#layoutManager = new LayoutManager(this.#settingsController.settings);
+		this.#layoutManager = new LayoutManager(this, this.#settingsController.settings);
 
 		callback();
 	}

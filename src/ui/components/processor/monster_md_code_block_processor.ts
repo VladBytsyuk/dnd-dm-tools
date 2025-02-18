@@ -2,7 +2,6 @@ import { parseYaml } from "obsidian";
 import DndStatblockPlugin from "src/main";
 import { Bestiary } from "src/data/bestiary";
 import { type FullMonster } from "src/domain/monster";
-import { renderLayout5e } from "src/ui/layout/layout_5e";
 import { LayoutManager } from "../settings/layout_manager";
 
 export function registerMonsterMdCodeBlockProcessor(
