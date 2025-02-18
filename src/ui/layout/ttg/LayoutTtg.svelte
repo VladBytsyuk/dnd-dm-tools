@@ -60,7 +60,7 @@
                 }) as entry}
                     <div class="layout-5e-statblock-scores-table-item">
                     <div class="layout-5e-statblock-scores-table-item-title"><b>{entry[0]}</b></div>
-                    <div>{[1]} ({formatModifier(entry[1])})</div>
+                    <div>{entry[1]} ({formatModifier(entry[1])})</div>
                     </div>
                 {/each}
                 </div>
@@ -134,7 +134,7 @@
         top: 8px;
         right: 40px;
         z-index: 1;
-        color: #105392af;
+        color: #ffffffaf;
     }
 
     .layout-5e-statblock {
@@ -144,12 +144,13 @@
         display: inline-block;
         vertical-align: top;
         width: 100%;
-        background: #FDF1DC;
+        background: #172026;
         background-size: cover;
         background-position: center;
         padding: 1em;
         box-sizing: border-box;
-        font-family: 'Noto Sans', 'Myriad Pro', Calibri, Helvetica, Arial, sans-serif;
+        font-family: "Open Sans", sans-serif;
+        color: #ffffff;
     }
 
     .layout-5e-statblock-wide {
@@ -160,12 +161,13 @@
         gap: 1em;
         vertical-align: top;
         width: 100%;
-        background: #FDF1DC;
+        background: #172026;
         background-size: cover;
         background-position: center;
         padding: 1em;
         box-sizing: border-box;
-        font-family: 'Noto Sans', 'Myriad Pro', Calibri, Helvetica, Arial, sans-serif;
+        font-family: "Open Sans", sans-serif;
+        color: #ffffff;
     }
 
     .layout-5e-statblock-section {
@@ -177,8 +179,8 @@
     }
 
     .layout-5e-statblock-header-name {
-        font-family: 'Libre Baskerville', 'Lora', 'Calisto MT', 'Bookman Old Style', Bookman, 'Goudy Old Style', Garamond, 'Hoefler Text', 'Bitstream Charter', Georgia, serif;
-        color: #105392af;
+        font-family: "Open Sans", sans-serif;
+        color: #ffffff;
         font-size: 21px;
         line-height: 1.2em;
         margin: 0 0 2px;
@@ -188,8 +190,8 @@
     }
 
     .layout-5e-statblock-header-subtitle {
-        font-family: 'Noto Sans', 'Myriad Pro', Calibri, Helvetica, Arial, sans-serif;    
-        color: #000000;
+        font-family: "Open Sans", sans-serif;  
+        color: #ffffff;
         opacity: 0.75;
         font-weight: normal;
         font-style: italic;
@@ -202,14 +204,14 @@
     }
 
     .layout-5e-statblock-base-info-item {
-        color: #105392af;
+        color: #ffffff;
         font-size: 12.5px;
         line-height: 1.2em;
     }
 
     .layout-5e-statblock-scores-table {
         text-align: center;
-        color: #105392af;
+        color: #ffffff;
         margin: 0.5em 0 0.5em;
     }
 
@@ -228,12 +230,12 @@
 
     .layout-5e-statblock-property-block {
         padding: 0.5em 0 0;
-        color: #000000;
+        color: #ffffff;
     }
 
     .layout-5e-statblock-block-header {
-        border-bottom: 2px solid #105392af;
-        color: #105392af;
+        border-bottom: 2px solid #ffffff;
+        color: #ffffff;
         font-size: 18px;
         font-variant: small-caps;
         font-weight: normal;
@@ -252,7 +254,7 @@
         width: 100%;
         height: 5px;
         border: none;
-        color: #105392af;
-        fill: #105392af;
+        color: #ffffff;
+        fill: #ffffff;
     }
 </style>
