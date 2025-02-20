@@ -1,55 +1,138 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
     import { TEXTS } from "src/res/texts_ru";
     import { copyMonsterToClipboard } from "src/data/clipboard";
+	import type { Speed } from "src/domain/monster";
 
     let { monster, isTwoColumns } = $props()
 
     const formatModifier = (value: number) => {
         const mod = Math.floor((value - 10) / 2);
-        return mod >= 0 ? `+${mod}` : mod.toString();
+        return modifier(mod);
+    };
+
+    const modifier = (value: number) => {
+        return value >= 0 ? `+${value}` : value.toString();
     };
 
     const joinList = (items: Array<{ name: string }>) => 
         items?.map(it => it.name).join(', ') || '';
+
+    const joinSpeed = (items: Array<Speed>) =>
+        items?.map(it => {
+            let result = '';
+            if (it.name) result += it.name + ' ';
+            if (it.value) result += it.value + ` ${TEXTS.layoutFt}. `;
+            if (it.additional) result += '(' + it.additional + ')';
+            return result;
+        }).join(', ') || '';
+
+    let currentImageIndex = $state(0);
+    let imagesLength = 0;
+
+    onMount(() => {
+        imagesLength = monster.images?.length || 0;
+    });
+
+    const nextImage = () => {
+        currentImageIndex = (currentImageIndex + 1) % imagesLength;
+    };
+
+    const prevImage = () => {
+        currentImageIndex = (currentImageIndex - 1 + imagesLength) % imagesLength;
+    };
 </script>
   
-<div class="layout-5e">
-    <div class={`layout-5e-statblock ${isTwoColumns ? 'layout-5e-statblock-wide' : ''}`}>
+<div class="layout-ttg">
+    <div class={`layout-ttg-statblock ${isTwoColumns ? 'layout-ttg-statblock-wide' : ''}`}>
         <!-- Left Section -->
-        <div class="layout-5e-statblock-section">
-            <!-- Header -->
-            <div class="layout-5e-statblock-header">
-                <div class="layout-5e-statblock-header-name">{monster.name.rus}</div>
-                {#if monster.size || monster.type || monster.alignment}
-                <div class="layout-5e-statblock-header-subtitle">
-                    {[monster.size?.rus, monster.type?.name].filter(Boolean).join(' ')}
-                    {monster.alignment ? `, ${monster.alignment}` : ''}
+        <div class="layout-ttg-statblock-section">
+            <div class="layout-ttg-statblock-section-horizontal">
+
+                <div class="layout-ttg-statblock-section-horizontal-header">
+                    <!-- Header -->
+                    <div class="layout-ttg-statblock-header">
+                        <div class="layout-ttg-statblock-header-name">{monster.name.rus}</div>
+                        <div class="layout-ttg-statblock-header-subname">{monster.name.eng}</div>
+                        <div class="layout-ttg-statblock-header-block">
+                            {#if monster.size || monster.type || monster.alignment}
+                            <div class="layout-ttg-statblock-header-subtitle">
+                                {[monster.size?.rus, monster.type?.name].filter(Boolean).join(' ')}
+                                {monster.alignment ? `, ${monster.alignment}` : ''}
+                                {monster.size?.eng || monster.size?.cell ? '/ ' : ''}
+                                {monster.size?.eng ? monster.size.eng: ' '}
+                                {monster.size?.cell ? monster.size.cell: ''}
+                            </div>
+                            {/if}
+                            {#if monster.source}
+                            <div class="layout-ttg-statblock-header-source">
+                                {TEXTS.layoutSource}: {monster.source.name} ({monster.source.shortName})
+                            </div>
+                            {/if}
+                        </div>
+                    </div>
+
+                    <!-- Base Info -->
+                    <div class="layout-ttg-statblock-base-info">
+                        {#if monster.armorClass}
+                        <div class="layout-ttg-statblock-base-info-item">
+                            <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutArmorClass}</span> 
+                            <span class="layout-ttg-statblock-base-info-item-value">
+                                {monster.armorClass}
+                                {#if monster.armors?.length}
+                                ({joinList(monster.armors)})
+                                {/if}
+                            </span>
+                        </div>
+                        {/if}
+
+                        {#if monster.hits}
+                        <div class="layout-ttg-statblock-base-info-item">
+                            <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutHits}</span>
+                            <span class="layout-ttg-statblock-base-info-item-value">{monster.hits.average} ({monster.hits.formula}{monster.hits.sign}{monster.hits.bonus})</span>
+                        </div>
+                        {/if}
+
+                        {#if monster.speed}
+                        <div class="layout-ttg-statblock-base-info-item">
+                            <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSpeed}</span> 
+                            {#if monster.speed?.length}
+                            <span class="layout-ttg-statblock-base-info-item-value">{joinSpeed(monster.speed)}</span>
+                            {/if}
+                        </div>
+                        {/if}
+
+                        <!-- Similar blocks for hits, speed, etc -->
+                    </div>
+                </div>
+
+                <!-- Image -->
+                {#if monster.images?.length}
+                <div class="layout-ttg-statblock-images">
+                    <div class="slider-container">
+                        <img class="layout-ttg-statblock-images-item" src={monster.images[currentImageIndex]} />
+                        
+                        <div class="slider-controls">
+                            <button class="arrow left" on:click|preventDefault={prevImage}>❮</button>
+                            <button class="arrow right" on:click|preventDefault={nextImage}>❯</button>
+                        </div>
+                        
+                        <div class="dots-container">
+                            {#each Array(imagesLength) as _, i}
+                            <button
+                                class="dot {i === currentImageIndex ? 'active' : ''}"
+                                on:click|preventDefault={() => currentImageIndex = i}
+                            />
+                            {/each}
+                        </div>
+                    </div>
                 </div>
                 {/if}
-            </div>
-
-            <svg class="tapered-rule" height="5" width="100%">
-                <polyline points="0,0 400,2.5 0,5" />
-            </svg>
-
-            <!-- Base Info -->
-            <div class="layout-5e-statblock-base-info">
-                {#if monster.armorClass}
-                <div class="layout-5e-statblock-base-info-item">
-                    <b>{TEXTS.layoutArmorClass}:</b> 
-                    {monster.armorClass}
-                    {#if monster.armors?.length}
-                    ({joinList(monster.armors)})
-                    {/if}
-                </div>
-                {/if}
-
-                <!-- Similar blocks for hits, speed, etc -->
             </div>
 
             <!-- Scores Table -->
             {#if monster.ability}
-                <div class="layout-5e-statblock-scores-table">
+                <div class="layout-ttg-statblock-scores-table">
                 {#each Object.entries({
                     [TEXTS.layoutStr]: monster.ability.str,
                     [TEXTS.layoutDex]: monster.ability.dex,
@@ -58,22 +141,100 @@
                     [TEXTS.layoutWis]: monster.ability.wiz,
                     [TEXTS.layoutCha]: monster.ability.cha
                 }) as entry}
-                    <div class="layout-5e-statblock-scores-table-item">
-                    <div class="layout-5e-statblock-scores-table-item-title"><b>{entry[0]}</b></div>
-                    <div>{entry[1]} ({formatModifier(entry[1])})</div>
+                    <div class="layout-ttg-statblock-scores-table-item">
+                    <div class="layout-ttg-statblock-scores-table-item-title"><b>{entry[0]}</b></div>
+                    <div class="layout-ttg-statblock-scores-table-item-value">{entry[1]} ({formatModifier(entry[1])})</div>
                     </div>
                 {/each}
                 </div>
             {/if}
+
+            <!-- Base Info 2 -->
+            <div class="layout-ttg-statblock-base-info">
+                {#if monster.savingThrows}
+                <div class="layout-ttg-statblock-base-info-item">
+                    <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSaves}</span> 
+                    <span class="layout-ttg-statblock-base-info-item-value">
+                        {monster.savingThrows.map(it => `${it.name} ${modifier(it.value)}`)}
+                    </span>
+                </div>
+                {/if}
+
+                {#if monster.skills}
+                <div class="layout-ttg-statblock-base-info-item">
+                    <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSkills}</span> 
+                    <span class="layout-ttg-statblock-base-info-item-value">
+                        {monster.skills.map(it => `${it.name} ${modifier(it.value)}`)}
+                    </span>
+                </div>
+                {/if}
+
+                {#if monster.damageVulnerabilities}
+                <div class="layout-ttg-statblock-base-info-item">
+                    <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutDamageVulnerabilities}</span> 
+                    <span class="layout-ttg-statblock-base-info-item-value">{monster.damageVulnerabilities}</span>
+                </div>
+                {/if}
+
+                {#if monster.damageResistances}
+                <div class="layout-ttg-statblock-base-info-item">
+                    <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutDamageResistances}</span> 
+                    <span class="layout-ttg-statblock-base-info-item-value">{monster.damageResistances}</span>
+                </div>
+                {/if}
+
+                {#if monster.damageImmunities}
+                <div class="layout-ttg-statblock-base-info-item">
+                    <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutDamageImmunities}</span> 
+                    <span class="layout-ttg-statblock-base-info-item-value">{monster.damageImmunities}</span>
+                </div>
+                {/if}
+
+                {#if monster.conditionImmunities}
+                <div class="layout-ttg-statblock-base-info-item">
+                    <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutConditionImmunities}</span> 
+                    <span class="layout-ttg-statblock-base-info-item-value">{monster.conditionImmunities}</span>
+                </div>
+                {/if}
+
+                {#if monster.senses}
+                <div class="layout-ttg-statblock-base-info-item">
+                    <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSenses}</span> 
+                    <span class="layout-ttg-statblock-base-info-item-value">
+                        {monster.senses.senses.map(it => `${it.name} ${it.value} ${TEXTS.layoutFt}.,`)}
+                        {TEXTS.layoutPassivePerception} {monster.senses.passivePerception}
+                    </span>
+                </div>
+                {/if}
+
+                {#if monster.languages}
+                <div class="layout-ttg-statblock-base-info-item">
+                    <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutLanguages}</span> 
+                    <span class="layout-ttg-statblock-base-info-item-value">{monster.languages.join(', ')}</span>
+                </div>
+                {/if}
+
+                {#if monster.challengeRating}
+                <div class="layout-ttg-statblock-base-info-item">
+                    <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutChallengeRating}</span> 
+                    <span class="layout-ttg-statblock-base-info-item-value">
+                        {monster.challengeRating + (monster.experience ? ` (${monster.experience} XP)` : '')}
+                    </span>
+                </div>
+                {/if}
+            </div>
         </div>
 
         <!-- Right Section -->
-        <div class="layout-5e-statblock-section">
+        <div class="layout-ttg-statblock-section">
             <!-- Abilities Block -->
             {#if monster.feats}
-                <div class="layout-5e-statblock-property-block">
+                <div class="layout-ttg-statblock-property-block">
                 {#each monster.feats as feat}
-                    <div><b>{feat.name}.</b> {@html feat.value.replace(/<\/?p>/g, '')}</div>
+                    <div class="layout-ttg-statblock-base-info-item">
+                        <span class="layout-ttg-statblock-base-info-item-title">{feat.name}.</span>
+                        <span class="layout-ttg-statblock-base-info-item-value">{@html feat.value.replace(/<\/?p>/g, '')}</span>     
+                    </div>
                 {/each}
                 </div>
             {/if}
@@ -81,18 +242,38 @@
             <!-- Action Blocks -->
             {#each [
                 { action: monster.actions, title: TEXTS.layoutActions},
-                { action: monster.bonusActions, l: TEXTS.layoutBonusActions},
-                { action: monster.reactions, l: TEXTS.layoutReactions}
+                { action: monster.bonusActions, title: TEXTS.layoutBonusActions},
+                { action: monster.reactions, title: TEXTS.layoutReactions},
+                { action: monster.legendary?.list, title: TEXTS.layoutLegendaryActions},
             ] as item}
                 {#if item.action != undefined} 
                     {#if item.action.length}
-                    <div class="layout-5e-statblock-property-block">
-                        <div class="layout-5e-statblock-block-header">{item.title}</div>
+                    <div class="layout-ttg-statblock-property-block">
+                        <div class="layout-ttg-statblock-block-header">{item.title}</div>
                         {#each item.action as action}
-                        <div><b>{action.name}.</b> {@html action.value.replace(/<\/?p>/g, '')}</div>
+                        <div class="layout-ttg-statblock-base-info-item">
+                            <span class="layout-ttg-statblock-base-info-item-title">{action.name}.</span>
+                            <span class="layout-ttg-statblock-base-info-item-value">{@html action.value.replace(/<\/?p>/g, '')}</span>
+                        </div>
                         {/each}
                     </div>
                     {/if}
+                {/if}
+            {/each}
+
+            <!-- Lair Blocks -->
+            {#each [
+                { action: monster.lair?.description, title: TEXTS.layoutLair},
+                { action: monster.lair?.action, title: TEXTS.layoutLairActions},
+                { action: monster.lair?.effect, title: TEXTS.layoutRegionalEffects},
+            ] as item}
+                {#if item.action != undefined} 
+                <div class="layout-ttg-statblock-property-block">
+                    <div class="layout-ttg-statblock-block-header">{item.title}</div>
+                    <div class="layout-ttg-statblock-base-info-item">
+                        <span class="layout-ttg-statblock-base-info-item-value">{@html item.action.replace(/<\/?p>/g, '')}</span>
+                    </div>
+                </div>
                 {/if}
             {/each}
         </div>
@@ -100,7 +281,7 @@
 
     <!-- Copy Button -->
     <svg
-        class="layout-5e-copy-button"
+        class="layout-ttg-copy-button"
         on:click={() => copyMonsterToClipboard(monster)}
         on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyMonsterToClipboard(monster)} } }
         aria-label="Copy monster to clipboard"
@@ -121,23 +302,23 @@
 </div>
 
 <style>
-    .layout-5e {
+    .layout-ttg {
         display: inline-block;
         position: relative;
     }
 
-    .layout-5e-copy-button {
+    .layout-ttg-copy-button {
         display: inline-block;
         width: 16px;
         height: 16px;
         position: absolute;
-        top: 8px;
-        right: 40px;
+        top: 1em;
+        right: 1em;
         z-index: 1;
         color: #ffffffaf;
     }
 
-    .layout-5e-statblock {
+    .layout-ttg-statblock {
         text-align: left;
         font-size: 12.5px;
         line-height: 1.2em;
@@ -153,7 +334,7 @@
         color: #ffffff;
     }
 
-    .layout-5e-statblock-wide {
+    .layout-ttg-statblock-wide {
         text-align: left;
         font-size: 12.5px;
         line-height: 1.2em;
@@ -170,26 +351,42 @@
         color: #ffffff;
     }
 
-    .layout-5e-statblock-section {
+    .layout-ttg-statblock-section {
         flex: 1;
     }
 
-    .layout-5e-statblock-header {
+    .layout-ttg-statblock-header {
         margin: 0 0 0.5em;
     }
 
-    .layout-5e-statblock-header-name {
+    .layout-ttg-statblock-header-name {
         font-family: "Open Sans", sans-serif;
         color: #ffffff;
         font-size: 21px;
         line-height: 1.2em;
         margin: 0 0 2px;
         letter-spacing: 1px;
-        font-variant: small-caps;
-        font-weight: bold;
     }
 
-    .layout-5e-statblock-header-subtitle {
+    .layout-ttg-statblock-header-subname {
+        font-family: "Open Sans", sans-serif;
+        color: #a4a4a4;
+        font-size: 12px;
+        margin: 0 0 2px;
+    }
+
+    .layout-ttg-statblock-header-block { 
+        background: #ffffff0d;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin: 6px 0px 12px;
+        justify-content: space-between;
+        padding: 8px;
+        border-radius: 6px;
+    }
+
+    .layout-ttg-statblock-header-subtitle {
         font-family: "Open Sans", sans-serif;  
         color: #ffffff;
         opacity: 0.75;
@@ -199,62 +396,165 @@
         line-height: 1.2em;
     }
 
-    .layout-5e-statblock-base-info {
+    .layout-ttg-statblock-header-source {
+        font-family: "Open Sans", sans-serif;  
+        color: #ffffff;
+        opacity: 0.75;
+        font-weight: normal;
+        font-size: 12px;
+    }
+
+    .layout-ttg-statblock-base-info {
         margin: 0.5em 0 0.5em
     }
 
-    .layout-5e-statblock-base-info-item {
+    .layout-ttg-statblock-base-info-item {
         color: #ffffff;
+        gap: 4px;
+        margin: 4px 0px 4px;
+    }
+
+    .layout-ttg-statblock-base-info-item-title {
+        color: #ffffff;
+        font-size: 12.5px;
+        line-height: 1.2em;
+        font-weight: bold;
+    }
+
+    .layout-ttg-statblock-base-info-item-value {
+        color: #c3d1da;
         font-size: 12.5px;
         line-height: 1.2em;
     }
 
-    .layout-5e-statblock-scores-table {
+    .layout-ttg-statblock-scores-table {
         text-align: center;
         color: #ffffff;
-        margin: 0.5em 0 0.5em;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.5em;
+        margin: 1em 0em 1em;
     }
 
-    .layout-5e-statblock-scores-table-item {
+    .layout-ttg-statblock-scores-table-item {
         display: inline-block;
         vertical-align: middle;
-        width: 15.5%;
-        min-width: 40px;
+        min-width: 60px;
         font-size: 12px;
         line-height: 1em;
+        flex: 1 0 calc(16% - 8px);
+        max-width: calc(16% - 8px);
     }
 
-    .layout-5e-statblock-scores-table-item-title {
-        margin: 0 0 0.5em;
+    .layout-ttg-statblock-scores-table-item-title {
+        padding: 0.5em;
+        background: #ffffff0d;
+        border-radius: 6px 6px 0px 0px;
     }
 
-    .layout-5e-statblock-property-block {
+    .layout-ttg-statblock-scores-table-item-value {
+        padding: 0.5em;
+        background: #ffffff06;
+        margin: 0px 0px 6px;;
+        border-radius: 0px 0px 6px 6px;
+    }
+
+    .layout-ttg-statblock-section-horizontal {
+        display: flex;
+    }
+
+    .layout-ttg-statblock-section-horizontal-header {
+        flex: 1;
+    }
+
+    .layout-ttg-statblock-images {
+        width: 30%;
+        z-index: 2;
+        margin: 2em 0 0;
+    }
+
+    .layout-ttg-statblock-images-item {
+        max-height: 160px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 4px;
+    }
+
+    .layout-ttg-statblock-property-block {
         padding: 0.5em 0 0;
         color: #ffffff;
     }
 
-    .layout-5e-statblock-block-header {
-        border-bottom: 2px solid #ffffff;
+    .layout-ttg-statblock-block-header {
+        border-bottom: 1px solid #ffffff;
         color: #ffffff;
-        font-size: 18px;
-        font-variant: small-caps;
-        font-weight: normal;
-        letter-spacing: 1px;
-        margin: 0.5em 0 0.125em;
-        padding: 0 0 6px;
-        text-indent: 5px;
+        font-size: 16px;
+        margin: 0.5em 0 0.5em;
+        padding: 0 0 8px;
     }
 
-    .layout-5e-statblock-generic-description {
+    .layout-ttg-statblock-generic-description {
         margin: 0.5em 0 0.125em;
     }
 
-    .tapered-rule {
-        display: block;
+    .slider-container {
+        position: relative;
+    }
+
+    .slider-controls {
+        position: absolute;
+        top: 50%;
         width: 100%;
-        height: 5px;
+        display: flex;
+        justify-content: space-between;
+        transform: translateY(-50%);
+        padding: 0 6px;
+    }
+
+    .arrow {
+        background: rgba(0,0,0,0.5);
         border: none;
-        color: #ffffff;
-        fill: #ffffff;
+        color: white;
+        opacity: 0.0;
+        padding: 4px 8px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .arrow:hover {
+        background: rgba(0,0,0,0.8);
+        border: none;
+        color: white;
+        opacity: 1.0;
+        padding: 4px 8px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .dots-container {
+        position: absolute;
+        bottom: 10px;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        gap: 4px;
+    }
+
+    .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255,255,255,0.5);
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .dot.active {
+        background: white;
     }
 </style>

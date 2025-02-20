@@ -35,9 +35,10 @@ interface Hits {
     bonus: number;
 }
 
-interface Speed {
+export interface Speed {
     value?: number;
     name?: string;
+    additional?: string;
 }
 
 interface Ability {

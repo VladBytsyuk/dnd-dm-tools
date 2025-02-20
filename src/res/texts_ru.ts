@@ -8,6 +8,7 @@ export const TEXTS = {
     sidePanelBestiaryTitle: "Бестиарий",
     sidePanelBestiarySearchPlaceholder: "Поиск по имени в бестиарии",
     sidePanelBestiarySearchClear: "Убрать статблок",
+    layoutSource: "Источник",
     layoutArmorClass: "Класс доспеха",
     layoutHits: "Хиты",
     layoutSpeed: "Скорость",
