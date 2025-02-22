@@ -3,6 +3,7 @@
     import { TEXTS } from "src/res/texts_ru";
     import { copyMonsterToClipboard } from "src/data/clipboard";
 	import type { Speed } from "src/domain/monster";
+	import { getCurrentTheme, Theme } from 'src/ui/theme';
 
     let { monster, isTwoColumns } = $props()
 
@@ -28,7 +29,7 @@
         }).join(', ') || '';
 
     let currentImageIndex = $state(0);
-    let imagesLength = 0;
+    let imagesLength = $state(0);
 
     onMount(() => {
         imagesLength = monster.images?.length || 0;
@@ -41,9 +42,11 @@
     const prevImage = () => {
         currentImageIndex = (currentImageIndex - 1 + imagesLength) % imagesLength;
     };
+
+    let themeClass = $state(getCurrentTheme() === Theme.Light ? 'theme-ttg-light' : 'theme-ttg-dark');
 </script>
   
-<div class="layout-ttg">
+<div class="layout-ttg {themeClass}">
     <div class={`layout-ttg-statblock ${isTwoColumns ? 'layout-ttg-statblock-wide' : ''}`}>
         <!-- Left Section -->
         <div class="layout-ttg-statblock-section">
@@ -107,7 +110,7 @@
                 </div>
 
                 <!-- Image -->
-                {#if monster.images?.length}
+                {#if monster.images?.length && !isTwoColumns}
                 <div class="layout-ttg-statblock-images">
                     <div class="slider-container">
                         <img class="layout-ttg-statblock-images-item" src={monster.images[currentImageIndex]} />
@@ -302,9 +305,31 @@
 </div>
 
 <style>
+    :global(.theme-ttg-light) {
+        --bg-color: #f9f6eb4d;
+        --text-color: #042a12;
+        --secondary-text: #404040;
+        --border-color: #d4d4d4;
+        --accent-bg: #00000014;
+        --accent-bg-sub: #00000007;
+        --button-bg: rgba(0,0,0,0.1);
+    }
+
+    :global(.theme-ttg-dark) {
+        --bg-color: #172026;
+        --text-color: #ffffff;
+        --secondary-text: #a4a4a4;
+        --border-color: #3a3a3a;
+        --accent-bg: #ffffff0d;
+        --accent-bg-sub: #ffffff06;
+        --button-bg: rgba(255,255,255,0.1);
+    }
+
     .layout-ttg {
         display: inline-block;
         position: relative;
+        background: var(--bg-color);
+        color: var(--text-color);
     }
 
     .layout-ttg-copy-button {
@@ -315,7 +340,7 @@
         top: 1em;
         right: 1em;
         z-index: 1;
-        color: #ffffffaf;
+        color: var(--text-color);
     }
 
     .layout-ttg-statblock {
@@ -325,13 +350,13 @@
         display: inline-block;
         vertical-align: top;
         width: 100%;
-        background: #172026;
         background-size: cover;
         background-position: center;
         padding: 1em;
         box-sizing: border-box;
         font-family: "Open Sans", sans-serif;
-        color: #ffffff;
+        background: var(--bg-color);
+        color: var(--text-color);
     }
 
     .layout-ttg-statblock-wide {
@@ -342,13 +367,13 @@
         gap: 1em;
         vertical-align: top;
         width: 100%;
-        background: #172026;
+        background: var(--bg-color);
         background-size: cover;
         background-position: center;
         padding: 1em;
         box-sizing: border-box;
         font-family: "Open Sans", sans-serif;
-        color: #ffffff;
+        color: var(--text-color);
     }
 
     .layout-ttg-statblock-section {
@@ -361,7 +386,7 @@
 
     .layout-ttg-statblock-header-name {
         font-family: "Open Sans", sans-serif;
-        color: #ffffff;
+        color: var(--text-color);
         font-size: 21px;
         line-height: 1.2em;
         margin: 0 0 2px;
@@ -370,13 +395,13 @@
 
     .layout-ttg-statblock-header-subname {
         font-family: "Open Sans", sans-serif;
-        color: #a4a4a4;
+        color: var(--secondary-text);
         font-size: 12px;
         margin: 0 0 2px;
     }
 
     .layout-ttg-statblock-header-block { 
-        background: #ffffff0d;
+        background: var(--accent-bg);
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -388,7 +413,7 @@
 
     .layout-ttg-statblock-header-subtitle {
         font-family: "Open Sans", sans-serif;  
-        color: #ffffff;
+        color: var(--text-color);
         opacity: 0.75;
         font-weight: normal;
         font-style: italic;
@@ -398,7 +423,7 @@
 
     .layout-ttg-statblock-header-source {
         font-family: "Open Sans", sans-serif;  
-        color: #ffffff;
+        color: var(--text-color);
         opacity: 0.75;
         font-weight: normal;
         font-size: 12px;
@@ -409,27 +434,27 @@
     }
 
     .layout-ttg-statblock-base-info-item {
-        color: #ffffff;
+        color: var(--text-color);
         gap: 4px;
         margin: 4px 0px 4px;
     }
 
     .layout-ttg-statblock-base-info-item-title {
-        color: #ffffff;
+        color: var(--text-color);
         font-size: 12.5px;
         line-height: 1.2em;
         font-weight: bold;
     }
 
     .layout-ttg-statblock-base-info-item-value {
-        color: #c3d1da;
+        color: var(--secondary-text);
         font-size: 12.5px;
         line-height: 1.2em;
     }
 
     .layout-ttg-statblock-scores-table {
         text-align: center;
-        color: #ffffff;
+        color: var(--text-color);
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
@@ -449,13 +474,13 @@
 
     .layout-ttg-statblock-scores-table-item-title {
         padding: 0.5em;
-        background: #ffffff0d;
+        background: var(--accent-bg);
         border-radius: 6px 6px 0px 0px;
     }
 
     .layout-ttg-statblock-scores-table-item-value {
         padding: 0.5em;
-        background: #ffffff06;
+        background: var(--accent-bg-sub);
         margin: 0px 0px 6px;;
         border-radius: 0px 0px 6px 6px;
     }
@@ -484,12 +509,13 @@
 
     .layout-ttg-statblock-property-block {
         padding: 0.5em 0 0;
-        color: #ffffff;
+        color: var(--text-color);
     }
 
     .layout-ttg-statblock-block-header {
-        border-bottom: 1px solid #ffffff;
-        color: #ffffff;
+        border-bottom: 1px solid;
+        border-bottom-color: var(--border-color);
+        color: var(--text-color);
         font-size: 16px;
         margin: 0.5em 0 0.5em;
         padding: 0 0 8px;
@@ -514,9 +540,9 @@
     }
 
     .arrow {
-        background: rgba(0,0,0,0.5);
         border: none;
-        color: white;
+        background: var(--button-bg);
+        color: var(--text-color);
         opacity: 0.0;
         padding: 4px 8px;
         border-radius: 50%;
@@ -549,12 +575,12 @@
         height: 8px;
         border-radius: 50%;
         border: none;
-        background: rgba(255,255,255,0.5);
+        background: var(--secondary-text);
         cursor: pointer;
         padding: 0;
     }
 
     .dot.active {
-        background: white;
+        background: var(--text-color);
     }
 </style>

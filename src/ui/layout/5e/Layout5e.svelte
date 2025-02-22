@@ -1,19 +1,35 @@
 <script lang="ts">
     import { TEXTS } from "src/res/texts_ru";
     import { copyMonsterToClipboard } from "src/data/clipboard";
+	import { getCurrentTheme, Theme } from 'src/ui/theme';
 
     let { monster, isTwoColumns } = $props()
 
     const formatModifier = (value: number) => {
         const mod = Math.floor((value - 10) / 2);
-        return mod >= 0 ? `+${mod}` : mod.toString();
+        return modifier(mod);
+    };
+
+    const modifier = (value: number) => {
+        return value >= 0 ? `+${value}` : value.toString();
     };
 
     const joinList = (items: Array<{ name: string }>) => 
         items?.map(it => it.name).join(', ') || '';
+
+    const joinSpeed = (items: Array<Speed>) =>
+        items?.map(it => {
+            let result = '';
+            if (it.name) result += it.name + ' ';
+            if (it.value) result += it.value + ` ${TEXTS.layoutFt}. `;
+            if (it.additional) result += '(' + it.additional + ')';
+            return result;
+        }).join(', ') || '';
+
+    let themeClass = $state(getCurrentTheme() === Theme.Light ? 'theme-5e-light' : 'theme-5e-dark');
 </script>
   
-<div class="layout-5e">
+<div class="layout-5e {themeClass}">
     <div class={`layout-5e-statblock ${isTwoColumns ? 'layout-5e-statblock-wide' : ''}`}>
         <!-- Left Section -->
         <div class="layout-5e-statblock-section">
@@ -36,15 +52,31 @@
             <div class="layout-5e-statblock-base-info">
                 {#if monster.armorClass}
                 <div class="layout-5e-statblock-base-info-item">
-                    <b>{TEXTS.layoutArmorClass}:</b> 
-                    {monster.armorClass}
-                    {#if monster.armors?.length}
-                    ({joinList(monster.armors)})
-                    {/if}
+                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutArmorClass}:</span> 
+                    <span class="layout-5e-statblock-base-info-item-value">
+                        {monster.armorClass}
+                        {#if monster.armors?.length}
+                        ({joinList(monster.armors)})
+                        {/if}
+                    </span>
                 </div>
                 {/if}
 
-                <!-- Similar blocks for hits, speed, etc -->
+                {#if monster.hits}
+                <div class="layout-5e-statblock-base-info-item">
+                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutHits}:</span>
+                    <span class="layout-5e-statblock-base-info-item-value">{monster.hits.average} ({monster.hits.formula}{monster.hits.sign}{monster.hits.bonus})</span>
+                </div>
+                {/if}
+
+                {#if monster.speed}
+                <div class="layout-5e-statblock-base-info-item">
+                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSpeed}:</span> 
+                    {#if monster.speed?.length}
+                    <span class="layout-5e-statblock-base-info-item-value">{joinSpeed(monster.speed)}</span>
+                    {/if}
+                </div>
+                {/if}
             </div>
 
             <!-- Scores Table -->
@@ -65,6 +97,80 @@
                 {/each}
                 </div>
             {/if}
+
+            <div class="layout-5e-statblock-base-info">
+                {#if monster.savingThrows}
+                <div class="layout-5e-statblock-base-info-item">
+                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSaves}</span> 
+                    <span class="layout-5e-statblock-base-info-item-value">
+                        {monster.savingThrows.map(it => `${it.name} ${modifier(it.value)}`).join(', ')}
+                    </span>
+                </div>
+                {/if}
+
+                {#if monster.skills}
+                <div class="layout-5e-statblock-base-info-item">
+                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSkills}</span> 
+                    <span class="layout-5e-statblock-base-info-item-value">
+                        {monster.skills.map(it => `${it.name} ${modifier(it.value)}`).join(', ')}
+                    </span>
+                </div>
+                {/if}
+
+                {#if monster.damageVulnerabilities}
+                <div class="layout-5e-statblock-base-info-item">
+                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutDamageVulnerabilities}</span> 
+                    <span class="layout-5e-statblock-base-info-item-value">{monster.damageVulnerabilities}</span>
+                </div>
+                {/if}
+
+                {#if monster.damageResistances}
+                <div class="layout-5e-statblock-base-info-item">
+                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutDamageResistances}</span> 
+                    <span class="layout-5e-statblock-base-info-item-value">{monster.damageResistances}</span>
+                </div>
+                {/if}
+
+                {#if monster.damageImmunities}
+                <div class="layout-5e-statblock-base-info-item">
+                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutDamageImmunities}</span> 
+                    <span class="layout-5e-statblock-base-info-item-value">{monster.damageImmunities}</span>
+                </div>
+                {/if}
+
+                {#if monster.conditionImmunities}
+                <div class="layout-5e-statblock-base-info-item">
+                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutConditionImmunities}</span> 
+                    <span class="layout-5e-statblock-base-info-item-value">{monster.conditionImmunities}</span>
+                </div>
+                {/if}
+
+                {#if monster.senses}
+                <div class="layout-5e-statblock-base-info-item">
+                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSenses}</span> 
+                    <span class="layout-5e-statblock-base-info-item-value">
+                        {monster.senses.senses.map(it => `${it.name} ${it.value} ${TEXTS.layoutFt}.,`).join(', ')}
+                        {TEXTS.layoutPassivePerception} {monster.senses.passivePerception}
+                    </span>
+                </div>
+                {/if}
+
+                {#if monster.languages}
+                <div class="layout-5e-statblock-base-info-item">
+                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutLanguages}</span> 
+                    <span class="layout-5e-statblock-base-info-item-value">{monster.languages.join(', ')}</span>
+                </div>
+                {/if}
+
+                {#if monster.challengeRating}
+                <div class="layout-5e-statblock-base-info-item">
+                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutChallengeRating}</span> 
+                    <span class="layout-5e-statblock-base-info-item-value">
+                        {monster.challengeRating + (monster.experience ? ` (${monster.experience} XP)` : '')}
+                    </span>
+                </div>
+                {/if}
+            </div>
         </div>
 
         <!-- Right Section -->
@@ -121,9 +227,29 @@
 </div>
 
 <style>
+    :global(.theme-5e-light) {
+        --bg-color: #FDF1DC;
+        --primary-color: #922610;
+        --secondary-color: #7A200D;
+        --text-color: #000000;
+        --border-color: #7A200D;
+        --button-color: #922610af;
+    }
+
+    :global(.theme-5e-dark) {
+        --bg-color: #202020;
+        --primary-color: #ff6b4a;
+        --secondary-color: #ff6b4a;
+        --text-color: #ffffff;
+        --border-color: #ff6b4a;
+        --button-color: #ffffffaf;
+    }
+
     .layout-5e {
         display: inline-block;
         position: relative;
+        background: var(--bg-color);
+        color: var(--text-color);
     }
 
     .layout-5e-copy-button {
@@ -131,10 +257,10 @@
         width: 16px;
         height: 16px;
         position: absolute;
-        top: 8px;
-        right: 40px;
+        top: 1em;
+        right: 1em;
         z-index: 1;
-        color: #922610af;
+        color: var(--button-color);
     }
 
     .layout-5e-statblock {
@@ -144,7 +270,7 @@
         display: inline-block;
         vertical-align: top;
         width: 100%;
-        background: #FDF1DC;
+        background: var(--bg-color);
         background-size: cover;
         background-position: center;
         padding: 1em;
@@ -160,7 +286,7 @@
         gap: 1em;
         vertical-align: top;
         width: 100%;
-        background: #FDF1DC;
+        background: var(--bg-color);
         background-size: cover;
         background-position: center;
         padding: 1em;
@@ -178,7 +304,7 @@
 
     .layout-5e-statblock-header-name {
         font-family: 'Libre Baskerville', 'Lora', 'Calisto MT', 'Bookman Old Style', Bookman, 'Goudy Old Style', Garamond, 'Hoefler Text', 'Bitstream Charter', Georgia, serif;
-        color: #922610;
+        color: var(--primary-color);
         font-size: 21px;
         line-height: 1.2em;
         margin: 0 0 2px;
@@ -188,8 +314,8 @@
     }
 
     .layout-5e-statblock-header-subtitle {
-        font-family: 'Noto Sans', 'Myriad Pro', Calibri, Helvetica, Arial, sans-serif;    
-        color: #000000;
+        font-family: 'Noto Sans', 'Myriad Pro', Calibri, Helvetica, Arial, sans-serif; 
+        color: var(--text-color);
         opacity: 0.75;
         font-weight: normal;
         font-style: italic;
@@ -202,15 +328,23 @@
     }
 
     .layout-5e-statblock-base-info-item {
-        color: #922610;
+        color: var(--primary-color);
         font-size: 12.5px;
         line-height: 1.2em;
     }
 
+    .layout-5e-statblock-base-info-item-title {
+        font-weight: bold;
+    }
+
+    .layout-5e-statblock-base-info-item-value {
+        color: var(--text-color);
+    }
+
     .layout-5e-statblock-scores-table {
         text-align: center;
-        color: #922610;
-        margin: 0.5em 0 0.5em;
+        color: var(--primary-color);
+        margin: 1em 0 1em;
     }
 
     .layout-5e-statblock-scores-table-item {
@@ -228,12 +362,13 @@
 
     .layout-5e-statblock-property-block {
         padding: 0.5em 0 0;
-        color: #000000;
+        color: var(--text-color);
     }
 
     .layout-5e-statblock-block-header {
-        border-bottom: 2px solid #7A200D;
-        color: #7A200D;
+        border-bottom: 2px solid;
+        border-bottom-color: var(--border-color);
+        color: var(--secondary-color);
         font-size: 18px;
         font-variant: small-caps;
         font-weight: normal;
@@ -252,7 +387,7 @@
         width: 100%;
         height: 5px;
         border: none;
-        color: #922610;
-        fill: #922610;
+        color: var(--primary-color);
+        fill: var(--primary-color);
     }
 </style>
