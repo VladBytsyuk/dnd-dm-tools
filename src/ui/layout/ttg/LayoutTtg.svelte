@@ -3,7 +3,7 @@
     import { TEXTS } from "src/res/texts_ru";
     import { copyMonsterToClipboard } from "src/data/clipboard";
 	import type { Speed } from "src/domain/monster";
-	import { getCurrentTheme, Theme } from 'src/ui/theme';
+	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
 
     let { monster, isTwoColumns } = $props()
 
@@ -44,6 +44,14 @@
     };
 
     let themeClass = $state(getCurrentTheme() === Theme.Light ? 'theme-ttg-light' : 'theme-ttg-dark');
+
+    $effect(() => {
+        const unsubscribe = theme.subscribe(value => {
+            themeClass = value === Theme.Light ? 'theme-ttg-light' : 'theme-ttg-dark';
+        });
+
+        return () => { unsubscribe() };
+    });
 </script>
   
 <div class="layout-ttg {themeClass}">

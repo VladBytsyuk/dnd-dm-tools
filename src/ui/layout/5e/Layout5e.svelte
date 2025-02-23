@@ -1,7 +1,7 @@
 <script lang="ts">
     import { TEXTS } from "src/res/texts_ru";
     import { copyMonsterToClipboard } from "src/data/clipboard";
-	import { getCurrentTheme, Theme } from 'src/ui/theme';
+	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
 
     let { monster, isTwoColumns } = $props()
 
@@ -27,6 +27,14 @@
         }).join(', ') || '';
 
     let themeClass = $state(getCurrentTheme() === Theme.Light ? 'theme-5e-light' : 'theme-5e-dark');
+
+    $effect(() => {
+        const unsubscribe = theme.subscribe(value => {
+            themeClass = value === Theme.Light ? 'theme-5e-light' : 'theme-5e-dark';
+        });
+
+        return () => { unsubscribe() };
+    });
 </script>
   
 <div class="layout-5e {themeClass}">

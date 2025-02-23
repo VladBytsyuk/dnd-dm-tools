@@ -23,6 +23,7 @@ export class LayoutManager {
         monster: FullMonster, 
         isTwoColumns: boolean = false,
     ) {
+        container.empty();
         const layoutStyle = this.#settings.layoutStyle
         const viewContainer = container.createDiv("statblock-view-container");
         let itemView: LayoutItemView
