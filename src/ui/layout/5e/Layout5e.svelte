@@ -31,178 +31,200 @@
   
 <div class="layout-5e {themeClass}">
     <div class={`layout-5e-statblock ${isTwoColumns ? 'layout-5e-statblock-wide' : ''}`}>
-        <!-- Left Section -->
-        <div class="layout-5e-statblock-section">
-            <!-- Header -->
-            <div class="layout-5e-statblock-header">
-                <div class="layout-5e-statblock-header-name">{monster.name.rus}</div>
-                {#if monster.size || monster.type || monster.alignment}
-                <div class="layout-5e-statblock-header-subtitle">
-                    {[monster.size?.rus, monster.type?.name].filter(Boolean).join(' ')}
-                    {monster.alignment ? `, ${monster.alignment}` : ''}
-                </div>
-                {/if}
+        <!-- Header -->
+        <div class="layout-5e-statblock-header">
+            <div class="layout-5e-statblock-header-name">{monster.name.rus}</div>
+            {#if monster.size || monster.type || monster.alignment}
+            <div class="layout-5e-statblock-header-subtitle">
+                {[monster.size?.rus, monster.type?.name].filter(Boolean).join(' ')}
+                {monster.alignment ? `, ${monster.alignment}` : ''}
             </div>
-
-            <svg class="tapered-rule" height="5" width="100%">
-                <polyline points="0,0 400,2.5 0,5" />
-            </svg>
-
-            <!-- Base Info -->
-            <div class="layout-5e-statblock-base-info">
-                {#if monster.armorClass}
-                <div class="layout-5e-statblock-base-info-item">
-                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutArmorClass}:</span> 
-                    <span class="layout-5e-statblock-base-info-item-value">
-                        {monster.armorClass}
-                        {#if monster.armors?.length}
-                        ({joinList(monster.armors)})
-                        {/if}
-                    </span>
-                </div>
-                {/if}
-
-                {#if monster.hits}
-                <div class="layout-5e-statblock-base-info-item">
-                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutHits}:</span>
-                    <span class="layout-5e-statblock-base-info-item-value">{monster.hits.average} ({monster.hits.formula}{monster.hits.sign}{monster.hits.bonus})</span>
-                </div>
-                {/if}
-
-                {#if monster.speed}
-                <div class="layout-5e-statblock-base-info-item">
-                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSpeed}:</span> 
-                    {#if monster.speed?.length}
-                    <span class="layout-5e-statblock-base-info-item-value">{joinSpeed(monster.speed)}</span>
-                    {/if}
-                </div>
-                {/if}
-            </div>
-
-            <!-- Scores Table -->
-            {#if monster.ability}
-                <div class="layout-5e-statblock-scores-table">
-                {#each Object.entries({
-                    [TEXTS.layoutStr]: monster.ability.str,
-                    [TEXTS.layoutDex]: monster.ability.dex,
-                    [TEXTS.layoutCon]: monster.ability.con,
-                    [TEXTS.layoutInt]: monster.ability.int,
-                    [TEXTS.layoutWis]: monster.ability.wiz,
-                    [TEXTS.layoutCha]: monster.ability.cha
-                }) as entry}
-                    <div class="layout-5e-statblock-scores-table-item">
-                    <div class="layout-5e-statblock-scores-table-item-title"><b>{entry[0]}</b></div>
-                    <div>{[1]} ({formatModifier(entry[1])})</div>
-                    </div>
-                {/each}
-                </div>
             {/if}
-
-            <div class="layout-5e-statblock-base-info">
-                {#if monster.savingThrows}
-                <div class="layout-5e-statblock-base-info-item">
-                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSaves}</span> 
-                    <span class="layout-5e-statblock-base-info-item-value">
-                        {monster.savingThrows.map(it => `${it.name} ${modifier(it.value)}`).join(', ')}
-                    </span>
-                </div>
-                {/if}
-
-                {#if monster.skills}
-                <div class="layout-5e-statblock-base-info-item">
-                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSkills}</span> 
-                    <span class="layout-5e-statblock-base-info-item-value">
-                        {monster.skills.map(it => `${it.name} ${modifier(it.value)}`).join(', ')}
-                    </span>
-                </div>
-                {/if}
-
-                {#if monster.damageVulnerabilities}
-                <div class="layout-5e-statblock-base-info-item">
-                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutDamageVulnerabilities}</span> 
-                    <span class="layout-5e-statblock-base-info-item-value">{monster.damageVulnerabilities}</span>
-                </div>
-                {/if}
-
-                {#if monster.damageResistances}
-                <div class="layout-5e-statblock-base-info-item">
-                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutDamageResistances}</span> 
-                    <span class="layout-5e-statblock-base-info-item-value">{monster.damageResistances}</span>
-                </div>
-                {/if}
-
-                {#if monster.damageImmunities}
-                <div class="layout-5e-statblock-base-info-item">
-                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutDamageImmunities}</span> 
-                    <span class="layout-5e-statblock-base-info-item-value">{monster.damageImmunities}</span>
-                </div>
-                {/if}
-
-                {#if monster.conditionImmunities}
-                <div class="layout-5e-statblock-base-info-item">
-                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutConditionImmunities}</span> 
-                    <span class="layout-5e-statblock-base-info-item-value">{monster.conditionImmunities}</span>
-                </div>
-                {/if}
-
-                {#if monster.senses}
-                <div class="layout-5e-statblock-base-info-item">
-                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSenses}</span> 
-                    <span class="layout-5e-statblock-base-info-item-value">
-                        {monster.senses.senses.map(it => `${it.name} ${it.value} ${TEXTS.layoutFt}.,`).join(', ')}
-                        {TEXTS.layoutPassivePerception} {monster.senses.passivePerception}
-                    </span>
-                </div>
-                {/if}
-
-                {#if monster.languages}
-                <div class="layout-5e-statblock-base-info-item">
-                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutLanguages}</span> 
-                    <span class="layout-5e-statblock-base-info-item-value">{monster.languages.join(', ')}</span>
-                </div>
-                {/if}
-
-                {#if monster.challengeRating}
-                <div class="layout-5e-statblock-base-info-item">
-                    <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutChallengeRating}</span> 
-                    <span class="layout-5e-statblock-base-info-item-value">
-                        {monster.challengeRating + (monster.experience ? ` (${monster.experience} XP)` : '')}
-                    </span>
-                </div>
-                {/if}
-            </div>
         </div>
 
-        <!-- Right Section -->
-        <div class="layout-5e-statblock-section">
-            <!-- Abilities Block -->
-            {#if monster.feats}
-                <div class="layout-5e-statblock-property-block">
-                {#each monster.feats as feat}
-                    <div><b>{feat.name}.</b> {@html feat.value.replace(/<\/?p>/g, '')}</div>
-                {/each}
-                </div>
+        <svg class="tapered-rule" height="5" width="100%">
+            <polyline points="0,0 400,2.5 0,5" />
+        </svg>
+
+        <!-- Base Info -->
+        <div class="layout-5e-statblock-base-info">
+            {#if monster.armorClass}
+            <div class="layout-5e-statblock-base-info-item">
+                <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutArmorClass}:</span> 
+                <span class="layout-5e-statblock-base-info-item-value">
+                    {monster.armorClass}
+                    {#if monster.armors?.length}
+                    ({joinList(monster.armors)})
+                    {/if}
+                </span>
+            </div>
             {/if}
 
-            <!-- Action Blocks -->
-            {#each [
-                { action: monster.actions, title: TEXTS.layoutActions},
-                { action: monster.bonusActions, l: TEXTS.layoutBonusActions},
-                { action: monster.reactions, l: TEXTS.layoutReactions}
-            ] as item}
-                {#if item.action != undefined} 
-                    {#if item.action.length}
-                    <div class="layout-5e-statblock-property-block">
-                        <div class="layout-5e-statblock-block-header">{item.title}</div>
-                        {#each item.action as action}
-                        <div><b>{action.name}.</b> {@html action.value.replace(/<\/?p>/g, '')}</div>
-                        {/each}
-                    </div>
-                    {/if}
+            {#if monster.hits}
+            <div class="layout-5e-statblock-base-info-item">
+                <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutHits}:</span>
+                <span class="layout-5e-statblock-base-info-item-value">{monster.hits.average} ({monster.hits.formula}{monster.hits.sign}{monster.hits.bonus})</span>
+            </div>
+            {/if}
+
+            {#if monster.speed}
+            <div class="layout-5e-statblock-base-info-item">
+                <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSpeed}:</span> 
+                {#if monster.speed?.length}
+                <span class="layout-5e-statblock-base-info-item-value">{joinSpeed(monster.speed)}</span>
                 {/if}
+            </div>
+            {/if}
+        </div>
+
+        <svg class="tapered-rule" height="5" width="100%">
+            <polyline points="0,0 400,2.5 0,5" />
+        </svg>
+
+        <!-- Scores Table -->
+        {#if monster.ability}
+            <div class="layout-5e-statblock-scores-table">
+            {#each Object.entries({
+                [TEXTS.layoutStr]: monster.ability.str,
+                [TEXTS.layoutDex]: monster.ability.dex,
+                [TEXTS.layoutCon]: monster.ability.con,
+                [TEXTS.layoutInt]: monster.ability.int,
+                [TEXTS.layoutWis]: monster.ability.wiz,
+                [TEXTS.layoutCha]: monster.ability.cha
+            }) as entry}
+                <div class="layout-5e-statblock-scores-table-item">
+                <div class="layout-5e-statblock-scores-table-item-title"><b>{entry[0]}</b></div>
+                <div>{entry[1]} ({formatModifier(entry[1])})</div>
+                </div>
             {/each}
+            </div>
+        {/if}
+
+        <svg class="tapered-rule" height="5" width="100%">
+            <polyline points="0,0 400,2.5 0,5" />
+        </svg>
+
+        <div class="layout-5e-statblock-base-info">
+            {#if monster.savingThrows}
+            <div class="layout-5e-statblock-base-info-item">
+                <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSaves}</span> 
+                <span class="layout-5e-statblock-base-info-item-value">
+                    {monster.savingThrows.map(it => `${it.name} ${modifier(it.value)}`).join(', ')}
+                </span>
+            </div>
+            {/if}
+
+            {#if monster.skills}
+            <div class="layout-5e-statblock-base-info-item">
+                <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSkills}</span> 
+                <span class="layout-5e-statblock-base-info-item-value">
+                    {monster.skills.map(it => `${it.name} ${modifier(it.value)}`).join(', ')}
+                </span>
+            </div>
+            {/if}
+
+            {#if monster.damageVulnerabilities}
+            <div class="layout-5e-statblock-base-info-item">
+                <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutDamageVulnerabilities}</span> 
+                <span class="layout-5e-statblock-base-info-item-value">{monster.damageVulnerabilities}</span>
+            </div>
+            {/if}
+
+            {#if monster.damageResistances}
+            <div class="layout-5e-statblock-base-info-item">
+                <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutDamageResistances}</span> 
+                <span class="layout-5e-statblock-base-info-item-value">{monster.damageResistances}</span>
+            </div>
+            {/if}
+
+            {#if monster.damageImmunities}
+            <div class="layout-5e-statblock-base-info-item">
+                <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutDamageImmunities}</span> 
+                <span class="layout-5e-statblock-base-info-item-value">{monster.damageImmunities}</span>
+            </div>
+            {/if}
+
+            {#if monster.conditionImmunities}
+            <div class="layout-5e-statblock-base-info-item">
+                <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutConditionImmunities}</span> 
+                <span class="layout-5e-statblock-base-info-item-value">{monster.conditionImmunities}</span>
+            </div>
+            {/if}
+
+            {#if monster.senses}
+            <div class="layout-5e-statblock-base-info-item">
+                <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSenses}</span> 
+                <span class="layout-5e-statblock-base-info-item-value">
+                    {monster.senses.senses.map(it => `${it.name} ${it.value} ${TEXTS.layoutFt}.,`).join(', ')}
+                    {TEXTS.layoutPassivePerception} {monster.senses.passivePerception}
+                </span>
+            </div>
+            {/if}
+
+            {#if monster.languages}
+            <div class="layout-5e-statblock-base-info-item">
+                <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutLanguages}</span> 
+                <span class="layout-5e-statblock-base-info-item-value">{monster.languages.join(', ')}</span>
+            </div>
+            {/if}
+
+            {#if monster.challengeRating}
+            <div class="layout-5e-statblock-base-info-item">
+                <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutChallengeRating}</span> 
+                <span class="layout-5e-statblock-base-info-item-value">
+                    {monster.challengeRating + (monster.experience ? ` (${monster.experience} XP)` : '')}
+                </span>
+            </div>
+            {/if}
         </div>
+
+        <svg class="tapered-rule" height="5" width="100%">
+            <polyline points="0,0 400,2.5 0,5" />
+        </svg>
+
+        <!-- Abilities Block -->
+        {#if monster.feats}
+            <div class="layout-5e-statblock-property-block">
+            {#each monster.feats as feat}
+                <div><b>{feat.name}.</b> {@html feat.value.replace(/<\/?p>/g, '')}</div>
+            {/each}
+            </div>
+        {/if}
+
+        <!-- Action Blocks -->
+        {#each [
+            { action: monster.actions, title: TEXTS.layoutActions},
+            { action: monster.bonusActions, l: TEXTS.layoutBonusActions},
+            { action: monster.reactions, l: TEXTS.layoutReactions}
+        ] as item}
+            {#if item.action != undefined} 
+                {#if item.action.length}
+                <div class="layout-5e-statblock-property-block">
+                    <div class="layout-5e-statblock-block-header">{item.title}</div>
+                    {#each item.action as action}
+                    <div><b>{action.name}.</b> {@html action.value.replace(/<\/?p>/g, '')}</div>
+                    {/each}
+                </div>
+                {/if}
+            {/if}
+        {/each}
     </div>
+
+    <!-- Lair Blocks -->
+    {#each [
+        { action: monster.lair?.description, title: TEXTS.layoutLair},
+        { action: monster.lair?.action, title: TEXTS.layoutLairActions},
+        { action: monster.lair?.effect, title: TEXTS.layoutRegionalEffects},
+    ] as item}
+        {#if item.action != undefined} 
+        <div class="layout-5e-statblock-property-block">
+            <div class="layout-5e-statblock-block-header">{item.title}</div>
+            <div class="layout-5e-statblock-base-info-item">
+                <span class="layout-5e-statblock-base-info-item-value">{@html item.action.replace(/<\/?p>/g, '')}</span>
+            </div>
+        </div>
+        {/if}
+    {/each}
 
     <!-- Copy Button -->
     <svg
@@ -230,6 +252,7 @@
     :global(.theme-5e-light) {
         --bg-color: #FDF1DC;
         --primary-color: #922610;
+        --tapered-rule-color: #922610;
         --secondary-color: #7A200D;
         --text-color: #000000;
         --border-color: #7A200D;
@@ -238,10 +261,11 @@
 
     :global(.theme-5e-dark) {
         --bg-color: #202020;
-        --primary-color: #ff6b4a;
-        --secondary-color: #ff6b4a;
+        --primary-color: #ff6b4ac8;
+        --tapered-rule-color: #ff6b4aa9;
+        --secondary-color: #ff6b4aa9;
         --text-color: #ffffff;
-        --border-color: #ff6b4a;
+        --border-color: #ff6b4aa9;
         --button-color: #ffffffaf;
     }
 
@@ -282,7 +306,8 @@
         text-align: left;
         font-size: 12.5px;
         line-height: 1.2em;
-        display: flex;
+        column-count: 2;
+        column-gap: 1em;
         gap: 1em;
         vertical-align: top;
         width: 100%;
@@ -387,7 +412,7 @@
         width: 100%;
         height: 5px;
         border: none;
-        color: var(--primary-color);
-        fill: var(--primary-color);
+        color: var(--tapered-rule-color);
+        fill: var(--tapered-rule-color);
     }
 </style>
