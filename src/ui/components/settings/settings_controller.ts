@@ -2,8 +2,11 @@ import DndStatblockPlugin from "src/main";
 import type { DndStatblockPluginSettings } from "src/ui/components/settings/settings";
 import { LayoutStyle } from "./layout_style";
 
-const DEFAULT_SETTINGS: DndStatblockPluginSettings = {
-	layoutStyle: LayoutStyle.Dnd5e
+function defaultSettings(onLayoutStyleChanged: () => void): DndStatblockPluginSettings {
+	return {
+		layoutStyle: LayoutStyle.Dnd5e,
+		onLayoutStyleChanged: () => onLayoutStyleChanged(),
+	} as DndStatblockPluginSettings
 }
 
 export class DndStatblockSettingsController {
@@ -17,12 +20,12 @@ export class DndStatblockSettingsController {
     }
 
 	// ---- methods ----
-	async initialize() {
-		await this.loadSettings();
+	async initialize(onLayoutStyleChanged: () => void) {
+		await this.loadSettings(() => onLayoutStyleChanged());
 	}
 
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.#plugin.loadData());
+	async loadSettings(onLayoutStyleChanged: () => void) {
+		this.settings = Object.assign({}, defaultSettings(onLayoutStyleChanged), await this.#plugin.loadData());
 	}
 
 	async saveSettings() {

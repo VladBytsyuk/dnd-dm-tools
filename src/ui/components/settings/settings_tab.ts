@@ -41,7 +41,9 @@ export class DndStatblockSettingTab extends PluginSettingTab {
 				.addOption(LayoutStyle.TtgClub, TEXTS.settingsLayoutTtg)
 				.setValue(this.#controller.settings.layoutStyle)
 				.onChange(async (value) => {
-					this.#controller.settings.layoutStyle = value as LayoutStyle;
+					const newLayoutStyle = value as LayoutStyle;
+					this.#controller.settings.layoutStyle = newLayoutStyle;
+					this.#controller.settings.onLayoutStyleChanged();
 					await this.#controller.saveSettings();
 				})
 			)

@@ -11,6 +11,11 @@ export class LayoutManager {
 	// ---- fields ----
     #plugin: DndStatblockPlugin;
     #settings: DndStatblockPluginSettings;
+    #cacheItemView: LayoutItemView | null = null;
+
+    #cacheContainer: Element | null = null;
+    #cacheMonster: FullMonster | null = null;
+    #cacheIsTwoColumns: boolean = false;
 
     constructor(plugin: DndStatblockPlugin, settings: DndStatblockPluginSettings) {
         this.#plugin = plugin;
@@ -23,10 +28,11 @@ export class LayoutManager {
         monster: FullMonster, 
         isTwoColumns: boolean = false,
     ) {
+        this.#cacheItemView?.destroy();
         container.empty();
-        const layoutStyle = this.#settings.layoutStyle
+        const layoutStyle = this.#settings.layoutStyle;
         const viewContainer = container.createDiv("statblock-view-container");
-        let itemView: LayoutItemView
+        let itemView: LayoutItemView;
         switch (layoutStyle) {
             case LayoutStyle.Dnd5e:
                 itemView = new Layout5eItemView(monster, isTwoColumns);
@@ -38,5 +44,15 @@ export class LayoutManager {
                 throw new Error(`Unknown layout style: ${layoutStyle}`);
         } 
         itemView.render(viewContainer);
+        this.#cacheItemView = itemView;
+        this.#cacheContainer = container;
+        this.#cacheMonster = monster;
+        this.#cacheIsTwoColumns = isTwoColumns;
+    }
+
+    onChangeLayoutStyle() {
+        if (this.#cacheItemView && this.#cacheContainer && this.#cacheMonster) {
+            this.renderLayout(this.#cacheContainer, this.#cacheMonster, this.#cacheIsTwoColumns)
+        }
     }
 }

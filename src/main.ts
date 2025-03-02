@@ -7,6 +7,7 @@ import { registerSidePanelBestiary } from "src/ui/components/ribbon/side_panel_b
 import { registerAddStatblockCommand, registerAddWideStatblockCommand } from './ui/components/command/add_statblock_command';
 import { LayoutManager } from './ui/components/settings/layout_manager';
 import { registerThemeChangeListener } from './ui/theme';
+import type { LayoutStyle } from './ui/components/settings/layout_style';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -37,7 +38,7 @@ export default class DndStatblockPlugin extends Plugin {
 		callback: () => void,
 	) {
 		this.#settingsController = new DndStatblockSettingsController(this);
-		await this.#settingsController.initialize();
+		await this.#settingsController.initialize(() => this.#onLayoutStyleChanged());
 
 		this.#bestiary = new Bestiary(`${this.manifest.dir}`, this.app.vault.adapter);
 		await this.#bestiary.initialize();
@@ -45,5 +46,9 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#layoutManager = new LayoutManager(this, this.#settingsController.settings);
 
 		callback();
+	}
+
+	#onLayoutStyleChanged() {
+		this.#layoutManager.onChangeLayoutStyle();
 	}
 }
