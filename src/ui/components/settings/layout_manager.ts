@@ -6,16 +6,34 @@ import { LayoutTtgItemView } from "src/ui/layout/ttg/LayoutTtgItem";
 import type DndStatblockPlugin from "src/main";
 import type { LayoutItemView } from "src/ui/layout/LayoutItemView";
 
+class LayoutManagerCache {
+
+    #itemView: LayoutItemView;
+    #container: Element;
+    #monster: FullMonster;
+    #isTwoColumns: boolean;
+
+    constructor(itemView: LayoutItemView, container: Element, monster: FullMonster, isTwoColumns: boolean) {
+        this.#itemView = itemView;
+        this.#container = container;
+        this.#monster = monster;
+        this.#isTwoColumns = isTwoColumns;
+    }
+
+    getItemView(): LayoutItemView { return this.#itemView; };
+    getContainer(): Element { return this.#container; };
+    getMonster(): FullMonster { return this.#monster; };
+    getIsTwoColumns(): boolean { return this.#isTwoColumns; };
+}
+
 export class LayoutManager {
+
 
 	// ---- fields ----
     #plugin: DndStatblockPlugin;
     #settings: DndStatblockPluginSettings;
-    #cacheItemView: LayoutItemView | null = null;
-
-    #cacheContainer: Element | null = null;
-    #cacheMonster: FullMonster | null = null;
-    #cacheIsTwoColumns: boolean = false;
+    #cache: LayoutManagerCache[] = [];
+    
 
     constructor(plugin: DndStatblockPlugin, settings: DndStatblockPluginSettings) {
         this.#plugin = plugin;
@@ -28,7 +46,10 @@ export class LayoutManager {
         monster: FullMonster, 
         isTwoColumns: boolean = false,
     ) {
-        this.#cacheItemView?.destroy();
+        this.#cache
+            .find((item) => item.getContainer() == container)
+            ?.getItemView()
+            ?.destroy();
         container.empty();
         const layoutStyle = this.#settings.layoutStyle;
         const viewContainer = container.createDiv("statblock-view-container");
@@ -44,15 +65,13 @@ export class LayoutManager {
                 throw new Error(`Unknown layout style: ${layoutStyle}`);
         } 
         itemView.render(viewContainer);
-        this.#cacheItemView = itemView;
-        this.#cacheContainer = container;
-        this.#cacheMonster = monster;
-        this.#cacheIsTwoColumns = isTwoColumns;
+        const cacheItem = new LayoutManagerCache(itemView, container, monster, isTwoColumns);
+        this.#cache.push(cacheItem);
     }
 
     onChangeLayoutStyle() {
-        if (this.#cacheItemView && this.#cacheContainer && this.#cacheMonster) {
-            this.renderLayout(this.#cacheContainer, this.#cacheMonster, this.#cacheIsTwoColumns)
-        }
+        this.#cache
+            .filter((item) => item.getContainer().isActiveElement)
+            .forEach((item) => this.renderLayout(item.getContainer(), item.getMonster(), item.getIsTwoColumns()));
     }
 }
