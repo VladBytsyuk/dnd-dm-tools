@@ -4,7 +4,7 @@ import { DndStatblockSettingsController } from "src/ui/components/settings/setti
 import { registerSettingsTab } from "src/ui/components/settings/settings_tab";
 import { registerMonsterMdCodeBlockProcessor } from "src/ui/components/processor/monster_md_code_block_processor";
 import { registerSidePanelBestiary } from "src/ui/components/ribbon/side_panel_bestiary";
-import { registerAddStatblockCommand, registerAddWideStatblockCommand } from './ui/components/command/add_statblock_command';
+import { registerAddStatblockCommand } from './ui/components/command/add_statblock_command';
 import { LayoutManager } from './ui/components/settings/layout_manager';
 import { registerThemeChangeListener } from './ui/theme';
 import type { LayoutStyle } from './ui/components/settings/layout_style';
@@ -22,8 +22,7 @@ export default class DndStatblockPlugin extends Plugin {
 			registerSettingsTab(this, this.#settingsController);
 			registerSidePanelBestiary(this, this.#bestiary, this.#layoutManager);
 			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#layoutManager);
-			registerAddStatblockCommand(this);
-			registerAddWideStatblockCommand(this);
+			registerAddStatblockCommand(this, this.#bestiary);
 			registerThemeChangeListener();
 			console.log("obsidian-dnd-statblock has been loaded.");
 		});

@@ -1,35 +1,25 @@
-import { Editor } from "obsidian";
+import { Editor, stringifyYaml } from "obsidian";
 import DndStatblockPlugin from "src/main";
 import { TEXTS } from "src/res/texts_ru";
+import { CreatureChooser } from "../modals/creature_chooser";
+import type { Bestiary } from "src/data/bestiary";
 
 const ADD_STATBLOCK_COMMAND_ID = 'add-statblock-command-id';
-const ADD_WIDE_STATBLOCK_COMMAND_ID = 'add-wide-statblock-command-id';
 
-export function registerAddStatblockCommand(plugin: DndStatblockPlugin) {
+export function registerAddStatblockCommand(plugin: DndStatblockPlugin, bestiary: Bestiary) {
     plugin.addCommand({
         id: ADD_STATBLOCK_COMMAND_ID,
         name: TEXTS.commandAddStatblock,
         editorCallback: (editor: Editor) => {
-            const content = "creature: ";
-            const block = `\`\`\`statblock\n${content}\n\`\`\``;
-            const cursor = editor.getCursor();
-            editor.replaceRange(block, cursor);
-            editor.setCursor({ line: cursor.line + 1, ch: content.length });
-        },
-    });
-}
-
-export function registerAddWideStatblockCommand(plugin: DndStatblockPlugin) {
-    plugin.addCommand({
-        id: ADD_WIDE_STATBLOCK_COMMAND_ID,
-        name: TEXTS.commandAddWideStatblock,
-        editorCallback: (editor: Editor) => {
-            const creature = "creature: ";
-            const twoColumns = "twoColumns: true";
-            const block = `\`\`\`statblock\n${creature}\n${twoColumns}\n\`\`\``;
-            const cursor = editor.getCursor();
-            editor.replaceRange(block, cursor);
-            editor.setCursor({ line: cursor.line + 1, ch: creature.length });
+            new CreatureChooser(plugin.app, bestiary, (monster, isTwoColumns) => {
+                const creature = `creature: ${monster.name.rus}`;
+                const twoColumns = `twoColumns: ${isTwoColumns}`;
+                const yamlMonster = stringifyYaml(monster);
+                const content = `\`\`\`statblock\n${creature}\n${twoColumns}\n${yamlMonster}\n\`\`\``
+                const cursor = editor.getCursor();
+                editor.replaceRange(content, cursor);
+                editor.setCursor({ line: cursor.line + 1, ch: content.length });
+            }).open();
         },
     });
 }
