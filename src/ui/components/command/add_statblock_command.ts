@@ -12,13 +12,12 @@ export function registerAddStatblockCommand(plugin: DndStatblockPlugin, bestiary
         name: TEXTS.commandAddStatblock,
         editorCallback: (editor: Editor) => {
             new CreatureChooser(plugin.app, bestiary, (monster, isTwoColumns) => {
-                const creature = `creature: ${monster.name.rus}`;
-                const twoColumns = `twoColumns: ${isTwoColumns}`;
                 const yamlMonster = stringifyYaml(monster);
-                const content = `\`\`\`statblock\n${creature}\n${twoColumns}\n${yamlMonster}\n\`\`\``
+                const content = `\`\`\`statblock\ncreature: ${monster.name.rus}\ntwoColumns: ${isTwoColumns}\n${yamlMonster}\n\`\`\``
                 const cursor = editor.getCursor();
+                const linesAdded = content.split('\n').length
                 editor.replaceRange(content, cursor);
-                editor.setCursor({ line: cursor.line + 1, ch: content.length });
+                editor.setCursor({ line: cursor.line + linesAdded + 2, ch: 0 });
             }).open();
         },
     });

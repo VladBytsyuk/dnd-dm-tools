@@ -68,7 +68,7 @@ class SidePanelBestiaryView extends ItemView {
         
         const headerEl = container.createDiv(`side-panel-bestiary-header`);
 
-        const searchEl = new SearchComponent(headerEl).setPlaceholder(TEXTS.sidePanelBestiarySearchPlaceholder);
+        const searchEl = new SearchComponent(headerEl).setPlaceholder(TEXTS.bestiarySearchPlaceholder);
         searchEl.clearButtonEl.addEventListener('click', () => {
             searchEl.setValue("");
             statblockContainer.empty();

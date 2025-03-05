@@ -9,16 +9,25 @@ export class CreatureChooser extends Modal {
     constructor(
         app: App,
         bestiary: Bestiary,
-        onSubmit: (fullMonster: FullMonster, isTwoColumns: boolean) => void,
+        onSubmit: (monster: FullMonster, isTwoColumns: boolean) => void,
     ) {
         super(app);
-        this.setTitle('Выбери существо');
 
-        let creature: FullMonster | null = null;
+        let monster: FullMonster | null = null;
         let isTwoColumns = false;
 
+        this.addSearchElement(app, bestiary, (fullMonster) => monster = fullMonster);
+        this.addTwoColumnsElement((value) => isTwoColumns = value);
+        this.addSubmitButton(() => monster && onSubmit(monster, isTwoColumns));
+    }
+
+    addSearchElement(
+        app: App,
+        bestiary: Bestiary,
+        onSelect: (fullMonster: FullMonster) => void,
+    ) {
         const searchEl = new SearchComponent(this.contentEl)
-            .setPlaceholder(TEXTS.sidePanelBestiarySearchPlaceholder);
+            .setPlaceholder(TEXTS.bestiarySearchPlaceholder);
         searchEl.clearButtonEl.addEventListener('click', () => {
             searchEl.setValue("");
             suggester.close();
@@ -26,23 +35,27 @@ export class CreatureChooser extends Modal {
 
         const suggester = new MonsterSuggester(app, searchEl, bestiary);
         suggester.onSelectMonster(fullMonster => {
-            creature = fullMonster;
+            onSelect(fullMonster);
             searchEl.setValue(fullMonster.name.rus);
             suggester.close();
         });
+    }
 
+    addTwoColumnsElement(onSelect: (value: boolean) => void) {
         new Setting(this.contentEl)
-            .setName('2 столбца')
-            .addToggle((toggle) => isTwoColumns = toggle.getValue());
+            .setName(TEXTS.addStatblockModalTwoColumns)
+            .addToggle((toggle) => onSelect(toggle.getValue()));
+    }
 
+    addSubmitButton(onClick: () => void) {
         new Setting(this.contentEl)
             .addButton((btn) =>
-                btn.setButtonText('Подтвердить')
+                btn.setButtonText(TEXTS.addStatblockModalSubmit)
                     .setCta()
                     .onClick(() => {
                         this.close();
-                        creature && onSubmit(creature, isTwoColumns);
+                        onClick();
                     })
-            );
+            );  
     }
 }

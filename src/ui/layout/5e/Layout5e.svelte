@@ -14,6 +14,9 @@
         return value >= 0 ? `+${value}` : value.toString();
     };
 
+    const separate = (text: Array<string>) => 
+        text.join(', ');
+
     const joinList = (items: Array<{ name: string }>) => 
         items?.map(it => it.name).join(', ') || '';
 
@@ -117,7 +120,7 @@
             <div class="layout-5e-statblock-base-info-item">
                 <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSaves}</span> 
                 <span class="layout-5e-statblock-base-info-item-value">
-                    {monster.savingThrows.map(it => `${it.name} ${modifier(it.value)}`).join(', ')}
+                    {separate(monster.savingThrows.map(it => `${it.name} ${modifier(it.value)}`).join(', '))}
                 </span>
             </div>
             {/if}
@@ -126,7 +129,7 @@
             <div class="layout-5e-statblock-base-info-item">
                 <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSkills}</span> 
                 <span class="layout-5e-statblock-base-info-item-value">
-                    {monster.skills.map(it => `${it.name} ${modifier(it.value)}`).join(', ')}
+                    {separate(monster.skills.map(it => `${it.name} ${modifier(it.value)}`).join(', '))}
                 </span>
             </div>
             {/if}
@@ -134,28 +137,28 @@
             {#if monster.damageVulnerabilities}
             <div class="layout-5e-statblock-base-info-item">
                 <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutDamageVulnerabilities}</span> 
-                <span class="layout-5e-statblock-base-info-item-value">{monster.damageVulnerabilities}</span>
+                <span class="layout-5e-statblock-base-info-item-value">{separate(monster.damageVulnerabilities)}</span>
             </div>
             {/if}
 
             {#if monster.damageResistances}
             <div class="layout-5e-statblock-base-info-item">
                 <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutDamageResistances}</span> 
-                <span class="layout-5e-statblock-base-info-item-value">{monster.damageResistances}</span>
+                <span class="layout-5e-statblock-base-info-item-value">{separate(monster.damageResistances)}</span>
             </div>
             {/if}
 
             {#if monster.damageImmunities}
             <div class="layout-5e-statblock-base-info-item">
                 <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutDamageImmunities}</span> 
-                <span class="layout-5e-statblock-base-info-item-value">{monster.damageImmunities}</span>
+                <span class="layout-5e-statblock-base-info-item-value">{separate(monster.damageImmunities)}</span>
             </div>
             {/if}
 
             {#if monster.conditionImmunities}
             <div class="layout-5e-statblock-base-info-item">
                 <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutConditionImmunities}</span> 
-                <span class="layout-5e-statblock-base-info-item-value">{monster.conditionImmunities}</span>
+                <span class="layout-5e-statblock-base-info-item-value">{separate(monster.conditionImmunities)}</span>
             </div>
             {/if}
 
@@ -163,7 +166,7 @@
             <div class="layout-5e-statblock-base-info-item">
                 <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSenses}</span> 
                 <span class="layout-5e-statblock-base-info-item-value">
-                    {monster.senses.senses.map(it => `${it.name} ${it.value} ${TEXTS.layoutFt}.,`).join(', ')}
+                    {monster.senses.senses ? separate(monster.senses.senses.map(it => `${it.name} ${it.value} ${TEXTS.layoutFt}.,`)) : ''}
                     {TEXTS.layoutPassivePerception} {monster.senses.passivePerception}
                 </span>
             </div>
@@ -172,7 +175,7 @@
             {#if monster.languages}
             <div class="layout-5e-statblock-base-info-item">
                 <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutLanguages}</span> 
-                <span class="layout-5e-statblock-base-info-item-value">{monster.languages.join(', ')}</span>
+                <span class="layout-5e-statblock-base-info-item-value">{separate(monster.languages.join(', '))}</span>
             </div>
             {/if}
 
