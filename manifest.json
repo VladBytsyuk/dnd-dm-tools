@@ -1,9 +1,9 @@
 {
-	"id": "obsidian-dnd-statblock",
-	"name": "DnD 5e statblock",
+	"id": "dnd-dm-tools",
+	"name": "DnD 5e DM helper",
 	"version": "0.0.1",
 	"minAppVersion": "0.15.0",
-	"description": "A plugin for Obsidian.md with DnD statblocks in russian.",
+	"description": "A plugin for Obsidian.md with DnD 5e DM tools in russian.",
 	"author": "VladBytsyuk",
 	"authorUrl": "",
 	"fundingUrl": "",

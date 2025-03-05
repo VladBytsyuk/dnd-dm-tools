@@ -1,5 +1,7 @@
-# obsidian-dnd-statblock
-A plugin for Obsidian.md with DnD statblocks in russian.
+# dnd-dm-helper
+A plugin for Obsidian.md with DnD 5e DM tools in russian.
+
+## Бестиарий
 
 Плагин позволяет добавлять и изменять статблоки существ Dungeon&Dragons 5 редакции.
 
