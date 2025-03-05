@@ -4,7 +4,7 @@ export const TEXTS = {
     settingsLayout5e: "D&D 5 редакции",
     settingsLayoutTtg: "TTG Club",
     noticeClipboardSuccess: " - успешно скопировано.",
-    ribbonActionTitle: "Открыть бестиарий",
+    ribbonActionTitle: "Бестиарий",
     sidePanelBestiaryTitle: "Бестиарий",
     bestiarySearchPlaceholder: "Поиск по имени в бестиарии",
     sidePanelBestiarySearchClear: "Убрать статблок",
