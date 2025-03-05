@@ -23,13 +23,13 @@ export default class DndStatblockPlugin extends Plugin {
 			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#layoutManager);
 			registerAddStatblockCommand(this, this.#bestiary);
 			registerThemeChangeListener();
-			console.log("obsidian-dnd-statblock has been loaded.");
+			console.log("dnd-dm-tools has been loaded.");
 		});
 	}
 
 	onunload() {
 		this.#dispose();
-		console.log("obsidian-dnd-statblock has been unloaded.");
+		console.log("dnd-dm-tools has been unloaded.");
 	}
 
 	// ---- private methods ----
