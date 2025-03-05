@@ -7,7 +7,6 @@ import { registerSidePanelBestiary } from "src/ui/components/ribbon/side_panel_b
 import { registerAddStatblockCommand } from './ui/components/command/add_statblock_command';
 import { LayoutManager } from './ui/components/settings/layout_manager';
 import { registerThemeChangeListener } from './ui/theme';
-import type { LayoutStyle } from './ui/components/settings/layout_style';
 
 export default class DndStatblockPlugin extends Plugin {
 
