@@ -1,8 +1,8 @@
 import type { FullMonster } from 'src/domain/monster';
 import { TEXTS } from 'src/res/texts_ru';
-import Layout5e from 'src/ui/layout/5e/Layout5e.svelte';
+import Layout5e from 'src/ui/layout/statblock/5e/Layout5e.svelte';
 import { mount, unmount } from 'svelte';
-import type { LayoutItemView } from '../LayoutItemView';
+import type { LayoutItemView } from '../../LayoutItemView';
 
 export const LAYOUT_5E_ITEM_VIEW_TYPE_EXAMPLE = 'obsidian-dnd-statblock-layout-5e-item-view';
 

@@ -1,8 +1,8 @@
 import type { FullMonster } from "src/domain/monster";
 import type { DndStatblockPluginSettings } from "./settings";
 import { LayoutStyle } from "./layout_style";
-import { Layout5eItemView } from "src/ui/layout/5e/Layout5eItem";
-import { LayoutTtgItemView } from "src/ui/layout/ttg/LayoutTtgItem";
+import { Layout5eItemView } from "src/ui/layout/statblock/5e/Layout5eItem";
+import { LayoutTtgItemView } from "src/ui/layout/statblock/ttg/LayoutTtgItem";
 import type { LayoutItemView } from "src/ui/layout/LayoutItemView";
 
 class LayoutManagerCache {

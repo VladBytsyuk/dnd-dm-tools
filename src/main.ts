@@ -7,6 +7,7 @@ import { registerSidePanelBestiary } from "src/ui/components/ribbon/side_panel_b
 import { registerAddStatblockCommand } from './ui/components/command/add_statblock_command';
 import { LayoutManager } from './ui/components/settings/layout_manager';
 import { registerThemeChangeListener } from './ui/theme';
+import { registerSidePanelInitiativeTracker } from './ui/components/ribbon/side_panel_initiative_tracker';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -20,6 +21,7 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#initialize(() => {
 			registerSettingsTab(this, this.#settingsController);
 			registerSidePanelBestiary(this, this.#bestiary, this.#layoutManager);
+			registerSidePanelInitiativeTracker(this, this.#bestiary, this.#layoutManager);
 			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#layoutManager);
 			registerAddStatblockCommand(this, this.#bestiary);
 			registerThemeChangeListener();

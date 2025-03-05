@@ -14,7 +14,7 @@ export function registerSidePanelBestiary(
         SIDE_PANEL_BESTIARY_VIEW,
         (leaf: WorkspaceLeaf) => new SidePanelBestiaryView(leaf, plugin, bestiary, layoutManager),
     );
-    plugin.addRibbonIcon("skull", TEXTS.ribbonActionTitle, async (mouseEvent) => {
+    plugin.addRibbonIcon("skull", TEXTS.ribbonActionBestiaryTitle, async (mouseEvent) => {
         openSidePanelBestiary(mouseEvent.getModifierState("Meta"), plugin.app.workspace)
     });
 }

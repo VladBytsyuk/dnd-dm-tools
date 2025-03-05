@@ -1,8 +1,8 @@
 import type { FullMonster } from 'src/domain/monster';
 import { TEXTS } from 'src/res/texts_ru';
-import LayoutTtg from 'src/ui/layout/ttg/LayoutTtg.svelte';
+import LayoutTtg from 'src/ui/layout/statblock/ttg/LayoutTtg.svelte';
 import { mount, unmount } from 'svelte';
-import type { LayoutItemView } from '../LayoutItemView';
+import type { LayoutItemView } from '../../LayoutItemView';
 
 const LAYOUT_TTG_ITEM_VIEW_TYPE_EXAMPLE = 'obsidian-dnd-statblock-layout-ttg-item-view';
 
