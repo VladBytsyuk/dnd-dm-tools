@@ -29,6 +29,7 @@ export default class DndStatblockPlugin extends Plugin {
 	}
 
 	onunload() {
+		this.#dispose();
 		console.log("obsidian-dnd-statblock has been unloaded.");
 	}
 
@@ -42,12 +43,17 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#bestiary = new Bestiary(`${this.manifest.dir}`, this.app.vault.adapter);
 		await this.#bestiary.initialize();
 
-		this.#layoutManager = new LayoutManager(this, this.#settingsController.settings);
+		this.#layoutManager = new LayoutManager(this.#settingsController.settings);
 
 		callback();
 	}
 
 	#onLayoutStyleChanged() {
 		this.#layoutManager.onChangeLayoutStyle();
+	}
+
+	#dispose() {
+		this.#bestiary.dispose();
+		this.#layoutManager.dispose();
 	}
 }

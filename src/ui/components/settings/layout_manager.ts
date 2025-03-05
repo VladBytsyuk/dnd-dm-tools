@@ -3,7 +3,6 @@ import type { DndStatblockPluginSettings } from "./settings";
 import { LayoutStyle } from "./layout_style";
 import { Layout5eItemView } from "src/ui/layout/5e/Layout5eItem";
 import { LayoutTtgItemView } from "src/ui/layout/ttg/LayoutTtgItem";
-import type DndStatblockPlugin from "src/main";
 import type { LayoutItemView } from "src/ui/layout/LayoutItemView";
 
 class LayoutManagerCache {
@@ -30,13 +29,11 @@ export class LayoutManager {
 
 
 	// ---- fields ----
-    #plugin: DndStatblockPlugin;
     #settings: DndStatblockPluginSettings;
     #cache: LayoutManagerCache[] = [];
     
 
-    constructor(plugin: DndStatblockPlugin, settings: DndStatblockPluginSettings) {
-        this.#plugin = plugin;
+    constructor(settings: DndStatblockPluginSettings) {
         this.#settings = settings;
     }
 
@@ -73,5 +70,9 @@ export class LayoutManager {
         this.#cache
             .filter((item) => item.getContainer().isActiveElement)
             .forEach((item) => this.renderLayout(item.getContainer(), item.getMonster(), item.getIsTwoColumns()));
+    }
+
+    dispose() {
+        this.#cache = [];
     }
 }

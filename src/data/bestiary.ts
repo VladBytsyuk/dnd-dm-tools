@@ -8,11 +8,13 @@ export class Bestiary {
     #rootDir: string;
     #dataAdapter: DataAdapter;
     #smallBestiary: SmallMonster[];
+    #cache: Map<string, FullMonster>;
 
     // ---- public functions ----
     constructor(rootDir: string, dataAdapter: DataAdapter) {
         this.#rootDir = rootDir;
         this.#dataAdapter = dataAdapter;
+        this.#cache = new Map();
     }
 
     async initialize() {
@@ -31,7 +33,14 @@ export class Bestiary {
     }
 
     async getFullMonsterByUrl(url: string): Promise<FullMonster | null> {
-        return await this.#fetchCreatureFromAPI(url);
+        const cachedFullMonster = this.#cache.get(url);
+        if (cachedFullMonster) {
+            console.log(`Loaded ${cachedFullMonster.name.rus} from local storage.`);
+            return cachedFullMonster;
+        }
+        const fullMonster = await this.#fetchCreatureFromAPI(url);
+        if (fullMonster) this.#cache.set(url, fullMonster);
+        return fullMonster;
     }
 
     async getFullMonsterBySmallMonster(smallMonster: SmallMonster): Promise<FullMonster | null> {
@@ -46,6 +55,10 @@ export class Bestiary {
         } else {
             return await this.getFullMonsterByUrl(smallMonster?.url);
         }
+    }
+
+    dispose() {
+        this.#cache.clear();
     }
 
     // ---- private functions ----
