@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { d20, roll } from "src/domain/dice";
+    import { Pencil, ClipboardCopy, Play, Ban, Dices, Sword, Heart, Shield, Check, Eraser, Plus } from 'lucide-svelte';
 	import type { Encounter, EncounterParticipant } from "src/domain/encounter";
 
-    let encounter: Encounter = { participants: [] };
+    let encounter: Encounter = { name: "", participants: [] };
     let idCounter: number = 0;
     let calcTempValues = new Map();
+    let isEncounterEditing: boolean = false;
 
     const modifier = (value: number) => {
         return value >= 0 ? `+${value}` : value.toString();
@@ -77,85 +79,39 @@
     }
 
     const updateParticipants = (newParticipants: EncounterParticipant[]) => {
-        encounter = { participants: newParticipants };
+        encounter = { ...encounter, participants: newParticipants };
     }
 </script>
 
 <div class="initiative-tracker">
+    <div class="initiative-tracker-header">
+        {#if isEncounterEditing}
+            <input class="participants-list-cell-name" bind:value={encounter.name} placeholder={encounter.name}>
+        {:else}
+            <div>{encounter.name}</div>
+        {/if}
+        {#if isEncounterEditing}
+            <div on:click={isEncounterEditing = false}><Check/></div>
+        {:else}
+            <div on:click={isEncounterEditing = true}><Pencil/></div>
+        {/if}
+        <div><ClipboardCopy/></div>
+        <div><Play/></div>
+        <div><Ban/></div>
+    </div>
     <div class="participants-list">
         <div class="participants-list-row">
-            <div class="participants-list-cell-header-value">
-                <svg xmlns="http://www.w3.org/2000/svg" 
-                    width="24" height="24" viewBox="0 0 24 24" fill="none" 
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-                    class="lucide lucide-dices"
-                    on:click={() => rollInitiative()}
-                >
-                    <rect width="12" height="12" x="2" y="10" rx="2" ry="2"/>
-                    <path d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6"/>
-                    <path d="M6 18h.01"/>
-                    <path d="M10 14h.01"/>
-                    <path d="M15 6h.01"/>
-                    <path d="M18 9h.01"/>
-                </svg>
-            </div>
-            <div class="participants-list-cell-header-value" >
-                <svg xmlns="http://www.w3.org/2000/svg" 
-                    width="24" height="24" viewBox="0 0 24 24" fill="none" 
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-                    class="lucide lucide-sword" 
-                    on:click={() => sortByInitiative()}
-                >
-                    <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/>
-                    <line x1="13" x2="19" y1="19" y2="13"/>
-                    <line x1="16" x2="20" y1="16" y2="20"/>
-                    <line x1="19" x2="21" y1="21" y2="19"/>
-                </svg>
-            </div>
+            <div class="participants-list-cell-header-value" on:click={() => rollInitiative()}><Dices/></div>
+            <div class="participants-list-cell-header-value" on:click={() => sortByInitiative()}><Sword/></div>
             <div class="participants-list-cell-name">Имя</div>
-            <div class="participants-list-cell-header-value">
-                <svg xmlns="http://www.w3.org/2000/svg" 
-                    width="24" height="24" viewBox="0 0 24 24" fill="none" 
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-                    class="lucide lucide-heart"
-                >
-                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
-                </svg>
-            </div>
-            <div class="participants-list-cell-header-value">
-                <svg xmlns="http://www.w3.org/2000/svg" 
-                    width="24" height="24" viewBox="0 0 24 24" fill="none" 
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-                    class="lucide lucide-shield"
-                >
-                    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
-                </svg>
-            </div>
+            <div class="participants-list-cell-header-value"><Heart/></div>
+            <div class="participants-list-cell-header-value"><Shield/></div>
             <div class="participants-list-cell-header-value"></div>
         </div>
         {#each encounter.participants as participant (participant.id)}
             <div class="participants-list-row">
-                <div class="participants-list-cell-header-value">
-                    {#if participant.isEditing}
-                        <svg xmlns="http://www.w3.org/2000/svg" 
-                            width="24" height="24" viewBox="0 0 24 24" fill="none" 
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-                            class="lucide lucide-check" 
-                            on:click={() => toggleEditing(participant.id)}
-                        >
-                            <path d="M20 6 9 17l-5-5"/>
-                        </svg>
-                    {:else}
-                        <svg xmlns="http://www.w3.org/2000/svg" 
-                            width="24" height="24" viewBox="0 0 24 24" fill="none" 
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-                            class="lucide lucide-pencil" 
-                            on:click={() => toggleEditing(participant.id)}
-                        >
-                            <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>
-                            <path d="m15 5 4 4"/>
-                        </svg>
-                    {/if}
+                <div class="participants-list-cell-header-value" on:click={() => toggleEditing(participant.id)}>
+                    {#if participant.isEditing}<Check/>{:else}<Pencil/>{/if}
                 </div>
                 <input class="participants-list-cell-value" 
                     placeholder={modifier(participant.initiativeModifier)}
@@ -202,30 +158,10 @@
                 {:else}
                     <div class="participants-list-cell-value">{participant.armorClass}</div>
                 {/if}
-                <div class="participants-list-cell-header-value">
-                    <svg xmlns="http://www.w3.org/2000/svg" 
-                        width="24" height="24" viewBox="0 0 24 24" fill="none" 
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-                        class="lucide lucide-eraser" 
-                        on:click={() => removeParticipant(participant.id)}
-                    >
-                        <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/>
-                        <path d="M22 21H7"/>
-                        <path d="m5 11 9 9"/>
-                    </svg>
-                </div>
+                <div class="participants-list-cell-header-value" on:click={() => removeParticipant(participant.id)}><Eraser/></div>
             </div>
         {/each}
-        <div class="participants-list-cell-add" on:click={addParticipant}>
-            <svg xmlns="http://www.w3.org/2000/svg" 
-                width="24" height="24" viewBox="0 0 24 24" fill="none" 
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-                class="lucide lucide-plus"
-            >
-                <path d="M5 12h14"/>
-                <path d="M12 5v14"/>
-            </svg>
-        </div>
+        <div class="participants-list-cell-add" on:click={addParticipant}><Plus/></div>
     </div>
 </div>
 
@@ -233,6 +169,17 @@
     .initiative-tracker {
         padding: 10px;
         min-width: 35em;
+    }
+
+    .initiative-tracker-header {
+        font-size: large;
+        font-weight: 600;
+        margin: 0 0 10px;
+        display: grid;
+        grid-template-columns: 4fr 0.5fr 0.5fr 0.5fr 0.5fr;        
+        position: relative;
+        cursor: default;
+        width: 100%;
     }
 
     .participants-list-row {

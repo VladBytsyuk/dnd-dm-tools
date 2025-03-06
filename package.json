@@ -27,6 +27,7 @@
 		"typescript": "^5.7.3"
 	},
 	"dependencies": {
+		"lucide-svelte": "^0.477.0",
 		"yaml": "^2.7.0"
 	}
 }
