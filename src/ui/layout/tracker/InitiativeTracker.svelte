@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { d20, roll } from "src/domain/dice";
 	import type { Encounter, EncounterParticipant } from "src/domain/encounter";
 
     let encounter: Encounter = { participants: [] };
@@ -7,6 +8,10 @@
 
     const modifier = (value: number) => {
         return value >= 0 ? `+${value}` : value.toString();
+    };
+
+    const rollInitiative = () => {
+        updateParticipants(encounter.participants.map((it) => it.initiative !== 0 ? it : ({...it, initiative: roll(d20()(it.initiativeModifier))})));
     };
 
     const sortByInitiative = () => {
@@ -79,7 +84,21 @@
 <div class="initiative-tracker">
     <div class="participants-list">
         <div class="participants-list-row">
-            <div class="participants-list-cell-header-value"></div>
+            <div class="participants-list-cell-header-value">
+                <svg xmlns="http://www.w3.org/2000/svg" 
+                    width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                    class="lucide lucide-dices"
+                    on:click={() => rollInitiative()}
+                >
+                    <rect width="12" height="12" x="2" y="10" rx="2" ry="2"/>
+                    <path d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6"/>
+                    <path d="M6 18h.01"/>
+                    <path d="M10 14h.01"/>
+                    <path d="M15 6h.01"/>
+                    <path d="M18 9h.01"/>
+                </svg>
+            </div>
             <div class="participants-list-cell-header-value" >
                 <svg xmlns="http://www.w3.org/2000/svg" 
                     width="24" height="24" viewBox="0 0 24 24" fill="none" 

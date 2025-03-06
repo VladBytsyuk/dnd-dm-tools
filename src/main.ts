@@ -20,8 +20,8 @@ export default class DndStatblockPlugin extends Plugin {
 	async onload() {
 		this.#initialize(() => {
 			registerSettingsTab(this, this.#settingsController);
-			registerSidePanelBestiary(this, this.#bestiary, this.#layoutManager);
 			registerSidePanelInitiativeTracker(this, this.#bestiary, this.#layoutManager);
+			registerSidePanelBestiary(this, this.#bestiary, this.#layoutManager);
 			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#layoutManager);
 			registerAddStatblockCommand(this, this.#bestiary);
 			registerThemeChangeListener();
