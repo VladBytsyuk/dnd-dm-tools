@@ -9,7 +9,7 @@ export interface EncounterParticipant {
     initiativeModifier: number;
     name: string;
     hpCurrent: number;
-    hpTempoary: number;
+    hpTemporary: number;
     hpMax: number;
     armorClass: number;
 }

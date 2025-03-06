@@ -2,11 +2,16 @@
 	import type { Encounter, EncounterParticipant } from "src/domain/encounter";
 
     let encounter: Encounter = { participants: [] };
-    let idCounter = 0;
+    let idCounter: number = 0;
+    let calcTempValues = new Map();
 
     const modifier = (value: number) => {
         return value >= 0 ? `+${value}` : value.toString();
     };
+
+    const sortByInitiative = () => {
+        updateParticipants(encounter.participants.sort((a, b) => b.initiative - a.initiative));
+    }
 
     const addParticipant = () => {
         const newParticipants = [
@@ -23,25 +28,37 @@
 				armorClass: 0
 			} as unknown as EncounterParticipant,
         ].sort((a, b) => b.initiative - a.initiative);
-        encounter = {
-            participants: newParticipants,
-        }
-    }
-    
-    const toggleEditing = (id: number) => {
-        const newParticipants = encounter.participants
-            .map((it) => it.id !== id ? it : ({...it, isEditing: !it.isEditing}));
-        encounter = { participants: newParticipants };
+        updateParticipants(newParticipants);
     }
 
     const removeParticipant = (id: number) => {
-        const newParticipants = encounter.participants
-            .filter(it => it.id !== id);
-        encounter = { participants: newParticipants };
+        updateParticipants(encounter.participants.filter(it => it.id !== id));
     }
 
+    const toggleEditing = (id: number) => {
+        updateParticipants(encounter.participants.map((it) => it.id !== id ? it : ({...it, isEditing: !it.isEditing})));
+    }
 
-    let calcTempValues = new Map();
+    const handleKeyPress = (e: any, participant: EncounterParticipant, field: string) => {
+        if (e.key === 'Enter') {
+            const result = evaluateExpression(e.target.value);
+            if (!isNaN(result)) {
+                updateParticipants(encounter.participants.map(it => it.id === participant.id ? { ...it, [field]: Number(result) } : it));
+                calcTempValues.delete(`${participant.id}-${field}`);
+            }
+            e.target.blur();
+        } else {
+            calcTempValues.set(`${participant.id}-${field}`, e.target.value);
+        }
+    }
+
+    const handleBlur = (e: any, participant: EncounterParticipant, field: string) => {
+        const result = evaluateExpression(e.target.value);
+        if (!isNaN(result)) {
+            updateParticipants(encounter.participants.map(it => it.id === participant.id ? { ...it, [field]: Number(result) } : it));
+            calcTempValues.delete(`${participant.id}-${field}`);
+        }
+    }
 
     const evaluateExpression = (input: string) => {
         try {
@@ -54,34 +71,7 @@
         }
     }
 
-    const handleKeyPress = (e: any, participant: EncounterParticipant, field: string) => {
-        if (e.key === 'Enter') {
-            const result = evaluateExpression(e.target.value);
-            if (!isNaN(result)) {
-                const newParticipants = encounter.participants
-                    .map(it => it.id === participant.id ? { ...it, [field]: Number(result) } : it);
-                encounter = { participants: newParticipants };
-                calcTempValues.delete(`${participant.id}-${field}`);
-            }
-            e.target.blur();
-        } else {
-            calcTempValues.set(`${participant.id}-${field}`, e.target.value);
-        }
-    }
-
-    const handleBlur = (e: any, participant: EncounterParticipant, field: string) => {
-        const result = evaluateExpression(e.target.value);
-        if (!isNaN(result)) {
-            const newParticipants = encounter.participants
-                .map(it => it.id === participant.id ? { ...it, [field]: Number(result) } : it);
-            encounter = { participants: newParticipants };
-            calcTempValues.delete(`${participant.id}-${field}`);
-        }
-    }
-
-    const sortByInitiative = () => {
-        const newParticipants = encounter.participants
-            .sort((a, b) => b.initiative - a.initiative);
+    const updateParticipants = (newParticipants: EncounterParticipant[]) => {
         encounter = { participants: newParticipants };
     }
 </script>
@@ -89,12 +79,14 @@
 <div class="initiative-tracker">
     <div class="participants-list">
         <div class="participants-list-row">
-            <div class="participants-list-cell-header-value"/>
+            <div class="participants-list-cell-header-value"></div>
             <div class="participants-list-cell-header-value" >
                 <svg xmlns="http://www.w3.org/2000/svg" 
-                    width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                    width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
                     class="lucide lucide-sword" 
-                    on:click={() => sortByInitiative()}>
+                    on:click={() => sortByInitiative()}
+                >
                     <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/>
                     <line x1="13" x2="19" y1="19" y2="13"/>
                     <line x1="16" x2="20" y1="16" y2="20"/>
@@ -103,12 +95,20 @@
             </div>
             <div class="participants-list-cell-name">Имя</div>
             <div class="participants-list-cell-header-value">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart">
+                <svg xmlns="http://www.w3.org/2000/svg" 
+                    width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                    class="lucide lucide-heart"
+                >
                     <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
                 </svg>
             </div>
             <div class="participants-list-cell-header-value">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield">
+                <svg xmlns="http://www.w3.org/2000/svg" 
+                    width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                    class="lucide lucide-shield"
+                >
                     <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
                 </svg>
             </div>
@@ -118,18 +118,28 @@
             <div class="participants-list-row">
                 <div class="participants-list-cell-header-value">
                     {#if participant.isEditing}
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check" on:click={() => toggleEditing(participant.id)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" 
+                            width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                            class="lucide lucide-check" 
+                            on:click={() => toggleEditing(participant.id)}
+                        >
                             <path d="M20 6 9 17l-5-5"/>
                         </svg>
                     {:else}
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil" on:click={() => toggleEditing(participant.id)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" 
+                            width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                            class="lucide lucide-pencil" 
+                            on:click={() => toggleEditing(participant.id)}
+                        >
                             <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>
                             <path d="m15 5 4 4"/>
                         </svg>
                     {/if}
                 </div>
                 <input class="participants-list-cell-value" 
-                    placeholder={participant.inititiativeModifier}
+                    placeholder={modifier(participant.initiativeModifier)}
                     value={calcTempValues.get(`${participant.id}-initiative`) ?? participant.initiative}
                     on:keydown={(e) => handleKeyPress(e, participant, 'initiative')}
                     on:blur={(e) => handleBlur(e, participant, 'initiative')}
@@ -142,19 +152,19 @@
                 {#if participant.isEditing}
                     <div class="participants-list-cell-hp">
                         <input class="participants-list-cell-hp-item" id="hp-current"
-                            placeholder={participant.hpMax}
+                            placeholder={modifier(participant.hpMax)}
                             value={calcTempValues.get(`${participant.id}-hpCurrent`) ?? participant.hpCurrent}
                             on:keydown={(e) => handleKeyPress(e, participant, 'hpCurrent')}
                             on:blur={(e) => handleBlur(e, participant, 'hpCurrent')}
                         />
                         <input class="participants-list-cell-hp-item" id="hp-temporary" 
-                            placeholder={participant.hpTemporary}
+                            placeholder={modifier(participant.hpTemporary)}
                             value={calcTempValues.get(`${participant.id}-hpTemporary`) ?? participant.hpTemporary}
                             on:keydown={(e) => handleKeyPress(e, participant, 'hpTemporary')}
                             on:blur={(e) => handleBlur(e, participant, 'hpTemporary')}
                         />
                         <input class="participants-list-cell-hp-item" id="hp-max" 
-                            placeholder={participant.hpMax}
+                            placeholder={modifier(participant.hpMax)}
                             value={calcTempValues.get(`${participant.id}-hpMax`) ?? participant.hpMax}
                             on:keydown={(e) => handleKeyPress(e, participant, 'hpMax')}
                             on:blur={(e) => handleBlur(e, participant, 'hpMax')}
@@ -165,7 +175,7 @@
                 {/if}
                 {#if participant.isEditing}
                     <input class="participants-list-cell-value" 
-                        placeholder={participant.armorClass}
+                        placeholder={modifier(participant.armorClass)}
                         value={calcTempValues.get(`${participant.id}-armorClass`) ?? participant.armorClass}
                         on:keydown={(e) => handleKeyPress(e, participant, 'armorClass')}
                         on:blur={(e) => handleBlur(e, participant, 'armorClass')}
@@ -174,7 +184,12 @@
                     <div class="participants-list-cell-value">{participant.armorClass}</div>
                 {/if}
                 <div class="participants-list-cell-header-value">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eraser" on:click={() => removeParticipant(participant.id)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" 
+                        width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                        class="lucide lucide-eraser" 
+                        on:click={() => removeParticipant(participant.id)}
+                    >
                         <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/>
                         <path d="M22 21H7"/>
                         <path d="m5 11 9 9"/>
@@ -183,7 +198,11 @@
             </div>
         {/each}
         <div class="participants-list-cell-add" on:click={addParticipant}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus">
+            <svg xmlns="http://www.w3.org/2000/svg" 
+                width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                class="lucide lucide-plus"
+            >
                 <path d="M5 12h14"/>
                 <path d="M12 5v14"/>
             </svg>
@@ -195,12 +214,6 @@
     .initiative-tracker {
         padding: 10px;
         min-width: 35em;
-    }
-    
-    .add-participant {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 15px;
     }
 
     .participants-list-row {
