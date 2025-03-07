@@ -3,7 +3,7 @@
     import { Pencil, ClipboardCopy, ClipboardPaste, Play, Ban, Dices, Sword, Heart, Shield, Check, Eraser, Plus } from 'lucide-svelte';
 	import type { Encounter, EncounterParticipant } from "src/domain/encounter";
 	import { formatModifier } from "src/domain/modifier";
-	import { copyEncounterToClipboard, getEncounterParticipantFromClipboard } from "src/data/clipboard";
+	import { copyEncounterToClipboard, getEncounterFromClipboard, getEncounterParticipantFromClipboard } from "src/data/clipboard";
 
     let encounter: Encounter = { name: "", participants: [] };
     let idCounter: number = 0;
@@ -48,10 +48,17 @@
         const clipboard = await getEncounterParticipantFromClipboard();
         if (clipboard) {
             const newParticipants = [
-            ...encounter.participants,
-            clipboard,
-        ].sort((a, b) => b.initiative - a.initiative);
-        updateParticipants(newParticipants);
+                ...encounter.participants,
+                clipboard,
+            ].sort((a, b) => b.initiative - a.initiative);
+            updateParticipants(newParticipants);
+        }
+    };
+
+    const fillEncounterFromClipboard = async () => {
+        const clipboard = await getEncounterFromClipboard();
+        if (clipboard) {
+            encounter = clipboard;
         }
     };
 
@@ -105,6 +112,7 @@
             <button class="initiative-tracker-header-button" on:click={() => isEncounterEditing = true}><Pencil/></button>
         {/if}
         <button class="initiative-tracker-header-button" on:click={() => copyEncounterToClipboard(encounter)}><ClipboardCopy/></button>
+        <button class="initiative-tracker-header-button" on:click={() => fillEncounterFromClipboard()}><ClipboardPaste/></button>
         <button class="initiative-tracker-header-button"><Play/></button>
         <button class="initiative-tracker-header-button"><Ban/></button>
     </div>
@@ -190,7 +198,7 @@
         font-weight: 600;
         margin: 0 0 10px;
         display: grid;
-        grid-template-columns: 4fr 0.5fr 0.5fr 0.5fr 0.5fr;        
+        grid-template-columns: 4fr 0.5fr 0.5fr 0.5fr 0.5fr 0.5fr;        
         position: relative;
         cursor: default;
         width: 100%;

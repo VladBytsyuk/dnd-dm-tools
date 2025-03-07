@@ -37,4 +37,17 @@ export async function getEncounterParticipantFromClipboard(): Promise<EncounterP
     }
 }
 
-export const getClipboard = (): Promise<string> => navigator.clipboard.readText();
+export async function getEncounterFromClipboard(): Promise<Encounter | undefined> {
+    try {
+        const clipboard = await navigator.clipboard.readText();
+        const yaml = clipboard
+            .split('\n')
+            .filter((_, index, array) => index !== 0 && index !== (array.length - 1))
+            .join('\n');
+        const obj = parseYaml(yaml) as Encounter;    
+        return obj;
+    } catch(e) {
+        console.error(`Failed to read text from clipboard: ${e}`);
+    }
+}
+
