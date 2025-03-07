@@ -2,15 +2,13 @@
 	import { d20, roll } from "src/domain/dice";
     import { Pencil, ClipboardCopy, Play, Ban, Dices, Sword, Heart, Shield, Check, Eraser, Plus } from 'lucide-svelte';
 	import type { Encounter, EncounterParticipant } from "src/domain/encounter";
+	import { formatModifier } from "src/domain/modifier";
+	import { copyEncounterToClipboard } from "src/data/clipboard";
 
     let encounter: Encounter = { name: "", participants: [] };
     let idCounter: number = 0;
     let calcTempValues = new Map();
     let isEncounterEditing: boolean = false;
-
-    const modifier = (value: number) => {
-        return value >= 0 ? `+${value}` : value.toString();
-    };
 
     const rollInitiative = () => {
         updateParticipants(encounter.participants.map((it) => it.initiative !== 0 ? it : ({...it, initiative: roll(d20()(it.initiativeModifier))})));
@@ -95,7 +93,7 @@
         {:else}
             <button class="initiative-tracker-header-button" on:click={() => isEncounterEditing = true}><Pencil/></button>
         {/if}
-        <button class="initiative-tracker-header-button"><ClipboardCopy/></button>
+        <button class="initiative-tracker-header-button" on:click={() => copyEncounterToClipboard(encounter)}><ClipboardCopy/></button>
         <button class="initiative-tracker-header-button"><Play/></button>
         <button class="initiative-tracker-header-button"><Ban/></button>
     </div>
@@ -114,7 +112,7 @@
                     {#if participant.isEditing}<Check/>{:else}<Pencil/>{/if}
                 </button>
                 <input class="participants-list-cell-value" 
-                    placeholder={modifier(participant.initiativeModifier)}
+                    placeholder={formatModifier(participant.initiativeModifier)}
                     value={calcTempValues.get(`${participant.id}-initiative`) ?? participant.initiative}
                     on:keydown={(e) => handleKeyPress(e, participant, 'initiative')}
                     on:blur={(e) => handleBlur(e, participant, 'initiative')}
@@ -127,19 +125,19 @@
                 {#if participant.isEditing}
                     <div class="participants-list-cell-hp">
                         <input class="participants-list-cell-hp-item" id="hp-current"
-                            placeholder={modifier(participant.hpMax)}
+                            placeholder={formatModifier(participant.hpMax)}
                             value={calcTempValues.get(`${participant.id}-hpCurrent`) ?? participant.hpCurrent}
                             on:keydown={(e) => handleKeyPress(e, participant, 'hpCurrent')}
                             on:blur={(e) => handleBlur(e, participant, 'hpCurrent')}
                         />
                         <input class="participants-list-cell-hp-item" id="hp-temporary" 
-                            placeholder={modifier(participant.hpTemporary)}
+                            placeholder={formatModifier(participant.hpTemporary)}
                             value={calcTempValues.get(`${participant.id}-hpTemporary`) ?? participant.hpTemporary}
                             on:keydown={(e) => handleKeyPress(e, participant, 'hpTemporary')}
                             on:blur={(e) => handleBlur(e, participant, 'hpTemporary')}
                         />
                         <input class="participants-list-cell-hp-item" id="hp-max" 
-                            placeholder={modifier(participant.hpMax)}
+                            placeholder={formatModifier(participant.hpMax)}
                             value={calcTempValues.get(`${participant.id}-hpMax`) ?? participant.hpMax}
                             on:keydown={(e) => handleKeyPress(e, participant, 'hpMax')}
                             on:blur={(e) => handleBlur(e, participant, 'hpMax')}
@@ -150,7 +148,7 @@
                 {/if}
                 {#if participant.isEditing}
                     <input class="participants-list-cell-value" 
-                        placeholder={modifier(participant.armorClass)}
+                        placeholder={formatModifier(participant.armorClass)}
                         value={calcTempValues.get(`${participant.id}-armorClass`) ?? participant.armorClass}
                         on:keydown={(e) => handleKeyPress(e, participant, 'armorClass')}
                         on:blur={(e) => handleBlur(e, participant, 'armorClass')}

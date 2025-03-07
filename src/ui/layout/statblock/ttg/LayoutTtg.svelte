@@ -5,17 +5,9 @@
     import { copyMonsterToClipboard } from "src/data/clipboard";
 	import type { Speed } from "src/domain/monster";
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
+	import { calculateAndFormatModifier, formatModifier } from 'src/domain/modifier';
 
     let { monster, isTwoColumns } = $props()
-
-    const formatModifier = (value: number) => {
-        const mod = Math.floor((value - 10) / 2);
-        return modifier(mod);
-    };
-
-    const modifier = (value: number) => {
-        return value >= 0 ? `+${value}` : value.toString();
-    };
 
     const separate = (text: Array<string>) => 
         text.join(', ');
@@ -149,7 +141,7 @@
             }) as entry}
                 <div class="layout-ttg-statblock-scores-table-item">
                 <div class="layout-ttg-statblock-scores-table-item-title"><b>{entry[0]}</b></div>
-                <div class="layout-ttg-statblock-scores-table-item-value">{entry[1]} ({formatModifier(entry[1])})</div>
+                <div class="layout-ttg-statblock-scores-table-item-value">{entry[1]} ({calculateAndFormatModifier(entry[1])})</div>
                 </div>
             {/each}
             </div>
@@ -161,7 +153,7 @@
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSaves}</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">
-                    {separate(monster.savingThrows.map(it => `${it.name} ${modifier(it.value)}`))}
+                    {separate(monster.savingThrows.map(it => `${it.name} ${formatModifier(it.value)}`))}
                 </span>
             </div>
             {/if}
@@ -170,7 +162,7 @@
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSkills}</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">
-                    {separate(monster.skills.map(it => `${it.name} ${modifier(it.value)}`))}
+                    {separate(monster.skills.map(it => `${it.name} ${formatModifier(it.value)}`))}
                 </span>
             </div>
             {/if}
