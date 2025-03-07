@@ -91,18 +91,18 @@
             <div>{encounter.name}</div>
         {/if}
         {#if isEncounterEditing}
-            <div on:click={isEncounterEditing = false}><Check/></div>
+            <button class="initiative-tracker-header-button" on:click={() => isEncounterEditing = false}><Check/></button>
         {:else}
-            <div on:click={isEncounterEditing = true}><Pencil/></div>
+            <button class="initiative-tracker-header-button" on:click={() => isEncounterEditing = true}><Pencil/></button>
         {/if}
-        <div><ClipboardCopy/></div>
-        <div><Play/></div>
-        <div><Ban/></div>
+        <button class="initiative-tracker-header-button"><ClipboardCopy/></button>
+        <button class="initiative-tracker-header-button"><Play/></button>
+        <button class="initiative-tracker-header-button"><Ban/></button>
     </div>
     <div class="participants-list">
         <div class="participants-list-row">
-            <div class="participants-list-cell-header-value" on:click={() => rollInitiative()}><Dices/></div>
-            <div class="participants-list-cell-header-value" on:click={() => sortByInitiative()}><Sword/></div>
+            <button class="participants-list-cell-header-value" on:click={() => rollInitiative()}><Dices/></button>
+            <button class="participants-list-cell-header-value" on:click={() => sortByInitiative()}><Sword/></button>
             <div class="participants-list-cell-name">Имя</div>
             <div class="participants-list-cell-header-value"><Heart/></div>
             <div class="participants-list-cell-header-value"><Shield/></div>
@@ -110,9 +110,9 @@
         </div>
         {#each encounter.participants as participant (participant.id)}
             <div class="participants-list-row">
-                <div class="participants-list-cell-header-value" on:click={() => toggleEditing(participant.id)}>
+                <button class="participants-list-cell-header-value" on:click={() => toggleEditing(participant.id)}>
                     {#if participant.isEditing}<Check/>{:else}<Pencil/>{/if}
-                </div>
+                </button>
                 <input class="participants-list-cell-value" 
                     placeholder={modifier(participant.initiativeModifier)}
                     value={calcTempValues.get(`${participant.id}-initiative`) ?? participant.initiative}
@@ -158,10 +158,12 @@
                 {:else}
                     <div class="participants-list-cell-value">{participant.armorClass}</div>
                 {/if}
-                <div class="participants-list-cell-header-value" on:click={() => removeParticipant(participant.id)}><Eraser/></div>
+                <button class="participants-list-cell-header-value" on:click={() => removeParticipant(participant.id)}><Eraser/></button>
             </div>
         {/each}
-        <div class="participants-list-cell-add" on:click={addParticipant}><Plus/></div>
+
+        <!--Ряд добавления-->
+        <button class="participants-list-cell-add" on:click={(e) => addParticipant()}><Plus/></button>
     </div>
 </div>
 
@@ -180,6 +182,18 @@
         position: relative;
         cursor: default;
         width: 100%;
+        height: 40px;
+        line-height: 40px;
+    }
+
+    .initiative-tracker-header-button {
+        background-color: #00000022;
+        margin-left: 2px;
+        height: 40px;
+    }
+
+    .initiative-tracker-header-button:hover {
+        background-color: #00000044;
     }
 
     .participants-list-row {

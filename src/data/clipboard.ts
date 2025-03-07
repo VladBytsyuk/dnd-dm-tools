@@ -1,5 +1,5 @@
 import { Notice, stringifyYaml } from "obsidian";
-import { FullMonster } from "../domain/monster";
+import { type FullMonster } from "../domain/monster";
 import { TEXTS } from "src/res/texts_ru";
 
 export function copyMonsterToClipboard(monster: FullMonster) {

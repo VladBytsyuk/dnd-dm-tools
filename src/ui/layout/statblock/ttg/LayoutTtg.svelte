@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { ClipboardCopy } from 'lucide-svelte';
     import { onMount } from 'svelte';
     import { TEXTS } from "src/res/texts_ru";
     import { copyMonsterToClipboard } from "src/data/clipboard";
@@ -123,11 +124,11 @@
             {#if monster.images?.length && !isTwoColumns}
             <div class="layout-ttg-statblock-images">
                 <div class="slider-container">
-                    <img class="layout-ttg-statblock-images-item" src={monster.images[currentImageIndex]} />
+                    <img class="layout-ttg-statblock-images-item" src={monster.images[currentImageIndex]} alt={monster.name.rus}/>
                     
                     <div class="slider-controls">
-                        <button class="arrow left" on:click|preventDefault={prevImage}>❮</button>
-                        <button class="arrow right" on:click|preventDefault={nextImage}>❯</button>
+                        <button class="arrow left" onclick={prevImage}>❮</button>
+                        <button class="arrow right" onclick={nextImage}>❯</button>
                     </div>
                 
                 </div>
@@ -280,26 +281,7 @@
         {/each}
     </div>
 
-    <!-- Copy Button -->
-    <svg
-        class="layout-ttg-copy-button"
-        on:click={() => copyMonsterToClipboard(monster)}
-        on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyMonsterToClipboard(monster)} } }
-        aria-label="Copy monster to clipboard"
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-    >
-        <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
-        <path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
-        <path d="M16 4h2a2 2 0 0 1 2 2v4" />
-        <path d="M21 14H11" />
-        <path d="m15 10-4 4 4 4" />
-    </svg>
+    <button class="layout-ttg-copy-button" onclick={() => copyMonsterToClipboard(monster)}><ClipboardCopy/></button> 
 </div>
 
 <style>
@@ -331,12 +313,11 @@
     }
 
     .layout-ttg-copy-button {
+        background: #00000000;
         display: inline-block;
-        width: 16px;
-        height: 16px;
         position: absolute;
         top: 1em;
-        right: 1em;
+        right: 3em;
         z-index: 1;
         color: var(--text-color);
     }
