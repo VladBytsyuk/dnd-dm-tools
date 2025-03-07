@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { d20, roll } from "src/domain/dice";
-    import { Pencil, ClipboardCopy, Play, Ban, Dices, Sword, Heart, Shield, Check, Eraser, Plus } from 'lucide-svelte';
+    import { Pencil, ClipboardCopy, ClipboardPaste, Play, Ban, Dices, Sword, Heart, Shield, Check, Eraser, Plus } from 'lucide-svelte';
 	import type { Encounter, EncounterParticipant } from "src/domain/encounter";
 	import { formatModifier } from "src/domain/modifier";
-	import { copyEncounterToClipboard } from "src/data/clipboard";
+	import { copyEncounterToClipboard, getEncounterParticipantFromClipboard } from "src/data/clipboard";
 
     let encounter: Encounter = { name: "", participants: [] };
     let idCounter: number = 0;
@@ -44,6 +44,17 @@
         updateParticipants(encounter.participants.map((it) => it.id !== id ? it : ({...it, isEditing: !it.isEditing})));
     }
 
+    const addMonsterFromClipboard = async () => {
+        const clipboard = await getEncounterParticipantFromClipboard();
+        if (clipboard) {
+            const newParticipants = [
+            ...encounter.participants,
+            clipboard,
+        ].sort((a, b) => b.initiative - a.initiative);
+        updateParticipants(newParticipants);
+        }
+    };
+
     const handleKeyPress = (e: any, participant: EncounterParticipant, field: string) => {
         if (e.key === 'Enter') {
             const result = evaluateExpression(e.target.value);
@@ -55,7 +66,7 @@
         } else {
             calcTempValues.set(`${participant.id}-${field}`, e.target.value);
         }
-    }
+    };
 
     const handleBlur = (e: any, participant: EncounterParticipant, field: string) => {
         const result = evaluateExpression(e.target.value);
@@ -63,7 +74,7 @@
             updateParticipants(encounter.participants.map(it => it.id === participant.id ? { ...it, [field]: Number(result) } : it));
             calcTempValues.delete(`${participant.id}-${field}`);
         }
-    }
+    };
 
     const evaluateExpression = (input: string) => {
         try {
@@ -74,11 +85,11 @@
         } catch (e) {
             return NaN;
         }
-    }
+    };
 
     const updateParticipants = (newParticipants: EncounterParticipant[]) => {
         encounter = { ...encounter, participants: newParticipants };
-    }
+    };
 </script>
 
 <div class="initiative-tracker">
@@ -161,7 +172,10 @@
         {/each}
 
         <!--Ряд добавления-->
-        <button class="participants-list-cell-add" on:click={(e) => addParticipant()}><Plus/></button>
+        <div class="participants-list-cell-footer">
+            <button class="participants-list-cell-add" on:click={(e) => addParticipant()}><Plus/></button>
+            <button class="participants-list-cell-header-value" on:click={(e) => addMonsterFromClipboard()}><ClipboardPaste/></button>
+        </div>
     </div>
 </div>
 
@@ -281,6 +295,11 @@
 
     .participants-list-cell-name:hover{
         background-color: #00000044;
+    }
+
+    .participants-list-cell-footer {
+        display: grid;
+        grid-template-columns: 4fr 0.5fr; 
     }
 
     .participants-list-cell-add {

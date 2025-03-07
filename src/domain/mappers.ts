@@ -2,7 +2,7 @@ import type { FullMonster } from "./monster"
 import type { EncounterParticipant } from "./encounter"
 import { calculateModifier } from "./modifier";
 
-const monsterToEncounterParticipant = (monster: FullMonster): EncounterParticipant => {
+export const monsterToEncounterParticipant = (monster: FullMonster): EncounterParticipant => {
     return {
         id: Date.now(),
         isEditing: false,

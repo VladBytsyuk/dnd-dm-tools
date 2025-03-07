@@ -1,7 +1,8 @@
-import { Notice, stringifyYaml } from "obsidian";
+import { Notice, parseYaml, stringifyYaml } from "obsidian";
 import { type FullMonster } from "../domain/monster";
 import { TEXTS } from "src/res/texts_ru";
-import type { Encounter } from "src/domain/encounter";
+import { monsterToEncounterParticipant } from "../domain/mappers";
+import type { Encounter, EncounterParticipant } from "src/domain/encounter";
 
 export function copyMonsterToClipboard(monster: FullMonster) {
     copyToClipboard(monster, monster.name.rus, "statblock", `creature: ${monster.name.rus}`);
@@ -21,3 +22,19 @@ const copyToClipboard = (obj: any, objName: string, codeBlockName: string, addit
         console.error(`Failed to save ${codeBlockName} into clipboard: ${e}`);
     }
 }
+
+export async function getEncounterParticipantFromClipboard(): Promise<EncounterParticipant | undefined> {
+    try {
+        const clipboard = await navigator.clipboard.readText();
+        const yaml = clipboard
+            .split('\n')
+            .filter((_, index, array) => index !== 0 && index !== (array.length - 1))
+            .join('\n');
+        const obj = parseYaml(yaml) as FullMonster;    
+        return monsterToEncounterParticipant(obj);
+    } catch(e) {
+        console.error(`Failed to read text from clipboard: ${e}`);
+    }
+}
+
+export const getClipboard = (): Promise<string> => navigator.clipboard.readText();
