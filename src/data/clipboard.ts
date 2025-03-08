@@ -28,7 +28,7 @@ export async function getEncounterParticipantFromClipboard(): Promise<EncounterP
         const clipboard = await navigator.clipboard.readText();
         const yaml = clipboard
             .split('\n')
-            .filter((_, index, array) => index !== 0 && index !== (array.length - 1))
+            .filter((value) => !value.contains("\`\`\`"))
             .join('\n');
         const obj = parseYaml(yaml) as FullMonster;    
         return monsterToEncounterParticipant(obj);
@@ -42,7 +42,7 @@ export async function getEncounterFromClipboard(): Promise<Encounter | undefined
         const clipboard = await navigator.clipboard.readText();
         const yaml = clipboard
             .split('\n')
-            .filter((_, index, array) => index !== 0 && index !== (array.length - 1))
+            .filter((value) => !value.contains("\`\`\`"))
             .join('\n');
         const obj = parseYaml(yaml) as Encounter;    
         return obj;

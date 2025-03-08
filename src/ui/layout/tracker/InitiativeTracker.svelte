@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { d20, roll } from "src/domain/dice";
-    import { Pencil, ClipboardCopy, ClipboardPaste, Play, Ban, Dices, Sword, Heart, Shield, Check, Eraser, Plus } from 'lucide-svelte';
+    import { Pencil, ClipboardCopy, ClipboardPaste, Play, StepForward, Ban, Dices, Sword, Heart, Shield, Check, Eraser, Plus } from 'lucide-svelte';
 	import type { Encounter, EncounterParticipant } from "src/domain/encounter";
 	import { formatModifier } from "src/domain/modifier";
 	import { copyEncounterToClipboard, getEncounterFromClipboard, getEncounterParticipantFromClipboard } from "src/data/clipboard";
@@ -9,6 +9,25 @@
     let idCounter: number = 0;
     let calcTempValues = new Map();
     let isEncounterEditing: boolean = false;
+
+    let activeParticipantIndex: number | null = null;
+
+    const startEncounter = () => {
+        sortByInitiative();
+        activeParticipantIndex = 0;
+    };
+
+    const nextStepEncounter = () => {
+        if (activeParticipantIndex != null) {
+            activeParticipantIndex = (activeParticipantIndex + 1) % encounter.participants.length;
+        } else {
+            startEncounter();
+        }
+    };
+
+    const stopEncounter = () => {
+        activeParticipantIndex = null;
+    };
 
     const rollInitiative = () => {
         updateParticipants(encounter.participants.map((it) => it.initiative !== 0 ? it : ({...it, initiative: roll(d20()(it.initiativeModifier))})));
@@ -113,8 +132,10 @@
         {/if}
         <button class="initiative-tracker-header-button" on:click={() => copyEncounterToClipboard(encounter)}><ClipboardCopy/></button>
         <button class="initiative-tracker-header-button" on:click={() => fillEncounterFromClipboard()}><ClipboardPaste/></button>
-        <button class="initiative-tracker-header-button"><Play/></button>
-        <button class="initiative-tracker-header-button"><Ban/></button>
+        <button class="initiative-tracker-header-button" on:click={() => nextStepEncounter()}>
+            {#if activeParticipantIndex !== null}<StepForward/>{:else}<Play/>{/if}
+        </button>
+        <button class="initiative-tracker-header-button" on:click={() => stopEncounter()}><Ban/></button>
     </div>
     <div class="participants-list">
         <div class="participants-list-row">
@@ -125,24 +146,26 @@
             <div class="participants-list-cell-header-value"><Shield/></div>
             <div class="participants-list-cell-header-value"></div>
         </div>
-        {#each encounter.participants as participant (participant.id)}
+        {#each encounter.participants as participant, index (participant.id)}
             <div class="participants-list-row">
-                <button class="participants-list-cell-header-value" on:click={() => toggleEditing(participant.id)}>
+                <button class="participants-list-cell-header-value" class:active-row={activeParticipantIndex === index}
+                    on:click={() => toggleEditing(participant.id)}
+                >
                     {#if participant.isEditing}<Check/>{:else}<Pencil/>{/if}
                 </button>
-                <input class="participants-list-cell-value" 
+                <input class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}
                     placeholder={formatModifier(participant.initiativeModifier)}
                     value={calcTempValues.get(`${participant.id}-initiative`) ?? participant.initiative}
                     on:keydown={(e) => handleKeyPress(e, participant, 'initiative')}
                     on:blur={(e) => handleBlur(e, participant, 'initiative')}
                 />
                 {#if participant.isEditing}
-                    <input class="participants-list-cell-name" bind:value={participant.name} placeholder={participant.name}>
+                    <input class="participants-list-cell-name" class:active-row={activeParticipantIndex === index} bind:value={participant.name} placeholder={participant.name}>
                 {:else}
-                    <div class="participants-list-cell-name">{participant.name}</div>
+                    <div class="participants-list-cell-name" class:active-row={activeParticipantIndex === index}>{participant.name}</div>
                 {/if}
                 {#if participant.isEditing}
-                    <div class="participants-list-cell-hp">
+                    <div class="participants-list-cell-hp" class:active-row={activeParticipantIndex === index}>
                         <input class="participants-list-cell-hp-item" id="hp-current"
                             placeholder={formatModifier(participant.hpMax)}
                             value={calcTempValues.get(`${participant.id}-hpCurrent`) ?? participant.hpCurrent}
@@ -163,19 +186,21 @@
                         />
                     </div>
                 {:else}
-                    <div class="participants-list-cell-value">{participant.hpCurrent}{participant.hpTemporary == 0 ? '' : '+' + participant.hpTemporary}/{participant.hpMax}</div>
+                    <div class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}>
+                        {participant.hpCurrent}{participant.hpTemporary == 0 ? '' : '+' + participant.hpTemporary}/{participant.hpMax}
+                    </div>
                 {/if}
                 {#if participant.isEditing}
-                    <input class="participants-list-cell-value" 
+                    <input class="participants-list-cell-value" class:active-row={activeParticipantIndex === index} 
                         placeholder={formatModifier(participant.armorClass)}
                         value={calcTempValues.get(`${participant.id}-armorClass`) ?? participant.armorClass}
                         on:keydown={(e) => handleKeyPress(e, participant, 'armorClass')}
                         on:blur={(e) => handleBlur(e, participant, 'armorClass')}
                     />
                 {:else}
-                    <div class="participants-list-cell-value">{participant.armorClass}</div>
+                    <div class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}>{participant.armorClass}</div>
                 {/if}
-                <button class="participants-list-cell-header-value" on:click={() => removeParticipant(participant.id)}><Eraser/></button>
+                <button class="participants-list-cell-header-value" class:active-row={activeParticipantIndex === index} on:click={() => removeParticipant(participant.id)}><Eraser/></button>
             </div>
         {/each}
 
@@ -214,6 +239,11 @@
 
     .initiative-tracker-header-button:hover {
         background-color: #00000044;
+    }
+
+    .active-row {
+        background: #ffffff44;
+        font-weight: 800;
     }
 
     .participants-list-row {
@@ -262,7 +292,7 @@
         border-radius: 4px; 
         min-width: 0;
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr 0.5fr;
         grid-template-rows: auto auto;
     }
 
