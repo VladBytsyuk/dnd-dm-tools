@@ -1,22 +1,18 @@
 import { ItemView, Workspace, type WorkspaceLeaf, SearchComponent, ButtonComponent } from "obsidian";
 import DndStatblockPlugin from "src/main";
-import { Bestiary } from "src/data/bestiary";
 import { TEXTS } from "src/res/texts_ru";
-import { LayoutManager } from "../settings/layout_manager";
 import InitiativeTracker from 'src/ui/layout/tracker/InitiativeTracker.svelte';
 import { mount, unmount } from 'svelte';
 
 export function registerSidePanelInitiativeTracker(
     plugin: DndStatblockPlugin,
-    bestiary: Bestiary,
-    layoutManager: LayoutManager,
 ) {
     plugin.registerView(
         SIDE_PANEL_INITIATIVE_TRACKER_VIEW,
-        (leaf: WorkspaceLeaf) => new SidePanelInitiativeTrackerView(leaf, plugin, bestiary, layoutManager),
+        (leaf: WorkspaceLeaf) => new SidePanelInitiativeTrackerView(leaf),
     );
     plugin.addRibbonIcon("swords", TEXTS.ribbonActionInitiativeTrackerTitle, async (mouseEvent) => {
-        openSidePanelInitiativeTracker(mouseEvent.getModifierState("Meta"), plugin.app.workspace)
+        openSidePanelInitiativeTracker(plugin.app.workspace)
     });
 }
 
@@ -27,12 +23,7 @@ class SidePanelInitiativeTrackerView extends ItemView {
     // ---- fields ----
     #component: ReturnType<typeof InitiativeTracker> | undefined;
 
-    constructor(
-        leaf: WorkspaceLeaf, 
-        plugin: DndStatblockPlugin, 
-        bestiary: Bestiary,
-        layoutManager: LayoutManager,
-    ) {
+    constructor(leaf: WorkspaceLeaf) {
         super(leaf);
     }
 
@@ -64,14 +55,20 @@ class SidePanelInitiativeTrackerView extends ItemView {
     // ---- private methods ----
     #fillContainer(container: Element) {
         container.empty();
+        const emptyEncounter = {
+            name: "",
+            participants: [],
+        }
         this.#component = mount(InitiativeTracker, {
             target: container,
+            props: {
+                encounter: emptyEncounter,
+            }
         });
     }
 }
 
-async function openSidePanelInitiativeTracker(isSidePanelOpened: boolean = false, workspace: Workspace) {
-
+async function openSidePanelInitiativeTracker(workspace: Workspace) {
     let leaf: WorkspaceLeaf;
     const sidePanelLeaves = workspace.getLeavesOfType(SIDE_PANEL_INITIATIVE_TRACKER_VIEW);
 
@@ -86,5 +83,5 @@ async function openSidePanelInitiativeTracker(isSidePanelOpened: boolean = false
     });
 
     workspace.revealLeaf(leaf);
-    return leaf.view as SidePanelBestiaryView;
+    return leaf.view as SidePanelInitiativeTrackerView;
 }

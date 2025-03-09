@@ -5,12 +5,13 @@
 	import { formatModifier } from "src/domain/modifier";
 	import { copyEncounterToClipboard, getEncounterFromClipboard, getEncounterParticipantFromClipboard } from "src/data/clipboard";
 
-    let encounter: Encounter = { name: "", participants: [] };
+    let { encounter } = $props();
+    let stateEncounter: Encounter = $state(encounter);
     let idCounter: number = 0;
     let calcTempValues = new Map();
-    let isEncounterEditing: boolean = false;
+    let isEncounterEditing: boolean = $state(false);
 
-    let activeParticipantIndex: number | null = null;
+    let activeParticipantIndex: number | null = $state(null);
 
     const startEncounter = () => {
         rollInitiative();
@@ -20,7 +21,7 @@
 
     const nextStepEncounter = () => {
         if (activeParticipantIndex != null) {
-            activeParticipantIndex = (activeParticipantIndex + 1) % encounter.participants.length;
+            activeParticipantIndex = (activeParticipantIndex + 1) % stateEncounter.participants.length;
         } else {
             startEncounter();
         }
@@ -31,16 +32,16 @@
     };
 
     const rollInitiative = () => {
-        updateParticipants(encounter.participants.map((it) => it.initiative !== 0 ? it : ({...it, initiative: roll(d20()(it.initiativeModifier))})));
+        updateParticipants(stateEncounter.participants.map((it) => it.initiative !== 0 ? it : ({...it, initiative: roll(d20()(it.initiativeModifier))})));
     };
 
     const sortByInitiative = () => {
-        updateParticipants(encounter.participants.sort((a, b) => b.initiative - a.initiative));
+        updateParticipants(stateEncounter.participants.sort((a, b) => b.initiative - a.initiative));
     }
 
     const addParticipant = () => {
         const newParticipants = [
-            ...encounter.participants,
+            ...stateEncounter.participants,
             {
 				id: idCounter++,
 				isEditing: true,
@@ -50,27 +51,27 @@
 				hpCurrent: 0,
 				hpTemporary: 0,
 				hpMax: 0,
-				armorClass: 0
+				armorClass: 0,
 			} as unknown as EncounterParticipant,
-        ].sort((a, b) => b.initiative - a.initiative);
+        ];
         updateParticipants(newParticipants);
     }
 
     const removeParticipant = (id: number) => {
-        updateParticipants(encounter.participants.filter(it => it.id !== id));
+        updateParticipants(stateEncounter.participants.filter(it => it.id !== id));
     }
 
     const toggleEditing = (id: number) => {
-        updateParticipants(encounter.participants.map((it) => it.id !== id ? it : ({...it, isEditing: !it.isEditing})));
+        updateParticipants(stateEncounter.participants.map((it) => it.id !== id ? it : ({...it, isEditing: !it.isEditing})));
     }
 
     const addMonsterFromClipboard = async () => {
         const clipboard = await getEncounterParticipantFromClipboard();
         if (clipboard) {
             const newParticipants = [
-                ...encounter.participants,
+                ...stateEncounter.participants,
                 clipboard,
-            ].sort((a, b) => b.initiative - a.initiative);
+            ];
             updateParticipants(newParticipants);
         }
     };
@@ -78,7 +79,8 @@
     const fillEncounterFromClipboard = async () => {
         const clipboard = await getEncounterFromClipboard();
         if (clipboard) {
-            encounter = clipboard;
+            stateEncounter = clipboard;
+            idCounter = clipboard.participants.length;
         }
     };
 
@@ -86,7 +88,7 @@
         if (e.key === 'Enter') {
             const result = evaluateExpression(e.target.value);
             if (!isNaN(result)) {
-                updateParticipants(encounter.participants.map(it => it.id === participant.id ? { ...it, [field]: Number(result) } : it));
+                updateParticipants(stateEncounter.participants.map(it => it.id === participant.id ? { ...it, [field]: Number(result) } : it));
                 calcTempValues.delete(`${participant.id}-${field}`);
             }
             e.target.blur();
@@ -98,7 +100,7 @@
     const handleBlur = (e: any, participant: EncounterParticipant, field: string) => {
         const result = evaluateExpression(e.target.value);
         if (!isNaN(result)) {
-            updateParticipants(encounter.participants.map(it => it.id === participant.id ? { ...it, [field]: Number(result) } : it));
+            updateParticipants(stateEncounter.participants.map(it => it.id === participant.id ? { ...it, [field]: Number(result) } : it));
             calcTempValues.delete(`${participant.id}-${field}`);
         }
     };
@@ -115,50 +117,50 @@
     };
 
     const updateParticipants = (newParticipants: EncounterParticipant[]) => {
-        encounter = { ...encounter, participants: newParticipants };
+        stateEncounter = { ...stateEncounter, participants: newParticipants };
     };
 </script>
 
 <div class="initiative-tracker">
     <div class="initiative-tracker-header">
         {#if isEncounterEditing}
-            <input class="participants-list-cell-name" bind:value={encounter.name} placeholder={encounter.name}>
+            <input class="participants-list-cell-name" bind:value={stateEncounter.name} placeholder={stateEncounter.name}>
         {:else}
-            <div>{encounter.name}</div>
+            <div>{stateEncounter.name}</div>
         {/if}
         {#if isEncounterEditing}
-            <button class="initiative-tracker-header-button" on:click={() => isEncounterEditing = false}><Check/></button>
+            <button class="initiative-tracker-header-button" onclick={() => isEncounterEditing = false}><Check/></button>
         {:else}
-            <button class="initiative-tracker-header-button" on:click={() => isEncounterEditing = true}><Pencil/></button>
+            <button class="initiative-tracker-header-button" onclick={() => isEncounterEditing = true}><Pencil/></button>
         {/if}
-        <button class="initiative-tracker-header-button" on:click={() => copyEncounterToClipboard(encounter)}><ClipboardCopy/></button>
-        <button class="initiative-tracker-header-button" on:click={() => fillEncounterFromClipboard()}><ClipboardPaste/></button>
-        <button class="initiative-tracker-header-button" on:click={() => nextStepEncounter()}>
+        <button class="initiative-tracker-header-button" onclick={() => copyEncounterToClipboard(stateEncounter)}><ClipboardCopy/></button>
+        <button class="initiative-tracker-header-button" onclick={() => fillEncounterFromClipboard()}><ClipboardPaste/></button>
+        <button class="initiative-tracker-header-button" onclick={() => nextStepEncounter()}>
             {#if activeParticipantIndex !== null}<StepForward/>{:else}<Play/>{/if}
         </button>
-        <button class="initiative-tracker-header-button" on:click={() => stopEncounter()}><Ban/></button>
+        <button class="initiative-tracker-header-button" onclick={() => stopEncounter()}><Ban/></button>
     </div>
     <div class="participants-list">
         <div class="participants-list-row">
-            <button class="participants-list-cell-header-value" on:click={() => rollInitiative()}><Dices/></button>
-            <button class="participants-list-cell-header-value" on:click={() => sortByInitiative()}><Sword/></button>
+            <button class="participants-list-cell-header-value" onclick={() => rollInitiative()}><Dices/></button>
+            <button class="participants-list-cell-header-value" onclick={() => sortByInitiative()}><Sword/></button>
             <div class="participants-list-cell-name">Имя</div>
             <div class="participants-list-cell-header-value"><Heart/></div>
             <div class="participants-list-cell-header-value"><Shield/></div>
             <div class="participants-list-cell-header-value"></div>
         </div>
-        {#each encounter.participants as participant, index (participant.id)}
+        {#each stateEncounter.participants as participant, index (participant.id)}
             <div class="participants-list-row">
                 <button class="participants-list-cell-header-value" class:active-row={activeParticipantIndex === index}
-                    on:click={() => toggleEditing(participant.id)}
+                    onclick={() => toggleEditing(participant.id)}
                 >
                     {#if participant.isEditing}<Check/>{:else}<Pencil/>{/if}
                 </button>
                 <input class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}
                     placeholder={formatModifier(participant.initiativeModifier)}
                     value={calcTempValues.get(`${participant.id}-initiative`) ?? participant.initiative}
-                    on:keydown={(e) => handleKeyPress(e, participant, 'initiative')}
-                    on:blur={(e) => handleBlur(e, participant, 'initiative')}
+                    onkeydown={(e) => handleKeyPress(e, participant, 'initiative')}
+                    onblur={(e) => handleBlur(e, participant, 'initiative')}
                 />
                 {#if participant.isEditing}
                     <input class="participants-list-cell-name" class:active-row={activeParticipantIndex === index} bind:value={participant.name} placeholder={participant.name}>
@@ -170,20 +172,20 @@
                         <input class="participants-list-cell-hp-item" id="hp-current"
                             placeholder={formatModifier(participant.hpMax)}
                             value={calcTempValues.get(`${participant.id}-hpCurrent`) ?? participant.hpCurrent}
-                            on:keydown={(e) => handleKeyPress(e, participant, 'hpCurrent')}
-                            on:blur={(e) => handleBlur(e, participant, 'hpCurrent')}
+                            onkeydown={(e) => handleKeyPress(e, participant, 'hpCurrent')}
+                            onblur={(e) => handleBlur(e, participant, 'hpCurrent')}
                         />
                         <input class="participants-list-cell-hp-item" id="hp-temporary" 
                             placeholder={formatModifier(participant.hpTemporary)}
                             value={calcTempValues.get(`${participant.id}-hpTemporary`) ?? participant.hpTemporary}
-                            on:keydown={(e) => handleKeyPress(e, participant, 'hpTemporary')}
-                            on:blur={(e) => handleBlur(e, participant, 'hpTemporary')}
+                            onkeydown={(e) => handleKeyPress(e, participant, 'hpTemporary')}
+                            onblur={(e) => handleBlur(e, participant, 'hpTemporary')}
                         />
                         <input class="participants-list-cell-hp-item" id="hp-max" 
                             placeholder={formatModifier(participant.hpMax)}
                             value={calcTempValues.get(`${participant.id}-hpMax`) ?? participant.hpMax}
-                            on:keydown={(e) => handleKeyPress(e, participant, 'hpMax')}
-                            on:blur={(e) => handleBlur(e, participant, 'hpMax')}
+                            onkeydown={(e) => handleKeyPress(e, participant, 'hpMax')}
+                            onblur={(e) => handleBlur(e, participant, 'hpMax')}
                         />
                     </div>
                 {:else}
@@ -195,20 +197,20 @@
                     <input class="participants-list-cell-value" class:active-row={activeParticipantIndex === index} 
                         placeholder={formatModifier(participant.armorClass)}
                         value={calcTempValues.get(`${participant.id}-armorClass`) ?? participant.armorClass}
-                        on:keydown={(e) => handleKeyPress(e, participant, 'armorClass')}
-                        on:blur={(e) => handleBlur(e, participant, 'armorClass')}
+                        onkeydown={(e) => handleKeyPress(e, participant, 'armorClass')}
+                        onblur={(e) => handleBlur(e, participant, 'armorClass')}
                     />
                 {:else}
                     <div class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}>{participant.armorClass}</div>
                 {/if}
-                <button class="participants-list-cell-header-value" class:active-row={activeParticipantIndex === index} on:click={() => removeParticipant(participant.id)}><Eraser/></button>
+                <button class="participants-list-cell-header-value" class:active-row={activeParticipantIndex === index} onclick={() => removeParticipant(participant.id)}><Eraser/></button>
             </div>
         {/each}
 
         <!--Ряд добавления-->
         <div class="participants-list-cell-footer">
-            <button class="participants-list-cell-add" on:click={(e) => addParticipant()}><Plus/></button>
-            <button class="participants-list-cell-header-value" on:click={(e) => addMonsterFromClipboard()}><ClipboardPaste/></button>
+            <button class="participants-list-cell-add" onclick={(e) => addParticipant()}><Plus/></button>
+            <button class="participants-list-cell-header-value" onclick={(e) => addMonsterFromClipboard()}><ClipboardPaste/></button>
         </div>
     </div>
 </div>
