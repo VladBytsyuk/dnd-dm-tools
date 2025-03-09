@@ -42,6 +42,14 @@ export const TEXTS = {
     layoutRegionalEffects: "Региональные эффекты",
     commandAddStatblock: "Добавить статблок",
     commandAddWideStatblock: "Добавить широкий статблок",
+    initiativeTrackerHintCopy: "Копировать",
+    initiativeTrackerHintPaste: "Вставить",
+    initiativeTrackerHintNext: "Следующий ход",
+    initiativeTrackerHintStop: "Остановить",
+    initiativeTrackerHintRoll: "Бросить инициативу",
+    initiativeTrackerHintSort: "Сортировать по инициативе",
+    initiativeTrackerHintClear: "Убрать",
+    initiativeTrackerHintAdd: "Добавить",
 }
 
 export const randomSpeciality = (): string | undefined => {

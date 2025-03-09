@@ -4,6 +4,7 @@
 	import type { Encounter, EncounterParticipant } from "src/domain/encounter";
 	import { formatModifier } from "src/domain/modifier";
 	import { copyEncounterToClipboard, getEncounterFromClipboard, getEncounterParticipantFromClipboard } from "src/data/clipboard";
+	import { TEXTS } from "src/res/texts_ru";
 
     let { encounter, onUpdate } = $props();
     let stateEncounter: Encounter = $state(encounter);
@@ -154,17 +155,35 @@
         {:else}
             <button class="participants-list-cell-name" onclick={() => addEditingState("encounter-name")}>{stateEncounter.name}</button>
         {/if}
-        <button class="initiative-tracker-header-button" onclick={saveEncounterToClipboard}><ClipboardCopy/></button>
-        <button class="initiative-tracker-header-button" onclick={fillEncounterFromClipboard}><ClipboardPaste/></button>
-        <button class="initiative-tracker-header-button" onclick={nextStepEncounter}>
+        <button class="initiative-tracker-header-button" 
+            onclick={saveEncounterToClipboard}
+            title={TEXTS.initiativeTrackerHintCopy}
+        ><ClipboardCopy/></button>
+        <button class="initiative-tracker-header-button"
+            onclick={fillEncounterFromClipboard}
+            title={TEXTS.initiativeTrackerHintPaste}
+        ><ClipboardPaste/></button>
+        <button class="initiative-tracker-header-button" 
+            onclick={nextStepEncounter}
+            title={TEXTS.initiativeTrackerHintNext}
+        >
             {#if activeParticipantIndex !== null}<StepForward/>{:else}<Play/>{/if}
         </button>
-        <button class="initiative-tracker-header-button" onclick={() => stopEncounter()}><Ban/></button>
+        <button class="initiative-tracker-header-button" 
+            onclick={() => stopEncounter()}
+            title={TEXTS.initiativeTrackerHintStop}
+        ><Ban/></button>
     </div>
     <div class="participants-list">
         <div class="participants-list-row">
-            <button class="participants-list-cell-header-value" onclick={() => rollInitiative()}><Dices/></button>
-            <button class="participants-list-cell-header-value" onclick={() => sortByInitiative()}><Sword/></button>
+            <button class="participants-list-cell-header-value" 
+                onclick={() => rollInitiative()}
+                title={TEXTS.initiativeTrackerHintRoll}
+            ><Dices/></button>
+            <button class="participants-list-cell-header-value" 
+                onclick={() => sortByInitiative()}
+                title={TEXTS.initiativeTrackerHintSort}
+            ><Sword/></button>
             <div class="participants-list-cell-name">Имя</div>
             <div class="participants-list-cell-header-value"><Heart/></div>
             <div class="participants-list-cell-header-value"><Shield/></div>
@@ -250,14 +269,19 @@
                 {/if}
                 <button class="participants-list-cell-header-value" class:active-row={activeParticipantIndex === index} 
                     onclick={() => removeParticipant(participant.id)}
-                >
-                    <Eraser/>
-                </button>
+                    title={TEXTS.initiativeTrackerHintClear}
+                ><Eraser/></button>
             </div>
         {/each}
         <div class="participants-list-cell-footer">
-            <button class="participants-list-cell-add" onclick={(e) => addParticipant()}><Plus/></button>
-            <button class="participants-list-cell-header-value" onclick={(e) => addMonsterFromClipboard()}><ClipboardPaste/></button>
+            <button class="participants-list-cell-add" 
+                onclick={(e) => addParticipant()}
+                title={TEXTS.initiativeTrackerHintAdd}
+            ><Plus/></button>
+            <button class="participants-list-cell-header-value"
+                onclick={(e) => addMonsterFromClipboard()}
+                title={TEXTS.initiativeTrackerHintPaste}
+            ><ClipboardPaste/></button>
         </div>
     </div>
 </div>

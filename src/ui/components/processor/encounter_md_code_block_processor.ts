@@ -23,13 +23,10 @@ async function encounterMdCodeBlockProcessor(
 
     const editor = plugin.app.workspace.activeEditor?.editor;
     const updateSource = async (newContent: string) => {
-        console.log("updateSource()")
         if (!editor) return;
-        console.log("editor+")
         
         const sectionInfo = context.getSectionInfo(el);
         if (!sectionInfo) return;
-        console.log("sectionInfo+")
 
         editor.replaceRange(
             `\`\`\`encounter\n${newContent}\`\`\`\n`,
