@@ -11,9 +11,11 @@ export class InitiativeTrackerView implements LayoutItemView {
 	// ---- fields ----
     #component: ReturnType<typeof InitiativeTracker> | undefined;
     #encounter: Encounter;
+    #onEncounterUpdate: (encounter: Encounter) => void;
 
-    constructor(encounter: Encounter) {
+    constructor(encounter: Encounter, onEncounterUpdate: (encounter: Encounter) => void) {
         this.#encounter = encounter;
+        this.#onEncounterUpdate = onEncounterUpdate;
     }
 
 	// ---- methods ----
@@ -25,6 +27,7 @@ export class InitiativeTrackerView implements LayoutItemView {
             target: container,
             props: {
                 encounter: this.#encounter,
+                onUpdate: this.#onEncounterUpdate,
             },
         });
     }

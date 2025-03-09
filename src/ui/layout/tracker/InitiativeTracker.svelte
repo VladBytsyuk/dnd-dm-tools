@@ -5,9 +5,9 @@
 	import { formatModifier } from "src/domain/modifier";
 	import { copyEncounterToClipboard, getEncounterFromClipboard, getEncounterParticipantFromClipboard } from "src/data/clipboard";
 
-    let { encounter } = $props();
+    let { encounter, onUpdate } = $props();
     let stateEncounter: Encounter = $state(encounter);
-    let idCounter: number = 0;
+    let idCounter: number = encounter.participants.length;
     let calcTempValues = new Map();
     let editingId = $state<string | null>(null);
 
@@ -19,6 +19,7 @@
         const clipboard = await getEncounterFromClipboard();
         if (clipboard) {
             stateEncounter = clipboard;
+            onUpdate(stateEncounter);
             idCounter = clipboard.participants.length;
         }
     };
@@ -120,12 +121,14 @@
 
     const updateParticipants = (newParticipants: EncounterParticipant[]) => {
         stateEncounter = { ...stateEncounter, participants: newParticipants };
+        onUpdate(stateEncounter);
     };
 
     const handleEditingKeyPress = (e: any, id: string) => {
         if (e.key === 'Enter') {
             removeEditingState(id);
             e.target.blur();
+            onUpdate(stateEncounter);
         }
     };
 
@@ -135,6 +138,7 @@
 
     const removeEditingState = (id: string): void => {
         editingId = null;
+        onUpdate(stateEncounter);
     }
 </script>
 
@@ -319,7 +323,6 @@
     .participants-list-cell-value {
         background-color: #00000022;
         padding: 0px 0px;
-        margin-right: 2px;
         text-align: center;
         border-radius: 4px; 
         min-width: 0;
