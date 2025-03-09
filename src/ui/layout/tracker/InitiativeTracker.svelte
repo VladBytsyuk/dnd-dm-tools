@@ -13,6 +13,7 @@
     let activeParticipantIndex: number | null = null;
 
     const startEncounter = () => {
+        rollInitiative();
         sortByInitiative();
         activeParticipantIndex = 0;
     };
@@ -242,7 +243,7 @@
     }
 
     .active-row {
-        background: #ffffff44;
+        background-color: #bbbbbb44 !important;
         font-weight: 800;
     }
 
