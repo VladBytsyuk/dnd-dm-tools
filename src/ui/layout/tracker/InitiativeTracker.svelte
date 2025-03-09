@@ -9,9 +9,19 @@
     let stateEncounter: Encounter = $state(encounter);
     let idCounter: number = 0;
     let calcTempValues = new Map();
-    let isEncounterEditing: boolean = $state(false);
+    let editingId = $state<string | null>(null);
 
     let activeParticipantIndex: number | null = $state(null);
+
+    const saveEncounterToClipboard = () => copyEncounterToClipboard(stateEncounter);
+
+    const fillEncounterFromClipboard = async () => {
+        const clipboard = await getEncounterFromClipboard();
+        if (clipboard) {
+            stateEncounter = clipboard;
+            idCounter = clipboard.participants.length;
+        }
+    };
 
     const startEncounter = () => {
         rollInitiative();
@@ -39,6 +49,10 @@
         updateParticipants(stateEncounter.participants.sort((a, b) => b.initiative - a.initiative));
     }
 
+    const removeParticipant = (id: number) => {
+        updateParticipants(stateEncounter.participants.filter(it => it.id !== id));
+    }
+
     const addParticipant = () => {
         const newParticipants = [
             ...stateEncounter.participants,
@@ -57,14 +71,6 @@
         updateParticipants(newParticipants);
     }
 
-    const removeParticipant = (id: number) => {
-        updateParticipants(stateEncounter.participants.filter(it => it.id !== id));
-    }
-
-    const toggleEditing = (id: number) => {
-        updateParticipants(stateEncounter.participants.map((it) => it.id !== id ? it : ({...it, isEditing: !it.isEditing})));
-    }
-
     const addMonsterFromClipboard = async () => {
         const clipboard = await getEncounterParticipantFromClipboard();
         if (clipboard) {
@@ -76,33 +82,29 @@
         }
     };
 
-    const fillEncounterFromClipboard = async () => {
-        const clipboard = await getEncounterFromClipboard();
-        if (clipboard) {
-            stateEncounter = clipboard;
-            idCounter = clipboard.participants.length;
-        }
-    };
-
     const handleKeyPress = (e: any, participant: EncounterParticipant, field: string) => {
+        const id = `${participant.id}-${field}`;
         if (e.key === 'Enter') {
             const result = evaluateExpression(e.target.value);
             if (!isNaN(result)) {
                 updateParticipants(stateEncounter.participants.map(it => it.id === participant.id ? { ...it, [field]: Number(result) } : it));
-                calcTempValues.delete(`${participant.id}-${field}`);
+                calcTempValues.delete(id);
             }
             e.target.blur();
+            removeEditingState(id);
         } else {
-            calcTempValues.set(`${participant.id}-${field}`, e.target.value);
+            calcTempValues.set(id, e.target.value);
         }
     };
 
     const handleBlur = (e: any, participant: EncounterParticipant, field: string) => {
+        const id = `${participant.id}-${field}`
         const result = evaluateExpression(e.target.value);
         if (!isNaN(result)) {
             updateParticipants(stateEncounter.participants.map(it => it.id === participant.id ? { ...it, [field]: Number(result) } : it));
-            calcTempValues.delete(`${participant.id}-${field}`);
+            calcTempValues.delete(id);
         }
+        removeEditingState(id);
     };
 
     const evaluateExpression = (input: string) => {
@@ -119,23 +121,38 @@
     const updateParticipants = (newParticipants: EncounterParticipant[]) => {
         stateEncounter = { ...stateEncounter, participants: newParticipants };
     };
+
+    const handleEditingKeyPress = (e: any, id: string) => {
+        if (e.key === 'Enter') {
+            removeEditingState(id);
+            e.target.blur();
+        }
+    };
+
+    const addEditingState = (id: string): void => {
+        editingId = id;
+    }
+
+    const removeEditingState = (id: string): void => {
+        editingId = null;
+    }
 </script>
 
 <div class="initiative-tracker">
     <div class="initiative-tracker-header">
-        {#if isEncounterEditing}
-            <input class="participants-list-cell-name" bind:value={stateEncounter.name} placeholder={stateEncounter.name}>
+        {#if editingId === "encounter-name"}
+            <input class="participants-list-cell-name" 
+                bind:value={stateEncounter.name} 
+                placeholder={stateEncounter.name}
+                onkeypress={(e) => handleEditingKeyPress(e, "encounter-name")}
+                onblur={(e) => removeEditingState("encounter-name")}
+                />
         {:else}
-            <div>{stateEncounter.name}</div>
+            <button class="participants-list-cell-name" onclick={() => addEditingState("encounter-name")}>{stateEncounter.name}</button>
         {/if}
-        {#if isEncounterEditing}
-            <button class="initiative-tracker-header-button" onclick={() => isEncounterEditing = false}><Check/></button>
-        {:else}
-            <button class="initiative-tracker-header-button" onclick={() => isEncounterEditing = true}><Pencil/></button>
-        {/if}
-        <button class="initiative-tracker-header-button" onclick={() => copyEncounterToClipboard(stateEncounter)}><ClipboardCopy/></button>
-        <button class="initiative-tracker-header-button" onclick={() => fillEncounterFromClipboard()}><ClipboardPaste/></button>
-        <button class="initiative-tracker-header-button" onclick={() => nextStepEncounter()}>
+        <button class="initiative-tracker-header-button" onclick={saveEncounterToClipboard}><ClipboardCopy/></button>
+        <button class="initiative-tracker-header-button" onclick={fillEncounterFromClipboard}><ClipboardPaste/></button>
+        <button class="initiative-tracker-header-button" onclick={nextStepEncounter}>
             {#if activeParticipantIndex !== null}<StepForward/>{:else}<Play/>{/if}
         </button>
         <button class="initiative-tracker-header-button" onclick={() => stopEncounter()}><Ban/></button>
@@ -151,23 +168,36 @@
         </div>
         {#each stateEncounter.participants as participant, index (participant.id)}
             <div class="participants-list-row">
-                <button class="participants-list-cell-header-value" class:active-row={activeParticipantIndex === index}
-                    onclick={() => toggleEditing(participant.id)}
-                >
-                    {#if participant.isEditing}<Check/>{:else}<Pencil/>{/if}
-                </button>
-                <input class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}
-                    placeholder={formatModifier(participant.initiativeModifier)}
-                    value={calcTempValues.get(`${participant.id}-initiative`) ?? participant.initiative}
-                    onkeydown={(e) => handleKeyPress(e, participant, 'initiative')}
-                    onblur={(e) => handleBlur(e, participant, 'initiative')}
-                />
-                {#if participant.isEditing}
-                    <input class="participants-list-cell-name" class:active-row={activeParticipantIndex === index} bind:value={participant.name} placeholder={participant.name}>
+                <div class="participants-list-cell-header-value" class:active-row={activeParticipantIndex === index}></div>
+                {#if editingId === `${participant.id}-initiative`}
+                    <input class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}
+                        placeholder={formatModifier(participant.initiativeModifier)}
+                        value={calcTempValues.get(`${participant.id}-initiative`) ?? participant.initiative}
+                        onkeydown={(e) => handleKeyPress(e, participant, 'initiative')}
+                        onblur={(e) => handleBlur(e, participant, 'initiative')}
+                    />
                 {:else}
-                    <div class="participants-list-cell-name" class:active-row={activeParticipantIndex === index}>{participant.name}</div>
+                    <button class="participants-list-cell-value" class:active-row={activeParticipantIndex === index} 
+                        onclick={() => addEditingState(`${participant.id}-initiative`)}
+                    >
+                        {participant.initiative}
+                    </button>
                 {/if}
-                {#if participant.isEditing}
+                {#if editingId === `${participant.id}-name`}
+                    <input class="participants-list-cell-name" class:active-row={activeParticipantIndex === index} 
+                        bind:value={participant.name} 
+                        placeholder={participant.name}
+                        onkeypress={(e) => handleEditingKeyPress(e, `${participant.id}-name`)}
+                        onblur={(e) => removeEditingState(`${participant.id}-name`)}
+                    />
+                {:else}
+                    <button class="participants-list-cell-name" class:active-row={activeParticipantIndex === index}
+                        onclick={() => addEditingState(`${participant.id}-name`)}
+                    >
+                        {participant.name}
+                    </button>
+                {/if}
+                {#if editingId === `${participant.id}-hp`}
                     <div class="participants-list-cell-hp" class:active-row={activeParticipantIndex === index}>
                         <input class="participants-list-cell-hp-item" id="hp-current"
                             placeholder={formatModifier(participant.hpMax)}
@@ -189,11 +219,13 @@
                         />
                     </div>
                 {:else}
-                    <div class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}>
+                    <button class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}
+                        onclick={() => addEditingState(`${participant.id}-hp`)}
+                    >
                         {participant.hpCurrent}{participant.hpTemporary == 0 ? '' : '+' + participant.hpTemporary}/{participant.hpMax}
-                    </div>
+                    </button>
                 {/if}
-                {#if participant.isEditing}
+                {#if editingId === `${participant.id}-armorClass`}
                     <input class="participants-list-cell-value" class:active-row={activeParticipantIndex === index} 
                         placeholder={formatModifier(participant.armorClass)}
                         value={calcTempValues.get(`${participant.id}-armorClass`) ?? participant.armorClass}
@@ -201,9 +233,17 @@
                         onblur={(e) => handleBlur(e, participant, 'armorClass')}
                     />
                 {:else}
-                    <div class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}>{participant.armorClass}</div>
+                    <button class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}
+                        onclick={() => addEditingState(`${participant.id}-armorClass`)}
+                    >
+                        {participant.armorClass}
+                    </button>
                 {/if}
-                <button class="participants-list-cell-header-value" class:active-row={activeParticipantIndex === index} onclick={() => removeParticipant(participant.id)}><Eraser/></button>
+                <button class="participants-list-cell-header-value" class:active-row={activeParticipantIndex === index} 
+                    onclick={() => removeParticipant(participant.id)}
+                >
+                    <Eraser/>
+                </button>
             </div>
         {/each}
 
@@ -226,7 +266,7 @@
         font-weight: 600;
         margin: 0 0 10px;
         display: grid;
-        grid-template-columns: 4fr 0.5fr 0.5fr 0.5fr 0.5fr 0.5fr;        
+        grid-template-columns: 4fr 0.5fr 0.5fr 0.5fr 0.5fr;        
         position: relative;
         cursor: default;
         width: 100%;
@@ -326,12 +366,15 @@
     }
 
     .participants-list-cell-name {
+        display: block;
+        width: 100%;
         background-color: #00000022;
         padding: 0px 5px;
         margin-right: 2px;
         border-radius: 4px;
         height: 40px;
         line-height: 40px;
+        text-align: left;
     }
 
     .participants-list-cell-name:hover{

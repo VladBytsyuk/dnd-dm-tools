@@ -5,7 +5,6 @@ export interface Encounter {
 
 export interface EncounterParticipant {
     id: number;
-    isEditing: boolean;
     initiative: number;
     initiativeModifier: number;
     name: string;
