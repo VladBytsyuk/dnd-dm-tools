@@ -44,7 +44,7 @@ export const TEXTS = {
     commandAddWideStatblock: "Добавить широкий статблок",
 }
 
-export const randomSpeciality = (): string => {
+export const randomSpeciality = (): string | undefined => {
     const index = Math.random() * CREATURE_SPECIALITIES.length - 1;
     return CREATURE_SPECIALITIES.at(index);
 };

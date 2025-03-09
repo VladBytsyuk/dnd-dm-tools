@@ -5,6 +5,7 @@ export interface Encounter {
 
 export interface EncounterParticipant {
     id: number;
+    imageUrl: string | undefined;
     initiative: number;
     initiativeModifier: number;
     name: string;

@@ -1,11 +1,9 @@
 <script lang="ts">
 	import { d20, roll } from "src/domain/dice";
-    import { Pencil, ClipboardCopy, ClipboardPaste, Play, StepForward, Ban, Dices, Sword, Heart, Shield, Check, Eraser, Plus } from 'lucide-svelte';
+    import { ClipboardCopy, ClipboardPaste, Play, StepForward, Ban, Dices, Sword, Heart, Shield, Eraser, Plus } from 'lucide-svelte';
 	import type { Encounter, EncounterParticipant } from "src/domain/encounter";
 	import { formatModifier } from "src/domain/modifier";
 	import { copyEncounterToClipboard, getEncounterFromClipboard, getEncounterParticipantFromClipboard } from "src/data/clipboard";
-	import { monsterToEncounterParticipant } from "src/domain/mappers";
-	import { CREATURE_SPECIALITIES, randomSpeciality } from "src/res/texts_ru";
 
     let { encounter } = $props();
     let stateEncounter: Encounter = $state(encounter);
@@ -170,7 +168,12 @@
         </div>
         {#each stateEncounter.participants as participant, index (participant.id)}
             <div class="participants-list-row">
-                <div class="participants-list-cell-header-value" class:active-row={activeParticipantIndex === index}></div>
+                <div class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}>
+                    {#if participant.imageUrl}
+                        <img class="participants-list-cell-value-portrait" 
+                            src={participant.imageUrl} alt={participant.name} />
+                    {/if}
+                </div>
                 {#if editingId === `${participant.id}-initiative`}
                     <input class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}
                         placeholder={formatModifier(participant.initiativeModifier)}
@@ -248,8 +251,6 @@
                 </button>
             </div>
         {/each}
-
-        <!--Ряд добавления-->
         <div class="participants-list-cell-footer">
             <button class="participants-list-cell-add" onclick={(e) => addParticipant()}><Plus/></button>
             <button class="participants-list-cell-header-value" onclick={(e) => addMonsterFromClipboard()}><ClipboardPaste/></button>
@@ -268,7 +269,8 @@
         font-weight: 600;
         margin: 0 0 10px;
         display: grid;
-        grid-template-columns: 4fr 0.5fr 0.5fr 0.5fr 0.5fr;        
+        grid-template-columns: 4fr 0.5fr 0.5fr 0.5fr 0.5fr; 
+        column-gap: 2px;       
         position: relative;
         cursor: default;
         width: 100%;
@@ -278,7 +280,6 @@
 
     .initiative-tracker-header-button {
         background-color: #00000022;
-        margin-left: 2px;
         height: 40px;
     }
 
@@ -294,6 +295,7 @@
     .participants-list-row {
         display: grid;
         grid-template-columns: 0.75fr 0.75fr 4fr 2fr 0.75fr 0.75fr;
+        column-gap: 2px;
         position: relative;
         cursor: default;
         width: 100%;
@@ -304,7 +306,6 @@
     .participants-list-cell-header-value {
         background-color: #00000022;
         padding: 8px 0px;
-        margin-right: 2px;
         text-align: center;
         border-radius: 4px; 
         min-width: 0;
@@ -326,12 +327,18 @@
         line-height: 40px;
     }
 
+    .participants-list-cell-value-portrait {
+        max-width:100%;
+        max-height:100%;
+    }
+
     .participants-list-cell-value:hover{
         background-color: #00000044;
     }
 
     .participants-list-cell-hp {
         background-color: #00000022;
+        margin-left: 2px;
         margin-right: 2px;
         text-align: center;
         border-radius: 4px; 
@@ -372,7 +379,6 @@
         width: 100%;
         background-color: #00000022;
         padding: 0px 5px;
-        margin-right: 2px;
         border-radius: 4px;
         height: 40px;
         line-height: 40px;
@@ -385,6 +391,7 @@
 
     .participants-list-cell-footer {
         display: grid;
+        column-gap: 2px;
         grid-template-columns: 4fr 0.5fr; 
     }
 

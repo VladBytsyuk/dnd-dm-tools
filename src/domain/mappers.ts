@@ -8,6 +8,7 @@ export const monsterToEncounterParticipant = (monster: FullMonster): EncounterPa
     const newName = speciality ? `${monster.name.rus} (${speciality})` : monster.name.rus
     return {
         id: Date.now(),
+        imageUrl: monster.images.first(),
         initiative: 0,
         initiativeModifier: calculateModifier(monster.ability.dex),
         name: newName,
