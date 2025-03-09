@@ -76,12 +76,9 @@
     const addMonsterFromClipboard = async () => {
         const clipboard = await getEncounterParticipantFromClipboard();
         if (clipboard) {
-            const speciality = randomSpeciality()
-            const newName = speciality ? `${clipboard.name} (${speciality})` : clipboard.name
-            const monster = {...clipboard, name: newName }
             const newParticipants = [
                 ...stateEncounter.participants,
-                monster,
+                clipboard,
             ];
             updateParticipants(newParticipants);
         }
