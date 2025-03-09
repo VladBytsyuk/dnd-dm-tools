@@ -4,6 +4,8 @@
 	import type { Encounter, EncounterParticipant } from "src/domain/encounter";
 	import { formatModifier } from "src/domain/modifier";
 	import { copyEncounterToClipboard, getEncounterFromClipboard, getEncounterParticipantFromClipboard } from "src/data/clipboard";
+	import { monsterToEncounterParticipant } from "src/domain/mappers";
+	import { CREATURE_SPECIALITIES, randomSpeciality } from "src/res/texts_ru";
 
     let { encounter } = $props();
     let stateEncounter: Encounter = $state(encounter);
@@ -74,9 +76,12 @@
     const addMonsterFromClipboard = async () => {
         const clipboard = await getEncounterParticipantFromClipboard();
         if (clipboard) {
+            const speciality = randomSpeciality()
+            const newName = speciality ? `${clipboard.name} (${speciality})` : clipboard.name
+            const monster = {...clipboard, name: newName }
             const newParticipants = [
                 ...stateEncounter.participants,
-                clipboard,
+                monster,
             ];
             updateParticipants(newParticipants);
         }
