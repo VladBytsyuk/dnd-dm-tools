@@ -84,10 +84,16 @@
         }
     };
 
-    const handleKeyPress = (e: any, participant: EncounterParticipant, field: string) => {
+    const handleKeyPress = (
+        e: any, 
+        participant: EncounterParticipant, 
+        field: string, 
+        min: number = -Infinity, 
+        max: number = Infinity,
+    ) => {
         const id = `${participant.id}-${field}`;
         if (e.key === 'Enter') {
-            const result = evaluateExpression(e.target.value);
+            const result = evaluateExpression(e.target.value, min, max);
             if (!isNaN(result)) {
                 updateParticipants(stateEncounter.participants.map(it => it.id === participant.id ? { ...it, [field]: Number(result) } : it));
                 calcTempValues.delete(id);
@@ -99,9 +105,15 @@
         }
     };
 
-    const handleBlur = (e: any, participant: EncounterParticipant, field: string) => {
+    const handleBlur = (
+        e: any, 
+        participant: EncounterParticipant, 
+        field: string, 
+        min: number = -Infinity, 
+        max: number = Infinity,
+    ) => {
         const id = `${participant.id}-${field}`
-        const result = evaluateExpression(e.target.value);
+        const result = evaluateExpression(e.target.value, min, max);
         if (!isNaN(result)) {
             updateParticipants(stateEncounter.participants.map(it => it.id === participant.id ? { ...it, [field]: Number(result) } : it));
             calcTempValues.delete(id);
@@ -109,12 +121,24 @@
         removeEditingState(id);
     };
 
-    const evaluateExpression = (input: string) => {
+    const evaluateExpression = (
+        input: string,
+        min: number = -Infinity,
+        max: number = Infinity
+    ): number => {
         try {
             const sanitized = input
                 .replace(/,/g, '.')
                 .replace(/[^0-9\+\-\*\/\.\(\)]/g, '');
-            return new Function(`return ${sanitized}`)();
+
+            const result = new Function(`return ${sanitized}`)();
+        
+            // Применяем границы только для числовых результатов
+            if (typeof result === 'number' && !isNaN(result)) {
+                return Math.min(max, Math.max(min, result));
+            }
+            
+            return NaN;
         } catch (e) {
             return NaN;
         }
@@ -230,20 +254,20 @@
                         <input class="participants-list-cell-hp-item" id="hp-current"
                             placeholder={formatModifier(participant.hpMax)}
                             value={calcTempValues.get(`${participant.id}-hpCurrent`) ?? participant.hpCurrent}
-                            onkeydown={(e) => handleKeyPress(e, participant, 'hpCurrent')}
-                            onblur={(e) => handleBlur(e, participant, 'hpCurrent')}
+                            onkeydown={(e) => handleKeyPress(e, participant, 'hpCurrent', 0, participant.hpMax)}
+                            onblur={(e) => handleBlur(e, participant, 'hpCurrent', 0, participant.hpMax)}
                         />
                         <input class="participants-list-cell-hp-item" id="hp-temporary" 
                             placeholder={formatModifier(participant.hpTemporary)}
                             value={calcTempValues.get(`${participant.id}-hpTemporary`) ?? participant.hpTemporary}
-                            onkeydown={(e) => handleKeyPress(e, participant, 'hpTemporary')}
-                            onblur={(e) => handleBlur(e, participant, 'hpTemporary')}
+                            onkeydown={(e) => handleKeyPress(e, participant, 'hpTemporary', 0)}
+                            onblur={(e) => handleBlur(e, participant, 'hpTemporary', 0)}
                         />
                         <input class="participants-list-cell-hp-item" id="hp-max" 
                             placeholder={formatModifier(participant.hpMax)}
                             value={calcTempValues.get(`${participant.id}-hpMax`) ?? participant.hpMax}
-                            onkeydown={(e) => handleKeyPress(e, participant, 'hpMax')}
-                            onblur={(e) => handleBlur(e, participant, 'hpMax')}
+                            onkeydown={(e) => handleKeyPress(e, participant, 'hpMax', 0)}
+                            onblur={(e) => handleBlur(e, participant, 'hpMax', 0)}
                         />
                     </div>
                 {:else}
@@ -418,6 +442,7 @@
 
     .participants-list-cell-footer {
         display: grid;
+        margin-top: 10px;
         column-gap: 2px;
         grid-template-columns: 4fr 0.5fr; 
     }
