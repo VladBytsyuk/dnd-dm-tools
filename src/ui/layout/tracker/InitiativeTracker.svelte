@@ -133,11 +133,9 @@
 
             const result = new Function(`return ${sanitized}`)();
         
-            // Применяем границы только для числовых результатов
             if (typeof result === 'number' && !isNaN(result)) {
                 return Math.min(max, Math.max(min, result));
             }
-            
             return NaN;
         } catch (e) {
             return NaN;
