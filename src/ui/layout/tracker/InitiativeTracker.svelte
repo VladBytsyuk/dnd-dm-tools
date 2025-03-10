@@ -209,8 +209,8 @@
                 title={TEXTS.initiativeTrackerHintSort}
             ><Sword/></button>
             <div class="participants-list-cell-name">Имя</div>
-            <div class="participants-list-cell-header-value"><Heart/></div>
-            <div class="participants-list-cell-header-value"><Shield/></div>
+            <div class="participants-list-cell-header-value" title={TEXTS.initiativeTrackerHintHits}><Heart/></div>
+            <div class="participants-list-cell-header-value" title={TEXTS.initiativeTrackerHintArmorClass}><Shield/></div>
             <div class="participants-list-cell-header-value"></div>
         </div>
         {#each stateEncounter.participants as participant, index (participant.id)}
@@ -227,10 +227,12 @@
                         value={calcTempValues.get(`${participant.id}-initiative`) ?? participant.initiative}
                         onkeydown={(e) => handleKeyPress(e, participant, 'initiative')}
                         onblur={(e) => handleBlur(e, participant, 'initiative')}
+                        title={TEXTS.initiativeTrackerHintInitiative}
                     />
                 {:else}
                     <button class="participants-list-cell-value" class:active-row={activeParticipantIndex === index} 
                         onclick={() => addEditingState(`${participant.id}-initiative`)}
+                        title={TEXTS.initiativeTrackerHintInitiative}
                     >
                         {participant.initiative}
                     </button>
@@ -256,18 +258,21 @@
                             value={calcTempValues.get(`${participant.id}-hpCurrent`) ?? participant.hpCurrent}
                             onkeydown={(e) => handleKeyPress(e, participant, 'hpCurrent', 0, participant.hpMax)}
                             onblur={(e) => handleBlur(e, participant, 'hpCurrent', 0, participant.hpMax)}
+                            title={TEXTS.initiativeTrackerHintHitsCurrent}
                         />
                         <input class="participants-list-cell-hp-item" id="hp-temporary" 
                             placeholder={formatModifier(participant.hpTemporary)}
                             value={calcTempValues.get(`${participant.id}-hpTemporary`) ?? participant.hpTemporary}
                             onkeydown={(e) => handleKeyPress(e, participant, 'hpTemporary', 0)}
                             onblur={(e) => handleBlur(e, participant, 'hpTemporary', 0)}
+                            title={TEXTS.initiativeTrackerHintHitsTemporary}
                         />
                         <input class="participants-list-cell-hp-item" id="hp-max" 
                             placeholder={formatModifier(participant.hpMax)}
                             value={calcTempValues.get(`${participant.id}-hpMax`) ?? participant.hpMax}
                             onkeydown={(e) => handleKeyPress(e, participant, 'hpMax', 0)}
                             onblur={(e) => handleBlur(e, participant, 'hpMax', 0)}
+                            title={TEXTS.initiativeTrackerHintHitsMax}
                         />
                     </div>
                 {:else}

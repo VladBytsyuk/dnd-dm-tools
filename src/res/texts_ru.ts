@@ -48,8 +48,14 @@ export const TEXTS = {
     initiativeTrackerHintStop: "Остановить",
     initiativeTrackerHintRoll: "Бросить инициативу",
     initiativeTrackerHintSort: "Сортировать по инициативе",
+    initiativeTrackerHintInitiative: "Инициатива",
     initiativeTrackerHintClear: "Убрать",
     initiativeTrackerHintAdd: "Добавить",
+    initiativeTrackerHintHits: "Хиты",
+    initiativeTrackerHintHitsCurrent: "Текущие",
+    initiativeTrackerHintHitsTemporary: "Временные",
+    initiativeTrackerHintHitsMax: "Максимум",
+    initiativeTrackerHintArmorClass: "Класс Доспеха",
 }
 
 export const randomSpeciality = (): string | undefined => {
