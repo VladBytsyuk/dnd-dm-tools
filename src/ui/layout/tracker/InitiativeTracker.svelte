@@ -318,7 +318,7 @@
 <style>
     .initiative-tracker {
         padding: 10px;
-        min-width: 35em;
+        min-width: 40em;
     }
 
     .initiative-tracker-header {
