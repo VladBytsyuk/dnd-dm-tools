@@ -1,4 +1,4 @@
-import { diceToFormula } from "./mappers"
+import { mapDiceStringToFormula } from "./mappers"
 
 export enum Dice {
     d4 = 4,
@@ -20,31 +20,31 @@ export interface FormulaEntry {
     bonus: number,
 }
 
-export const d4 = (count: number = 1) => (bonus: number = 0) => {
+export const d4 = (count: number = 1) => (bonus: number = 0): FormulaEntry => {
     return { dice: Dice.d4, dicesCount: count, bonus: bonus } as FormulaEntry
 }
 
-export const d6 = (count: number = 1) => (bonus: number = 0) => {
+export const d6 = (count: number = 1) => (bonus: number = 0): FormulaEntry => {
     return { dice: Dice.d6, dicesCount: count, bonus: bonus } as FormulaEntry
 }
 
-export const d8 = (count: number = 1) => (bonus: number = 0) => {
+export const d8 = (count: number = 1) => (bonus: number = 0): FormulaEntry => {
     return { dice: Dice.d8, dicesCount: count, bonus: bonus } as FormulaEntry
 }
 
-export const d10 = (count: number = 1) => (bonus: number = 0) => {
+export const d10 = (count: number = 1) => (bonus: number = 0): FormulaEntry => {
     return { dice: Dice.d10, dicesCount: count, bonus: bonus } as FormulaEntry
 }
 
-export const d12 = (count: number = 1) => (bonus: number = 0) => {
+export const d12 = (count: number = 1) => (bonus: number = 0): FormulaEntry => {
     return { dice: Dice.d12, dicesCount: count, bonus: bonus } as FormulaEntry
 }
 
-export const d20 = (count: number = 1) => (bonus: number = 0) => {
+export const d20 = (count: number = 1) => (bonus: number = 0): FormulaEntry => {
     return { dice: Dice.d20, dicesCount: count, bonus: bonus } as FormulaEntry
 }
 
-export const d100 = (count: number = 1) => (bonus: number = 0) => {
+export const d100 = (count: number = 1) => (bonus: number = 0): FormulaEntry => {
     return { dice: Dice.d100, dicesCount: count, bonus: bonus } as FormulaEntry
 }
 
@@ -67,6 +67,6 @@ export const roll = (...entries: FormulaEntry[]) => {
 
 export const rollRaw = (input: string): number => {
     const normalizedInput = input.replace(/undefined/gi, "");
-    const formula = diceToFormula(normalizedInput);
+    const formula = mapDiceStringToFormula(normalizedInput);
     return formula.entries.reduce((acc, value) => acc + entryRoll(value), 0);
 }

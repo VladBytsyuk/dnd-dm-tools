@@ -1,4 +1,4 @@
-import { ItemView, Workspace, type WorkspaceLeaf, SearchComponent, ButtonComponent } from "obsidian";
+import { ItemView, Workspace, type WorkspaceLeaf } from "obsidian";
 import DndStatblockPlugin from "src/main";
 import { TEXTS } from "src/res/texts_ru";
 import InitiativeTracker from 'src/ui/layout/tracker/InitiativeTracker.svelte';

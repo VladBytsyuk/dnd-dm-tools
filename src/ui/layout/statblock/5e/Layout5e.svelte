@@ -1,58 +1,25 @@
 <script lang="ts">
-	import { transformDiceRollerTags } from './../../../../domain/mappers';
-	import DiceRoller from './../../DiceRoller.svelte';
+	import { mapDiceRollerTags } from './../../../../domain/mappers';
     import { mount, onDestroy, onMount } from 'svelte';
     import { ClipboardCopy } from 'lucide-svelte';
     import { TEXTS } from "src/res/texts_ru";
     import { copyMonsterToClipboard } from "src/data/clipboard";
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
 	import { calculateAndFormatModifier, formatModifier } from 'src/domain/modifier';
+	import { DiceRollersManager } from '../../dice-roller/DiceRollersManager';
+	import { joinList, joinSpeed, separate } from 'src/domain/utils';
 
     let { monster, isTwoColumns, onRoll } = $props()
 
-    let diceRollers: DiceRoller[] = [];
-
+    const diceRollersManager = new DiceRollersManager(onRoll);
+    
     onMount(() => {
-        handleDiceRoller();
+        diceRollersManager.onMount();
     });
 
     onDestroy(() => {
-        diceRollers = [];
+        diceRollersManager.onDestroy();
     });
-
-    const handleDiceRoller = () => {
-        const elements = document.querySelectorAll('dice-roller');
-    
-        elements.forEach(element => {
-            const content = element.innerHTML.trim();
-            element.empty();
-            const component = mount(DiceRoller, {
-                target: element, 
-                props: {
-                    formula: element.getAttribute('formula') || "",
-                    label: element.getAttribute('label'),
-                    content: content,
-                    onRoll: onRoll,
-                },
-            });
-            diceRollers.push(component);
-        });
-    };
-
-    const separate = (text: Array<string>) => 
-        text.join(', ');
-
-    const joinList = (items: Array<{ name: string }>) => 
-        items?.map(it => it.name).join(', ') || '';
-
-    const joinSpeed = (items: Array<Speed>) =>
-        items?.map(it => {
-            let result = '';
-            if (it.name) result += it.name + ' ';
-            if (it.value) result += it.value + ` ${TEXTS.layoutFt}. `;
-            if (it.additional) result += '(' + it.additional + ')';
-            return result;
-        }).join(', ') || '';
 
     let themeClass = $state(getCurrentTheme() === Theme.Light ? 'theme-5e-light' : 'theme-5e-dark');
 
@@ -230,7 +197,7 @@
         {#if monster.feats}
             <div class="layout-5e-statblock-property-block">
             {#each monster.feats as feat}
-                <div><b>{feat.name}.</b> {@html transformDiceRollerTags(feat.value.replace(/<\/?p>/g, ''))}</div>
+                <div><b>{feat.name}.</b> {@html mapDiceRollerTags(feat.value.replace(/<\/?p>/g, ''))}</div>
             {/each}
             </div>
         {/if}
@@ -246,7 +213,7 @@
                 <div class="layout-5e-statblock-property-block">
                     <div class="layout-5e-statblock-block-header">{item.title}</div>
                     {#each item.action as action}
-                    <div><b>{action.name}.</b> {@html transformDiceRollerTags(action.value.replace(/<\/?p>/g, ''))}</div>
+                    <div><b>{action.name}.</b> {@html mapDiceRollerTags(action.value.replace(/<\/?p>/g, ''))}</div>
                     {/each}
                 </div>
                 {/if}
@@ -264,7 +231,7 @@
         <div class="layout-5e-statblock-property-block">
             <div class="layout-5e-statblock-block-header">{item.title}</div>
             <div class="layout-5e-statblock-base-info-item">
-                <span class="layout-5e-statblock-base-info-item-value">{@html transformDiceRollerTags(item.action.replace(/<\/?p>/g, ''))}</span>
+                <span class="layout-5e-statblock-base-info-item-value">{@html mapDiceRollerTags(item.action.replace(/<\/?p>/g, ''))}</span>
             </div>
         </div>
         {/if}

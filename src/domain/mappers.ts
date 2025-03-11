@@ -4,7 +4,7 @@ import { calculateModifier } from "./modifier";
 import { randomSpeciality } from "src/res/texts_ru";
 import { Dice, rollRaw, type Formula, type FormulaEntry } from "./dice";
 
-export const monsterToEncounterParticipant = (monster: FullMonster): EncounterParticipant => {
+export const mapMonsterToEncounterParticipant = (monster: FullMonster): EncounterParticipant => {
     const speciality = randomSpeciality()
     const newName = speciality ? `${monster.name.rus} (${speciality})` : monster.name.rus
     const rolledHp = rollRaw(`${monster.hits.formula}${monster.hits.sign}${monster.hits.bonus}`)
@@ -21,7 +21,7 @@ export const monsterToEncounterParticipant = (monster: FullMonster): EncounterPa
     } as EncounterParticipant;
 };
 
-export const diceToFormula = (input: string): Formula => {
+export const mapDiceStringToFormula = (input: string): Formula => {
     const entries: FormulaEntry[] = [];
     const tokens = input.replace(/\s+/g, '').split(/\+/).filter(t => t !== '');
     let currentEntry: FormulaEntry | null = null;
@@ -62,7 +62,7 @@ export const diceToFormula = (input: string): Formula => {
     return { entries };
 };
 
-export const transformDiceRollerTags = (input: string): string => {
+export const mapDiceRollerTags = (input: string): string => {
     return input.replace(
         /<dice-roller\s+([^>]*?)\s*(?:\/>|>(\s*)<\/dice-roller>)/g,
         (match, attributes) => {
