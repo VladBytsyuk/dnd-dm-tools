@@ -44,6 +44,7 @@ export const TEXTS = {
     layoutRegionalEffects: "Региональные эффекты",
     commandAddStatblock: "Добавить статблок",
     commandAddWideStatblock: "Добавить широкий статблок",
+    commandAddEncounter: "Добавить боевое столкновение",
     initiativeTrackerHintCopy: "Копировать",
     initiativeTrackerHintPaste: "Вставить",
     initiativeTrackerHintNext: "Следующий ход",

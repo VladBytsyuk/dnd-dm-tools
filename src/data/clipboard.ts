@@ -2,6 +2,7 @@ import { Notice, parseYaml, stringifyYaml } from "obsidian";
 import { type FullMonster } from "../domain/monster";
 import { TEXTS } from "src/res/texts_ru";
 import type { Encounter, EncounterParticipant } from "src/domain/encounter";
+import { mapMonsterToEncounterParticipant } from "src/domain/mappers";
 
 // ---- Copy to clipboard ----
 export function copyMonsterToClipboard(monster: FullMonster) {
@@ -25,7 +26,12 @@ function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string, addi
 
 // ---- Get from clipboard ----
 export async function getEncounterParticipantFromClipboard(): Promise<EncounterParticipant | undefined> {
-    return getFromClipboard<EncounterParticipant>();
+    const monster = await getFromClipboard<FullMonster>();
+    if (monster) {
+        return mapMonsterToEncounterParticipant(monster);
+    } else {
+        return undefined;
+    }
 }
 
 export async function getEncounterFromClipboard(): Promise<Encounter | undefined> {

@@ -9,6 +9,7 @@ import { LayoutManager } from './ui/components/settings/layout_manager';
 import { registerThemeChangeListener } from './ui/theme';
 import { registerSidePanelInitiativeTracker } from './ui/components/ribbon/side_panel_initiative_tracker';
 import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor/encounter_md_code_block_processor';
+import { registerAddEncounterCommand } from './ui/components/command/add_encounter_command';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -26,6 +27,7 @@ export default class DndStatblockPlugin extends Plugin {
 			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#layoutManager);
 			registerEncounterMdCodeBlockProcessor(this),
 			registerAddStatblockCommand(this, this.#bestiary);
+			registerAddEncounterCommand(this);
 			registerThemeChangeListener();
 			console.log("dnd-dm-tools has been loaded.");
 		});
