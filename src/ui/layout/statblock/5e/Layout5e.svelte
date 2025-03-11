@@ -132,7 +132,9 @@
             }) as entry}
                 <div class="layout-5e-statblock-scores-table-item">
                 <div class="layout-5e-statblock-scores-table-item-title"><b>{entry[0]}</b></div>
-                <div>{entry[1]} ({calculateAndFormatModifier(entry[1])})</div>
+                <dice-roller label={entry[0]} formula={"к20+" + calculateAndFormatModifier(entry[1])}>
+                    {entry[1]} ({calculateAndFormatModifier(entry[1])})
+                </dice-roller>
                 </div>
             {/each}
             </div>
@@ -147,7 +149,9 @@
             <div class="layout-5e-statblock-base-info-item">
                 <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSaves}</span> 
                 <span class="layout-5e-statblock-base-info-item-value">
-                    {separate(monster.savingThrows.map(it => `${it.name} ${formatModifier(it.value)}`))}
+                    {@html separate(monster.savingThrows.map(it => 
+                        `${it.name} <dice-roller label="${TEXTS.layoutSave}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
+                    ))}
                 </span>
             </div>
             {/if}
@@ -156,7 +160,9 @@
             <div class="layout-5e-statblock-base-info-item">
                 <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSkills}</span> 
                 <span class="layout-5e-statblock-base-info-item-value">
-                    {separate(monster.skills.map(it => `${it.name} ${formatModifier(it.value)}`))}
+                    {@html separate(monster.skills.map(it => 
+                        `${it.name} <dice-roller label="${TEXTS.layoutSkill}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
+                    ))}
                 </span>
             </div>
             {/if}

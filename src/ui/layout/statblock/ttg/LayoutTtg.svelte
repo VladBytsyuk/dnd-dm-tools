@@ -170,7 +170,11 @@
             }) as entry}
                 <div class="layout-ttg-statblock-scores-table-item">
                 <div class="layout-ttg-statblock-scores-table-item-title"><b>{entry[0]}</b></div>
-                <div class="layout-ttg-statblock-scores-table-item-value">{entry[1]} ({calculateAndFormatModifier(entry[1])})</div>
+                <div class="layout-ttg-statblock-scores-table-item-value">
+                    <dice-roller label={entry[0]} formula={"к20+" + calculateAndFormatModifier(entry[1])}>
+                        {entry[1]} ({calculateAndFormatModifier(entry[1])})
+                    </dice-roller>
+                </div>
                 </div>
             {/each}
             </div>
@@ -182,7 +186,9 @@
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSaves}</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">
-                    {separate(monster.savingThrows.map(it => `${it.name} ${formatModifier(it.value)}`))}
+                    {@html separate(monster.savingThrows.map(it => 
+                        `${it.name} <dice-roller label="${TEXTS.layoutSave}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
+                    ))}
                 </span>
             </div>
             {/if}
@@ -191,7 +197,9 @@
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSkills}</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">
-                    {separate(monster.skills.map(it => `${it.name} ${formatModifier(it.value)}`))}
+                    {@html separate(monster.skills.map(it => 
+                        `${it.name} <dice-roller label="${TEXTS.layoutSkill}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
+                    ))}
                 </span>
             </div>
             {/if}
