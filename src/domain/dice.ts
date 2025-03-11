@@ -66,6 +66,7 @@ export const roll = (...entries: FormulaEntry[]) => {
 }
 
 export const rollRaw = (input: string): number => {
-    const formula = diceToFormula(input);
+    const normalizedInput = input.replace(/undefined/gi, "");
+    const formula = diceToFormula(normalizedInput);
     return formula.entries.reduce((acc, value) => acc + entryRoll(value), 0);
 }
