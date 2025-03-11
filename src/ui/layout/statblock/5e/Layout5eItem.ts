@@ -12,13 +12,16 @@ export class Layout5eItemView implements LayoutItemView {
     #component: ReturnType<typeof Layout5e> | undefined;
     #monster: FullMonster;
     #twoColumns: boolean;
+    #onRoll: (label: string, value: number) => void;
 
     constructor(
         monster: FullMonster,
         twoColumns: boolean,
+        onRoll: (label: string, value: number) => void,
     ) {
         this.#monster = monster;
         this.#twoColumns = twoColumns;
+        this.#onRoll = onRoll;
     }
 
 	// ---- methods ----
@@ -31,6 +34,7 @@ export class Layout5eItemView implements LayoutItemView {
             props: {
                 monster: this.#monster,
                 isTwoColumns: this.#twoColumns,
+                onRoll: this.#onRoll,
             },
         });
     }

@@ -1,3 +1,5 @@
+import { diceToFormula } from "./mappers"
+
 export enum Dice {
     d4 = 4,
     d6 = 6,
@@ -60,5 +62,10 @@ const entryRoll = (entry: FormulaEntry) => {
 
 export const roll = (...entries: FormulaEntry[]) => {
     const formula = { entries: entries } as Formula;
-    return formula.entries.reduce((acc, value) => acc + entryRoll(value), 0)
+    return formula.entries.reduce((acc, value) => acc + entryRoll(value), 0);
+}
+
+export const rollRaw = (input: string): number => {
+    const formula = diceToFormula(input);
+    return formula.entries.reduce((acc, value) => acc + entryRoll(value), 0);
 }

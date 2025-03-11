@@ -1,13 +1,15 @@
 <script lang="ts">
+	import { transformDiceRollerTags } from './../../../../domain/mappers';
+	import DiceRoller from './../../DiceRoller.svelte';
     import { ClipboardCopy } from 'lucide-svelte';
-    import { onMount } from 'svelte';
+    import { mount, onDestroy, onMount } from 'svelte';
     import { TEXTS } from "src/res/texts_ru";
     import { copyMonsterToClipboard } from "src/data/clipboard";
 	import type { Speed } from "src/domain/monster";
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
 	import { calculateAndFormatModifier, formatModifier } from 'src/domain/modifier';
 
-    let { monster, isTwoColumns } = $props()
+    let { monster, isTwoColumns, onRoll } = $props()
 
     const separate = (text: Array<string>) => 
         text.join(', ');
@@ -26,10 +28,35 @@
 
     let currentImageIndex = $state(0);
     let imagesLength = $state(0);
+    let diceRollers: DiceRoller[] = [];
 
     onMount(() => {
         imagesLength = monster.images?.length || 0;
+        handleDiceRoller();
     });
+
+    onDestroy(() => {
+        diceRollers = [];
+    });
+
+    const handleDiceRoller = () => {
+        const elements = document.querySelectorAll('dice-roller');
+    
+        elements.forEach(element => {
+            const content = element.innerHTML.trim();
+            element.empty();
+            const component = mount(DiceRoller, {
+                target: element, 
+                props: {
+                    formula: element.getAttribute('formula') || "",
+                    label: element.getAttribute('label'),
+                    content: content,
+                    onRoll: onRoll,
+                },
+            });
+            diceRollers.push(component);
+        });
+    };
 
     const nextImage = () => {
         currentImageIndex = (currentImageIndex + 1) % imagesLength;
@@ -95,7 +122,9 @@
                     {#if monster.hits}
                     <div class="layout-ttg-statblock-base-info-item">
                         <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutHits}</span>
-                        <span class="layout-ttg-statblock-base-info-item-value">{monster.hits.average} ({monster.hits.formula}{monster.hits.sign}{monster.hits.bonus})</span>
+                        <span class="layout-ttg-statblock-base-info-item-value">
+                            {monster.hits.average} (<dice-roller label={TEXTS.layoutHits} formula="{monster.hits.formula}{monster.hits.sign}{monster.hits.bonus}">{monster.hits.formula}{monster.hits.sign}{monster.hits.bonus}</dice-roller>)
+                        </span>
                     </div>
                     {/if}
 
@@ -228,7 +257,7 @@
             {#each monster.feats as feat}
                 <div class="layout-ttg-statblock-base-info-item">
                     <span class="layout-ttg-statblock-base-info-item-title">{feat.name}.</span>
-                    <span class="layout-ttg-statblock-base-info-item-value">{@html feat.value.replace(/<\/?p>/g, '')}</span>     
+                    <span class="layout-ttg-statblock-base-info-item-value">{@html transformDiceRollerTags(feat.value.replace(/<\/?p>/g, ''))}</span>     
                 </div>
             {/each}
             </div>
@@ -248,7 +277,7 @@
                     {#each item.action as action}
                     <div class="layout-ttg-statblock-base-info-item">
                         <span class="layout-ttg-statblock-base-info-item-title">{action.name}.</span>
-                        <span class="layout-ttg-statblock-base-info-item-value">{@html action.value.replace(/<\/?p>/g, '')}</span>
+                        <span class="layout-ttg-statblock-base-info-item-value">{@html transformDiceRollerTags(action.value.replace(/<\/?p>/g, ''))}</span>
                     </div>
                     {/each}
                 </div>
@@ -266,7 +295,7 @@
             <div class="layout-ttg-statblock-property-block">
                 <div class="layout-ttg-statblock-block-header">{item.title}</div>
                 <div class="layout-ttg-statblock-base-info-item">
-                    <span class="layout-ttg-statblock-base-info-item-value">{@html item.action.replace(/<\/?p>/g, '')}</span>
+                    <span class="layout-ttg-statblock-base-info-item-value">{@html transformDiceRollerTags(item.action.replace(/<\/?p>/g, ''))}</span>
                 </div>
             </div>
             {/if}

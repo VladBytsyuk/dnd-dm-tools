@@ -4,6 +4,7 @@ import { LayoutStyle } from "./layout_style";
 import { Layout5eItemView } from "src/ui/layout/statblock/5e/Layout5eItem";
 import { LayoutTtgItemView } from "src/ui/layout/statblock/ttg/LayoutTtgItem";
 import type { LayoutItemView } from "src/ui/layout/LayoutItemView";
+import { Notice } from "obsidian";
 
 class LayoutManagerCache {
 
@@ -43,6 +44,9 @@ export class LayoutManager {
         monster: FullMonster, 
         isTwoColumns: boolean = false,
     ) {
+        const onRoll = (label: string, value: number): void => {
+            new Notice(`${label ? label + ": " : ""}${value}`);
+        };
         this.#cache
             .find((item) => item.getContainer() == container)
             ?.getItemView()
@@ -53,10 +57,10 @@ export class LayoutManager {
         let itemView: LayoutItemView;
         switch (layoutStyle) {
             case LayoutStyle.Dnd5e:
-                itemView = new Layout5eItemView(monster, isTwoColumns);
+                itemView = new Layout5eItemView(monster, isTwoColumns, onRoll);
                 break;
             case LayoutStyle.TtgClub:
-                itemView = new LayoutTtgItemView(monster, isTwoColumns);
+                itemView = new LayoutTtgItemView(monster, isTwoColumns, onRoll);
                 break;
             default:
                 throw new Error(`Unknown layout style: ${layoutStyle}`);

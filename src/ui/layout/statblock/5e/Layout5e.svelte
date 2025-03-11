@@ -1,11 +1,43 @@
 <script lang="ts">
+	import { transformDiceRollerTags } from './../../../../domain/mappers';
+	import DiceRoller from './../../DiceRoller.svelte';
+    import { mount, onDestroy, onMount } from 'svelte';
     import { ClipboardCopy } from 'lucide-svelte';
     import { TEXTS } from "src/res/texts_ru";
     import { copyMonsterToClipboard } from "src/data/clipboard";
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
 	import { calculateAndFormatModifier, formatModifier } from 'src/domain/modifier';
 
-    let { monster, isTwoColumns } = $props()
+    let { monster, isTwoColumns, onRoll } = $props()
+
+    let diceRollers: DiceRoller[] = [];
+
+    onMount(() => {
+        handleDiceRoller();
+    });
+
+    onDestroy(() => {
+        diceRollers = [];
+    });
+
+    const handleDiceRoller = () => {
+        const elements = document.querySelectorAll('dice-roller');
+    
+        elements.forEach(element => {
+            const content = element.innerHTML.trim();
+            element.empty();
+            const component = mount(DiceRoller, {
+                target: element, 
+                props: {
+                    formula: element.getAttribute('formula') || "",
+                    label: element.getAttribute('label'),
+                    content: content,
+                    onRoll: onRoll,
+                },
+            });
+            diceRollers.push(component);
+        });
+    };
 
     const separate = (text: Array<string>) => 
         text.join(', ');
@@ -67,7 +99,9 @@
             {#if monster.hits}
             <div class="layout-5e-statblock-base-info-item">
                 <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutHits}:</span>
-                <span class="layout-5e-statblock-base-info-item-value">{monster.hits.average} ({monster.hits.formula}{monster.hits.sign}{monster.hits.bonus})</span>
+                <span class="layout-5e-statblock-base-info-item-value">
+                    {monster.hits.average} (<dice-roller label={TEXTS.layoutHits} formula="{monster.hits.formula}{monster.hits.sign}{monster.hits.bonus}">{monster.hits.formula}{monster.hits.sign}{monster.hits.bonus}</dice-roller>)
+                </span>
             </div>
             {/if}
 
@@ -190,7 +224,7 @@
         {#if monster.feats}
             <div class="layout-5e-statblock-property-block">
             {#each monster.feats as feat}
-                <div><b>{feat.name}.</b> {@html feat.value.replace(/<\/?p>/g, '')}</div>
+                <div><b>{feat.name}.</b> {@html transformDiceRollerTags(feat.value.replace(/<\/?p>/g, ''))}</div>
             {/each}
             </div>
         {/if}
@@ -206,7 +240,7 @@
                 <div class="layout-5e-statblock-property-block">
                     <div class="layout-5e-statblock-block-header">{item.title}</div>
                     {#each item.action as action}
-                    <div><b>{action.name}.</b> {@html action.value.replace(/<\/?p>/g, '')}</div>
+                    <div><b>{action.name}.</b> {@html transformDiceRollerTags(action.value.replace(/<\/?p>/g, ''))}</div>
                     {/each}
                 </div>
                 {/if}
@@ -224,7 +258,7 @@
         <div class="layout-5e-statblock-property-block">
             <div class="layout-5e-statblock-block-header">{item.title}</div>
             <div class="layout-5e-statblock-base-info-item">
-                <span class="layout-5e-statblock-base-info-item-value">{@html item.action.replace(/<\/?p>/g, '')}</span>
+                <span class="layout-5e-statblock-base-info-item-value">{@html transformDiceRollerTags(item.action.replace(/<\/?p>/g, ''))}</span>
             </div>
         </div>
         {/if}
