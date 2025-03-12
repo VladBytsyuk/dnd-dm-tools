@@ -1,24 +1,26 @@
 <script lang="ts">
 	import { mapDiceRollerTags } from './../../../../domain/mappers';
     import { ClipboardCopy } from 'lucide-svelte';
-    import { mount, onDestroy, onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import { TEXTS } from "src/res/texts_ru";
     import { copyMonsterToClipboard } from "src/data/clipboard";
-	import type { Speed } from "src/domain/monster";
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
 	import { calculateAndFormatModifier, formatModifier } from 'src/domain/modifier';
 	import { DiceRollersManager } from '../../dice-roller/DiceRollersManager';
 	import { joinList, joinSpeed, separate } from 'src/domain/utils';
+	import { getImageSource } from 'src/domain/image_utils';
 
-    let { monster, isTwoColumns, onRoll } = $props()
+    let { app, monster, isTwoColumns, onRoll } = $props()
 
     let currentImageIndex = $state(0);
-    let imagesLength = $state(0);
+    let imagesLength = $state(monster.images.length);
+    let images: string[] = $state([]);
     
     const diceRollersManager = new DiceRollersManager(onRoll);
     
-    onMount(() => {
+    onMount(async () => {
         diceRollersManager.onMount();
+        images = await Promise.all(monster.images?.map(async (it: string) => await getImageSource(app, it)));
     });
 
     onDestroy(() => {
@@ -109,10 +111,12 @@
             </div>
 
             <!-- Image -->
-            {#if monster.images?.length && !isTwoColumns}
+            {#if images?.length && !isTwoColumns}
             <div class="layout-ttg-statblock-images">
                 <div class="slider-container">
-                    <img class="layout-ttg-statblock-images-item" src={monster.images[currentImageIndex]} alt={monster.name.rus}/>
+                    <img class="layout-ttg-statblock-images-item" 
+                        src={images[currentImageIndex]} 
+                        alt={monster.name.rus}/>
                     
                     <div class="slider-controls">
                         <button class="arrow left" onclick={prevImage}>❮</button>

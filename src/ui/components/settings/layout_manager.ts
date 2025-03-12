@@ -4,7 +4,7 @@ import { LayoutStyle } from "./layout_style";
 import { Layout5eItemView } from "src/ui/layout/statblock/5e/Layout5eItem";
 import { LayoutTtgItemView } from "src/ui/layout/statblock/ttg/LayoutTtgItem";
 import type { LayoutItemView } from "src/ui/layout/LayoutItemView";
-import { Notice } from "obsidian";
+import { App, Notice } from "obsidian";
 
 class LayoutManagerCache {
 
@@ -30,11 +30,13 @@ export class LayoutManager {
 
 
 	// ---- fields ----
+    #app: App;
     #settings: DndStatblockPluginSettings;
     #cache: LayoutManagerCache[] = [];
     
 
-    constructor(settings: DndStatblockPluginSettings) {
+    constructor(app: App, settings: DndStatblockPluginSettings) {
+        this.#app = app;
         this.#settings = settings;
     }
 
@@ -60,7 +62,7 @@ export class LayoutManager {
                 itemView = new Layout5eItemView(monster, isTwoColumns, onRoll);
                 break;
             case LayoutStyle.TtgClub:
-                itemView = new LayoutTtgItemView(monster, isTwoColumns, onRoll);
+                itemView = new LayoutTtgItemView(this.#app, monster, isTwoColumns, onRoll);
                 break;
             default:
                 throw new Error(`Unknown layout style: ${layoutStyle}`);

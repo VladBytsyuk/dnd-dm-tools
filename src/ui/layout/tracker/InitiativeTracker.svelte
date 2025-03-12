@@ -1,18 +1,29 @@
 <script lang="ts">
 	import { d20, roll } from "src/domain/dice";
     import { ClipboardCopy, ClipboardPaste, Play, StepForward, Ban, Dices, Sword, Heart, Shield, Eraser, Plus } from 'lucide-svelte';
-	import type { Encounter, EncounterParticipant } from "src/domain/encounter";
+    import { onMount } from 'svelte';
+    import type { Encounter, EncounterParticipant } from "src/domain/encounter";
 	import { formatModifier } from "src/domain/modifier";
 	import { copyEncounterToClipboard, getEncounterFromClipboard, getEncounterParticipantFromClipboard } from "src/data/clipboard";
 	import { TEXTS } from "src/res/texts_ru";
+	import { getImageSource } from "src/domain/image_utils";
 
-    let { encounter, onUpdate } = $props();
+    let { app, encounter, onUpdate } = $props();
     let stateEncounter: Encounter = $state(encounter);
     let idCounter: number = encounter.participants.length;
     let calcTempValues = new Map();
     let editingId = $state<string | null>(null);
 
     let activeParticipantIndex: number | null = $state(null);
+
+    onMount(async () => {
+        const newParticipants = await Promise.all(
+            stateEncounter.participants.map(async (it) => 
+                it.imageUrl ? ({...it, imageUrl: await getImageSource(app, it.imageUrl)}) : it
+            )
+        )
+        updateParticipants(newParticipants);
+    });
 
     const saveEncounterToClipboard = () => copyEncounterToClipboard(stateEncounter);
 

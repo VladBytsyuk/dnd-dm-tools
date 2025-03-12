@@ -1,3 +1,4 @@
+import type { App } from "obsidian";
 import type { LayoutItemView } from "../LayoutItemView";
 import InitiativeTracker from "./InitiativeTracker.svelte";
 import type { Encounter } from "src/domain/encounter";
@@ -9,11 +10,17 @@ const INITIATIVE_TRACKER_VIEW = "dnd-dm-tools-initiative-tracker";
 export class InitiativeTrackerView implements LayoutItemView {
 
 	// ---- fields ----
+    #app: App;
     #component: ReturnType<typeof InitiativeTracker> | undefined;
     #encounter: Encounter;
     #onEncounterUpdate: (encounter: Encounter) => void;
 
-    constructor(encounter: Encounter, onEncounterUpdate: (encounter: Encounter) => void) {
+    constructor(
+        app: App,
+        encounter: Encounter, 
+        onEncounterUpdate: (encounter: Encounter) => void,
+    ) {
+        this.#app = app;
         this.#encounter = encounter;
         this.#onEncounterUpdate = onEncounterUpdate;
     }
@@ -26,6 +33,7 @@ export class InitiativeTrackerView implements LayoutItemView {
         this.#component = mount(InitiativeTracker, {
             target: container,
             props: {
+                app: this.#app,
                 encounter: this.#encounter,
                 onUpdate: this.#onEncounterUpdate,
             },
