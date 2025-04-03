@@ -26,7 +26,7 @@ class LayoutManagerCache {
     getIsTwoColumns(): boolean { return this.#isTwoColumns; };
 }
 
-export class LayoutManager {
+export class MonsterLayoutManager {
 
 
 	// ---- fields ----

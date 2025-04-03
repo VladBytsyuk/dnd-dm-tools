@@ -50,6 +50,7 @@
         min-width: 2.5in;
         min-height: 3.5in;
         background: maroon !important;
+        color: black;
         padding: 0;
         font-size: 10px;
         position: relative;

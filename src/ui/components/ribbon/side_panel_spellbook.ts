@@ -1,56 +1,56 @@
 import { ItemView, Workspace, type WorkspaceLeaf, SearchComponent, ButtonComponent } from "obsidian";
 import DndStatblockPlugin from "src/main";
-import { Bestiary } from "src/data/bestiary";
 import { TEXTS } from "src/res/texts_ru";
-import { MonsterSuggester } from "src/ui/components/suggest/monster_suggester";
-import { MonsterLayoutManager } from "../settings/monster_layout_manager";
+import type { Spellbook } from "src/data/spellbook";
+import { SpellSuggester } from "../suggest/spell_suggester";
+import type { SpellLayoutManager } from "../settings/spell_layout_manager";
 
-export function registerSidePanelBestiary(
+export function registerSidePanelSpellbook(
     plugin: DndStatblockPlugin,
-    bestiary: Bestiary,
-    layoutManager: MonsterLayoutManager,
+    spellbook: Spellbook,
+    layoutManager: SpellLayoutManager,
 ) {
     plugin.registerView(
-        SIDE_PANEL_BESTIARY_VIEW,
-        (leaf: WorkspaceLeaf) => new SidePanelBestiaryView(leaf, plugin, bestiary, layoutManager),
+        SIDE_PANEL_SPELLBOOK_VIEW,
+        (leaf: WorkspaceLeaf) => new SidePanelSpellbookView(leaf, plugin, spellbook, layoutManager),
     );
-    plugin.addRibbonIcon("skull", TEXTS.ribbonActionBestiaryTitle, async (mouseEvent) => {
-        openSidePanelBestiary(mouseEvent.getModifierState("Meta"), plugin.app.workspace)
+    plugin.addRibbonIcon("sparkles", TEXTS.ribbonActionSpellbookTitle, async (mouseEvent) => {
+        openSidePanelSpellbook(mouseEvent.getModifierState("Meta"), plugin.app.workspace)
     });
 }
 
-const SIDE_PANEL_BESTIARY_VIEW = "obsidian-dnd-statblock-side-panel-bestiary";
+const SIDE_PANEL_SPELLBOOK_VIEW = "obsidian-dnd-statblock-side-panel-spellbook";
 
-class SidePanelBestiaryView extends ItemView {
+class SidePanelSpellbookView extends ItemView {
     
     // ---- fields ----
     #plugin: DndStatblockPlugin;
-    #bestiary: Bestiary;
-    #layoutManager: MonsterLayoutManager;
+    #spellbook: Spellbook;
+    #layoutManager: SpellLayoutManager;
 
     constructor(
         leaf: WorkspaceLeaf, 
         plugin: DndStatblockPlugin, 
-        bestiary: Bestiary,
-        layoutManager: MonsterLayoutManager,
+        spellbook: Spellbook,
+        layoutManager: SpellLayoutManager,
     ) {
         super(leaf);
         this.#plugin = plugin;
-        this.#bestiary = bestiary;
+        this.#spellbook = spellbook;
         this.#layoutManager = layoutManager;
     }
 
     // ---- callbacks ----
     getViewType() {
-        return SIDE_PANEL_BESTIARY_VIEW;
+        return SIDE_PANEL_SPELLBOOK_VIEW;
     }
 
     getDisplayText() {
-        return TEXTS.sidePanelBestiaryTitle;
+        return TEXTS.sidePanelSpellbookTitle;
     }
 
     getIcon(): string {
-        return "skull";
+        return "sparkles";
     }
 
     async onOpen() {
@@ -66,9 +66,9 @@ class SidePanelBestiaryView extends ItemView {
     #fillContainer(container: Element) {
         container.empty();
         
-        const headerEl = container.createDiv(`side-panel-bestiary-header`);
+        const headerEl = container.createDiv(`side-panel-spellbook-header`);
 
-        const searchEl = new SearchComponent(headerEl).setPlaceholder(TEXTS.bestiarySearchPlaceholder);
+        const searchEl = new SearchComponent(headerEl).setPlaceholder(TEXTS.spellbookSearchPlaceholder);
         searchEl.clearButtonEl.addEventListener('click', () => {
             searchEl.setValue("");
             statblockContainer.empty();
@@ -83,22 +83,22 @@ class SidePanelBestiaryView extends ItemView {
         })
 
         const statblockContainer = document.createElement('div');
-        statblockContainer.addClass('side-panel-bestiary-statblock-container');
+        statblockContainer.addClass('side-panel-spellbook-statblock-container');
         container.appendChild(statblockContainer);
         
-        const suggester = new MonsterSuggester(this.#plugin.app, searchEl, this.#bestiary);
-        suggester.onSelectMonster(fullMonster => {
+        const suggester = new SpellSuggester(this.#plugin.app, searchEl, this.#spellbook);
+        suggester.onSelectSpell(fullSpell => {
             statblockContainer.empty();
-            this.#layoutManager.renderLayout(statblockContainer, fullMonster);
+            this.#layoutManager.renderLayout(statblockContainer, fullSpell);
             suggester.close();
         });
     }
 }
 
-async function openSidePanelBestiary(isSidePanelOpened: boolean = false, workspace: Workspace) {
+async function openSidePanelSpellbook(isSidePanelOpened: boolean = false, workspace: Workspace) {
 
     let leaf: WorkspaceLeaf;
-    const sidePanelLeaves = workspace.getLeavesOfType(SIDE_PANEL_BESTIARY_VIEW);
+    const sidePanelLeaves = workspace.getLeavesOfType(SIDE_PANEL_SPELLBOOK_VIEW);
 
     if (sidePanelLeaves?.length) {
         leaf = sidePanelLeaves[0];
@@ -107,9 +107,9 @@ async function openSidePanelBestiary(isSidePanelOpened: boolean = false, workspa
     }
 
     await leaf.setViewState({
-        type: SIDE_PANEL_BESTIARY_VIEW
+        type: SIDE_PANEL_SPELLBOOK_VIEW
     });
 
     workspace.revealLeaf(leaf);
-    return leaf.view as SidePanelBestiaryView;
+    return leaf.view as SidePanelSpellbookView;
 }

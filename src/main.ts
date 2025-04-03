@@ -5,18 +5,21 @@ import { registerSettingsTab } from "src/ui/components/settings/settings_tab";
 import { registerMonsterMdCodeBlockProcessor } from "src/ui/components/processor/monster_md_code_block_processor";
 import { registerSidePanelBestiary } from "src/ui/components/ribbon/side_panel_bestiary";
 import { registerAddStatblockCommand } from './ui/components/command/add_statblock_command';
-import { LayoutManager } from './ui/components/settings/layout_manager';
+import { MonsterLayoutManager } from './ui/components/settings/monster_layout_manager';
 import { registerThemeChangeListener } from './ui/theme';
 import { registerSidePanelInitiativeTracker } from './ui/components/ribbon/side_panel_initiative_tracker';
 import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor/encounter_md_code_block_processor';
 import { registerAddEncounterCommand } from './ui/components/command/add_encounter_command';
 import { Spellbook } from './data/spellbook';
+import { registerSidePanelSpellbook } from './ui/components/ribbon/side_panel_spellbook';
+import { SpellLayoutManager } from './ui/components/settings/spell_layout_manager';
 
 export default class DndStatblockPlugin extends Plugin {
 
 	// ---- fields ----
 	#settingsController: DndStatblockSettingsController;
-	#layoutManager: LayoutManager;
+	#monsterLayoutManager: MonsterLayoutManager;
+	#spellLayoutManager: SpellLayoutManager;
 	#bestiary: Bestiary;
 	#spellbook: Spellbook;
 
@@ -25,8 +28,9 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#initialize(() => {
 			registerSettingsTab(this, this.#settingsController);
 			registerSidePanelInitiativeTracker(this);
-			registerSidePanelBestiary(this, this.#bestiary, this.#layoutManager);
-			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#layoutManager);
+			registerSidePanelBestiary(this, this.#bestiary, this.#monsterLayoutManager);
+			registerSidePanelSpellbook(this, this.#spellbook, this.#spellLayoutManager);
+			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#monsterLayoutManager);
 			registerEncounterMdCodeBlockProcessor(this),
 			registerAddStatblockCommand(this, this.#bestiary);
 			registerAddEncounterCommand(this);
@@ -53,17 +57,18 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#spellbook = new Spellbook(`${this.manifest.dir}`, this.app.vault.adapter);
 		await this.#spellbook.initialize();
 
-		this.#layoutManager = new LayoutManager(this.app, this.#settingsController.settings);
+		this.#monsterLayoutManager = new MonsterLayoutManager(this.app, this.#settingsController.settings);
+		this.#spellLayoutManager = new SpellLayoutManager(this.app);
 
 		callback();
 	}
 
 	#onLayoutStyleChanged() {
-		this.#layoutManager.onChangeLayoutStyle();
+		this.#monsterLayoutManager.onChangeLayoutStyle();
 	}
 
 	#dispose() {
 		this.#bestiary.dispose();
-		this.#layoutManager.dispose();
+		this.#monsterLayoutManager.dispose();
 	}
 }

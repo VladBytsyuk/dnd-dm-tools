@@ -11,6 +11,10 @@ If your plugin does not need CSS, delete this file.
     display: flex;
 }
 
+.side-panel-spellbook-header {
+    display: flex;
+}
+
 .search-input-container {
     flex: 1;
     margin: 0 0.5em 0 0
@@ -20,7 +24,19 @@ If your plugin does not need CSS, delete this file.
     padding: 1em;
 }
 
+.side-panel-spellbook-statblock-container {
+    padding: 1em;
+}
+
 .creature-suggestions-container {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    margin-top: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.spell-suggestions-container {
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
     margin-top: 5px;
