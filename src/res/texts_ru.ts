@@ -60,6 +60,12 @@ export const TEXTS = {
     initiativeTrackerHintHitsTemporary: "Временные",
     initiativeTrackerHintHitsMax: "Максимум",
     initiativeTrackerHintArmorClass: "Класс Доспеха",
+    spellCastingTime: "Время накладывания",
+    spellRange: "Дистанция",
+    spellComponents: "Компоненты",
+    spellDuration: "Длительность",
+    spellLevel: "круг",
+    spellCantrip: "заговор"
 }
 
 export const randomSpeciality = (): string | undefined => {
