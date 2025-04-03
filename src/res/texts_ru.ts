@@ -3,6 +3,7 @@ export const TEXTS = {
     settingsLayoutDescription: "Внешний вид и разметка статблока",
     settingsLayout5e: "D&D 5 редакции",
     settingsLayoutTtg: "TTG Club",
+    fullSpell: "Заклинание",
     noticeClipboardSuccess: " - успешно скопировано.",
     ribbonActionBestiaryTitle: "Бестиарий",
     ribbonActionInitiativeTrackerTitle: "Трекер инициативы",

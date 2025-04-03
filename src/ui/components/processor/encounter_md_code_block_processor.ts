@@ -36,6 +36,6 @@ async function encounterMdCodeBlockProcessor(
     };
 
     el.empty();
-    new InitiativeTrackerView(plugin.app, encounter, (newEncounter) => updateSource(stringifyYaml(newEncounter)))
+    new InitiativeTrackerView(plugin.app, encounter, (newEncounter) => {}/*updateSource(stringifyYaml(newEncounter))*/) //TODO: rework auto-update source
         .render(el);
 }

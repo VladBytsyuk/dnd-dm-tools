@@ -10,6 +10,7 @@ import { registerThemeChangeListener } from './ui/theme';
 import { registerSidePanelInitiativeTracker } from './ui/components/ribbon/side_panel_initiative_tracker';
 import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor/encounter_md_code_block_processor';
 import { registerAddEncounterCommand } from './ui/components/command/add_encounter_command';
+import { Spellbook } from './data/spellbook';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -17,6 +18,7 @@ export default class DndStatblockPlugin extends Plugin {
 	#settingsController: DndStatblockSettingsController;
 	#layoutManager: LayoutManager;
 	#bestiary: Bestiary;
+	#spellbook: Spellbook;
 
 	// ---- callbacks ----
 	async onload() {
@@ -47,6 +49,9 @@ export default class DndStatblockPlugin extends Plugin {
 
 		this.#bestiary = new Bestiary(`${this.manifest.dir}`, this.app.vault.adapter);
 		await this.#bestiary.initialize();
+
+		this.#spellbook = new Spellbook(`${this.manifest.dir}`, this.app.vault.adapter);
+		await this.#spellbook.initialize();
 
 		this.#layoutManager = new LayoutManager(this.app, this.#settingsController.settings);
 
