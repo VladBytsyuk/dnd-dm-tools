@@ -13,6 +13,7 @@ import { registerAddEncounterCommand } from './ui/components/command/add_encount
 import { Spellbook } from './data/spellbook';
 import { registerSidePanelSpellbook } from './ui/components/ribbon/side_panel_spellbook';
 import { SpellLayoutManager } from './ui/components/settings/spell_layout_manager';
+import { registerSpellMdCodeBlockProcessor } from './ui/components/processor/spell_md_code_block_processor';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -31,6 +32,7 @@ export default class DndStatblockPlugin extends Plugin {
 			registerSidePanelBestiary(this, this.#bestiary, this.#monsterLayoutManager);
 			registerSidePanelSpellbook(this, this.#spellbook, this.#spellLayoutManager);
 			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#monsterLayoutManager);
+			registerSpellMdCodeBlockProcessor(this, this.#spellbook, this.#spellLayoutManager);
 			registerEncounterMdCodeBlockProcessor(this),
 			registerAddStatblockCommand(this, this.#bestiary);
 			registerAddEncounterCommand(this);

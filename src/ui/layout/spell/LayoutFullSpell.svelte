@@ -1,7 +1,21 @@
 <script lang="ts">
+    import { onDestroy, onMount } from 'svelte';
+	import { mapDiceRollerTags } from "src/domain/mappers";
     import { TEXTS } from "src/res/texts_ru";
+	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 
-    let { spell } = $props();
+    let { spell, onRoll } = $props();
+
+    const diceRollersManager = new DiceRollersManager(onRoll);
+
+    onMount(async () => {
+        diceRollersManager.onMount();
+    });
+
+    onDestroy(() => {
+        diceRollersManager.onDestroy();
+    });
+
 </script>
 
 <div class="layout-spell-card">
@@ -32,9 +46,9 @@
       
             <b class="layout-spell-card-need">{spell.components.m}</b>
             
-            <p class="layout-spell-card-text">{@html spell.description}</p>											
-            
-        </div>    		
+            <div class="layout-spell-card-text">{@html mapDiceRollerTags(spell.description)}</div>											
+        </div>    
+
         <b class="layout-spell-card-class">{spell.classes[0].name}</b>
         {#if spell.level === 0}
             <b class="layout-spell-card-type">{TEXTS.spellCantrip} {spell.school}</b>
@@ -49,6 +63,8 @@
         display: inline-block;
         min-width: 2.5in;
         min-height: 3.5in;
+        width: 100%;
+        height: 100%;
         background: maroon !important;
         color: black;
         padding: 0;
@@ -101,6 +117,7 @@
 
     .layout-spell-card-block {
         padding: 2px 4px;
+        text-align: center;
         float: left;
         vertical-align: top;
         background-color: #fff !important;
@@ -140,7 +157,6 @@
     .layout-spell-card-text {
         padding: 2px 4px;
         font-size: 10px;
-        line-height: 9px;
         margin: 0;
     }
 

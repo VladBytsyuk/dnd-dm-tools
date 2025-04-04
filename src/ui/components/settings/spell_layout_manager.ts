@@ -46,7 +46,7 @@ export class SpellLayoutManager {
             ?.destroy();
         container.empty();
         const viewContainer = container.createDiv("statblock-view-container");
-        let itemView: LayoutItemView = new FullSpellItemView(spell);
+        let itemView: LayoutItemView = new FullSpellItemView(spell, onRoll);
 
         itemView.render(viewContainer);
         const cacheItem = new LayoutManagerCache(itemView, container, spell);

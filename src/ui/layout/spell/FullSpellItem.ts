@@ -11,11 +11,14 @@ export class FullSpellItemView implements LayoutItemView {
 	// ---- fields ----
     #component: ReturnType<typeof LayoutFullSpell> | undefined;
     #spell: FullSpell;
+    #onRoll: (label: string, value: number) => void;
 
     constructor(
         spell: FullSpell,
+        onRoll: (label: string, value: number) => void,
     ) {
         this.#spell = spell;
+        this.#onRoll = onRoll;
     }
 
 	// ---- methods ----
@@ -27,6 +30,7 @@ export class FullSpellItemView implements LayoutItemView {
             target: container,
             props: {
                 spell: this.#spell,
+                onRoll: this.#onRoll,
             },
         });
     }
