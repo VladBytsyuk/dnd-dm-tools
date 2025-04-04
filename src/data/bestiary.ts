@@ -1,6 +1,7 @@
 import type { DataAdapter } from "obsidian";
 import { requestUrl } from 'obsidian';
 import type { FullMonster, SmallMonster } from "src/domain/monster";
+import { PersistentCache } from "./cache";
 
 export class Bestiary {
 
@@ -8,17 +9,18 @@ export class Bestiary {
     #rootDir: string;
     #dataAdapter: DataAdapter;
     #smallBestiary: SmallMonster[];
-    #cache: Map<string, FullMonster>;
+    #cache: PersistentCache<string, FullMonster>;
 
     // ---- public functions ----
     constructor(rootDir: string, dataAdapter: DataAdapter) {
         this.#rootDir = rootDir;
         this.#dataAdapter = dataAdapter;
-        this.#cache = new Map();
+        this.#cache = new PersistentCache("bestiary", 200, rootDir, dataAdapter);
     }
 
     async initialize() {
-        this.#smallBestiary = await this.#loadBestiaryData()
+        this.#smallBestiary = await this.#loadBestiaryData();
+        await this.#cache.init();
     }
 
     async getAllSmallMonsters(): Promise<SmallMonster[]> {

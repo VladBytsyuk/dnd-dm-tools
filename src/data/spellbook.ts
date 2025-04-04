@@ -1,6 +1,7 @@
 import type { DataAdapter } from "obsidian";
 import { requestUrl } from 'obsidian';
 import type { FullSpell, SmallSpell } from "src/domain/spell";
+import { PersistentCache } from "./cache";
 
 export class Spellbook {
 
@@ -8,17 +9,18 @@ export class Spellbook {
     #rootDir: string;
     #dataAdapter: DataAdapter;
     #smallSpellbook: SmallSpell[];
-    #cache: Map<string, FullSpell>;
+    #cache: PersistentCache<string, FullSpell>;
 
     // ---- public functions ----
     constructor(rootDir: string, dataAdapter: DataAdapter) {
         this.#rootDir = rootDir;
         this.#dataAdapter = dataAdapter;
-        this.#cache = new Map();
+        this.#cache = new PersistentCache("spellbook", 1000, rootDir, dataAdapter);
     }
 
     async initialize() {
-        this.#smallSpellbook = await this.#loadSpellbookData()
+        this.#smallSpellbook = await this.#loadSpellbookData();
+        await this.#cache.init();
     }
 
     async getAllSmallSpells(): Promise<SmallSpell[]> {
