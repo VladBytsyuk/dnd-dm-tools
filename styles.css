@@ -52,3 +52,10 @@ If your plugin does not need CSS, delete this file.
 .suggestion-item:hover {
     background-color: var(--background-primary-alt);
 }
+
+.spell-card-tooltip {
+    position: absolute;
+    z-index: 9999;
+    visibility: visible;
+    width: 40%;
+}

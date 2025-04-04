@@ -45,10 +45,12 @@
         return () => { unsubscribe() };
     });
 
+
     function handleLinkHover(e: MouseEvent) {
         const link = e.currentTarget as HTMLAnchorElement;
         const url = link.getAttribute('href')!;
-        onSpellHover(url, e.clientX, e.clientY);
+        console.log(`x=${e.x}\tlayerX=${e.layerX}\tpageX=${e.pageX}\tscreenX=${e.screenX}\tmovementX=${e.movementX}\toffsetX=${e.offsetX}`)
+        onSpellHover(url, e.layerX+e.offsetX, e.offsetY+e.layerY);
     }
 
     function handleLinkLeave(e: MouseEvent) {

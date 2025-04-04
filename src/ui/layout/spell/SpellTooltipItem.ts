@@ -31,8 +31,9 @@ export class SpellTooltipItemView implements LayoutItemView {
     getViewType() { return SPELL_ITEM_VIEW_TYPE_EXAMPLE; }
     getDisplayText() { return TEXTS.fullSpell; }
 
-    render(container: Element) {
-        container.addClass(`left:${this.#x}px;top:${this.#y}px;position:relative;display:inline-block;cursor:pointer;`)
+    render(container: HTMLElement) {
+        container.style["left"] = this.#x + "px";
+        container.style["top"] = this.#y + "px";
         this.#component = mount(LayoutFullSpell, {
             target: container,
             props: {

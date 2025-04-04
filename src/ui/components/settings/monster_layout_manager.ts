@@ -65,9 +65,12 @@ export class MonsterLayoutManager {
             const fullSpell = await this.#spellbook.getFullSpellByUrl(url);
             if (!fullSpell) return;
             const tooltipItem = new SpellTooltipItemView(fullSpell, x, y, onRoll);
-            const viewContainer = container.createDiv("");
-            this.#spells.set(url, viewContainer)
-            tooltipItem.render(viewContainer);
+            const parent = container.parentElement;
+            if (parent) {
+                const div = parent.createDiv("spell-card-tooltip")
+                this.#spells.set(url, div);
+                tooltipItem.render(div);
+            }
         };
         this.#cache
             .find((item) => item.getContainer() == container)
