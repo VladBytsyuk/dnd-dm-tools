@@ -5,6 +5,9 @@ import { Layout5eItemView } from "src/ui/layout/statblock/5e/Layout5eItem";
 import { LayoutTtgItemView } from "src/ui/layout/statblock/ttg/LayoutTtgItem";
 import type { LayoutItemView } from "src/ui/layout/LayoutItemView";
 import { App, Notice } from "obsidian";
+import type { FullSpell } from "src/domain/spell";
+import type { Spellbook } from "src/data/spellbook";
+import { SpellTooltipItemView } from "src/ui/layout/spell/SpellTooltipItem";
 
 class LayoutManagerCache {
 
@@ -32,12 +35,15 @@ export class MonsterLayoutManager {
 	// ---- fields ----
     #app: App;
     #settings: DndStatblockPluginSettings;
+    #spellbook: Spellbook;
     #cache: LayoutManagerCache[] = [];
+    #spells: Map<string, Element> = new Map();
     
 
-    constructor(app: App, settings: DndStatblockPluginSettings) {
+    constructor(app: App, settings: DndStatblockPluginSettings, spellbook: Spellbook) {
         this.#app = app;
         this.#settings = settings;
+        this.#spellbook = spellbook;
     }
 
 	// ---- methods ----
@@ -48,6 +54,20 @@ export class MonsterLayoutManager {
     ) {
         const onRoll = (label: string, value: number): void => {
             new Notice(`${label ? label + ": " : ""}${value}`);
+        };
+        const onSpellRelease = (url: string) => {
+            const element = this.#spells.get(url);
+            element?.parentElement?.removeChild(element);
+            this.#spells.delete(url);
+        };
+        const onSpellHover = async (url: string, x: number, y: number) => {
+            onSpellRelease(url);
+            const fullSpell = await this.#spellbook.getFullSpellByUrl(url);
+            if (!fullSpell) return;
+            const tooltipItem = new SpellTooltipItemView(fullSpell, x, y, onRoll);
+            const viewContainer = container.createDiv("");
+            this.#spells.set(url, viewContainer)
+            tooltipItem.render(viewContainer);
         };
         this.#cache
             .find((item) => item.getContainer() == container)
@@ -62,7 +82,7 @@ export class MonsterLayoutManager {
                 itemView = new Layout5eItemView(monster, isTwoColumns, onRoll);
                 break;
             case LayoutStyle.TtgClub:
-                itemView = new LayoutTtgItemView(this.#app, monster, isTwoColumns, onRoll);
+                itemView = new LayoutTtgItemView(this.#app, monster, isTwoColumns, onRoll, onSpellHover, onSpellRelease);
                 break;
             default:
                 throw new Error(`Unknown layout style: ${layoutStyle}`);

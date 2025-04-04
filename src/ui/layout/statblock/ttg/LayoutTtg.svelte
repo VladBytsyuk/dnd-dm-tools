@@ -10,7 +10,7 @@
 	import { joinList, joinSpeed, separate } from 'src/domain/utils';
 	import { getImageSource } from 'src/domain/image_utils';
 
-    let { app, monster, isTwoColumns, onRoll } = $props()
+    let { app, monster, isTwoColumns, onRoll, onSpellHover, onSpellRelease } = $props()
 
     let currentImageIndex = $state(0);
     let imagesLength = $state(monster.images.length);
@@ -44,6 +44,38 @@
 
         return () => { unsubscribe() };
     });
+
+    function handleLinkHover(e: MouseEvent) {
+        const link = e.currentTarget as HTMLAnchorElement;
+        const url = link.getAttribute('href')!;
+        onSpellHover(url, e.clientX, e.clientY);
+    }
+
+    function handleLinkLeave(e: MouseEvent) {
+        const link = e.currentTarget as HTMLAnchorElement;
+        const url = link.getAttribute('href')!;
+        onSpellRelease(url)
+    }
+
+    function addLinkListeners(node: HTMLElement) {
+        const links = node.querySelectorAll<HTMLAnchorElement>('a[href^="/spells/"]');
+        
+        links.forEach(link => {
+            link.style.cursor = 'pointer';
+            link.addEventListener('mouseenter', handleLinkHover);
+            link.addEventListener('mouseleave', handleLinkLeave);
+        });
+        
+        return {
+            destroy() {
+                links.forEach(link => {
+                    link.removeEventListener('mouseenter', handleLinkHover);
+                    link.removeEventListener('mouseleave', handleLinkLeave);
+                });
+            }
+        };
+    }
+
 </script>
   
 <div class="layout-ttg {themeClass}">
@@ -156,7 +188,7 @@
             {#if monster.savingThrows}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSaves}</span> 
-                <span class="layout-ttg-statblock-base-info-item-value">
+                <span class="layout-ttg-statblock-base-info-item-value" use:addLinkListeners>
                     {@html separate(monster.savingThrows.map(it => 
                         `${it.name} <dice-roller label="${TEXTS.layoutSave}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
                     ))}
@@ -167,7 +199,7 @@
             {#if monster.skills}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSkills}</span> 
-                <span class="layout-ttg-statblock-base-info-item-value">
+                <span class="layout-ttg-statblock-base-info-item-value" use:addLinkListeners>
                     {@html separate(monster.skills.map(it => 
                         `${it.name} <dice-roller label="${TEXTS.layoutSkill}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
                     ))}
@@ -236,7 +268,7 @@
             {#each monster.feats as feat}
                 <div class="layout-ttg-statblock-base-info-item">
                     <span class="layout-ttg-statblock-base-info-item-title">{feat.name}.</span>
-                    <span class="layout-ttg-statblock-base-info-item-value">{@html mapDiceRollerTags(feat.value.replace(/<\/?p>/g, ''))}</span>     
+                    <span class="layout-ttg-statblock-base-info-item-value" use:addLinkListeners>{@html mapDiceRollerTags(feat.value.replace(/<\/?p>/g, ''))}</span>     
                 </div>
             {/each}
             </div>
@@ -256,7 +288,7 @@
                     {#each item.action as action}
                     <div class="layout-ttg-statblock-base-info-item">
                         <span class="layout-ttg-statblock-base-info-item-title">{action.name}.</span>
-                        <span class="layout-ttg-statblock-base-info-item-value">{@html mapDiceRollerTags(action.value.replace(/<\/?p>/g, ''))}</span>
+                        <span class="layout-ttg-statblock-base-info-item-value" use:addLinkListeners>{@html mapDiceRollerTags(action.value.replace(/<\/?p>/g, ''))}</span>
                     </div>
                     {/each}
                 </div>
@@ -274,7 +306,7 @@
             <div class="layout-ttg-statblock-property-block">
                 <div class="layout-ttg-statblock-block-header">{item.title}</div>
                 <div class="layout-ttg-statblock-base-info-item">
-                    <span class="layout-ttg-statblock-base-info-item-value">{@html mapDiceRollerTags(item.action.replace(/<\/?p>/g, ''))}</span>
+                    <span class="layout-ttg-statblock-base-info-item-value" use:addLinkListeners>{@html mapDiceRollerTags(item.action.replace(/<\/?p>/g, ''))}</span>
                 </div>
             </div>
             {/if}
@@ -282,7 +314,9 @@
     </div>
 
     <button class="layout-ttg-copy-button" onclick={() => copyMonsterToClipboard(monster)}><ClipboardCopy/></button> 
+
 </div>
+
 
 <style>
     :global(.theme-ttg-light) {
@@ -308,6 +342,7 @@
     .layout-ttg {
         display: inline-block;
         position: relative;
+        overflow: visible;
         background: var(--bg-color);
         color: var(--text-color);
     }

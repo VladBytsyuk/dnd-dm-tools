@@ -61,7 +61,7 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#spellbook = new Spellbook(`${this.manifest.dir}`, this.app.vault.adapter);
 		await this.#spellbook.initialize();
 
-		this.#monsterLayoutManager = new MonsterLayoutManager(this.app, this.#settingsController.settings);
+		this.#monsterLayoutManager = new MonsterLayoutManager(this.app, this.#settingsController.settings, this.#spellbook);
 		this.#spellLayoutManager = new SpellLayoutManager(this.app);
 
 		callback();
