@@ -14,6 +14,7 @@ import { Spellbook } from './data/spellbook';
 import { registerSidePanelSpellbook } from './ui/components/ribbon/side_panel_spellbook';
 import { SpellLayoutManager } from './ui/components/settings/spell_layout_manager';
 import { registerSpellMdCodeBlockProcessor } from './ui/components/processor/spell_md_code_block_processor';
+import { registerAddSpellCommand } from './ui/components/command/add_spell_command';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -35,6 +36,7 @@ export default class DndStatblockPlugin extends Plugin {
 			registerSpellMdCodeBlockProcessor(this, this.#spellbook, this.#spellLayoutManager);
 			registerEncounterMdCodeBlockProcessor(this),
 			registerAddStatblockCommand(this, this.#bestiary);
+			registerAddSpellCommand(this, this.#spellbook);
 			registerAddEncounterCommand(this);
 			registerThemeChangeListener();
 			console.log("dnd-dm-tools has been loaded.");
