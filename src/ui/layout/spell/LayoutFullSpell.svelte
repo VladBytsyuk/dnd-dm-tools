@@ -61,10 +61,7 @@
 <style>
     .layout-spell-card {
         display: inline-block;
-        min-width: 2.5in;
-        min-height: 3.5in;
-        width: 100%;
-        height: 100%;
+        min-width: 170px;
         background: maroon !important;
         color: black;
         padding: 0;
@@ -82,9 +79,6 @@
         width: 100%;
         padding: 10px 10px 25px;
         box-sizing: border-box;
-        position: absolute;
-        top: 0;
-        left: 0;
     }
 
     .layout-spell-card-body {
