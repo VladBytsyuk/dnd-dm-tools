@@ -7,6 +7,7 @@ import type { LayoutItemView } from "src/ui/layout/LayoutItemView";
 import { App, Notice } from "obsidian";
 import type { Spellbook } from "src/data/spellbook";
 import { SpellTooltipItemView } from "src/ui/layout/spell/SpellTooltipItem";
+import { openSidePanelSpellbook } from "../ribbon/side_panel_spellbook";
 
 class LayoutManagerCache {
 
@@ -54,15 +55,7 @@ export class MonsterLayoutManager {
         };
         const onSpellClick = async (url: string, x: number, y: number) => {
             const fullSpell = await this.#spellbook.getFullSpellByUrl(url);
-            if (!fullSpell) return;
-            const parent = container.parentElement;
-            if (parent) {
-                const spellCardTooltipContainer = parent.createDiv("spell-card-tooltip-container");
-                const tooltipItem = new SpellTooltipItemView(fullSpell, x, y, onRoll, () => {
-                    spellCardTooltipContainer?.parentElement?.removeChild(spellCardTooltipContainer);
-                });
-                tooltipItem.render(spellCardTooltipContainer);
-            }
+            if (fullSpell) await openSidePanelSpellbook(this.#app.workspace, fullSpell);
         };
         this.#cache
             .find((item) => item.getContainer() == container)

@@ -4,6 +4,7 @@ import { TEXTS } from "src/res/texts_ru";
 import type { Spellbook } from "src/data/spellbook";
 import { SpellSuggester } from "../suggest/spell_suggester";
 import type { SpellLayoutManager } from "../settings/spell_layout_manager";
+import type { FullSpell } from "src/domain/spell";
 
 export function registerSidePanelSpellbook(
     plugin: DndStatblockPlugin,
@@ -15,9 +16,11 @@ export function registerSidePanelSpellbook(
         (leaf: WorkspaceLeaf) => new SidePanelSpellbookView(leaf, plugin, spellbook, layoutManager),
     );
     plugin.addRibbonIcon("sparkles", TEXTS.ribbonActionSpellbookTitle, async (mouseEvent) => {
-        openSidePanelSpellbook(mouseEvent.getModifierState("Meta"), plugin.app.workspace)
+        openSidePanelSpellbook(plugin.app.workspace, undefined)
     });
 }
+
+var sidePanelFullSpell: FullSpell | undefined = undefined;
 
 const SIDE_PANEL_SPELLBOOK_VIEW = "obsidian-dnd-statblock-side-panel-spellbook";
 
@@ -71,31 +74,40 @@ class SidePanelSpellbookView extends ItemView {
         const searchEl = new SearchComponent(headerEl).setPlaceholder(TEXTS.spellbookSearchPlaceholder);
         searchEl.clearButtonEl.addEventListener('click', () => {
             searchEl.setValue("");
-            statblockContainer.empty();
+            spellContainer.empty();
             suggester.close();
         });
 
         const clearButton = new ButtonComponent(headerEl).setIcon("eraser");
         clearButton.onClick((evt) => {
             searchEl.setValue("");
-            statblockContainer.empty();
+            spellContainer.empty();
             suggester.close();
         })
 
-        const statblockContainer = document.createElement('div');
-        statblockContainer.addClass('side-panel-spellbook-statblock-container');
-        container.appendChild(statblockContainer);
+        const spellContainer = document.createElement('div');
+        spellContainer.addClass('side-panel-spellbook-statblock-container');
+        container.appendChild(spellContainer);
         
         const suggester = new SpellSuggester(this.#plugin.app, searchEl, this.#spellbook);
         suggester.onSelectSpell(fullSpell => {
-            statblockContainer.empty();
-            this.#layoutManager.renderLayout(statblockContainer, fullSpell);
+            spellContainer.empty();
+            this.#layoutManager.renderLayout(spellContainer, fullSpell);
             suggester.close();
         });
+
+        if (sidePanelFullSpell) {
+            spellContainer.empty();
+            this.#layoutManager.renderLayout(spellContainer, sidePanelFullSpell);
+        }
     }
 }
 
-async function openSidePanelSpellbook(isSidePanelOpened: boolean = false, workspace: Workspace) {
+export async function openSidePanelSpellbook(
+    workspace: Workspace, 
+    fullSpell: FullSpell | undefined,
+) {
+    sidePanelFullSpell = fullSpell;
 
     let leaf: WorkspaceLeaf;
     const sidePanelLeaves = workspace.getLeavesOfType(SIDE_PANEL_SPELLBOOK_VIEW);
@@ -111,5 +123,8 @@ async function openSidePanelSpellbook(isSidePanelOpened: boolean = false, worksp
     });
 
     workspace.revealLeaf(leaf);
-    return leaf.view as SidePanelSpellbookView;
+
+    const sidePanelSpellbookView = leaf.view as SidePanelSpellbookView;
+    await sidePanelSpellbookView.onOpen();
+    return sidePanelSpellbookView;
 }
