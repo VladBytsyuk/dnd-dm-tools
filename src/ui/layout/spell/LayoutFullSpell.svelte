@@ -68,6 +68,7 @@
     <div class="layout-spell-card-front">
         <div class="layout-spell-card-body">
             <h3 class="layout-spell-card-name layout-spell-card-lined">{spell.name.rus}</h3>
+            
             <ul class="layout-spell-card-status layout-spell-card-lined">
                 <li class="layout-spell-card-block layout-spell-card-lined">
                     <em class="layout-spell-card-block-title">{TEXTS.spellCastingTime}</em>

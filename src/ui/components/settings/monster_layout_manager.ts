@@ -6,7 +6,6 @@ import { LayoutTtgItemView } from "src/ui/layout/statblock/ttg/LayoutTtgItem";
 import type { LayoutItemView } from "src/ui/layout/LayoutItemView";
 import { App, Notice } from "obsidian";
 import type { Spellbook } from "src/data/spellbook";
-import { SpellTooltipItemView } from "src/ui/layout/spell/SpellTooltipItem";
 import { openSidePanelSpellbook } from "../ribbon/side_panel_spellbook";
 
 class LayoutManagerCache {
@@ -53,7 +52,7 @@ export class MonsterLayoutManager {
         const onRoll = (label: string, value: number): void => {
             new Notice(`${label ? label + ": " : ""}${value}`);
         };
-        const onSpellClick = async (url: string, x: number, y: number) => {
+        const onSpellClick = async (url: string) => {
             const fullSpell = await this.#spellbook.getFullSpellByUrl(url);
             if (fullSpell) await openSidePanelSpellbook(this.#app.workspace, fullSpell);
         };

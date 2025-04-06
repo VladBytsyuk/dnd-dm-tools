@@ -49,11 +49,7 @@
     const handleLinkHover = (e: MouseEvent) => {
         const link = e.currentTarget as HTMLAnchorElement;
         const url = link.getAttribute('href')!;
-        const statblockContainer = e.currentTarget?.closest(".statblock-view-container");
-        if (statblockContainer) {
-            const statblockContainerRect = statblockContainer?.getBoundingClientRect();
-            onSpellHover(url, e.clientX - statblockContainerRect.left, e.clientY - statblockContainerRect.top);
-        }
+        onSpellHover(url);
     }
 
     const addLinkListeners = (node: HTMLElement) => {

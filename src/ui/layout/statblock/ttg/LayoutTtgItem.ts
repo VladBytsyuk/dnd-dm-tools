@@ -16,14 +16,14 @@ export class LayoutTtgItemView implements LayoutItemView {
     #monster: FullMonster;
     #twoColumns: boolean;
     #onRoll: (label: string, value: number) => void;
-    #onSpellHover: (url: string, x: number, y: number) => void;
+    #onSpellHover: (url: string) => void;
 
     constructor(
         app: App,
         monster: FullMonster, 
         twoColumns: boolean,
         onRoll: (label: string, value: number) => void,
-        onSpellHover: (url: string, x: number, y: number) => void,
+        onSpellHover: (url: string) => void,
     ) {
         this.#app = app;
         this.#monster = monster;
