@@ -53,7 +53,7 @@ If your plugin does not need CSS, delete this file.
     background-color: var(--background-primary-alt);
 }
 
-.spell-card-tooltip {
+.spell-card-tooltip-container {
     position: absolute;
     z-index: 9999;
     visibility: visible;

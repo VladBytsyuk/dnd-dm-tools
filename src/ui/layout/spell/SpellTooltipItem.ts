@@ -14,17 +14,20 @@ export class SpellTooltipItemView implements LayoutItemView {
     #x: number;
     #y: number;
     #onRoll: (label: string, value: number) => void;
+    #onSpellRelease: () => void;
 
     constructor(
         spell: FullSpell,
         x: number,
         y: number,
         onRoll: (label: string, value: number) => void,
+        onSpellRelease: () => void,
     ) {
         this.#spell = spell;
         this.#x = x;
         this.#y = y;
         this.#onRoll = onRoll;
+        this.#onSpellRelease = onSpellRelease;
     }
 
 	// ---- methods ----
@@ -34,6 +37,7 @@ export class SpellTooltipItemView implements LayoutItemView {
     render(container: HTMLElement) {
         container.style["left"] = this.#x + "px";
         container.style["top"] = this.#y + "px";
+        container.addEventListener('click', this.#onSpellRelease);
         this.#component = mount(LayoutFullSpell, {
             target: container,
             props: {
@@ -45,6 +49,7 @@ export class SpellTooltipItemView implements LayoutItemView {
 
     destroy() {
         if (this.#component) {
+            this.#onSpellRelease();
             unmount(this.#component);
             this.#component = undefined;
         }

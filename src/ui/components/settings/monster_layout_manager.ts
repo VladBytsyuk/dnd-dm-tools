@@ -5,7 +5,6 @@ import { Layout5eItemView } from "src/ui/layout/statblock/5e/Layout5eItem";
 import { LayoutTtgItemView } from "src/ui/layout/statblock/ttg/LayoutTtgItem";
 import type { LayoutItemView } from "src/ui/layout/LayoutItemView";
 import { App, Notice } from "obsidian";
-import type { FullSpell } from "src/domain/spell";
 import type { Spellbook } from "src/data/spellbook";
 import { SpellTooltipItemView } from "src/ui/layout/spell/SpellTooltipItem";
 
@@ -31,13 +30,11 @@ class LayoutManagerCache {
 
 export class MonsterLayoutManager {
 
-
 	// ---- fields ----
     #app: App;
     #settings: DndStatblockPluginSettings;
     #spellbook: Spellbook;
     #cache: LayoutManagerCache[] = [];
-    #spells: Map<string, Element> = new Map();
     
 
     constructor(app: App, settings: DndStatblockPluginSettings, spellbook: Spellbook) {
@@ -55,21 +52,16 @@ export class MonsterLayoutManager {
         const onRoll = (label: string, value: number): void => {
             new Notice(`${label ? label + ": " : ""}${value}`);
         };
-        const onSpellRelease = (url: string) => {
-            const element = this.#spells.get(url);
-            element?.parentElement?.removeChild(element);
-            this.#spells.delete(url);
-        };
-        const onSpellHover = async (url: string, x: number, y: number) => {
-            onSpellRelease(url);
+        const onSpellClick = async (url: string, x: number, y: number) => {
             const fullSpell = await this.#spellbook.getFullSpellByUrl(url);
             if (!fullSpell) return;
-            const tooltipItem = new SpellTooltipItemView(fullSpell, x, y, onRoll);
             const parent = container.parentElement;
             if (parent) {
-                const div = parent.createDiv("spell-card-tooltip")
-                this.#spells.set(url, div);
-                tooltipItem.render(div);
+                const spellCardTooltipContainer = parent.createDiv("spell-card-tooltip-container");
+                const tooltipItem = new SpellTooltipItemView(fullSpell, x, y, onRoll, () => {
+                    spellCardTooltipContainer?.parentElement?.removeChild(spellCardTooltipContainer);
+                });
+                tooltipItem.render(spellCardTooltipContainer);
             }
         };
         this.#cache
@@ -85,7 +77,7 @@ export class MonsterLayoutManager {
                 itemView = new Layout5eItemView(monster, isTwoColumns, onRoll);
                 break;
             case LayoutStyle.TtgClub:
-                itemView = new LayoutTtgItemView(this.#app, monster, isTwoColumns, onRoll, onSpellHover, onSpellRelease);
+                itemView = new LayoutTtgItemView(this.#app, monster, isTwoColumns, onRoll, onSpellClick);
                 break;
             default:
                 throw new Error(`Unknown layout style: ${layoutStyle}`);

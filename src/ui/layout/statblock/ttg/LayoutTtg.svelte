@@ -10,7 +10,7 @@
 	import { joinList, joinSpeed, separate } from 'src/domain/utils';
 	import { getImageSource } from 'src/domain/image_utils';
 
-    let { app, monster, isTwoColumns, onRoll, onSpellHover, onSpellRelease } = $props()
+    let { app, monster, isTwoColumns, onRoll, onSpellHover } = $props()
 
     let currentImageIndex = $state(0);
     let imagesLength = $state(monster.images.length);
@@ -46,34 +46,25 @@
     });
 
 
-    function handleLinkHover(e: MouseEvent) {
+    const handleLinkHover = (e: MouseEvent) => {
         const link = e.currentTarget as HTMLAnchorElement;
         const url = link.getAttribute('href')!;
-        console.log(`x=${e.x}\tlayerX=${e.layerX}\tpageX=${e.pageX}\tscreenX=${e.screenX}\tmovementX=${e.movementX}\toffsetX=${e.offsetX}`)
-        onSpellHover(url, e.layerX+e.offsetX, e.offsetY+e.layerY);
+        const statblockContainer = e.currentTarget?.closest(".statblock-view-container");
+        if (statblockContainer) {
+            const statblockContainerRect = statblockContainer?.getBoundingClientRect();
+            onSpellHover(url, e.clientX - statblockContainerRect.left, e.clientY - statblockContainerRect.top);
+        }
     }
 
-    function handleLinkLeave(e: MouseEvent) {
-        const link = e.currentTarget as HTMLAnchorElement;
-        const url = link.getAttribute('href')!;
-        onSpellRelease(url)
-    }
-
-    function addLinkListeners(node: HTMLElement) {
-        const links = node.querySelectorAll<HTMLAnchorElement>('a[href^="/spells/"]');
-        
-        links.forEach(link => {
+    const addLinkListeners = (node: HTMLElement) => {
+        const spellsLinks = node.querySelectorAll<HTMLAnchorElement>('a[href^="/spells/"]');
+        spellsLinks.forEach(link => {
             link.style.cursor = 'pointer';
-            link.addEventListener('mouseenter', handleLinkHover);
-            link.addEventListener('mouseleave', handleLinkLeave);
+            link.addEventListener('click', handleLinkHover);
         });
-        
         return {
             destroy() {
-                links.forEach(link => {
-                    link.removeEventListener('mouseenter', handleLinkHover);
-                    link.removeEventListener('mouseleave', handleLinkLeave);
-                });
+                spellsLinks.forEach(link => link.removeEventListener('click', handleLinkHover));
             }
         };
     }
