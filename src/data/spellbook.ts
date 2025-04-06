@@ -2,6 +2,7 @@ import type { DataAdapter } from "obsidian";
 import { requestUrl } from 'obsidian';
 import type { FullSpell, SmallSpell } from "src/domain/spell";
 import { PersistentCache } from "./cache";
+import type { DndSettingsController } from "src/ui/components/settings/settings_controller";
 
 export class Spellbook {
 
@@ -12,10 +13,10 @@ export class Spellbook {
     #cache: PersistentCache<string, FullSpell>;
 
     // ---- public functions ----
-    constructor(rootDir: string, dataAdapter: DataAdapter) {
+    constructor(rootDir: string, dataAdapter: DataAdapter, settingsController: DndSettingsController) {
         this.#rootDir = rootDir;
         this.#dataAdapter = dataAdapter;
-        this.#cache = new PersistentCache("spellbook", 1000, rootDir, dataAdapter);
+        this.#cache = new PersistentCache("spellbook", 1000, settingsController);
     }
 
     async initialize() {

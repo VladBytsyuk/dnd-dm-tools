@@ -1,6 +1,6 @@
 import { Plugin } from 'obsidian';
 import { Bestiary } from "src/data/bestiary";
-import { DndStatblockSettingsController } from "src/ui/components/settings/settings_controller";
+import { DndSettingsController } from "src/ui/components/settings/settings_controller";
 import { registerSettingsTab } from "src/ui/components/settings/settings_tab";
 import { registerMonsterMdCodeBlockProcessor } from "src/ui/components/processor/monster_md_code_block_processor";
 import { registerSidePanelBestiary } from "src/ui/components/ribbon/side_panel_bestiary";
@@ -19,7 +19,7 @@ import { registerAddSpellCommand } from './ui/components/command/add_spell_comma
 export default class DndStatblockPlugin extends Plugin {
 
 	// ---- fields ----
-	#settingsController: DndStatblockSettingsController;
+	#settingsController: DndSettingsController;
 	#monsterLayoutManager: MonsterLayoutManager;
 	#spellLayoutManager: SpellLayoutManager;
 	#bestiary: Bestiary;
@@ -52,13 +52,13 @@ export default class DndStatblockPlugin extends Plugin {
 	async #initialize(
 		callback: () => void,
 	) {
-		this.#settingsController = new DndStatblockSettingsController(this);
+		this.#settingsController = new DndSettingsController(this);
 		await this.#settingsController.initialize(() => this.#onLayoutStyleChanged());
 
-		this.#bestiary = new Bestiary(`${this.manifest.dir}`, this.app.vault.adapter);
+		this.#bestiary = new Bestiary(`${this.manifest.dir}`, this.app.vault.adapter, this.#settingsController);
 		await this.#bestiary.initialize();
 
-		this.#spellbook = new Spellbook(`${this.manifest.dir}`, this.app.vault.adapter);
+		this.#spellbook = new Spellbook(`${this.manifest.dir}`, this.app.vault.adapter, this.#settingsController);
 		await this.#spellbook.initialize();
 
 		this.#monsterLayoutManager = new MonsterLayoutManager(this.app, this.#settingsController.settings, this.#spellbook);

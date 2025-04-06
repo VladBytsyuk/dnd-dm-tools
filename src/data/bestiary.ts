@@ -12,10 +12,10 @@ export class Bestiary {
     #cache: PersistentCache<string, FullMonster>;
 
     // ---- public functions ----
-    constructor(rootDir: string, dataAdapter: DataAdapter) {
+    constructor(rootDir: string, dataAdapter: DataAdapter, settingsController: DndSettingsController) {
         this.#rootDir = rootDir;
         this.#dataAdapter = dataAdapter;
-        this.#cache = new PersistentCache("bestiary", 200, rootDir, dataAdapter);
+        this.#cache = new PersistentCache("bestiary", 200, settingsController);
     }
 
     async initialize() {

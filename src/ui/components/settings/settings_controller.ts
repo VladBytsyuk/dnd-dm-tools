@@ -1,21 +1,22 @@
-import DndStatblockPlugin from "src/main";
-import type { DndStatblockPluginSettings } from "src/ui/components/settings/settings";
+import DndPlugin from "src/main";
+import type { DndStatblockPluginSettings as DndPluginSettings } from "src/ui/components/settings/settings";
 import { LayoutStyle } from "./layout_style";
 
-function defaultSettings(onLayoutStyleChanged: () => void): DndStatblockPluginSettings {
+function defaultSettings(onLayoutStyleChanged: () => void): DndPluginSettings {
 	return {
+		cache: {},
 		layoutStyle: LayoutStyle.Dnd5e,
 		onLayoutStyleChanged: () => onLayoutStyleChanged(),
-	} as DndStatblockPluginSettings
+	} as DndPluginSettings
 }
 
-export class DndStatblockSettingsController {
+export class DndSettingsController {
 
 	// ---- fields ----
-    #plugin: DndStatblockPlugin
-    settings: DndStatblockPluginSettings;
+    #plugin: DndPlugin
+    settings: DndPluginSettings;
 
-    constructor(plugin: DndStatblockPlugin) {
+    constructor(plugin: DndPlugin) {
         this.#plugin = plugin
     }
 

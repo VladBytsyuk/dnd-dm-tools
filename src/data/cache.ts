@@ -1,31 +1,28 @@
-import type { DataAdapter } from "obsidian";
+import type { DndSettingsController } from "src/ui/components/settings/settings_controller";
 
 interface Entry<V> {
     timestamp: number;
     value: V;
 }
 
-const CHANGES_COUNT_TO_SAVE = 5;
+const CHANGES_COUNT_TO_SAVE = 0;
 
 export class PersistentCache<K, V> {
 
     #limit: number;
     #id: string;
-    #rootDir: string;
-    #dataAdapter: DataAdapter;
+    #settingsController: DndSettingsController;
     #map: Map<K, Entry<V>> = new Map();
     #changesCount: number = 0;
 
     constructor(
         id: string,
         limit: number,
-        rootDir: string, 
-        dataAdapter: DataAdapter,
+        settingsController: DndSettingsController,
     ) {
         this.#id = id;
         this.#limit = limit;
-        this.#rootDir = rootDir;
-        this.#dataAdapter = dataAdapter;
+        this.#settingsController = settingsController;
     }
     
     async init() {
@@ -80,7 +77,7 @@ export class PersistentCache<K, V> {
 
     async #initializeWithPersistantStorage() {
         try {
-            const data = await this.#dataAdapter.read(`${this.#rootDir}/cache/${this.#id}.json`);
+            const data = await this.#settingsController.settings.cache[this.#id] as string;
             const parsed = JSON.parse(data);
             if (!Array.isArray(parsed)) throw new Error("Invalid format");
             this.#map = new Map(parsed as Array<[K, Entry<V>]>);
@@ -93,7 +90,8 @@ export class PersistentCache<K, V> {
     async #saveToPersistantStorage() {
         try {
             const data = JSON.stringify(Array.from(this.#map.entries()));
-            await this.#dataAdapter.write(`${this.#rootDir}/cache/${this.#id}.json`, data);
+            this.#settingsController.settings.cache[this.#id] = data;
+            this.#settingsController.saveSettings();
         } catch (e) {
             console.log(`PersistentCache<${this.#id}>: Cache save failed: ${e.message}`);
         }

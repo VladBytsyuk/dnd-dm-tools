@@ -1,12 +1,12 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import type DndStatblockPlugin from "src/main";
 import { TEXTS } from 'src/res/texts_ru';
-import { DndStatblockSettingsController } from './settings_controller';
+import { DndSettingsController } from './settings_controller';
 import { LayoutStyle } from './layout_style';
 
 export function registerSettingsTab(
 	plugin: DndStatblockPlugin,
-	settingsController: DndStatblockSettingsController,
+	settingsController: DndSettingsController,
 ) {
 	plugin.addSettingTab(new DndStatblockSettingTab(plugin.app, plugin, settingsController));
 }
@@ -15,12 +15,12 @@ export class DndStatblockSettingTab extends PluginSettingTab {
 
 	// ---- fields ----
 	plugin: DndStatblockPlugin;
-    #controller: DndStatblockSettingsController;
+    #controller: DndSettingsController;
 
 	constructor(
         app: App, 
         plugin: DndStatblockPlugin,
-        controller: DndStatblockSettingsController,
+        controller: DndSettingsController,
     ) {
 		super(app, plugin);
 		this.plugin = plugin;
