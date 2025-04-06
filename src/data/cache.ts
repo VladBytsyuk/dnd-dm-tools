@@ -7,12 +7,12 @@ interface Entry<V> {
 
 const CHANGES_COUNT_TO_SAVE = 0;
 
-export class PersistentCache<K, V> {
+export class PersistentCache<V> {
 
     #limit: number;
     #id: string;
     #settingsController: DndSettingsController;
-    #map: Map<K, Entry<V>> = new Map();
+    #map: Map<string, Entry<V>> = new Map();
     #changesCount: number = 0;
 
     constructor(
@@ -29,20 +29,23 @@ export class PersistentCache<K, V> {
         await this.#initializeWithPersistantStorage();
     }
 
-    set(key: K, value: V) {
-        this.#map.set(key, { timestamp: Date.now(), value: value });
+    set(key: string, value: V) {
+        const normalizedKey = this.#normalize(key);
+        this.#map.set(normalizedKey, { timestamp: Date.now(), value: value });
         this.#handleLimits()
         this.#saveToPersistantStorageIfNeeded();
     }
 
-    get(key: K): V | undefined {
-        const result = this.#map.get(key)?.value;
-        if (result) this.#map.set(key, { timestamp: Date.now(), value: result });
+    get(key: string): V | undefined {
+        const normalizedKey = this.#normalize(key);
+        const result = this.#map.get(normalizedKey)?.value;
+        if (result) this.#map.set(normalizedKey, { timestamp: Date.now(), value: result });
         return result;
     }
 
-    delete(key: K) {
-        this.#map.delete(key);
+    delete(key: string) {
+        const normalizedKey = this.#normalize(key);
+        this.#map.delete(normalizedKey);
         this.#saveToPersistantStorageIfNeeded();
     }
 
@@ -51,9 +54,13 @@ export class PersistentCache<K, V> {
         this.#saveToPersistantStorage()
     }
 
+    #normalize(input: string): string {
+        return input.toLowerCase();
+    }
+
     #handleLimits() {
         while (this.#map.size > this.#limit) {
-            let oldestKey: K | null = null;
+            let oldestKey: string | null = null;
             let minTimestamp = Infinity;
             for (const [key, entry] of this.#map) {
                 if (entry.timestamp < minTimestamp) {
@@ -80,7 +87,7 @@ export class PersistentCache<K, V> {
             const data = await this.#settingsController.settings.cache[this.#id] as string;
             const parsed = JSON.parse(data);
             if (!Array.isArray(parsed)) throw new Error("Invalid format");
-            this.#map = new Map(parsed as Array<[K, Entry<V>]>);
+            this.#map = new Map(parsed as Array<[string, Entry<V>]>);
         } catch (e) {
             console.log(`PersistentCache<${this.#id}>: Cache init failed: ${e.message}`);
             this.#map = new Map();

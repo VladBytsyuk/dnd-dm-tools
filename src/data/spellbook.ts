@@ -10,7 +10,7 @@ export class Spellbook {
     #rootDir: string;
     #dataAdapter: DataAdapter;
     #smallSpellbook: SmallSpell[];
-    #cache: PersistentCache<string, FullSpell>;
+    #cache: PersistentCache<FullSpell>;
 
     // ---- public functions ----
     constructor(rootDir: string, dataAdapter: DataAdapter, settingsController: DndSettingsController) {

@@ -2,6 +2,7 @@ import type { DataAdapter } from "obsidian";
 import { requestUrl } from 'obsidian';
 import type { FullMonster, SmallMonster } from "src/domain/monster";
 import { PersistentCache } from "./cache";
+import type { DndSettingsController } from "src/ui/components/settings/settings_controller";
 
 export class Bestiary {
 
@@ -9,7 +10,7 @@ export class Bestiary {
     #rootDir: string;
     #dataAdapter: DataAdapter;
     #smallBestiary: SmallMonster[];
-    #cache: PersistentCache<string, FullMonster>;
+    #cache: PersistentCache<FullMonster>;
 
     // ---- public functions ----
     constructor(rootDir: string, dataAdapter: DataAdapter, settingsController: DndSettingsController) {
