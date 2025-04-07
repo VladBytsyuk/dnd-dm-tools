@@ -20,7 +20,7 @@ export function registerSidePanelSpellbook(
     });
 }
 
-var sidePanelFullSpell: FullSpell | undefined = undefined;
+let sidePanelFullSpell: FullSpell | undefined = undefined;
 
 const SIDE_PANEL_SPELLBOOK_VIEW = "obsidian-dnd-statblock-side-panel-spellbook";
 
@@ -95,7 +95,6 @@ class SidePanelSpellbookView extends ItemView {
             this.#layoutManager.renderLayout(spellContainer, fullSpell);
             suggester.close();
         });
-
         if (sidePanelFullSpell) {
             spellContainer.empty();
             this.#layoutManager.renderLayout(spellContainer, sidePanelFullSpell);
