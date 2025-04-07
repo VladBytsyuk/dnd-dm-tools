@@ -4,6 +4,7 @@
     import { TEXTS } from "src/res/texts_ru";
 	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
+    import type { SpellClass, SpellSubclass } from 'src/domain/spell';
 
     let { spell, onRoll } = $props();
 
@@ -62,6 +63,10 @@
 
         return () => { unsubscribe() };
     });
+
+    let subClasses = !spell.subclasses ? undefined : spell.subclasses.map((it: SpellSubclass) => it.class + " - " + it.name).join(", ")
+    let classes = spell.classes.map((it: SpellClass) => it.name).join(", ")
+    let classHint = TEXTS.spellClasses + ": " + classes + (subClasses ? "\n" + TEXTS.spellSubclasses + ": " + subClasses : "")
 </script>
 
 <div class="layout-spell-card {themeClass} {classTheme}">
@@ -101,7 +106,8 @@
             {#if spell.upper}<div class="layout-spell-card-text layout-spell-card-upper-lined">{@html mapDiceRollerTags(spell.upper.replace(/<\/?p>/g, ''))}</div>{/if}											
         </div>    
 
-        <b class="layout-spell-card-class">{spell.classes[0].name}</b>
+        <div class="layout-spell-card-class" title="{classHint}">{spell.classes[0].name}</div>
+        {#if spell.source && spell.source.shortName}<div class="layout-spell-card-source">{spell.source.shortName}</div>{/if}
         {#if spell.level === 0}
             <b class="layout-spell-card-type">{TEXTS.spellCantrip} {spell.school}</b>
         {:else}
@@ -258,6 +264,16 @@
         bottom: 6px;
         color: var(--text-inverted-color) !important;
         left: 10px;
+        font-size: 9px;
+        font-weight: normal;
+    }
+
+    .layout-spell-card-source {
+        position: absolute;
+        bottom: 6px;
+        left: 50%;
+        right: 50%;
+        color: var(--text-inverted-color) !important;
         font-size: 9px;
         font-weight: normal;
     }

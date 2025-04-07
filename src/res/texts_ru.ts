@@ -75,6 +75,8 @@ export const TEXTS = {
     spellSomatic: "С",
     spellMaterial: "М",
     spellRitual: "Ритуал",
+    spellClasses: "Классы",
+    spellSubclasses: "Подклассы",
 }
 
 export const randomSpeciality = (): string | undefined => {
