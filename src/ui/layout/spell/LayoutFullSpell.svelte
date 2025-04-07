@@ -69,31 +69,33 @@
         <div class="layout-spell-card-body">
             <h3 class="layout-spell-card-name layout-spell-card-lined">{spell.name.rus}</h3>
             
-            <ul class="layout-spell-card-status layout-spell-card-lined">
-                <li class="layout-spell-card-block layout-spell-card-lined">
+            <div class="layout-spell-card-table">
+
+                <div class="layout-spell-card-table-item">
                     <em class="layout-spell-card-block-title">{TEXTS.spellCastingTime}</em>
                     {spell.time}
-                </li>
-                <li class="layout-spell-card-block layout-spell-card-block-right layout-spell-card-lined">
+                </div>
+
+                <div class="layout-spell-card-table-item">
                     <em class="layout-spell-card-block-title">{TEXTS.spellRange}</em>
                     {spell.range}
-                </li>
-            </ul> 
+                </div>
 
-            <ul class="layout-spell-card-status layout-spell-card-lined">
-                <li class="layout-spell-card-block layout-spell-card-lined">
+                <div class="layout-spell-card-table-item">
                     <em class="layout-spell-card-block-title">{TEXTS.spellComponents}</em>
                     {#if spell.components.v}В{/if}
                     {#if spell.components.s}С{/if}
                     {#if spell.components.m}М{/if}
-                </li>
-                <li class="layout-spell-card-block layout-spell-card-block-right layout-spell-card-lined">
+                </div>
+
+                <div class="layout-spell-card-table-item">
                     <em class="layout-spell-card-block-title">{TEXTS.spellDuration}</em>
                     {spell.duration}
-                </li>
-            </ul>
-      
-            <b class="layout-spell-card-need">{spell.components.m}</b>
+                </div>
+
+            </div>
+
+            <b class="layout-spell-card-need" style="{spell.components && spell.components.m ? "" : "height:2px;padding:0px;"}">{spell.components.m}</b>
             
             <div class="layout-spell-card-text">{@html mapDiceRollerTags(spell.description)}</div>											
         </div>    
@@ -190,30 +192,33 @@
         text-align: center;
     }
 
-    .layout-spell-card-status {
-        border-color: var(--class-color) !important;
-        list-style: none;
-        text-align: center;
-        padding: 0;
-        margin: 0;
-    }
-
     .layout-spell-card-lined {
         border-bottom: 2px solid var(--class-color);
     }
 
-    .layout-spell-card-block {
-        padding: 2px 4px;
+    .layout-spell-card-table {
+        background-color: var(--class-color) !important;
+        list-style: none;
         text-align: center;
-        float: left;
-        vertical-align: top;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: stretch;
+        align-content: flex-start;
+        padding: 0;
+        margin: -1px;
+    }
+
+    .layout-spell-card-table-item {
         background-color: var(--bg-color) !important;
-        font-size: 9px;
+        margin: 1px;
+        padding: 4px 6px;
         line-height: 9px;
         min-height: 25px;
-        width: 50%;
-        margin: 0;
-        box-sizing: border-box;
+        order: 0;
+        flex: 1 1 auto;
+        align-self: center;
     }
 
     .layout-spell-card-block-title {
@@ -223,10 +228,6 @@
         font-weight: bold;
         padding-bottom: 2px;
         color: var(--class-color) !important;
-    }
-
-    .layout-spell-card-block-right {
-        border-left: 2px solid var(--class-color);
     }
 
     .layout-spell-card-need {
