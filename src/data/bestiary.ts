@@ -60,9 +60,7 @@ export class Bestiary {
         }
     }
 
-    dispose() {
-        this.#cache.clear();
-    }
+    dispose() {}
 
     // ---- private functions ----
     async #loadBestiaryData(): Promise<SmallMonster[]> {

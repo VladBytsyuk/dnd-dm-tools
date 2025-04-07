@@ -14,15 +14,18 @@ export class InitiativeTrackerView implements LayoutItemView {
     #component: ReturnType<typeof InitiativeTracker> | undefined;
     #encounter: Encounter;
     #onEncounterUpdate: (encounter: Encounter) => void;
+    #onPortraitClick: (url: string) => void;
 
     constructor(
         app: App,
         encounter: Encounter, 
         onEncounterUpdate: (encounter: Encounter) => void,
+        onPortraitClick: (url: string) => void,
     ) {
         this.#app = app;
         this.#encounter = encounter;
         this.#onEncounterUpdate = onEncounterUpdate;
+        this.#onPortraitClick = onPortraitClick;
     }
 
 	// ---- methods ----
@@ -36,6 +39,7 @@ export class InitiativeTrackerView implements LayoutItemView {
                 app: this.#app,
                 encounter: this.#encounter,
                 onUpdate: this.#onEncounterUpdate,
+                onPortraitClick: this.#onPortraitClick,
             },
         });
     }

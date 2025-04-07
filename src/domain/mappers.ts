@@ -10,6 +10,7 @@ export const mapMonsterToEncounterParticipant = (monster: FullMonster): Encounte
     const rolledHp = rollRaw(`${monster.hits.formula}${monster.hits.sign}${monster.hits.bonus}`)
     return {
         id: Date.now(),
+        url: monster.url,
         imageUrl: monster.images.first(),
         initiative: 0,
         initiativeModifier: calculateModifier(monster.ability.dex),

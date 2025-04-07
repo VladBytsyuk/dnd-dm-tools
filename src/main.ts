@@ -34,7 +34,7 @@ export default class DndStatblockPlugin extends Plugin {
 			registerSidePanelSpellbook(this, this.#spellbook, this.#spellLayoutManager);
 			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#monsterLayoutManager);
 			registerSpellMdCodeBlockProcessor(this, this.#spellbook, this.#spellLayoutManager);
-			registerEncounterMdCodeBlockProcessor(this),
+			registerEncounterMdCodeBlockProcessor(this, this.#bestiary),
 			registerAddStatblockCommand(this, this.#bestiary);
 			registerAddSpellCommand(this, this.#spellbook);
 			registerAddEncounterCommand(this);
@@ -73,6 +73,8 @@ export default class DndStatblockPlugin extends Plugin {
 
 	#dispose() {
 		this.#bestiary.dispose();
+		this.#spellbook.dispose();
 		this.#monsterLayoutManager.dispose();
+		this.#spellLayoutManager.dispose();
 	}
 }

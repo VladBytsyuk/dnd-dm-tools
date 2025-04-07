@@ -16,7 +16,7 @@ export function registerSidePanelSpellbook(
         (leaf: WorkspaceLeaf) => new SidePanelSpellbookView(leaf, plugin, spellbook, layoutManager),
     );
     plugin.addRibbonIcon("sparkles", TEXTS.ribbonActionSpellbookTitle, async (mouseEvent) => {
-        openSidePanelSpellbook(plugin.app.workspace, undefined)
+        openSidePanelSpellbook(plugin.app.workspace, undefined);
     });
 }
 

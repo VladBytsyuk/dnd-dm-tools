@@ -4,6 +4,7 @@ import { Bestiary } from "src/data/bestiary";
 import { TEXTS } from "src/res/texts_ru";
 import { MonsterSuggester } from "src/ui/components/suggest/monster_suggester";
 import { MonsterLayoutManager } from "../settings/monster_layout_manager";
+import type { FullMonster } from "src/domain/monster";
 
 export function registerSidePanelBestiary(
     plugin: DndStatblockPlugin,
@@ -15,9 +16,11 @@ export function registerSidePanelBestiary(
         (leaf: WorkspaceLeaf) => new SidePanelBestiaryView(leaf, plugin, bestiary, layoutManager),
     );
     plugin.addRibbonIcon("skull", TEXTS.ribbonActionBestiaryTitle, async (mouseEvent) => {
-        openSidePanelBestiary(mouseEvent.getModifierState("Meta"), plugin.app.workspace)
+        openSidePanelBestiary(plugin.app.workspace, undefined);
     });
 }
+
+let sidePanelFullMonster: FullMonster | undefined = undefined;
 
 const SIDE_PANEL_BESTIARY_VIEW = "obsidian-dnd-statblock-side-panel-bestiary";
 
@@ -92,10 +95,18 @@ class SidePanelBestiaryView extends ItemView {
             this.#layoutManager.renderLayout(statblockContainer, fullMonster);
             suggester.close();
         });
+        if (sidePanelFullMonster) {
+            statblockContainer.empty();
+            this.#layoutManager.renderLayout(statblockContainer, sidePanelFullMonster);
+        }
     }
 }
 
-async function openSidePanelBestiary(isSidePanelOpened: boolean = false, workspace: Workspace) {
+export async function openSidePanelBestiary(
+    workspace: Workspace,
+    fullMonster: FullMonster | undefined,
+) {
+    sidePanelFullMonster = fullMonster;
 
     let leaf: WorkspaceLeaf;
     const sidePanelLeaves = workspace.getLeavesOfType(SIDE_PANEL_BESTIARY_VIEW);
@@ -111,5 +122,8 @@ async function openSidePanelBestiary(isSidePanelOpened: boolean = false, workspa
     });
 
     workspace.revealLeaf(leaf);
-    return leaf.view as SidePanelBestiaryView;
+
+    const sidePanelBestiaryView = leaf.view as SidePanelBestiaryView;
+    await sidePanelBestiaryView.onOpen();
+    return sidePanelBestiaryView;
 }

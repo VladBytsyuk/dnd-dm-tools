@@ -54,6 +54,8 @@ export class PersistentCache<V> {
         this.#saveToPersistantStorage()
     }
 
+    dispose() {}
+
     #normalize(input: string): string {
         return input.toLowerCase();
     }

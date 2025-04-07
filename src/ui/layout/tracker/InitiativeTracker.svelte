@@ -8,7 +8,7 @@
 	import { TEXTS } from "src/res/texts_ru";
 	import { getImageSource } from "src/domain/image_utils";
 
-    let { app, encounter, onUpdate } = $props();
+    let { app, encounter, onUpdate, onPortraitClick } = $props();
     let stateEncounter: Encounter = $state(encounter);
     let idCounter: number = encounter.participants.length;
     let calcTempValues = new Map();
@@ -174,6 +174,12 @@
         editingId = null;
         onUpdate(stateEncounter);
     }
+
+    const onParticipantPortraitClick = (participant: EncounterParticipant) => {
+        if (participant.url) {
+            onPortraitClick(participant.url);
+        }
+    }
 </script>
 
 <div class="initiative-tracker">
@@ -224,12 +230,12 @@
         </div>
         {#each stateEncounter.participants as participant, index (participant.id)}
             <div class="participants-list-row">
-                <div class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}>
+                <button class="participants-list-cell-value" class:active-row={activeParticipantIndex === index} onclick={() => onParticipantPortraitClick(participant)}>
                     {#if participant.imageUrl}
                         <img class="participants-list-cell-value-portrait" 
                             src={participant.imageUrl} alt={participant.name} />
                     {/if}
-                </div>
+                </button>
                 {#if editingId === `${participant.id}-initiative`}
                     <input class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}
                         placeholder={formatModifier(participant.initiativeModifier)}
