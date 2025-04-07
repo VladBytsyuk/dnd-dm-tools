@@ -12,14 +12,16 @@
     let { app, monster, isTwoColumns, onRoll, onSpellHover } = $props()
 
     let currentImageIndex = $state(0);
-    let imagesLength = $state(monster.images.length);
+    let imagesLength = $state(monster.images?.length ?? 0);
     let images: string[] = $state([]);
     
     const diceRollersManager = new DiceRollersManager(onRoll);
     
     onMount(async () => {
         diceRollersManager.onMount();
-        images = await Promise.all(monster.images?.map(async (it: string) => await getImageSource(app, it)));
+        if (monster.images) {
+            images = await Promise.all(monster.images?.map(async (it: string) => await getImageSource(app, it)));
+        }
     });
 
     onDestroy(() => {
@@ -117,7 +119,8 @@
                 <div class="slider-container">
                     <img class="layout-ttg-statblock-images-item" 
                         src={images[currentImageIndex]} 
-                        alt={monster.name.rus}/>
+                        alt={monster.name.rus}
+                        onerror={(e) => e.target.src = "https://ttg.club/img/no-img.webp"}/>
                     
                     <div class="slider-controls">
                         <button class="arrow left" onclick={prevImage}>❮</button>

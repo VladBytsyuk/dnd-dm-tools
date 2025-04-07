@@ -233,7 +233,8 @@
                 <button class="participants-list-cell-value" class:active-row={activeParticipantIndex === index} onclick={() => onParticipantPortraitClick(participant)}>
                     {#if participant.imageUrl}
                         <img class="participants-list-cell-value-portrait" 
-                            src={participant.imageUrl} alt={participant.name} />
+                            src={participant.imageUrl} alt={participant.name}
+                            onerror={(e) => e.target.src = "https://ttg.club/img/no-img.webp"} />
                     {/if}
                 </button>
                 {#if editingId === `${participant.id}-initiative`}

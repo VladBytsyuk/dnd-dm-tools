@@ -11,7 +11,7 @@ export const mapMonsterToEncounterParticipant = (monster: FullMonster): Encounte
     return {
         id: Date.now(),
         url: monster.url,
-        imageUrl: monster.images.first(),
+        imageUrl: monster.images?.first(),
         initiative: 0,
         initiativeModifier: calculateModifier(monster.ability.dex),
         name: newName,
