@@ -67,7 +67,7 @@
 <div class="layout-spell-card {themeClass} {classTheme}">
     <div class="layout-spell-card-front">
         <div class="layout-spell-card-body">
-            <h3 class="layout-spell-card-name layout-spell-card-lined">{spell.name.rus}</h3>
+            <h3 class="layout-spell-card-name layout-spell-card-lined">{spell.name.rus}{spell.ritual ? " [" + TEXTS.spellRitual + "]" : ""}</h3>
             
             <div class="layout-spell-card-table">
 
@@ -83,9 +83,9 @@
 
                 <div class="layout-spell-card-table-item">
                     <em class="layout-spell-card-block-title">{TEXTS.spellComponents}</em>
-                    {#if spell.components.v}В{/if}
-                    {#if spell.components.s}С{/if}
-                    {#if spell.components.m}М{/if}
+                    {#if spell.components.v}{TEXTS.spellVerbal}{/if}
+                    {#if spell.components.s}{TEXTS.spellSomatic}{/if}
+                    {#if spell.components.m}{TEXTS.spellMaterial}{/if}
                 </div>
 
                 <div class="layout-spell-card-table-item">
@@ -97,7 +97,8 @@
 
             <b class="layout-spell-card-need" style="{spell.components && spell.components.m ? "" : "height:2px;padding:0px;"}">{spell.components.m}</b>
             
-            <div class="layout-spell-card-text">{@html mapDiceRollerTags(spell.description)}</div>											
+            <div class="layout-spell-card-text">{@html mapDiceRollerTags(spell.description.replace(/<\/?p>/g, ''))}</div>	
+            {#if spell.upper}<div class="layout-spell-card-text layout-spell-card-upper-lined">{@html mapDiceRollerTags(spell.upper.replace(/<\/?p>/g, ''))}</div>{/if}											
         </div>    
 
         <b class="layout-spell-card-class">{spell.classes[0].name}</b>
@@ -196,6 +197,10 @@
         border-bottom: 2px solid var(--class-color);
     }
 
+    .layout-spell-card-upper-lined {
+        border-top: 2px solid var(--class-color);
+    }
+
     .layout-spell-card-table {
         background-color: var(--class-color) !important;
         list-style: none;
@@ -238,7 +243,7 @@
         font-size: 8px;
         font-style: italic;
         text-align: left center;
-        padding: 4px 4px 4px;
+        padding: 4px 0px 4px;
         font-weight: normal;
     }
 
@@ -250,7 +255,7 @@
 
     .layout-spell-card-class {
         position: absolute;
-        bottom: 8px;
+        bottom: 6px;
         color: var(--text-inverted-color) !important;
         left: 10px;
         font-size: 9px;
@@ -259,7 +264,7 @@
 
     .layout-spell-card-type {
         position: absolute;
-        bottom: 8px;
+        bottom: 6px;
         color: var(--text-inverted-color) !important;
         right: 10px;
         font-size: 10px;

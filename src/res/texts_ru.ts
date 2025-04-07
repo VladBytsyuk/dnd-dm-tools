@@ -70,7 +70,11 @@ export const TEXTS = {
     spellComponents: "Компоненты",
     spellDuration: "Длительность",
     spellLevel: "круг",
-    spellCantrip: "заговор"
+    spellCantrip: "заговор",
+    spellVerbal: "В",
+    spellSomatic: "С",
+    spellMaterial: "М",
+    spellRitual: "Ритуал",
 }
 
 export const randomSpeciality = (): string | undefined => {

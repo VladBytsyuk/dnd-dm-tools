@@ -49,6 +49,7 @@ export interface FullSpell {
     classes: SpellClass[] | undefined;
     subclasses: SpellSubclass[] | undefined;
     description: string;
+    upper?: string,
 }
 
 export interface SmallSpell {
