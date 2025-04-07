@@ -1,6 +1,6 @@
 <script lang="ts">
+	import { handleHtml, separate } from 'src/domain/utils';
     import { onDestroy, onMount } from 'svelte';
-	import { mapDiceRollerTags } from "src/domain/mappers";
     import { TEXTS } from "src/res/texts_ru";
 	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
@@ -64,8 +64,8 @@
         return () => { unsubscribe() };
     });
 
-    let subClasses = !spell.subclasses ? undefined : spell.subclasses.map((it: SpellSubclass) => it.class + " - " + it.name).join(", ")
-    let classes = spell.classes.map((it: SpellClass) => it.name).join(", ")
+    let subClasses = !spell.subclasses ? undefined : separate(spell.subclasses.map((it: SpellSubclass) => it.name + " (" + it.class + ")"))
+    let classes = separate(spell.classes.map((it: SpellClass) => it.name))
     let classHint = TEXTS.spellClasses + ": " + classes + (subClasses ? "\n" + TEXTS.spellSubclasses + ": " + subClasses : "")
 </script>
 
@@ -102,8 +102,8 @@
 
             <b class="layout-spell-card-need" style="{spell.components && spell.components.m ? "" : "height:2px;padding:0px;"}">{spell.components.m}</b>
             
-            <div class="layout-spell-card-text">{@html mapDiceRollerTags(spell.description.replace(/<\/?p>/g, ''))}</div>	
-            {#if spell.upper}<div class="layout-spell-card-text layout-spell-card-upper-lined">{@html mapDiceRollerTags(spell.upper.replace(/<\/?p>/g, ''))}</div>{/if}											
+            <div class="layout-spell-card-text">{@html handleHtml(spell.description)}</div>	
+            {#if spell.upper}<div class="layout-spell-card-text layout-spell-card-upper-lined">{@html handleHtml(spell.upper)}</div>{/if}											
         </div>    
 
         <div class="layout-spell-card-class" title="{classHint}">{spell.classes[0].name}</div>

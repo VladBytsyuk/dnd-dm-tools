@@ -1,5 +1,14 @@
 import { TEXTS } from "src/res/texts_ru";
 import type { Speed } from "./monster";
+import { mapDiceRollerTags } from "./mappers";
+
+export const handleHtml = (text: string): string => {
+    return mapDiceRollerTags(getRidOfP(text))
+}
+
+export const getRidOfP = (text: string): string => {
+    return text.replace(/<\/?p>/g, '');
+}
 
 export const separate = (text: Array<string>) =>
     text.join(', ');

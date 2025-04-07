@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { mapDiceRollerTags } from './../../../../domain/mappers';
     import { ClipboardCopy } from 'lucide-svelte';
     import { onDestroy, onMount } from 'svelte';
     import { TEXTS } from "src/res/texts_ru";
@@ -7,7 +6,7 @@
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
 	import { calculateAndFormatModifier, formatModifier } from 'src/domain/modifier';
 	import { DiceRollersManager } from '../../dice-roller/DiceRollersManager';
-	import { joinList, joinSpeed, separate } from 'src/domain/utils';
+	import { handleHtml, joinList, joinSpeed, separate } from 'src/domain/utils';
 	import { getImageSource } from 'src/domain/image_utils';
 
     let { app, monster, isTwoColumns, onRoll, onSpellHover } = $props()
@@ -257,7 +256,7 @@
             {#each monster.feats as feat}
                 <div class="layout-ttg-statblock-base-info-item">
                     <span class="layout-ttg-statblock-base-info-item-title">{feat.name}.</span>
-                    <span class="layout-ttg-statblock-base-info-item-value" use:addLinkListeners>{@html mapDiceRollerTags(feat.value.replace(/<\/?p>/g, ''))}</span>     
+                    <span class="layout-ttg-statblock-base-info-item-value" use:addLinkListeners>{@html handleHtml(feat.value)}</span>     
                 </div>
             {/each}
             </div>
@@ -277,7 +276,7 @@
                     {#each item.action as action}
                     <div class="layout-ttg-statblock-base-info-item">
                         <span class="layout-ttg-statblock-base-info-item-title">{action.name}.</span>
-                        <span class="layout-ttg-statblock-base-info-item-value" use:addLinkListeners>{@html mapDiceRollerTags(action.value.replace(/<\/?p>/g, ''))}</span>
+                        <span class="layout-ttg-statblock-base-info-item-value" use:addLinkListeners>{@html handleHtml(action.value)}</span>
                     </div>
                     {/each}
                 </div>
@@ -295,7 +294,7 @@
             <div class="layout-ttg-statblock-property-block">
                 <div class="layout-ttg-statblock-block-header">{item.title}</div>
                 <div class="layout-ttg-statblock-base-info-item">
-                    <span class="layout-ttg-statblock-base-info-item-value" use:addLinkListeners>{@html mapDiceRollerTags(item.action.replace(/<\/?p>/g, ''))}</span>
+                    <span class="layout-ttg-statblock-base-info-item-value" use:addLinkListeners>{@html handleHtml(item.action)}</span>
                 </div>
             </div>
             {/if}
