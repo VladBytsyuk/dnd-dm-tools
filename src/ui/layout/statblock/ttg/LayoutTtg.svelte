@@ -6,7 +6,7 @@
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
 	import { calculateAndFormatModifier, formatModifier } from 'src/domain/modifier';
 	import { DiceRollersManager } from '../../dice-roller/DiceRollersManager';
-	import { handleHtml, joinList, joinSpeed, separate } from 'src/domain/utils';
+	import { addLinkListeners, handleHtml, joinList, joinSpeed, separate } from 'src/domain/utils';
 	import { getImageSource } from 'src/domain/image_utils';
 
     let { app, monster, isTwoColumns, onRoll, onSpellHover } = $props()
@@ -44,26 +44,7 @@
         return () => { unsubscribe() };
     });
 
-
-    const handleLinkHover = (e: MouseEvent) => {
-        const link = e.currentTarget as HTMLAnchorElement;
-        const url = link.getAttribute('href')!;
-        onSpellHover(url);
-    }
-
-    const addLinkListeners = (node: HTMLElement) => {
-        const spellsLinks = node.querySelectorAll<HTMLAnchorElement>('a[href^="/spells/"]');
-        spellsLinks.forEach(link => {
-            link.style.cursor = 'pointer';
-            link.addEventListener('click', handleLinkHover);
-        });
-        return {
-            destroy() {
-                spellsLinks.forEach(link => link.removeEventListener('click', handleLinkHover));
-            }
-        };
-    }
-
+    const linkListener = addLinkListeners(onSpellHover);
 </script>
   
 <div class="layout-ttg {themeClass}">
@@ -161,7 +142,7 @@
             }) as entry}
                 <div class="layout-ttg-statblock-scores-table-item">
                 <div class="layout-ttg-statblock-scores-table-item-title"><b>{entry[0]}</b></div>
-                <div class="layout-ttg-statblock-scores-table-item-value">
+                <div class="layout-ttg-statblock-scores-table-item-value" use:linkListener>
                     <dice-roller label={entry[0]} formula={"к20+" + calculateAndFormatModifier(entry[1])}>
                         {entry[1]} ({calculateAndFormatModifier(entry[1])})
                     </dice-roller>
@@ -176,7 +157,7 @@
             {#if monster.savingThrows}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSaves}</span> 
-                <span class="layout-ttg-statblock-base-info-item-value" use:addLinkListeners>
+                <span class="layout-ttg-statblock-base-info-item-value" use:linkListener>
                     {@html separate(monster.savingThrows.map(it => 
                         `${it.name} <dice-roller label="${TEXTS.layoutSave}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
                     ))}
@@ -187,7 +168,7 @@
             {#if monster.skills}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSkills}</span> 
-                <span class="layout-ttg-statblock-base-info-item-value" use:addLinkListeners>
+                <span class="layout-ttg-statblock-base-info-item-value" use:linkListener>
                     {@html separate(monster.skills.map(it => 
                         `${it.name} <dice-roller label="${TEXTS.layoutSkill}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
                     ))}
@@ -256,7 +237,7 @@
             {#each monster.feats as feat}
                 <div class="layout-ttg-statblock-base-info-item">
                     <span class="layout-ttg-statblock-base-info-item-title">{feat.name}.</span>
-                    <span class="layout-ttg-statblock-base-info-item-value" use:addLinkListeners>{@html handleHtml(feat.value)}</span>     
+                    <span class="layout-ttg-statblock-base-info-item-value" use:linkListener>{@html handleHtml(feat.value)}</span>     
                 </div>
             {/each}
             </div>
@@ -276,7 +257,7 @@
                     {#each item.action as action}
                     <div class="layout-ttg-statblock-base-info-item">
                         <span class="layout-ttg-statblock-base-info-item-title">{action.name}.</span>
-                        <span class="layout-ttg-statblock-base-info-item-value" use:addLinkListeners>{@html handleHtml(action.value)}</span>
+                        <span class="layout-ttg-statblock-base-info-item-value" use:linkListener>{@html handleHtml(action.value)}</span>
                     </div>
                     {/each}
                 </div>
@@ -294,7 +275,7 @@
             <div class="layout-ttg-statblock-property-block">
                 <div class="layout-ttg-statblock-block-header">{item.title}</div>
                 <div class="layout-ttg-statblock-base-info-item">
-                    <span class="layout-ttg-statblock-base-info-item-value" use:addLinkListeners>{@html handleHtml(item.action)}</span>
+                    <span class="layout-ttg-statblock-base-info-item-value" use:linkListener>{@html handleHtml(item.action)}</span>
                 </div>
             </div>
             {/if}

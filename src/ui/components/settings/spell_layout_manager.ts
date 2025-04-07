@@ -2,6 +2,8 @@ import type { FullSpell } from "src/domain/spell";
 import type { LayoutItemView } from "src/ui/layout/LayoutItemView";
 import { App, Notice } from "obsidian";
 import { FullSpellItemView } from "src/ui/layout/spell/FullSpellItem";
+import type { Spellbook } from "src/data/spellbook";
+import { openSidePanelSpellbook } from "../ribbon/side_panel_spellbook";
 
 class LayoutManagerCache {
 
@@ -25,11 +27,13 @@ export class SpellLayoutManager {
 
 	// ---- fields ----
     #app: App;
+    #spellbook: Spellbook;
     #cache: LayoutManagerCache[] = [];
     
 
-    constructor(app: App) {
+    constructor(app: App, spellbook: Spellbook) {
         this.#app = app;
+        this.#spellbook = spellbook;
     }
 
 	// ---- methods ----
@@ -40,13 +44,17 @@ export class SpellLayoutManager {
         const onRoll = (label: string, value: number): void => {
             new Notice(`${label ? label + ": " : ""}${value}`);
         };
+        const onSpellClick = async (url: string) => {
+            const fullSpell = await this.#spellbook.getFullSpellByUrl(url);
+            if (fullSpell) await openSidePanelSpellbook(this.#app.workspace, fullSpell);
+        };
         this.#cache
             .find((item) => item.getContainer() == container)
             ?.getItemView()
             ?.destroy();
         container.empty();
         const viewContainer = container.createDiv("statblock-view-container");
-        let itemView: LayoutItemView = new FullSpellItemView(spell, onRoll);
+        let itemView: LayoutItemView = new FullSpellItemView(spell, onRoll, onSpellClick);
 
         itemView.render(viewContainer);
         const cacheItem = new LayoutManagerCache(itemView, container, spell);

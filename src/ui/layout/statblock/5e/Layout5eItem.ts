@@ -13,15 +13,18 @@ export class Layout5eItemView implements LayoutItemView {
     #monster: FullMonster;
     #twoColumns: boolean;
     #onRoll: (label: string, value: number) => void;
+    #onSpellHover: (url: string) => void;
 
     constructor(
         monster: FullMonster,
         twoColumns: boolean,
         onRoll: (label: string, value: number) => void,
+        onSpellHover: (url: string) => void,
     ) {
         this.#monster = monster;
         this.#twoColumns = twoColumns;
         this.#onRoll = onRoll;
+        this.#onSpellHover = onSpellHover;
     }
 
 	// ---- methods ----
@@ -35,6 +38,7 @@ export class Layout5eItemView implements LayoutItemView {
                 monster: this.#monster,
                 isTwoColumns: this.#twoColumns,
                 onRoll: this.#onRoll,
+                onSpellHover: this.#onSpellHover,
             },
         });
     }

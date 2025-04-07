@@ -66,7 +66,7 @@ export class MonsterLayoutManager {
         let itemView: LayoutItemView;
         switch (layoutStyle) {
             case LayoutStyle.Dnd5e:
-                itemView = new Layout5eItemView(monster, isTwoColumns, onRoll);
+                itemView = new Layout5eItemView(monster, isTwoColumns, onRoll, onSpellClick);
                 break;
             case LayoutStyle.TtgClub:
                 itemView = new LayoutTtgItemView(this.#app, monster, isTwoColumns, onRoll, onSpellClick);

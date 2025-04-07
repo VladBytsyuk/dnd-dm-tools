@@ -4,7 +4,6 @@ import LayoutTtg from 'src/ui/layout/statblock/ttg/LayoutTtg.svelte';
 import { mount, unmount } from 'svelte';
 import type { LayoutItemView } from '../../LayoutItemView';
 import type { App } from 'obsidian';
-import type { FullSpell } from 'src/domain/spell';
 
 const LAYOUT_TTG_ITEM_VIEW_TYPE_EXAMPLE = 'obsidian-dnd-statblock-layout-ttg-item-view';
 

@@ -62,7 +62,7 @@ export default class DndStatblockPlugin extends Plugin {
 		await this.#spellbook.initialize();
 
 		this.#monsterLayoutManager = new MonsterLayoutManager(this.app, this.#settingsController.settings, this.#spellbook);
-		this.#spellLayoutManager = new SpellLayoutManager(this.app);
+		this.#spellLayoutManager = new SpellLayoutManager(this.app, this.#spellbook);
 
 		callback();
 	}

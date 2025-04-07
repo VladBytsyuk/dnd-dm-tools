@@ -6,9 +6,9 @@
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
 	import { calculateAndFormatModifier, formatModifier } from 'src/domain/modifier';
 	import { DiceRollersManager } from '../../dice-roller/DiceRollersManager';
-	import { handleHtml, joinList, joinSpeed, separate } from 'src/domain/utils';
+	import { addLinkListeners, handleHtml, joinList, joinSpeed, separate } from 'src/domain/utils';
 
-    let { monster, isTwoColumns, onRoll } = $props()
+    let { monster, isTwoColumns, onRoll, onSpellHover } = $props()
 
     const diceRollersManager = new DiceRollersManager(onRoll);
     
@@ -29,6 +29,8 @@
 
         return () => { unsubscribe() };
     });
+
+    const linkListener = addLinkListeners(onSpellHover);
 </script>
   
 <div class="layout-5e {themeClass}">
@@ -114,7 +116,7 @@
             {#if monster.savingThrows}
             <div class="layout-5e-statblock-base-info-item">
                 <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSaves}</span> 
-                <span class="layout-5e-statblock-base-info-item-value">
+                <span class="layout-5e-statblock-base-info-item-value" use:linkListener>
                     {@html separate(monster.savingThrows.map(it => 
                         `${it.name} <dice-roller label="${TEXTS.layoutSave}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
                     ))}
@@ -125,7 +127,7 @@
             {#if monster.skills}
             <div class="layout-5e-statblock-base-info-item">
                 <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSkills}</span> 
-                <span class="layout-5e-statblock-base-info-item-value">
+                <span class="layout-5e-statblock-base-info-item-value" use:linkListener>
                     {@html separate(monster.skills.map(it => 
                         `${it.name} <dice-roller label="${TEXTS.layoutSkill}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
                     ))}
@@ -196,7 +198,7 @@
         {#if monster.feats}
             <div class="layout-5e-statblock-property-block">
             {#each monster.feats as feat}
-                <div><b>{feat.name}.</b> {@html handleHtml(feat.value)}</div>
+                <div use:linkListener><b>{feat.name}.</b> {@html handleHtml(feat.value)}</div>
             {/each}
             </div>
         {/if}
@@ -212,7 +214,7 @@
                 <div class="layout-5e-statblock-property-block">
                     <div class="layout-5e-statblock-block-header">{item.title}</div>
                     {#each item.action as action}
-                    <div><b>{action.name}.</b> {@html handleHtml(action.value)}</div>
+                    <div use:linkListener><b>{action.name}.</b> {@html handleHtml(action.value)}</div>
                     {/each}
                 </div>
                 {/if}
@@ -230,7 +232,7 @@
         <div class="layout-5e-statblock-property-block">
             <div class="layout-5e-statblock-block-header">{item.title}</div>
             <div class="layout-5e-statblock-base-info-item">
-                <span class="layout-5e-statblock-base-info-item-value">{@html handleHtml(item.action)}</span>
+                <span class="layout-5e-statblock-base-info-item-value" use:linkListener>{@html handleHtml(item.action)}</span>
             </div>
         </div>
         {/if}

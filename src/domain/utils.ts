@@ -24,3 +24,21 @@ export const joinSpeed = (items: Array<Speed>) =>
         if (it.additional) result += '(' + it.additional + ')';
         return result;
     })) || '';
+
+export const addLinkListeners = (onSpellHover: (url: string) => (node: HTMLElement) => void) => (node: HTMLElement) => {
+    const handleLinkHover = (e: MouseEvent) => {
+        const link = e.currentTarget as HTMLAnchorElement;
+        const url = link.getAttribute('href')!;
+        onSpellHover(url);
+    }
+    const spellsLinks = node.querySelectorAll<HTMLAnchorElement>('a[href^="/spells/"]');
+    spellsLinks.forEach(link => {
+        link.style.cursor = 'pointer';
+        link.addEventListener('click', handleLinkHover);
+    });
+    return {
+        destroy() {
+            spellsLinks.forEach(link => link.removeEventListener('click', handleLinkHover));
+        }
+    };
+}
