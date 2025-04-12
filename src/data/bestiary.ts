@@ -3,6 +3,7 @@ import { requestUrl } from 'obsidian';
 import type { FullMonster, SmallMonster } from "src/domain/monster";
 import { PersistentCache } from "./cache";
 import type { DndSettingsController } from "src/ui/components/settings/settings_controller";
+import type { BestiaryFilter } from "src/domain/bestiary_filters";
 
 export class Bestiary {
 
@@ -10,6 +11,7 @@ export class Bestiary {
     #rootDir: string;
     #dataAdapter: DataAdapter;
     #smallBestiary: SmallMonster[];
+    #filters: BestiaryFilter | null;
     #cache: PersistentCache<FullMonster>;
 
     // ---- public functions ----
@@ -21,6 +23,7 @@ export class Bestiary {
 
     async initialize() {
         this.#smallBestiary = await this.#loadBestiaryData();
+        this.#filters = await this.#loadBestiaryFilters();
         await this.#cache.init();
     }
 
@@ -74,6 +77,19 @@ export class Bestiary {
         } catch (error) {
             console.error("Failed to load bestiary data:", error);
             return [];
+        }
+    }
+
+    async #loadBestiaryFilters(): Promise<BestiaryFilter | null> {
+        try {
+            const filePath = `${this.#rootDir}/data/bestiary_filters.json`;
+            const data = await this.#dataAdapter.read(filePath);
+            const filters = JSON.parse(data) as BestiaryFilter;
+            console.log(`Loaded bestiary filters from local storage.`);
+            return filters;
+        } catch (error) {
+            console.error("Failed to load bestiary filters:", error);
+            return null;
         }
     }
 
