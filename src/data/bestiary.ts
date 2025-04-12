@@ -63,6 +63,12 @@ export class Bestiary {
         }
     }
 
+    async getFilters(): Promise<BestiaryFilter | null> {
+        if (this.#filters) return this.#filters;
+        this.initialize();
+        return await this.getFilters();
+    }
+
     dispose() {}
 
     // ---- private functions ----
