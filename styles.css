@@ -59,3 +59,16 @@ If your plugin does not need CSS, delete this file.
     visibility: visible;
     width: 40%;
 }
+
+.side-panel-filter-item {
+    margin: 0px 2px 0px;
+}
+
+.filter-item {
+    margin: 2px;
+}
+
+.submit-button {
+    width: 100%;
+    margin: 8px 0px 0px 0px;
+}

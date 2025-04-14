@@ -5,6 +5,12 @@ import { TEXTS } from "src/res/texts_ru";
 import { MonsterSuggester } from "src/ui/components/suggest/monster_suggester";
 import { MonsterLayoutManager } from "../settings/monster_layout_manager";
 import type { FullMonster } from "src/domain/monster";
+import { BestiaryFiltersModal } from "../modals/bestiary_filers_modal";
+import { BestiaryFilter } from "src/domain/bestiary_filters";
+import { stat } from "fs";
+import { mount } from "svelte";
+import BestiarySmall from "src/ui/layout/bestiary/BestiarySmall.svelte";
+import BestiaryGroup from "src/ui/layout/bestiary/BestiaryGroup.svelte";
 
 export function registerSidePanelBestiary(
     plugin: DndStatblockPlugin,
@@ -30,6 +36,7 @@ class SidePanelBestiaryView extends ItemView {
     #plugin: DndStatblockPlugin;
     #bestiary: Bestiary;
     #layoutManager: MonsterLayoutManager;
+    #filters: BestiaryFilter = BestiaryFilter([], [], []);
 
     constructor(
         leaf: WorkspaceLeaf, 
@@ -58,7 +65,7 @@ class SidePanelBestiaryView extends ItemView {
 
     async onOpen() {
         const container = this.containerEl.children[1];
-        this.#fillContainer(container);
+        await this.#fillContainer(container);
     }
 
     async onClose() {
@@ -66,8 +73,10 @@ class SidePanelBestiaryView extends ItemView {
     }
 
     // ---- private methods ----
-    #fillContainer(container: Element) {
+    async #fillContainer(container: Element) {
         container.empty();
+
+        const fullFilters = await this.#bestiary.getAllFilters();
         
         const headerEl = container.createDiv(`side-panel-bestiary-header`);
 
@@ -83,7 +92,24 @@ class SidePanelBestiaryView extends ItemView {
             searchEl.setValue("");
             statblockContainer.empty();
             suggester.close();
-        })
+        });
+
+        const filtersButton = new ButtonComponent(headerEl)
+            .setIcon("sliders-horizontal")
+            .setClass("side-panel-filter-item");
+        filtersButton.onClick((evt) => {
+            if (!fullFilters) return;
+            new BestiaryFiltersModal(
+                this.#plugin.app, 
+                fullFilters,
+                this.#filters, 
+                (filters) => {
+                    statblockContainer.empty();
+                    this.#filters = filters;
+                    this.#addSmallMonsters(statblockContainer);
+                },
+            ).open();
+        });
 
         const statblockContainer = document.createElement('div');
         statblockContainer.addClass('side-panel-bestiary-statblock-container');
@@ -95,9 +121,39 @@ class SidePanelBestiaryView extends ItemView {
             this.#layoutManager.renderLayout(statblockContainer, fullMonster);
             suggester.close();
         });
+
+        await this.#addSmallMonsters(statblockContainer);
+
         if (sidePanelFullMonster) {
             statblockContainer.empty();
             this.#layoutManager.renderLayout(statblockContainer, sidePanelFullMonster);
+        }
+    }
+
+    async #addSmallMonsters(container: HTMLElement) {
+        const smallMonsters = await this.#bestiary.getFilteredSmallMonsters(this.#filters);
+        if (smallMonsters.length === 0) {
+            container.createDiv("no-monsters").setText("No monsters");
+            return;
+        }
+
+        const groupedMonsters = smallMonsters.reduce((groups, monster) => {
+            const { challengeRating } = monster;
+            if (!groups[challengeRating]) {
+                groups[challengeRating] = [];
+            }
+            groups[challengeRating].push(monster);
+            return groups;
+        }, {} as Record<string, typeof smallMonsters>);
+
+        for (const [challengeRating, monsters] of Object.entries(groupedMonsters)) {
+            mount(BestiaryGroup, {
+                target: container,
+                props: {
+                    challengeRating: challengeRating,
+                    smallMonsters: monsters,
+                },
+            });
         }
     }
 }

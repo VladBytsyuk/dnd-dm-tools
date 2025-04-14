@@ -103,7 +103,7 @@ interface Tag {
 
 export interface SmallMonster {
     name: Name;
-    type: Type;
+    type: string;
     challengeRating: string;
     url: string;
     source: Source;

@@ -3,7 +3,7 @@ import { requestUrl } from 'obsidian';
 import type { FullMonster, SmallMonster } from "src/domain/monster";
 import { PersistentCache } from "./cache";
 import type { DndSettingsController } from "src/ui/components/settings/settings_controller";
-import type { BestiaryFilter } from "src/domain/bestiary_filters";
+import { BestiaryFilter } from "src/domain/bestiary_filters";
 
 export class Bestiary {
 
@@ -23,7 +23,7 @@ export class Bestiary {
 
     async initialize() {
         this.#smallBestiary = await this.#loadBestiaryData();
-        this.#filters = await this.#loadBestiaryFilters();
+        this.#filters = await this.#collectBestiaryFilters();
         await this.#cache.init();
     }
 
@@ -63,10 +63,20 @@ export class Bestiary {
         }
     }
 
-    async getFilters(): Promise<BestiaryFilter | null> {
+    async getAllFilters(): Promise<BestiaryFilter | null> {
         if (this.#filters) return this.#filters;
         this.initialize();
-        return await this.getFilters();
+        return await this.getAllFilters();
+    }
+
+    async getFilteredSmallMonsters(filters: BestiaryFilter): Promise<SmallMonster[]> {
+        const allSmallMonsters = await this.getAllSmallMonsters();
+        return allSmallMonsters.filter(monster => {
+            const typeMatch = filters.types.length === 0 || filters.types.includes(monster.type.name);
+            const challengeRatingMatch = filters.challangeRatings.length === 0 || filters.challangeRatings.includes(monster.challengeRating);
+            const sourceMatch = filters.sources.length === 0 || filters.sources.includes(monster.source.shortName);
+            return typeMatch && challengeRatingMatch && sourceMatch;    
+        });
     }
 
     dispose() {}
@@ -86,17 +96,19 @@ export class Bestiary {
         }
     }
 
-    async #loadBestiaryFilters(): Promise<BestiaryFilter | null> {
-        try {
-            const filePath = `${this.#rootDir}/data/bestiary_filters.json`;
-            const data = await this.#dataAdapter.read(filePath);
-            const filters = JSON.parse(data) as BestiaryFilter;
-            console.log(`Loaded bestiary filters from local storage.`);
-            return filters;
-        } catch (error) {
-            console.error("Failed to load bestiary filters:", error);
-            return null;
+    async #collectBestiaryFilters(): Promise<BestiaryFilter | null> {
+        const smallMonsters = await this.getAllSmallMonsters();
+        if (!smallMonsters) return null;
+
+        let typesSet: Set<string> = new Set();
+        let challengeRatingsSet: Set<string> = new Set();
+        let sourcesSet: Set<string> = new Set();
+        for (const monster of smallMonsters) {
+            typesSet.add(monster.type);
+            challengeRatingsSet.add(monster.challengeRating);
+            sourcesSet.add(monster.source.shortName);
         }
+        return BestiaryFilter(Array.from(typesSet), Array.from(challengeRatingsSet), Array.from(sourcesSet));
     }
 
     async #fetchCreatureFromAPI(url: string): Promise<FullMonster | null> {
