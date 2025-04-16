@@ -5,20 +5,30 @@
 </script>
 
 <div class="bestiary-group">
-    <h2>Опасность {challengeRating}</h2>
-    <div class="monster-grid">
-        {#each smallMonsters as monster}<BestiarySmall smallMonster={monster}/>{/each}
-    </div>
+    <details open>
+        <summary class="bestiary-group-title">Опасность {challengeRating}</summary>
+        <div class="monster-grid">
+            {#each smallMonsters as monster}<BestiarySmall smallMonster={monster}/>{/each}
+        </div>
+    </details>
 </div>
 
 <style>
     .bestiary-group {
         margin: 1rem 0;
     }
+    
+    .bestiary-group details {
+        user-select: none;
+    }
 
-    .bestiary-group h2 {
-        font-size: 1.5rem;
+    .bestiary-group-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        width: 100%;
+        padding-bottom: 8px;
         margin-bottom: 0.5rem;
+        border-bottom: 2px solid #ccc;
     }
 
     .monster-grid {

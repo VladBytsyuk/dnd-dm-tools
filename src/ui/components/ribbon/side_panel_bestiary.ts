@@ -146,17 +146,29 @@ class SidePanelBestiaryView extends ItemView {
             return groups;
         }, {} as Record<string, typeof smallMonsters>);
 
-        for (const [challengeRating, monsters] of Object.entries(groupedMonsters)) {
-            mount(BestiaryGroup, {
-                target: container,
-                props: {
-                    challengeRating: challengeRating,
-                    smallMonsters: monsters,
-                },
+        Object.keys(groupedMonsters)
+            .map(key => ({ challengeRating: key, monsters: groupedMonsters[key] }))
+            .sort((a, b) => parseCR(a.challengeRating) - parseCR(b.challengeRating))
+            .forEach(({ challengeRating, monsters }) => {
+                mount(BestiaryGroup, {
+                    target: container,
+                    props: {
+                        challengeRating: challengeRating,
+                        smallMonsters: monsters,
+                    },
+                });
             });
-        }
     }
 }
+
+const parseCR = (cr: string) => {
+    if (cr === "—") return -1;
+    if (cr.includes("/")) {
+        const [numerator, denominator] = cr.split("/").map(Number);
+        return numerator / denominator;
+    }
+    return parseFloat(cr);
+};
 
 export async function openSidePanelBestiary(
     workspace: Workspace,

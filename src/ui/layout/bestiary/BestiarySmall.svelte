@@ -13,7 +13,9 @@
                 <span class="name--rus">{name.rus}</span>
                 <span class="name--eng"> [{name.eng}]</span>
             </div>
-            <div class="source">{source.shortName}</div>
+            <div class="source">
+                {source.shortName}{source.group.shortName != "Basic" ? "*" : ""}
+            </div>
         </div>
         <div class="row">
             <div class="type">{type}</div>
@@ -26,7 +28,6 @@
         display: flex;
         flex-direction: row;
         align-items: initial;
-        /* width: 100%; */
         min-height: 38px;
         padding: 6px 12px;
         background: #1a2127;
@@ -35,15 +36,14 @@
 
     .rating {
         flex-shrink: 0;
-        width: 42px;
-        height: 42px;
-        margin-right: 12px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 32px;
         margin-left: -8px;
         text-align: center;
-        vertical-align: middle;
-        line-height: 42px;
+        font-weight: 900;
         color: #fff;
-        border-right: 1px solid #fff;
     }
 
     .body {
@@ -68,7 +68,6 @@
         line-height: 19px;
         color: #fff;
         text-overflow: ellipsis;
-        white-space: nowrap;
     }
 
     .name--rus {

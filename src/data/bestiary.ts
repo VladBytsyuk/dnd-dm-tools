@@ -72,7 +72,7 @@ export class Bestiary {
     async getFilteredSmallMonsters(filters: BestiaryFilter): Promise<SmallMonster[]> {
         const allSmallMonsters = await this.getAllSmallMonsters();
         return allSmallMonsters.filter(monster => {
-            const typeMatch = filters.types.length === 0 || filters.types.includes(monster.type.name);
+            const typeMatch = filters.types.length === 0 || filters.types.includes(monster.type);
             const challengeRatingMatch = filters.challangeRatings.length === 0 || filters.challangeRatings.includes(monster.challengeRating);
             const sourceMatch = filters.sources.length === 0 || filters.sources.includes(monster.source.shortName);
             return typeMatch && challengeRatingMatch && sourceMatch;    
@@ -106,7 +106,7 @@ export class Bestiary {
         for (const monster of smallMonsters) {
             typesSet.add(monster.type);
             challengeRatingsSet.add(monster.challengeRating);
-            sourcesSet.add(monster.source.shortName);
+            sourcesSet.add(monster.source.shortName + (monster.source.group.shortName != "Basic" ? "*" : ""));
         }
         return BestiaryFilter(Array.from(typesSet), Array.from(challengeRatingsSet), Array.from(sourcesSet));
     }
