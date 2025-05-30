@@ -30,7 +30,7 @@
         width: 100%;
         padding-bottom: 8px;
         margin-bottom: 0.5rem;
-        border-bottom: 2px solid #ccc;
+        border-bottom: 2px solid var(--text-color);
     }
 
     .monster-grid {

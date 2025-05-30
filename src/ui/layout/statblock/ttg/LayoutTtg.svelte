@@ -292,20 +292,12 @@
 
 <style>
     :global(.theme-ttg-light) {
-        --bg-color: #f9f6eb4d;
-        --text-color: #042a12;
-        --secondary-text: #404040;
-        --border-color: #d4d4d4;
         --accent-bg: #00000014;
         --accent-bg-sub: #00000007;
         --button-bg: rgba(0,0,0,0.1);
     }
 
     :global(.theme-ttg-dark) {
-        --bg-color: #172026;
-        --text-color: #ffffff;
-        --secondary-text: #a4a4a4;
-        --border-color: #3a3a3a;
         --accent-bg: #ffffff0d;
         --accent-bg-sub: #ffffff06;
         --button-bg: rgba(255,255,255,0.1);
@@ -315,12 +307,14 @@
         display: inline-block;
         position: relative;
         overflow: visible;
-        background: var(--bg-color);
+        background: #00000020;
+        border-radius: 8px;
+        border-color: #00000090;
+        border-width: 2px;
         color: var(--text-color);
     }
 
     .layout-ttg-copy-button {
-        background: #00000000;
         display: inline-block;
         position: absolute;
         top: 1em;
@@ -382,7 +376,8 @@
 
     .layout-ttg-statblock-header-subname {
         font-family: "Open Sans", sans-serif;
-        color: var(--secondary-text);
+        color: var(--text-color);
+        opacity: 0.75;
         font-size: 12px;
         margin: 0 0 2px;
     }
@@ -434,7 +429,8 @@
     }
 
     .layout-ttg-statblock-base-info-item-value {
-        color: var(--secondary-text);
+        color: var(--text-color);
+        opacity: 0.75;
         font-size: 12.5px;
         line-height: 1.2em;
     }
@@ -504,7 +500,7 @@
 
     .layout-ttg-statblock-block-header {
         border-bottom: 1px solid;
-        border-bottom-color: var(--border-color);
+        border-bottom-color: var(--text-color);
         color: var(--text-color);
         font-size: 16px;
         margin: 0.5em 0 0.5em;

@@ -4,7 +4,7 @@
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions (because of no reason) -->
-<div class="bestiary-small" onclick={() => onClick(smallSpell)}>
+<div class="spell-small" onclick={() => onClick(smallSpell)}>
     <div class="rating">
         <span>{level}</span>
     </div>
@@ -26,14 +26,19 @@
 </div>
 
 <style>
-    .bestiary-small {
+    .spell-small {
         display: flex;
         flex-direction: row;
         align-items: initial;
         min-height: 38px;
         padding: 6px 12px;
-        background: #1a2127;
+        background: #00000040;
         border-radius: 12px;
+    }
+
+
+    .spell-small:hover {
+        background: #00000060;
     }
 
     .rating {
@@ -45,7 +50,7 @@
         margin-left: -8px;
         text-align: center;
         font-weight: 900;
-        color: #fff;
+        color: var(--text-color);
     }
 
     .body {
@@ -68,28 +73,28 @@
         width: 100%;
         font-size: 14px;
         line-height: 19px;
-        color: #fff;
+        color: var(--text-color);
         text-overflow: ellipsis;
     }
 
     .name--rus {
         display: inline;
         max-width: 100%;
-        color: #fff;
+        color: var(--text-color);
     }
 
     .name--eng {
         display: inline;
-        color: #a4a4a4;
+        color: var(--text-color);
+        opacity: 0.5;
     }
 
     .source {
         margin-left: 8px;
         padding: 0 6px;
         font-size: 10px;
-        color: #c3d1da;
-        background: #1a2127;
-        border: 1px solid #ffffff8a;
+        color: var(--text-color);
+        border: 1px solid var(--text-color);
         border-radius: 20px;
     }
 
@@ -97,7 +102,8 @@
         font-size: 13px;
         line-height: normal;
         width: 100%;
-        color: #a4a4a4;
+        color: var(--text-color);
+        opacity: 0.5;
     }
 
     .components {
@@ -105,6 +111,7 @@
         padding: 0 6px;
         font-size: 12px;
         line-height: normal;
-        color: #a4a4a4;
+        color: var(--text-color);
+        opacity: 0.5;
     }
 </style>

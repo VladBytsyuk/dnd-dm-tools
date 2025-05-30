@@ -19,7 +19,7 @@
     });
 
 
-    let themeClass = $state(getCurrentTheme() === Theme.Light ? 'theme-5e-light' : 'theme-5e-dark');
+    let themeClass = $state(getCurrentTheme() === Theme.Light ? 'theme-light' : 'theme-dark');
     
     let classThemeName: string;
     switch (spell.classes[0].url) {
@@ -150,23 +150,11 @@
         --class-color: #888888FF;
     }
 
-
-    :global(.theme-light) {
-        --bg-color: #FDF1DC;
-        --text-color: #000000;
-        --text-inverted-color: #ffffff;
-    }
-
-    :global(.theme-dark) {
-        --bg-color: #202020;
-        --text-color: #ffffff;
-        --text-inverted-color: #ffffff;
-    }
-
     .layout-spell-card {
         display: inline-block;
         min-width: 170px;
         background: var(--class-color) !important;
+        border-radius: 8px;
         color: var(--text-color);
         padding: 0;
         font-size: 10px;
@@ -186,7 +174,7 @@
     }
 
     .layout-spell-card-body {
-        background-color: var(--bg-color) !important;
+        background-color: var(--color-base-00) !important;
         border-radius: 5px;
         height: 100%;
         overflow: hidden;
@@ -224,7 +212,7 @@
     }
 
     .layout-spell-card-table-item {
-        background-color: var(--bg-color) !important;
+        background-color: var(--color-base-00) !important;
         margin: 1px;
         padding: 4px 6px;
         line-height: 9px;

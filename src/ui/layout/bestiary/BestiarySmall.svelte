@@ -31,8 +31,12 @@
         align-items: initial;
         min-height: 38px;
         padding: 6px 12px;
-        background: #1a2127;
+        background: #00000040;
         border-radius: 12px;
+    }
+
+    .bestiary-small:hover {
+        background: #00000060;
     }
 
     .rating {
@@ -44,7 +48,7 @@
         margin-left: -8px;
         text-align: center;
         font-weight: 900;
-        color: #fff;
+        color: var(--text-color);
     }
 
     .body {
@@ -67,34 +71,35 @@
         width: 100%;
         font-size: 14px;
         line-height: 19px;
-        color: #fff;
+        color: var(--text-color);
         text-overflow: ellipsis;
     }
 
     .name--rus {
         display: inline;
         max-width: 100%;
-        color: #fff;
+        color: var(--text-color);
     }
 
     .name--eng {
         display: inline;
-        color: #a4a4a4;
+        color: var(--text-color);
+        opacity: 0.5;
     }
 
     .source {
         margin-left: 8px;
         padding: 0 6px;
         font-size: 10px;
-        color: #c3d1da;
-        background: #1a2127;
-        border: 1px solid #ffffff8a;
+        color: var(--text-color);
+        border: 1px solid var(--text-color);
         border-radius: 20px;
     }
 
     .type {
         font-size: 13px;
         line-height: normal;
-        color: #a4a4a4;
+        color: var(--text-color);
+        opacity: 0.5;
     }
 </style>

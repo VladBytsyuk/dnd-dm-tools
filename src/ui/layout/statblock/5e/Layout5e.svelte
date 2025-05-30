@@ -245,21 +245,17 @@
 
 <style>
     :global(.theme-5e-light) {
-        --bg-color: #FDF1DC;
         --primary-color: #922610;
         --tapered-rule-color: #922610;
         --secondary-color: #7A200D;
-        --text-color: #000000;
         --border-color: #7A200D;
         --button-color: #922610af;
     }
 
     :global(.theme-5e-dark) {
-        --bg-color: #202020;
         --primary-color: #ff6b4ac8;
         --tapered-rule-color: #ff6b4aa9;
         --secondary-color: #ff6b4aa9;
-        --text-color: #ffffff;
         --border-color: #ff6b4aa9;
         --button-color: #ffffffaf;
     }
@@ -268,6 +264,7 @@
         display: inline-block;
         position: relative;
         background: var(--bg-color);
+        border-radius: 8px;;
         color: var(--text-color);
     }
 
