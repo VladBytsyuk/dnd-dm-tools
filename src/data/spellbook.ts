@@ -3,6 +3,7 @@ import { requestUrl } from 'obsidian';
 import type { FullSpell, SmallSpell } from "src/domain/spell";
 import { PersistentCache } from "./cache";
 import type { DndSettingsController } from "src/ui/components/settings/settings_controller";
+import { SpellbookFilters } from "src/domain/spellbook_filters";
 
 export class Spellbook {
 
@@ -10,6 +11,7 @@ export class Spellbook {
     #rootDir: string;
     #dataAdapter: DataAdapter;
     #smallSpellbook: SmallSpell[];
+    #filters: SpellbookFilters | null;
     #cache: PersistentCache<FullSpell>;
 
     // ---- public functions ----
@@ -21,6 +23,7 @@ export class Spellbook {
 
     async initialize() {
         this.#smallSpellbook = await this.#loadSpellbookData();
+        this.#filters = await this.#collectSpellbookFilters();
         await this.#cache.init();
     }
 
@@ -61,6 +64,25 @@ export class Spellbook {
         }
     }
 
+    async getAllFilters(): Promise<SpellbookFilters | null> {
+        if (this.#filters) return this.#filters;
+        this.initialize();
+        return await this.getAllFilters();
+    }
+
+    async getFilteredSmallSpells(filters: SpellbookFilters): Promise<SmallSpell[]> {
+        const allSmallSpells = await this.getAllSmallSpells();
+        if (filters.levels.length === 0 && filters.schools.length === 0 && filters.sources.length === 0) {
+            return allSmallSpells;
+        }
+        return allSmallSpells.filter(spell => {
+            const matchesLevel = filters.levels.length === 0 || filters.levels.includes(spell.level);
+            const matchesSchool = filters.schools.length === 0 || filters.schools.includes(spell.school);
+            const matchesSource = filters.sources.length === 0 || filters.sources.includes(spell.source.shortName);
+            return matchesLevel && matchesSchool && matchesSource;
+        });
+    }
+
     dispose() {
         this.#cache.clear();
     }
@@ -78,6 +100,21 @@ export class Spellbook {
             console.error("Failed to load spellbook data:", error);
             return [];
         }
+    }
+
+    async #collectSpellbookFilters(): Promise<SpellbookFilters | null> {
+        const smallSpells = await this.getAllSmallSpells();
+        if (!smallSpells) return null;
+
+        let levelsSet: Set<string> = new Set();
+        let schoolsSet: Set<string> = new Set();
+        let sourcesSet: Set<string> = new Set();
+        for (const spell of smallSpells) {
+            levelsSet.add(spell.level.toString());
+            schoolsSet.add(spell.school);
+            sourcesSet.add(spell.source.shortName);
+        }
+        return SpellbookFilters(Array.from(levelsSet), Array.from(schoolsSet), Array.from(sourcesSet));
     }
 
     async #fetchSpellFromAPI(url: string): Promise<FullSpell | null> {

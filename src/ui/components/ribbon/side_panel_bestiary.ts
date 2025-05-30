@@ -138,7 +138,7 @@ class SidePanelBestiaryView extends ItemView {
                 async (filters) => {
                     contentContainer.empty();
                     await this.#updateFilters(filters);
-                    this.#renderSmallMonsters(contentContainer);
+                    this.#renderSmallMonsters(contentContainer, searchEl.inputEl.value);
                 },
             ).open();
         });

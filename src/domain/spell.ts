@@ -59,7 +59,7 @@ export interface SmallSpell {
     additionalType?: string;
     components: SpellComponents;
     url?: string;
-    source?: Source;
+    source: Source;
     id?: number;
     concentration?: boolean;
     ritual?: boolean;
