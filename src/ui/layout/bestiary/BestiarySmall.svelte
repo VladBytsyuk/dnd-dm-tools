@@ -1,9 +1,10 @@
 <script lang="ts">
-    let { smallMonster } = $props();
+    let { smallMonster, onClick } = $props();
     const { name, type, challengeRating, source } = smallMonster;
 </script>
 
-<div class="bestiary-small">
+<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions (because of no reason) -->
+<div class="bestiary-small" onclick={() => onClick(smallMonster)}>
     <div class="rating">
         <span>{challengeRating}</span>
     </div>

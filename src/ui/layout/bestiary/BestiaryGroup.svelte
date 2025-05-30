@@ -1,14 +1,16 @@
-<script>
+<script lang="ts">
     import BestiarySmall from './BestiarySmall.svelte';
 
-    let { challengeRating, smallMonsters } = $props();
+    let { challengeRating, smallMonsters, onMonsterClick } = $props();
 </script>
 
 <div class="bestiary-group">
     <details open>
         <summary class="bestiary-group-title">Опасность {challengeRating}</summary>
         <div class="monster-grid">
-            {#each smallMonsters as monster}<BestiarySmall smallMonster={monster}/>{/each}
+            {#each smallMonsters as monster}
+                <BestiarySmall smallMonster={monster} onClick={onMonsterClick}/>
+            {/each}
         </div>
     </details>
 </div>

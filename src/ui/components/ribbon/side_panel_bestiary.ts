@@ -2,14 +2,12 @@ import { ItemView, Workspace, type WorkspaceLeaf, SearchComponent, ButtonCompone
 import DndStatblockPlugin from "src/main";
 import { Bestiary } from "src/data/bestiary";
 import { TEXTS } from "src/res/texts_ru";
-import { MonsterSuggester } from "src/ui/components/suggest/monster_suggester";
 import { MonsterLayoutManager } from "../settings/monster_layout_manager";
-import type { FullMonster } from "src/domain/monster";
+import type { FullMonster, SmallMonster } from "src/domain/monster";
 import { BestiaryFiltersModal } from "../modals/bestiary_filers_modal";
 import { BestiaryFilter } from "src/domain/bestiary_filters";
-import { stat } from "fs";
+import { Debouncer, DEFAULT_DEBOUNCER_DELAY } from "src/ui/debouncer";
 import { mount } from "svelte";
-import BestiarySmall from "src/ui/layout/bestiary/BestiarySmall.svelte";
 import BestiaryGroup from "src/ui/layout/bestiary/BestiaryGroup.svelte";
 
 export function registerSidePanelBestiary(
@@ -37,6 +35,9 @@ class SidePanelBestiaryView extends ItemView {
     #bestiary: Bestiary;
     #layoutManager: MonsterLayoutManager;
     #filters: BestiaryFilter = BestiaryFilter([], [], []);
+    #filteredSmallMonsters: SmallMonster[] = [];
+    #debouncer: Debouncer | undefined = undefined;
+    #contentContainer: HTMLElement | undefined = undefined;
 
     constructor(
         leaf: WorkspaceLeaf, 
@@ -65,36 +66,67 @@ class SidePanelBestiaryView extends ItemView {
 
     async onOpen() {
         const container = this.containerEl.children[1];
+        this.#updateFilters(this.#filters);
         await this.#fillContainer(container);
     }
 
     async onClose() {
-        // Nothing to clean up.
+        this.#debouncer?.cancel();
+        this.#debouncer = undefined;
     }
 
     // ---- private methods ----
     async #fillContainer(container: Element) {
         container.empty();
-
-        const fullFilters = await this.#bestiary.getAllFilters();
         
         const headerEl = container.createDiv(`side-panel-bestiary-header`);
+        this.#contentContainer = container.createDiv('side-panel-bestiary-statblock-container');
 
-        const searchEl = new SearchComponent(headerEl).setPlaceholder(TEXTS.bestiarySearchPlaceholder);
+        this.#fillHeader(headerEl, this.#contentContainer);
+
+        if (!this.#debouncer) {
+            this.#debouncer = new Debouncer(
+                DEFAULT_DEBOUNCER_DELAY, 
+                async (value: string) =>  {
+                    const container = this.#contentContainer;
+                    if (!container) return;
+                    await this.#renderSmallMonsters(container, value)
+                },
+            );
+        }
+
+
+        if (sidePanelFullMonster) {
+            this.#contentContainer.empty();
+            this.#layoutManager.renderLayout(this.#contentContainer, sidePanelFullMonster);
+        } else {
+            await this.#renderSmallMonsters(this.#contentContainer);
+        }
+    }
+
+    async #fillHeader(headerContainer: HTMLElement, contentContainer: HTMLElement) {
+        const fullFilters = await this.#bestiary.getAllFilters();
+
+        const searchEl = new SearchComponent(headerContainer).setPlaceholder(TEXTS.bestiarySearchPlaceholder);
+        searchEl.inputEl.addEventListener("input", async (event) => {
+            const value = (event.target as HTMLInputElement).value;
+            this.#debouncer?.debounce(value);
+        });
+
         searchEl.clearButtonEl.addEventListener('click', () => {
             searchEl.setValue("");
-            statblockContainer.empty();
-            suggester.close();
+            contentContainer.empty();
+            this.#debouncer?.debounce("");
         });
 
-        const clearButton = new ButtonComponent(headerEl).setIcon("eraser");
-        clearButton.onClick((evt) => {
+        const clearButton = new ButtonComponent(headerContainer).setIcon("eraser");
+        clearButton.onClick(async (evt) => {
             searchEl.setValue("");
-            statblockContainer.empty();
-            suggester.close();
+            contentContainer.empty();
+            this.#renderSmallMonsters(contentContainer, searchEl.inputEl.value);
         });
 
-        const filtersButton = new ButtonComponent(headerEl)
+        const filtersButton = new ButtonComponent(headerContainer)
             .setIcon("sliders-horizontal")
             .setClass("side-panel-filter-item");
         filtersButton.onClick((evt) => {
@@ -103,40 +135,26 @@ class SidePanelBestiaryView extends ItemView {
                 this.#plugin.app, 
                 fullFilters,
                 this.#filters, 
-                (filters) => {
-                    statblockContainer.empty();
-                    this.#filters = filters;
-                    this.#addSmallMonsters(statblockContainer);
+                async (filters) => {
+                    contentContainer.empty();
+                    await this.#updateFilters(filters);
+                    this.#renderSmallMonsters(contentContainer);
                 },
             ).open();
         });
-
-        const statblockContainer = document.createElement('div');
-        statblockContainer.addClass('side-panel-bestiary-statblock-container');
-        container.appendChild(statblockContainer);
-        
-        const suggester = new MonsterSuggester(this.#plugin.app, searchEl, this.#bestiary);
-        suggester.onSelectMonster(fullMonster => {
-            statblockContainer.empty();
-            this.#layoutManager.renderLayout(statblockContainer, fullMonster);
-            suggester.close();
-        });
-
-        await this.#addSmallMonsters(statblockContainer);
-
-        if (sidePanelFullMonster) {
-            statblockContainer.empty();
-            this.#layoutManager.renderLayout(statblockContainer, sidePanelFullMonster);
-        }
     }
 
-    async #addSmallMonsters(container: HTMLElement) {
-        const smallMonsters = await this.#bestiary.getFilteredSmallMonsters(this.#filters);
-        if (smallMonsters.length === 0) {
-            container.createDiv("no-monsters").setText("No monsters");
-            return;
+    async #renderSmallMonsters(container: HTMLElement, searchValue: string = "") {
+        const onMonsterClick = async (smallMonster: SmallMonster) => {
+            sidePanelFullMonster = await this.#bestiary.getFullMonsterBySmallMonster(smallMonster) ?? undefined;
+            this.onOpen();
         }
 
+        const smallMonsters = this.#filteredSmallMonsters.filter(monster => {
+            return searchValue.length === 0 || 
+                monster.name.rus.toLowerCase().includes(searchValue.toLowerCase()) || 
+                monster.name.eng.toLowerCase().includes(searchValue.toLowerCase());
+        });
         const groupedMonsters = smallMonsters.reduce((groups, monster) => {
             const { challengeRating } = monster;
             if (!groups[challengeRating]) {
@@ -146,6 +164,7 @@ class SidePanelBestiaryView extends ItemView {
             return groups;
         }, {} as Record<string, typeof smallMonsters>);
 
+        container.empty();
         Object.keys(groupedMonsters)
             .map(key => ({ challengeRating: key, monsters: groupedMonsters[key] }))
             .sort((a, b) => parseCR(a.challengeRating) - parseCR(b.challengeRating))
@@ -155,9 +174,15 @@ class SidePanelBestiaryView extends ItemView {
                     props: {
                         challengeRating: challengeRating,
                         smallMonsters: monsters,
+                        onMonsterClick: onMonsterClick,
                     },
                 });
             });
+    }
+
+    async #updateFilters(filters: BestiaryFilter) {
+        this.#filters = filters;
+        this.#filteredSmallMonsters = await this.#bestiary.getFilteredSmallMonsters(filters);
     }
 }
 

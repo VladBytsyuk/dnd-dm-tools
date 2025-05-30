@@ -71,6 +71,9 @@ export class Bestiary {
 
     async getFilteredSmallMonsters(filters: BestiaryFilter): Promise<SmallMonster[]> {
         const allSmallMonsters = await this.getAllSmallMonsters();
+        if (filters.types.length === 0 && filters.challangeRatings.length === 0 && filters.sources.length === 0) {
+            return allSmallMonsters;    
+        }
         return allSmallMonsters.filter(monster => {
             const typeMatch = filters.types.length === 0 || filters.types.includes(monster.type);
             const challengeRatingMatch = filters.challangeRatings.length === 0 || filters.challangeRatings.includes(monster.challengeRating);
