@@ -251,7 +251,6 @@
             { action: monster.actions, title: TEXTS.layoutActions},
             { action: monster.bonusActions, title: TEXTS.layoutBonusActions},
             { action: monster.reactions, title: TEXTS.layoutReactions},
-            { action: monster.legendary?.list, title: TEXTS.layoutLegendaryActions},
         ] as item}
             {#if item.action != undefined} 
                 {#if item.action.length}
@@ -267,6 +266,21 @@
                 {/if}
             {/if}
         {/each}
+
+        {#if monster.legendary}
+        <div class="layout-ttg-statblock-property-block">
+            <div class="layout-ttg-statblock-block-header">{TEXTS.layoutLegendaryActions}</div>
+            {#if monster.legendary?.description}
+                <span class="layout-ttg-statblock-base-info-item-value" use:linkListener>{@html handleHtml(monster.legendary.description)}</span>
+            {/if}
+            {#each monster.legendary?.list as action}
+                <div class="layout-ttg-statblock-base-info-item">
+                    <span class="layout-ttg-statblock-base-info-item-title">{action.name}.</span>
+                    <span class="layout-ttg-statblock-base-info-item-value" use:linkListener>{@html handleHtml(action.value)}</span>
+                </div>
+            {/each}
+        </div>
+        {/if}
 
         <!-- Lair Blocks -->
         {#each [
