@@ -297,6 +297,22 @@
             </div>
             {/if}
         {/each}
+
+        <!-- Description -->
+        {#if monster.description}
+            <details class="layout-ttg-statblock-generic-block">
+                <summary class="layout-ttg-statblock-block-header">{TEXTS.layoutDescription}</summary>
+                <div class="layout-ttg-statblock-generic-description" use:linkListener>{@html handleHtml(monster.description)}</div>
+            </details>
+        {/if}
+
+        <!-- Tags -->
+        {#each monster.tags as tag}
+            <details class="layout-ttg-statblock-generic-block">
+                <summary class="layout-ttg-statblock-block-header">{tag.name}</summary>
+                <div class="layout-ttg-statblock-generic-description" use:linkListener>{@html handleHtml(tag.description)}</div>
+            </details>
+        {/each}
     </div>
 
     <button class="layout-ttg-copy-button" onclick={() => copyMonsterToClipboard(monster)}><ClipboardCopy/></button> 
@@ -519,6 +535,15 @@
         font-size: 16px;
         margin: 0.5em 0 0.5em;
         padding: 0 0 8px;
+    }
+
+    .layout-ttg-statblock-generic-block {
+        padding: 0.5em;
+        color: var(--text-color);
+        margin: 0.5em;
+        background: var(--accent-bg);
+        border-radius: 8px;
+        
     }
 
     .layout-ttg-statblock-generic-description {
