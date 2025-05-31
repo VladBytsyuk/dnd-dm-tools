@@ -48,6 +48,7 @@ export const TEXTS = {
     layoutLairActions: "Действия логова",
     layoutRegionalEffects: "Региональные эффекты",
     layoutDescription: "Описание",
+    copyToClipboard: "Скопировать в буфер обмена",
     commandAddStatblock: "Добавить статблок",
     commandAddWideStatblock: "Добавить широкий статблок",
     commandAddSpell: "Добавить заклинание",

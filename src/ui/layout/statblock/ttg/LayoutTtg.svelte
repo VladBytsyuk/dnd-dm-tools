@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { ClipboardCopy } from 'lucide-svelte';
     import { onDestroy, onMount } from 'svelte';
     import { TEXTS } from "src/res/texts_ru";
     import { copyMonsterToClipboard } from "src/data/clipboard";
@@ -57,7 +56,16 @@
             <div class="layout-ttg-statblock-section-horizontal-header">
                 <!-- Header -->
                 <div class="layout-ttg-statblock-header">
-                    <div class="layout-ttg-statblock-header-name">{monster.name.rus}</div>
+                    <div
+                        class="layout-ttg-statblock-header-name"
+                        role="button"
+                        tabindex="0"
+                        onclick={() => copyMonsterToClipboard(monster)}
+                        onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyMonsterToClipboard(monster); } }}
+                        aria-label="{TEXTS.copyToClipboard}"
+                    >
+                        {monster.name.rus} 📋
+                    </div>
                     <div class="layout-ttg-statblock-header-subname">{monster.name.eng}</div>
                     <div class="layout-ttg-statblock-header-block">
                         {#if monster.size || monster.type || monster.alignment}
@@ -314,9 +322,6 @@
             </details>
         {/each}
     </div>
-
-    <button class="layout-ttg-copy-button" onclick={() => copyMonsterToClipboard(monster)}><ClipboardCopy/></button> 
-
 </div>
 
 
@@ -341,15 +346,6 @@
         border-radius: 8px;
         border-color: #00000090;
         border-width: 2px;
-        color: var(--text-color);
-    }
-
-    .layout-ttg-copy-button {
-        display: inline-block;
-        position: absolute;
-        top: 1em;
-        right: 3em;
-        z-index: 1;
         color: var(--text-color);
     }
 
