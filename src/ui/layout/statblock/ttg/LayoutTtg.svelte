@@ -13,6 +13,7 @@
     let currentImageIndex = $state(0);
     let imagesLength = $state(monster.images?.length ?? 0);
     let images: string[] = $state([]);
+    let isImageExpanded = $state(false);
     
     const diceRollersManager = new DiceRollersManager(onRoll);
     
@@ -34,6 +35,13 @@
     const prevImage = () => {
         currentImageIndex = (currentImageIndex - 1 + imagesLength) % imagesLength;
     };
+
+    const handleOverlayClick = (e: MouseEvent) => {
+        const target = e?.target as HTMLElement;
+        if (target?.classList?.contains('expanded')) {
+            isImageExpanded = false;
+        }
+    }
 
     let themeClass = $state(getCurrentTheme() === Theme.Light ? 'theme-ttg-light' : 'theme-ttg-dark');
 
@@ -125,16 +133,20 @@
             {#if images?.length && !isTwoColumns}
             <div class="layout-ttg-statblock-images">
                 <div class="slider-container">
-                    <img class="layout-ttg-statblock-images-item" 
+                    <!-- svelte-ignore a11y_click_events_have_key_events -->
+                    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+                    <img 
+                        class="layout-ttg-statblock-images-item {isImageExpanded ? 'expanded' : ''}" 
                         src={images[currentImageIndex]} 
                         alt={monster.name.rus}
-                        onerror={(e) => e.target.src = "https://ttg.club/img/no-img.webp"}/>
-                    
+                        onclick={(e) => { isImageExpanded = !isImageExpanded; handleOverlayClick(e); }}
+                        onerror={(e) => { if (e.target) (e.target as HTMLImageElement).src = "https://ttg.club/img/no-img.webp"; } }/>
+                    {#if imagesLength > 1}
                     <div class="slider-controls">
                         <button class="arrow left" onclick={prevImage}>❮</button>
                         <button class="arrow right" onclick={nextImage}>❯</button>
                     </div>
-                
+                    {/if}
                 </div>
             </div>
             {/if}
@@ -586,6 +598,23 @@
         border-radius: 50%;
         cursor: pointer;
         transition: background 0.3s;
+    }
+
+    .layout-ttg-statblock-images-item.expanded {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-height: 90vh;
+        max-width: 90vw;
+        z-index: 1000;
+        cursor: zoom-out;
+        box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    .layout-ttg-statblock-images-item.expanded + .slider-controls {
+        z-index: 1001;
     }
 
 </style>
