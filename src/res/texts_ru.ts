@@ -79,4 +79,6 @@ export const TEXTS = {
     spellRitual: "Ритуал",
     spellClasses: "Классы",
     spellSubclasses: "Подклассы",
+    ribbonActionDmScreenTitle: "Ширма",
+    sidePanelDmScreenTitle: "Ширма",
 };

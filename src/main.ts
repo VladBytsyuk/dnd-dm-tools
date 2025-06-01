@@ -16,6 +16,7 @@ import { SpellLayoutManager } from './ui/components/settings/spell_layout_manage
 import { registerSpellMdCodeBlockProcessor } from './ui/components/processor/spell_md_code_block_processor';
 import { registerAddSpellCommand } from './ui/components/command/add_spell_command';
 import { DmScreen } from './data/dm_screen';
+import { registerSidePanelDmScreen } from './ui/components/ribbon/side_panel_dm_screen';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -34,6 +35,7 @@ export default class DndStatblockPlugin extends Plugin {
 			registerSidePanelInitiativeTracker(this);
 			registerSidePanelBestiary(this, this.#bestiary, this.#monsterLayoutManager);
 			registerSidePanelSpellbook(this, this.#spellbook, this.#spellLayoutManager);
+			registerSidePanelDmScreen(this, this.#dmScreen);
 			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#monsterLayoutManager);
 			registerSpellMdCodeBlockProcessor(this, this.#spellbook, this.#spellLayoutManager);
 			registerEncounterMdCodeBlockProcessor(this, this.#bestiary),
@@ -79,6 +81,7 @@ export default class DndStatblockPlugin extends Plugin {
 	#dispose() {
 		this.#bestiary.dispose();
 		this.#spellbook.dispose();
+		this.#dmScreen.dispose();
 		this.#monsterLayoutManager.dispose();
 		this.#spellLayoutManager.dispose();
 	}
