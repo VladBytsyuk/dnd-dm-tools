@@ -63,6 +63,7 @@ class SidePanelInitiativeTrackerView extends ItemView {
             target: container,
             props: {
                 encounter: emptyEncounter,
+                isEditable: true,
                 onUpdate: () => {},
             }
         });

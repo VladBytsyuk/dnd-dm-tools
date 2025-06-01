@@ -18,7 +18,7 @@ export class InitiativeTrackerView implements LayoutItemView {
 
     constructor(
         app: App,
-        encounter: Encounter, 
+        encounter: Encounter,
         onEncounterUpdate: (encounter: Encounter) => void,
         onPortraitClick: (url: string) => void,
     ) {
@@ -38,6 +38,7 @@ export class InitiativeTrackerView implements LayoutItemView {
             props: {
                 app: this.#app,
                 encounter: this.#encounter,
+                isEditable: false,
                 onUpdate: this.#onEncounterUpdate,
                 onPortraitClick: this.#onPortraitClick,
             },

@@ -48,7 +48,7 @@ async function encounterMdCodeBlockProcessor(
     el.empty();
     new InitiativeTrackerView(
         plugin.app, 
-        encounter, 
+        encounter,
         (newEncounter) => {}/*updateSource(stringifyYaml(newEncounter))*/,
         openBestiary,
     ) //TODO: rework auto-update source

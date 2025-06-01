@@ -31,7 +31,7 @@ function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string, addi
 
 // ---- Get from clipboard ----
 export async function getEncounterParticipantFromClipboard(): Promise<EncounterParticipant | undefined> {
-    const monster = await getFromClipboard<FullMonster>();
+    const monster = await getFromClipboard<FullMonster>("statblock");
     if (monster) {
         return mapMonsterToEncounterParticipant(monster);
     } else {
@@ -41,20 +41,24 @@ export async function getEncounterParticipantFromClipboard(): Promise<EncounterP
 }
 
 export async function getEncounterFromClipboard(): Promise<Encounter | undefined> {
-    return getFromClipboard<Encounter>();
+    return getFromClipboard<Encounter>("encounter");
 }
 
-async function getFromClipboard<T>(): Promise<T | undefined> {
+async function getFromClipboard<T>(blockName: string): Promise<T | undefined> {
     try {
         const clipboard = await navigator.clipboard.readText();
+        if (!clipboard.startsWith(`\`\`\`${blockName}`)) {
+            throw new Error(`Clipboard content does not start with \`\`\`${blockName}`);   
+        }
         const yaml = clipboard
             .split('\n')
             .filter((value) => !value.contains("\`\`\`"))
             .join('\n');
-        const obj = parseYaml(yaml) as T;    
+        const obj = parseYaml(yaml) as T;   
         return obj;
     } catch(e) {
         console.error(`Failed to read text from clipboard: ${e}`);
         new Notice(`Не удалось прочитать данные из буфера обмена`);   
+        return undefined;
     }
 }
