@@ -69,9 +69,13 @@ export const mapDiceRollerTags = (input: string): string => {
         (match, attributes) => {
             const labelMatch = attributes.match(/label="([^"]*)"/);
             const formulaMatch = attributes.match(/formula="([^"]*)"/);
-            if (!labelMatch || !formulaMatch) return match;
+            if (!formulaMatch) return match;
             const formula = formulaMatch[1];
-            return `<dice-roller ${attributes}>${formula}</dice-roller>`;
+            if (labelMatch) {
+                return `<dice-roller ${attributes}>${formula}</dice-roller>`;
+            } else {
+                return `<dice-roller label="Бросок" ${attributes}>${formula}</dice-roller>`;
+            }
         }
     );
 };
