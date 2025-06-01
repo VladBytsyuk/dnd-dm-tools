@@ -15,6 +15,7 @@ import { registerSidePanelSpellbook } from './ui/components/ribbon/side_panel_sp
 import { SpellLayoutManager } from './ui/components/settings/spell_layout_manager';
 import { registerSpellMdCodeBlockProcessor } from './ui/components/processor/spell_md_code_block_processor';
 import { registerAddSpellCommand } from './ui/components/command/add_spell_command';
+import { DmScreen } from './data/dm_screen';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -24,6 +25,7 @@ export default class DndStatblockPlugin extends Plugin {
 	#spellLayoutManager: SpellLayoutManager;
 	#bestiary: Bestiary;
 	#spellbook: Spellbook;
+	#dmScreen: DmScreen;
 
 	// ---- callbacks ----
 	async onload() {
@@ -60,6 +62,9 @@ export default class DndStatblockPlugin extends Plugin {
 
 		this.#spellbook = new Spellbook(`${this.manifest.dir}`, this.app.vault.adapter, this.#settingsController);
 		await this.#spellbook.initialize();
+
+		this.#dmScreen = new DmScreen(`${this.manifest.dir}`, this.app.vault.adapter, this.#settingsController);
+		await this.#dmScreen.initialize();
 
 		this.#monsterLayoutManager = new MonsterLayoutManager(this.app, this.#settingsController.settings, this.#spellbook);
 		this.#spellLayoutManager = new SpellLayoutManager(this.app, this.#spellbook);
