@@ -3,6 +3,7 @@ import { type FullMonster } from "../domain/monster";
 import { TEXTS } from "src/res/texts_ru";
 import type { Encounter, EncounterParticipant } from "src/domain/encounter";
 import { mapMonsterToEncounterParticipant } from "src/domain/mappers";
+import type { FullSpell } from "src/domain/spell";
 
 // ---- Copy to clipboard ----
 export function copyMonsterToClipboard(monster: FullMonster) {
@@ -11,6 +12,10 @@ export function copyMonsterToClipboard(monster: FullMonster) {
 
 export function copyEncounterToClipboard(encounter: Encounter) {
     copyToClipboard(encounter, encounter.name, "encounter");
+}
+
+export function copySpellToClipboard(spell: FullSpell) {
+    copyToClipboard(spell, spell.name.rus, "spell", `spell: ${spell.name.rus}`);    
 }
 
 function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string, additionalContent: string | null = null) {
@@ -30,6 +35,7 @@ export async function getEncounterParticipantFromClipboard(): Promise<EncounterP
     if (monster) {
         return mapMonsterToEncounterParticipant(monster);
     } else {
+        new Notice(`Не удалось прочитать статблок из буфера обмена`);   
         return undefined;
     }
 }
@@ -49,5 +55,6 @@ async function getFromClipboard<T>(): Promise<T | undefined> {
         return obj;
     } catch(e) {
         console.error(`Failed to read text from clipboard: ${e}`);
+        new Notice(`Не удалось прочитать данные из буфера обмена`);   
     }
 }

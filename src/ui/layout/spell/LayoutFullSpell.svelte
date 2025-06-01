@@ -5,6 +5,7 @@
 	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
     import type { SpellClass, SpellSubclass } from 'src/domain/spell';
+	import { copySpellToClipboard } from 'src/data/clipboard';
 
     let { spell, onRoll, onSpellHover } = $props();
 
@@ -74,7 +75,15 @@
 <div class="layout-spell-card {themeClass} {classTheme}">
     <div class="layout-spell-card-front">
         <div class="layout-spell-card-body">
-            <h3 class="layout-spell-card-name layout-spell-card-lined">{spell.name.rus}{spell.ritual ? " [" + TEXTS.spellRitual + "]" : ""}</h3>
+            <!-- svelte-ignore a11y_no_noninteractive_element_to_interactive_role -->
+            <h3 
+                class="layout-spell-card-name layout-spell-card-lined"
+                role="button"
+                tabindex="0"
+                onclick={() => copySpellToClipboard(spell)}
+                onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copySpellToClipboard(spell); } }}
+                aria-label="{TEXTS.copyToClipboard}"
+            >{spell.name.rus}{spell.ritual ? " [" + TEXTS.spellRitual + "]" : ""} 📋</h3>
             
             <div class="layout-spell-card-table">
 
