@@ -1,7 +1,10 @@
 import { ItemView, Workspace, type WorkspaceLeaf } from "obsidian";
 import type { DmScreen } from "src/data/dm_screen";
+import type { DmScreenGroup } from "src/domain/dm_screen_group";
 import type DndStatblockPlugin from "src/main";
 import { TEXTS } from "src/res/texts_ru";
+import DmScreenUi from "src/ui/layout/sidepanel/DmScreenUi.svelte";
+import { mount } from "svelte";
 
 export function registerSidePanelDmScreen(
     plugin: DndStatblockPlugin,
@@ -9,10 +12,10 @@ export function registerSidePanelDmScreen(
 ) {
     plugin.registerView(
         SIDE_PANEL_DM_SCREEN_VIEW,
-        (leaf: WorkspaceLeaf) => new SidePanelDmScreenView(leaf, plugin, dmScreen),
+        (leaf: WorkspaceLeaf) => new SidePanelDmScreenView(leaf, dmScreen),
     );
     plugin.addRibbonIcon("book-open", TEXTS.ribbonActionDmScreenTitle, async (mouseEvent) => {
-        openSidePanelDmScreen(plugin.app.workspace, undefined);
+        openSidePanelDmScreen(plugin.app.workspace);
     });
 }
 
@@ -20,18 +23,15 @@ const SIDE_PANEL_DM_SCREEN_VIEW = "obsidian-dnd-statblock-side-panel-dm-screen";
 
 class SidePanelDmScreenView extends ItemView {
 
-    // ---- fields ----
-    #plugin: DndStatblockPlugin;    
-    #dmScreen: DmScreen;            
-    #contentContainer: HTMLElement | undefined = undefined;
+    // ---- fields ----   
+    #dmScreen: DmScreen;
 
+    // ---- constructor ----
     constructor(
         leaf: WorkspaceLeaf, 
-        plugin: DndStatblockPlugin, 
         dmScreen: DmScreen,
     ) {
         super(leaf);
-        this.#plugin = plugin;
         this.#dmScreen = dmScreen;
     }
 
@@ -49,17 +49,20 @@ class SidePanelDmScreenView extends ItemView {
     } 
 
     async onOpen() {
+        const rootGroup = await this.#dmScreen.getRootGroup();    
+
         const container = this.containerEl.children[1];
-        await this.#fillContainer(container);
-    }
-    async onClose() {           
-        this.#contentContainer?.empty();
-        this.#contentContainer = undefined;
+        container.empty();
+        mount(DmScreenUi, { 
+            target: container, 
+            props: { 
+                rootGroup: rootGroup,
+                loadScreenItem: async (group: DmScreenGroup) => await this.#dmScreen.getScreenItemByUrl(group.url),
+            }
+        });
     }
 
-    // ---- private methods ----
-    async #fillContainer(container: Element) {
-        container.empty();
+    async onClose() {           
     }
 }
 

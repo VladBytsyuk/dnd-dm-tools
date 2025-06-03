@@ -81,4 +81,8 @@ export const TEXTS = {
     spellSubclasses: "Подклассы",
     ribbonActionDmScreenTitle: "Ширма",
     sidePanelDmScreenTitle: "Ширма",
+    dmScreenSearchPlaceholder: "Поиск в ширме",
+    dmScreenTitle: "Ширма мастера",
+    dmScreenItemParent: "Раздел",
+    dmScreenItemSource: "Источник",
 };

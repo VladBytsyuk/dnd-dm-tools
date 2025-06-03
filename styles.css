@@ -15,6 +15,10 @@ If your plugin does not need CSS, delete this file.
     display: flex;
 }
 
+.side-panel-dm-screen-header {
+    display: flex;
+}
+
 .search-input-container {
     flex: 1;
     margin: 0 0.5em 0 0
