@@ -1,3 +1,5 @@
+import type { DmScreenItem } from "./dm_screen_item";
+
 interface SourceGroup {
     name: string;
     shortName: string;
@@ -63,6 +65,15 @@ export function DmScreenGroup(
         children
     };
 }       
+
+export function allChildrenOfGroup(group: DmScreenGroup): DmScreenGroup[] {
+    if (!group.children || group.children.length === 0) {
+        return [group];
+    }   
+    return group.children.reduce((acc: DmScreenGroup[], child: DmScreenGroup) => {
+        return acc.concat(allChildrenOfGroup(child));
+    }, []);
+}
 
 export function groupedChildrenOf(group: DmScreenGroup): Array<{ subgroupName: string, group: DmScreenGroup[] }> {
     const map = new Map<string, DmScreenGroup[]>();

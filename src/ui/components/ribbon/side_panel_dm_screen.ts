@@ -1,6 +1,7 @@
 import { ItemView, Workspace, type WorkspaceLeaf } from "obsidian";
 import type { DmScreen } from "src/data/dm_screen";
 import type { DmScreenGroup } from "src/domain/dm_screen_group";
+import type { DmScreenItem } from "src/domain/dm_screen_item";
 import type DndStatblockPlugin from "src/main";
 import { TEXTS } from "src/res/texts_ru";
 import DmScreenUi from "src/ui/layout/sidepanel/DmScreenUi.svelte";
@@ -15,9 +16,11 @@ export function registerSidePanelDmScreen(
         (leaf: WorkspaceLeaf) => new SidePanelDmScreenView(leaf, dmScreen),
     );
     plugin.addRibbonIcon("book-open", TEXTS.ribbonActionDmScreenTitle, async (mouseEvent) => {
-        openSidePanelDmScreen(plugin.app.workspace);
+        openSidePanelDmScreen(plugin.app.workspace, undefined);
     });
 }
+
+let sidePanelScreenItem: DmScreenItem | undefined = undefined;
 
 const SIDE_PANEL_DM_SCREEN_VIEW = "obsidian-dnd-statblock-side-panel-dm-screen";
 
@@ -57,6 +60,7 @@ class SidePanelDmScreenView extends ItemView {
             target: container, 
             props: { 
                 rootGroup: rootGroup,
+                screenItem: sidePanelScreenItem,
                 loadScreenItem: async (group: DmScreenGroup) => await this.#dmScreen.getScreenItemByUrl(group.url),
             }
         });
@@ -68,7 +72,9 @@ class SidePanelDmScreenView extends ItemView {
 
 export async function openSidePanelDmScreen(
     workspace: Workspace,
+    screenItem: DmScreenItem | undefined,
 ): Promise<SidePanelDmScreenView> {
+    sidePanelScreenItem = screenItem;
 
     let leaf: WorkspaceLeaf;
     const sidePanelLeaves = workspace.getLeavesOfType(SIDE_PANEL_DM_SCREEN_VIEW);

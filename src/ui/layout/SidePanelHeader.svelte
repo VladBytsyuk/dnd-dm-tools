@@ -24,6 +24,7 @@
 
     function onClearClick() {
         searchValue = '';
+        onvaluechange?.('');
         if (onclearclick) {
             onclearclick();
         }

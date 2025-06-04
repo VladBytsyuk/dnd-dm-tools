@@ -1,18 +1,31 @@
 <script lang="ts">
 	import DmScreenGroupUi from "./DmScreenGroupUi.svelte";
-	import { EmptyDmScreenGroup, groupedChildrenOf, type DmScreenGroup } from "src/domain/dm_screen_group";
+	import { allChildrenOfGroup, EmptyDmScreenGroup, groupedChildrenOf, type DmScreenGroup } from "src/domain/dm_screen_group";
 	import SidePanelHeader from "../SidePanelHeader.svelte";
 	import type { DmScreenItem } from "src/domain/dm_screen_item";
 	import DmScreenItemUi from "./DmScreenItemUi.svelte";
 
     // ---- Props ----
-    let { rootGroup, loadScreenItem } = $props();
+    let { rootGroup, screenItem, loadScreenItem } = $props();
 
     // ---- State ----
     let groupsStack: DmScreenGroup[] = $state([rootGroup]);
     let currentGroup: DmScreenGroup = $state(rootGroup);
     let searchBarValue: string = $state('');
-    let currentScreenItem: DmScreenItem | null = $state(null);
+    let filteredGroups: DmScreenGroup[] = $state([]);
+    let currentScreenItem: DmScreenItem | null = $state(screenItem);
+
+    function filterGroups() {
+        if (searchBarValue.length === 0) {
+            filteredGroups = [];
+            return 
+        }
+
+        const searchValueNormalized = searchBarValue.toLowerCase();
+        const checkName = (name: string) => name.toLowerCase().includes(searchValueNormalized);
+
+        filteredGroups = allChildrenOfGroup(rootGroup).filter(item => checkName(item.name.rus) || checkName(item.name.eng));
+    }
 
     // ---- Event Handlers ----
     function onSearchBarBackClick() {
@@ -24,6 +37,11 @@
             groupsStack.pop();
             currentGroup = groupsStack.last() || EmptyDmScreenGroup();
         }
+    }
+
+    function onSearchBarValueChanged(value: string) {
+        searchBarValue = value;
+        filterGroups();
     }
 
     const onGroupClick = (group: DmScreenGroup) => async () => {
@@ -43,13 +61,29 @@
 
 <div>
     <SidePanelHeader
-        onbackclick={groupsStack.length > 1 ? onSearchBarBackClick : undefined}
-        onvaluechange={(value: string) => searchBarValue = value}
+        onbackclick={groupsStack.length > 1 || currentScreenItem ? onSearchBarBackClick : undefined}
+        onvaluechange={onSearchBarValueChanged}
         onclearclick={undefined}
         onfiltersclick={undefined}
     />
     {#if currentScreenItem}
         <DmScreenItemUi item={currentScreenItem} />
+    {:else if searchBarValue.length > 0}
+        <h2>Результаты поиска</h2>
+        {#if filteredGroups.length === 0}
+            <div class="group-description">Ничего не найдено</div>
+        {:else}
+            <div>
+                {#each filteredGroups as group}
+                    <DmScreenGroupUi
+                        icon={group.icon}
+                        name={group.name}
+                        source={group.source.shortName}
+                        onclick={onGroupClick(group)}        
+                    />
+                {/each}
+            </div>
+        {/if}
     {:else if currentGroup}
         <h2>{currentGroup.name.rus}</h2>
         {#if currentGroup.description}
