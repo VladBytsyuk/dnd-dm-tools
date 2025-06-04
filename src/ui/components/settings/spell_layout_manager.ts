@@ -4,6 +4,7 @@ import { App, Notice } from "obsidian";
 import { FullSpellItemView } from "src/ui/layout/spell/FullSpellItem";
 import type { Spellbook } from "src/data/spellbook";
 import { openSidePanelSpellbook } from "../ribbon/side_panel_spellbook";
+import type { HtmlLinkListener } from "src/domain/html_click";
 
 class LayoutManagerCache {
 
@@ -28,12 +29,14 @@ export class SpellLayoutManager {
 	// ---- fields ----
     #app: App;
     #spellbook: Spellbook;
+    #htmlLinkListener: HtmlLinkListener;
     #cache: LayoutManagerCache[] = [];
     
 
-    constructor(app: App, spellbook: Spellbook) {
+    constructor(app: App, spellbook: Spellbook, htmlLinkListener: HtmlLinkListener) {
         this.#app = app;
         this.#spellbook = spellbook;
+        this.#htmlLinkListener = htmlLinkListener;
     }
 
 	// ---- methods ----
@@ -54,7 +57,7 @@ export class SpellLayoutManager {
             ?.destroy();
         container.empty();
         const viewContainer = container.createDiv("statblock-view-container");
-        let itemView: LayoutItemView = new FullSpellItemView(spell, onRoll, onSpellClick);
+        let itemView: LayoutItemView = new FullSpellItemView(spell, this.#htmlLinkListener, onRoll);
 
         itemView.render(viewContainer);
         const cacheItem = new LayoutManagerCache(itemView, container, spell);

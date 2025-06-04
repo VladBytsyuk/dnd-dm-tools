@@ -1,13 +1,14 @@
 <script lang="ts">
-	import { addLinkListeners, handleHtml, separate } from 'src/domain/utils';
+	import { handleHtml, separate } from 'src/domain/utils';
     import { onDestroy, onMount } from 'svelte';
     import { TEXTS } from "src/res/texts_ru";
 	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
     import type { SpellClass, SpellSubclass } from 'src/domain/spell';
 	import { copySpellToClipboard } from 'src/data/clipboard';
+	import { registerHtmlLinkListener } from 'src/domain/html_click';
 
-    let { spell, onRoll, onSpellHover } = $props();
+    let { spell, onRoll, htmlLinkListener } = $props();
 
     const diceRollersManager = new DiceRollersManager(onRoll);
 
@@ -69,7 +70,7 @@
     let classes = separate(spell.classes.map((it: SpellClass) => it.name));
     let classHint = TEXTS.spellClasses + ": " + classes + (subClasses ? "\n" + TEXTS.spellSubclasses + ": " + subClasses : "");
     
-    const linkListener = addLinkListeners(onSpellHover);
+    const linkListener = registerHtmlLinkListener(htmlLinkListener);
 </script>
 
 <div class="layout-spell-card {themeClass} {classTheme}">

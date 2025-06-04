@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { ArrowLeft, Eraser, SlidersHorizontal } from "lucide-svelte";
-	import { Debouncer, DEFAULT_DEBOUNCER_DELAY } from "../debouncer";
+	import { Debouncer, DEFAULT_DEBOUNCER_DELAY } from "../../debouncer";
 	import { onDestroy } from "svelte";
 
     // ---- Props ----

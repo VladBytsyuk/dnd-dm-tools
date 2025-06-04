@@ -5,10 +5,11 @@
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
 	import { calculateAndFormatModifier, formatModifier } from 'src/domain/modifier';
 	import { DiceRollersManager } from '../../dice-roller/DiceRollersManager';
-	import { addLinkListeners, handleHtml, joinList, joinSpeed, separate } from 'src/domain/utils';
+	import { handleHtml, joinList, joinSpeed, separate } from 'src/domain/utils';
 	import { getImageSource } from 'src/domain/image_utils';
+	import { registerHtmlLinkListener } from 'src/domain/html_click';
 
-    let { app, monster, isTwoColumns, onRoll, onSpellHover } = $props()
+    let { app, monster, isTwoColumns, onRoll, htmlLinkListener } = $props()
 
     let currentImageIndex = $state(0);
     let imagesLength = $state(monster.images?.length ?? 0);
@@ -53,7 +54,7 @@
         return () => { unsubscribe() };
     });
 
-    const linkListener = addLinkListeners(onSpellHover);
+    const linkListener = registerHtmlLinkListener(htmlLinkListener);   
 </script>
   
 <div class="layout-ttg {themeClass}">

@@ -4,6 +4,7 @@ import LayoutTtg from 'src/ui/layout/statblock/ttg/LayoutTtg.svelte';
 import { mount, unmount } from 'svelte';
 import type { LayoutItemView } from '../../LayoutItemView';
 import type { App } from 'obsidian';
+import type { HtmlLinkListener } from 'src/domain/html_click';
 
 const LAYOUT_TTG_ITEM_VIEW_TYPE_EXAMPLE = 'obsidian-dnd-statblock-layout-ttg-item-view';
 
@@ -14,21 +15,21 @@ export class LayoutTtgItemView implements LayoutItemView {
     #component: ReturnType<typeof LayoutTtg> | undefined;
     #monster: FullMonster;
     #twoColumns: boolean;
+    #htmlLinkListener: HtmlLinkListener;
     #onRoll: (label: string, value: number) => void;
-    #onSpellHover: (url: string) => void;
 
     constructor(
         app: App,
         monster: FullMonster, 
         twoColumns: boolean,
+        htmlLinkListener: HtmlLinkListener,
         onRoll: (label: string, value: number) => void,
-        onSpellHover: (url: string) => void,
     ) {
         this.#app = app;
         this.#monster = monster;
         this.#twoColumns = twoColumns;
+        this.#htmlLinkListener = htmlLinkListener;
         this.#onRoll = onRoll;
-        this.#onSpellHover = onSpellHover;
     }
 
 	// ---- methods ----
@@ -43,7 +44,7 @@ export class LayoutTtgItemView implements LayoutItemView {
                 monster: this.#monster,
                 isTwoColumns: this.#twoColumns,
                 onRoll: this.#onRoll,
-                onSpellHover: this.#onSpellHover,
+                htmlLinkListener: this.#htmlLinkListener,
             },
         });
     }

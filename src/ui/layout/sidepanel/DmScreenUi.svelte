@@ -1,7 +1,7 @@
 <script lang="ts">
 	import DmScreenGroupUi from "./DmScreenGroupUi.svelte";
 	import { allChildrenOfGroup, EmptyDmScreenGroup, groupedChildrenOf, type DmScreenGroup } from "src/domain/dm_screen_group";
-	import SidePanelHeader from "../SidePanelHeader.svelte";
+	import SidePanelHeader from "../uikit/SidePanelHeader.svelte";
 	import type { DmScreenItem } from "src/domain/dm_screen_item";
 	import DmScreenItemUi from "./DmScreenItemUi.svelte";
 

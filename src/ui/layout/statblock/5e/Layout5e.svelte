@@ -6,9 +6,10 @@
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
 	import { calculateAndFormatModifier, formatModifier } from 'src/domain/modifier';
 	import { DiceRollersManager } from '../../dice-roller/DiceRollersManager';
-	import { addLinkListeners, handleHtml, joinList, joinSpeed, separate } from 'src/domain/utils';
+	import { handleHtml, joinList, joinSpeed, separate } from 'src/domain/utils';
+	import { registerHtmlLinkListener } from 'src/domain/html_click';
 
-    let { monster, isTwoColumns, onRoll, onSpellHover } = $props()
+    let { monster, isTwoColumns, onRoll, htmlLinkListener } = $props()
 
     const diceRollersManager = new DiceRollersManager(onRoll);
     
@@ -30,7 +31,7 @@
         return () => { unsubscribe() };
     });
 
-    const linkListener = addLinkListeners(onSpellHover);
+    const linkListener = registerHtmlLinkListener(htmlLinkListener);
 </script>
   
 <div class="layout-5e {themeClass}">

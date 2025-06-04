@@ -17,6 +17,7 @@ import { registerSpellMdCodeBlockProcessor } from './ui/components/processor/spe
 import { registerAddSpellCommand } from './ui/components/command/add_spell_command';
 import { DmScreen } from './data/dm_screen';
 import { registerSidePanelDmScreen } from './ui/components/ribbon/side_panel_dm_screen';
+import { HtmlLinkListener } from './domain/html_click';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -27,6 +28,7 @@ export default class DndStatblockPlugin extends Plugin {
 	#bestiary: Bestiary;
 	#spellbook: Spellbook;
 	#dmScreen: DmScreen;
+	#htmlLinkListener: HtmlLinkListener;
 
 	// ---- callbacks ----
 	async onload() {
@@ -68,8 +70,10 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#dmScreen = new DmScreen(`${this.manifest.dir}`, this.app.vault.adapter, this.#settingsController);
 		await this.#dmScreen.initialize();
 
-		this.#monsterLayoutManager = new MonsterLayoutManager(this.app, this.#settingsController.settings, this.#spellbook);
-		this.#spellLayoutManager = new SpellLayoutManager(this.app, this.#spellbook);
+		this.#htmlLinkListener = HtmlLinkListener(this.app.workspace, this.#spellbook, this.#dmScreen);
+
+		this.#monsterLayoutManager = new MonsterLayoutManager(this.app, this.#settingsController.settings, this.#spellbook, this.#htmlLinkListener);
+		this.#spellLayoutManager = new SpellLayoutManager(this.app, this.#spellbook, this.#htmlLinkListener);
 
 		callback();
 	}
