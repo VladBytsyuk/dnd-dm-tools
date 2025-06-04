@@ -1,20 +1,25 @@
 import type { Workspace } from "obsidian";
+import type { Bestiary } from "src/data/bestiary";
 import type { DmScreen } from "src/data/dm_screen";
 import type { Spellbook } from "src/data/spellbook";
+import { openSidePanelBestiary } from "src/ui/components/ribbon/side_panel_bestiary";
 import { openSidePanelDmScreen } from "src/ui/components/ribbon/side_panel_dm_screen";
 import { openSidePanelSpellbook } from "src/ui/components/ribbon/side_panel_spellbook";
 
 export interface HtmlLinkListener {
+    onBeastClick: (url: string) => void;
     onSpellClick: (url: string) => void;
     onScreenItemClick: (url: string) => void;
 }
 
 export function HtmlLinkListener(
     workspace: Workspace,
+    bestiary: Bestiary,
     spellbook: Spellbook,
     dmScreen: DmScreen, 
 ): HtmlLinkListener {
     return {
+        onBeastClick: onBeastClick(bestiary, workspace),
         onSpellClick: onSpellUrlClick(spellbook, workspace),
         onScreenItemClick: onScreenItemlUrlClick(dmScreen, workspace),
     };
@@ -32,6 +37,7 @@ function LinkListener(href: string, onClick: (url: string) => void): LinkListene
 export const registerHtmlLinkListener = (htmlLinkListener: HtmlLinkListener) => (node: HTMLElement) => {
     return addHtmlLinkLiteners(
         [
+            LinkListener('/bestiary/', htmlLinkListener.onBeastClick),
             LinkListener('/spells/', htmlLinkListener.onSpellClick),
             LinkListener('/screens/', htmlLinkListener.onScreenItemClick),
         ]
@@ -60,6 +66,11 @@ const addHtmlLinkLiteners = (linkListeners: LinkListener[]) => (node: HTMLElemen
             links.forEach(link => link.removeEventListener('click', handleLinkClick));
         }
     };
+}
+
+const onBeastClick = (bestiary: Bestiary, workspace: Workspace) => async (url: string) => {
+    const fullMonster = await bestiary.getFullMonsterByUrl(url);
+    if (fullMonster) await openSidePanelBestiary(workspace, fullMonster);
 }
 
 const onSpellUrlClick = (spellbook: Spellbook, workspace: Workspace) => async (url: string) => {

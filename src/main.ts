@@ -70,7 +70,7 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#dmScreen = new DmScreen(`${this.manifest.dir}`, this.app.vault.adapter, this.#settingsController);
 		await this.#dmScreen.initialize();
 
-		this.#htmlLinkListener = HtmlLinkListener(this.app.workspace, this.#spellbook, this.#dmScreen);
+		this.#htmlLinkListener = HtmlLinkListener(this.app.workspace, this.#bestiary, this.#spellbook, this.#dmScreen);
 
 		this.#monsterLayoutManager = new MonsterLayoutManager(this.app, this.#settingsController.settings, this.#spellbook, this.#htmlLinkListener);
 		this.#spellLayoutManager = new SpellLayoutManager(this.app, this.#spellbook, this.#htmlLinkListener);
