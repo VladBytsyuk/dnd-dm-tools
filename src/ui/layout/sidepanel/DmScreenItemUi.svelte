@@ -1,20 +1,29 @@
 <script lang="ts">
 	import { TEXTS } from "src/res/texts_ru";
+	import HtmlBlock from "../uikit/HtmlBlock.svelte";
 
     // ---- props ----
-    let { item } = $props();
+    let { item, htmlLinkListener } = $props();
 </script>
 
 <div class="item">
+    {#if item.name}
     <div class="item-header-box">
         <div class="item-header-title">{item.name.rus} <span class="item-header-subtitle">[{item.name.eng}]</span></div>
     </div>
+    {/if}
     <div class="item-content">
+        {#if item.parent && item.source}
         <div class="item-content-source">
-            <div class="item-content-source-left">{TEXTS.dmScreenItemParent}: {item.parent.name.rus}</div>
-            <div class="item-content-source-right">{TEXTS.dmScreenItemSource}: {item.source.shortName}</div>
+            {#if item.parent}<div class="item-content-source-left">{TEXTS.dmScreenItemParent}: {item.parent.name.rus}</div>{/if}
+            {#if item.source}<div class="item-content-source-right">{TEXTS.dmScreenItemSource}: {item.source.shortName}</div>{/if}
         </div>
-        <div class="item-content-text">{@html item.description}</div>
+        {/if}
+        {#if item.description}
+        <div class="item-content-text">
+            <HtmlBlock htmlContent={item.description} htmlLinkListener={htmlLinkListener} />
+        </div>
+        {/if}
     </div>
 </div>
 
@@ -80,5 +89,6 @@
     }   
 
     .item-content-text {
+        margin-top: 1em;
     }
 </style>

@@ -69,5 +69,12 @@ const onSpellUrlClick = (spellbook: Spellbook, workspace: Workspace) => async (u
 
 const onScreenItemlUrlClick = (dmScreeen: DmScreen, workspace: Workspace) => async (url: string) => {
     const screenItem = await dmScreeen.getScreenItemByUrl(url);
-    if (screenItem) await openSidePanelDmScreen(workspace, screenItem);
+    if (screenItem) {
+        await openSidePanelDmScreen(workspace, undefined, screenItem);
+    } else {
+        const screenGroup = await dmScreeen.getScreenGroupByUrl(url);
+        if (screenGroup) {
+            await openSidePanelDmScreen(workspace, screenGroup, undefined);
+        }
+    }
 };

@@ -6,11 +6,11 @@
 	import DmScreenItemUi from "./DmScreenItemUi.svelte";
 
     // ---- Props ----
-    let { rootGroup, screenItem, loadScreenItem } = $props();
+    let { rootGroup, screenGroup, screenItem, htmlLinkListener, loadScreenItem } = $props();
 
     // ---- State ----
-    let groupsStack: DmScreenGroup[] = $state([rootGroup]);
-    let currentGroup: DmScreenGroup = $state(rootGroup);
+    let groupsStack: DmScreenGroup[] = $state(screenGroup ? [rootGroup, screenGroup] : [rootGroup]);
+    let currentGroup: DmScreenGroup = $state(screenGroup || rootGroup);
     let searchBarValue: string = $state('');
     let filteredGroups: DmScreenGroup[] = $state([]);
     let currentScreenItem: DmScreenItem | null = $state(screenItem);
@@ -68,7 +68,10 @@
     />
     <div style="height:1em;"></div>
     {#if currentScreenItem}
-        <DmScreenItemUi item={currentScreenItem} />
+        <DmScreenItemUi 
+            item={currentScreenItem}
+            htmlLinkListener={htmlLinkListener}
+        />
     {:else if searchBarValue.length > 0}
         <h2>Результаты поиска</h2>
         {#if filteredGroups.length === 0}

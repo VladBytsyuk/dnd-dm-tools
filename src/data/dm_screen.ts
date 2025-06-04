@@ -30,6 +30,11 @@ export class DmScreen {
         return await this.getRootGroup();
     }
 
+    async getScreenGroupByUrl(url: string): Promise<DmScreenGroup | undefined> {
+        const group = this.#rootGroup.children?.find(it => it.url === url);
+        return group;
+    }
+
     async getScreenItemByUrl(url: string): Promise<DmScreenItem | null> {
         const cachedItem = this.#cache.get(url);
         if (cachedItem) {

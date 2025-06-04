@@ -2,6 +2,7 @@ import { ItemView, Workspace, type WorkspaceLeaf } from "obsidian";
 import type { DmScreen } from "src/data/dm_screen";
 import type { DmScreenGroup } from "src/domain/dm_screen_group";
 import type { DmScreenItem } from "src/domain/dm_screen_item";
+import type { HtmlLinkListener } from "src/domain/html_click";
 import type DndStatblockPlugin from "src/main";
 import { TEXTS } from "src/res/texts_ru";
 import DmScreenUi from "src/ui/layout/sidepanel/DmScreenUi.svelte";
@@ -10,16 +11,18 @@ import { mount } from "svelte";
 export function registerSidePanelDmScreen(
     plugin: DndStatblockPlugin,
     dmScreen: DmScreen,
+    htmlLinkListener: HtmlLinkListener,
 ) {
     plugin.registerView(
         SIDE_PANEL_DM_SCREEN_VIEW,
-        (leaf: WorkspaceLeaf) => new SidePanelDmScreenView(leaf, dmScreen),
+        (leaf: WorkspaceLeaf) => new SidePanelDmScreenView(leaf, dmScreen, htmlLinkListener),
     );
     plugin.addRibbonIcon("book-open", TEXTS.ribbonActionDmScreenTitle, async (mouseEvent) => {
-        openSidePanelDmScreen(plugin.app.workspace, undefined);
+        openSidePanelDmScreen(plugin.app.workspace, undefined, undefined);
     });
 }
 
+let sidePanelScreenGroup: DmScreenGroup | undefined = undefined;    
 let sidePanelScreenItem: DmScreenItem | undefined = undefined;
 
 const SIDE_PANEL_DM_SCREEN_VIEW = "obsidian-dnd-statblock-side-panel-dm-screen";
@@ -28,14 +31,17 @@ class SidePanelDmScreenView extends ItemView {
 
     // ---- fields ----   
     #dmScreen: DmScreen;
+    #htmlLinkListener: HtmlLinkListener;
 
     // ---- constructor ----
     constructor(
         leaf: WorkspaceLeaf, 
         dmScreen: DmScreen,
+        htmlLinkListener: HtmlLinkListener,
     ) {
         super(leaf);
         this.#dmScreen = dmScreen;
+        this.#htmlLinkListener = htmlLinkListener;
     }
 
     // ---- callbacks ----
@@ -60,7 +66,9 @@ class SidePanelDmScreenView extends ItemView {
             target: container, 
             props: { 
                 rootGroup: rootGroup,
+                screenGroup: sidePanelScreenGroup,
                 screenItem: sidePanelScreenItem,
+                htmlLinkListener: this.#htmlLinkListener,
                 loadScreenItem: async (group: DmScreenGroup) => await this.#dmScreen.getScreenItemByUrl(group.url),
             }
         });
@@ -72,8 +80,10 @@ class SidePanelDmScreenView extends ItemView {
 
 export async function openSidePanelDmScreen(
     workspace: Workspace,
+    screenGroup: DmScreenGroup | undefined,
     screenItem: DmScreenItem | undefined,
 ): Promise<SidePanelDmScreenView> {
+    sidePanelScreenGroup = screenGroup;
     sidePanelScreenItem = screenItem;
 
     let leaf: WorkspaceLeaf;
