@@ -551,7 +551,7 @@
         margin: 0.5em;
         background: var(--accent-bg);
         border-radius: 8px;
-        
+        cursor: pointer;
     }
 
     .layout-ttg-statblock-generic-description {
