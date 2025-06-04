@@ -66,6 +66,7 @@
         onclearclick={undefined}
         onfiltersclick={undefined}
     />
+    <div style="height:1em;"></div>
     {#if currentScreenItem}
         <DmScreenItemUi item={currentScreenItem} />
     {:else if searchBarValue.length > 0}

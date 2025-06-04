@@ -6,8 +6,8 @@
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
 	import { calculateAndFormatModifier, formatModifier } from 'src/domain/modifier';
 	import { DiceRollersManager } from '../../dice-roller/DiceRollersManager';
-	import { handleHtml, joinList, joinSpeed, separate } from 'src/domain/utils';
-	import { registerHtmlLinkListener } from 'src/domain/html_click';
+	import { joinList, joinSpeed, separate } from 'src/domain/utils';
+	import HtmlBlock from '../../uikit/HtmlBlock.svelte';
 
     let { monster, isTwoColumns, onRoll, htmlLinkListener } = $props()
 
@@ -30,8 +30,6 @@
 
         return () => { unsubscribe() };
     });
-
-    const linkListener = registerHtmlLinkListener(htmlLinkListener);
 </script>
   
 <div class="layout-5e {themeClass}">
@@ -117,22 +115,30 @@
             {#if monster.savingThrows}
             <div class="layout-5e-statblock-base-info-item">
                 <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSaves}</span> 
-                <span class="layout-5e-statblock-base-info-item-value" use:linkListener>
-                    {@html separate(monster.savingThrows.map(it => 
-                        `${it.name} <dice-roller label="${TEXTS.layoutSave}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
-                    ))}
-                </span>
+                <HtmlBlock 
+                    class="layout-5e-statblock-base-info-item-value"
+                    htmlContent={
+                        separate(monster.savingThrows.map(it => 
+                            `${it.name} <dice-roller label="${TEXTS.layoutSave}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
+                        ))
+                    }
+                    htmlLinkListener={htmlLinkListener} 
+                />
             </div>
             {/if}
 
             {#if monster.skills}
             <div class="layout-5e-statblock-base-info-item">
-                <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSkills}</span> 
-                <span class="layout-5e-statblock-base-info-item-value" use:linkListener>
-                    {@html separate(monster.skills.map(it => 
-                        `${it.name} <dice-roller label="${TEXTS.layoutSkill}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
-                    ))}
-                </span>
+                <span class="layout-5e-statblock-base-info-item-title">{TEXTS.layoutSkills}</span>
+                <HtmlBlock
+                    class="layout-5e-statblock-base-info-item-value"
+                    htmlContent={
+                        separate(monster.skills.map(it => 
+                            `${it.name} <dice-roller label="${TEXTS.layoutSkill}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
+                        ))
+                    }
+                    htmlLinkListener={htmlLinkListener} 
+                />
             </div>
             {/if}
 
@@ -199,7 +205,7 @@
         {#if monster.feats}
             <div class="layout-5e-statblock-property-block">
             {#each monster.feats as feat}
-                <div use:linkListener><b>{feat.name}.</b> {@html handleHtml(feat.value)}</div>
+                <div><b>{feat.name}.</b> <HtmlBlock htmlContent={feat.value} htmlLinkListener={htmlLinkListener}/></div>
             {/each}
             </div>
         {/if}
@@ -215,7 +221,7 @@
                 <div class="layout-5e-statblock-property-block">
                     <div class="layout-5e-statblock-block-header">{item.title}</div>
                     {#each item.action as action}
-                    <div use:linkListener><b>{action.name}.</b> {@html handleHtml(action.value)}</div>
+                    <div><b>{action.name}.</b>  <HtmlBlock htmlContent={action.value} htmlLinkListener={htmlLinkListener}/></div>
                     {/each}
                 </div>
                 {/if}
@@ -233,7 +239,11 @@
         <div class="layout-5e-statblock-property-block">
             <div class="layout-5e-statblock-block-header">{item.title}</div>
             <div class="layout-5e-statblock-base-info-item">
-                <span class="layout-5e-statblock-base-info-item-value" use:linkListener>{@html handleHtml(item.action)}</span>
+                <HtmlBlock 
+                    class="layout-5e-statblock-base-info-item-value"
+                    htmlContent={item.action}
+                    htmlLinkListener={htmlLinkListener}
+                />
             </div>
         </div>
         {/if}
