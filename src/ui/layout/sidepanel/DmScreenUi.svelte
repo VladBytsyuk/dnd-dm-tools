@@ -6,7 +6,7 @@
 	import DmScreenItemUi from "./DmScreenItemUi.svelte";
 
     // ---- Props ----
-    let { rootGroup, screenGroup, screenItem, htmlLinkListener, loadScreenItem } = $props();
+    let { rootGroup, screenGroup, screenItem, uiEventListener, loadScreenItem } = $props();
 
     // ---- State ----
     let groupsStack: DmScreenGroup[] = $state(screenGroup ? [rootGroup, screenGroup] : [rootGroup]);
@@ -63,14 +63,16 @@
     <SidePanelHeader
         onbackclick={groupsStack.length > 1 || currentScreenItem ? onSearchBarBackClick : undefined}
         onvaluechange={onSearchBarValueChanged}
+        isvaluechangable={undefined}
         onclearclick={undefined}
         onfiltersclick={undefined}
+        isfiltersapplied={undefined}
     />
     <div style="height:1em;"></div>
     {#if currentScreenItem}
         <DmScreenItemUi 
             item={currentScreenItem}
-            htmlLinkListener={htmlLinkListener}
+            uiEventListener={uiEventListener}
         />
     {:else if searchBarValue.length > 0}
         <h2>Результаты поиска</h2>

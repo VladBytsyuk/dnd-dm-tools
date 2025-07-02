@@ -24,3 +24,13 @@ export const joinSpeed = (items: Array<Speed>) =>
         if (it.additional) result += '(' + it.additional + ')';
         return result;
     })) || '';
+
+export const diceRoller = (label: string, formula: string, text: string = formula) => `<dice-roller label="${label}" formula="${formula}">${text}</dice-roller>`
+
+
+export const onkeydown = (onclick: (event: KeyboardEvent) => void) => (event: KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        onclick(event);
+    }
+}   

@@ -1,12 +1,7 @@
 <script lang="ts">
-    let { icon, name, source, onclick } = $props();
+    import { onkeydown } from "src/domain/utils";
 
-    function onkeydown(event: KeyboardEvent) {
-        if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            onclick(event);
-        }
-    }   
+    let { icon, name, source, onclick } = $props();  
 </script>
 
 <div 
@@ -14,7 +9,7 @@
     role="button"
     tabindex="0"
     onclick={onclick}
-    onkeydown={onkeydown}
+    onkeydown={onkeydown(onclick)}
 >
     {#if icon}<i class="icon">{@html icon}</i>{/if}
     <div class="text">

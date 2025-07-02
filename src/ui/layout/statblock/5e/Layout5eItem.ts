@@ -3,7 +3,7 @@ import { TEXTS } from 'src/res/texts_ru';
 import Layout5e from 'src/ui/layout/statblock/5e/Layout5e.svelte';
 import { mount, unmount } from 'svelte';
 import type { LayoutItemView } from '../../LayoutItemView';
-import type { HtmlLinkListener } from 'src/domain/html_click';
+import type { UiEventListener } from 'src/data/ui_event_listener';
 
 export const LAYOUT_5E_ITEM_VIEW_TYPE_EXAMPLE = 'obsidian-dnd-statblock-layout-5e-item-view';
 
@@ -13,19 +13,16 @@ export class Layout5eItemView implements LayoutItemView {
     #component: ReturnType<typeof Layout5e> | undefined;
     #monster: FullMonster;
     #twoColumns: boolean;
-    #htmlLinkListener: HtmlLinkListener;
-    #onRoll: (label: string, value: number) => void;
+    #uiEventListener: UiEventListener;
 
     constructor(
         monster: FullMonster,
         twoColumns: boolean,
-        htmlLinkListener: HtmlLinkListener,
-        onRoll: (label: string, value: number) => void,
+        uiEventListener: UiEventListener,
     ) {
         this.#monster = monster;
         this.#twoColumns = twoColumns;
-        this.#onRoll = onRoll;
-        this.#htmlLinkListener = htmlLinkListener;
+        this.#uiEventListener = uiEventListener;
     }
 
 	// ---- methods ----
@@ -38,8 +35,7 @@ export class Layout5eItemView implements LayoutItemView {
             props: {
                 monster: this.#monster,
                 isTwoColumns: this.#twoColumns,
-                onRoll: this.#onRoll,
-                htmlLinkListener: this.#htmlLinkListener,
+                uiEventListener: this.#uiEventListener,
             },
         });
     }

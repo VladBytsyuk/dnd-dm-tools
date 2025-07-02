@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { registerHtmlLinkListener } from "src/domain/html_click";
+	import { registerHtmlLinkListener } from "src/domain/listeners/html_link_listener";
 	import { handleHtml } from "src/domain/utils";
 
-    let { htmlContent, htmlLinkListener, ...others } = $props();
-    const linkListener = registerHtmlLinkListener(htmlLinkListener);   
+    let { htmlContent, uiEventListener, ...others } = $props();
+    const linkListener = registerHtmlLinkListener(uiEventListener);   
 </script>
 
 <span 

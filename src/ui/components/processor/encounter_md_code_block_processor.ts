@@ -3,11 +3,11 @@ import type { Encounter } from "src/domain/encounter";
 import DndStatblockPlugin from "src/main";
 import { InitiativeTrackerView } from "src/ui/layout/tracker/InitiativeTrackerView";
 import { openSidePanelBestiary } from "../ribbon/side_panel_bestiary";
-import type { Bestiary } from "src/data/bestiary";
+import type { IBestiary } from "src/data/bestiary";
 
 export function registerEncounterMdCodeBlockProcessor(
     plugin: DndStatblockPlugin,
-    bestiary: Bestiary,
+    bestiary: IBestiary,
 ) {
     plugin.registerMarkdownCodeBlockProcessor(
         'encounter', 
@@ -19,7 +19,7 @@ async function encounterMdCodeBlockProcessor(
     plugin: DndStatblockPlugin,
     source: string,
     el: HTMLElement,
-    bestiary: Bestiary,
+    bestiary: IBestiary,
     context: MarkdownPostProcessorContext,
 
 ) {

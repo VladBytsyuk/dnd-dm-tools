@@ -6,7 +6,7 @@ import { LayoutTtgItemView } from "src/ui/layout/statblock/ttg/LayoutTtgItem";
 import type { LayoutItemView } from "src/ui/layout/LayoutItemView";
 import { App, Notice } from "obsidian";
 import type { Spellbook } from "src/data/spellbook";
-import type { HtmlLinkListener } from "src/domain/html_click";
+import type { UiEventListener } from "src/data/ui_event_listener";
 
 class LayoutManagerCache {
 
@@ -34,7 +34,7 @@ export class MonsterLayoutManager {
     #app: App;
     #settings: DndStatblockPluginSettings;
     #spellbook: Spellbook;
-    #htmlLinkListener: HtmlLinkListener;
+    #uiEventListener: UiEventListener;
     #cache: LayoutManagerCache[] = [];
     
 
@@ -42,12 +42,12 @@ export class MonsterLayoutManager {
         app: App, 
         settings: DndStatblockPluginSettings, 
         spellbook: Spellbook, 
-        htmlLinkListener: HtmlLinkListener,
+        uiEventListener: UiEventListener,
 ) {
         this.#app = app;
         this.#settings = settings;
         this.#spellbook = spellbook;
-        this.#htmlLinkListener = htmlLinkListener;
+        this.#uiEventListener = uiEventListener;
     }
 
 	// ---- methods ----
@@ -56,9 +56,6 @@ export class MonsterLayoutManager {
         monster: FullMonster, 
         isTwoColumns: boolean = false,
     ) {
-        const onRoll = (label: string, value: number): void => {
-            new Notice(`${label ? label + ": " : ""}${value}`);
-        };
         this.#cache
             .find((item) => item.getContainer() == container)
             ?.getItemView()
@@ -69,10 +66,10 @@ export class MonsterLayoutManager {
         let itemView: LayoutItemView;
         switch (layoutStyle) {
             case LayoutStyle.Dnd5e:
-                itemView = new Layout5eItemView(monster, isTwoColumns, this.#htmlLinkListener, onRoll);
+                itemView = new Layout5eItemView(monster, isTwoColumns, this.#uiEventListener);
                 break;
             case LayoutStyle.TtgClub:
-                itemView = new LayoutTtgItemView(this.#app, monster, isTwoColumns, this.#htmlLinkListener, onRoll);
+                itemView = new LayoutTtgItemView(this.#app, monster, isTwoColumns, this.#uiEventListener);
                 break;
             default:
                 throw new Error(`Unknown layout style: ${layoutStyle}`);

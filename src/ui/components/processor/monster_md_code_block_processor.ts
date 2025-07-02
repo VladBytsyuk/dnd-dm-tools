@@ -1,12 +1,12 @@
 import { parseYaml } from "obsidian";
 import DndStatblockPlugin from "src/main";
-import { Bestiary } from "src/data/bestiary";
+import { type IBestiary } from "src/data/bestiary";
 import { type FullMonster } from "src/domain/monster";
 import { MonsterLayoutManager } from "../settings/monster_layout_manager";
 
 export function registerMonsterMdCodeBlockProcessor(
     plugin: DndStatblockPlugin,
-    bestiary: Bestiary,
+    bestiary: IBestiary,
     layoutManager: MonsterLayoutManager,
 ) {
     plugin.registerMarkdownCodeBlockProcessor(
@@ -18,7 +18,7 @@ export function registerMonsterMdCodeBlockProcessor(
 async function monsterMdCodeBlockProcessor(
     source: string,
     el: HTMLElement,
-    bestiary: Bestiary,
+    bestiary: IBestiary,
     layoutManager: MonsterLayoutManager,
 ) {
     const parameters = parseYaml(source);

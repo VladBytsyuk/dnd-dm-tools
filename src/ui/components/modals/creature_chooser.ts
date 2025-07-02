@@ -1,5 +1,5 @@
 import { App, Modal, Setting, SearchComponent } from "obsidian";
-import type { Bestiary } from "src/data/bestiary";
+import type { IBestiary } from "src/data/bestiary";
 import type { FullMonster } from "src/domain/monster";
 import { TEXTS } from "src/res/texts_ru";
 import { MonsterSuggester } from "src/ui/components/suggest/monster_suggester";
@@ -8,7 +8,7 @@ export class CreatureChooser extends Modal {
     
     constructor(
         app: App,
-        bestiary: Bestiary,
+        bestiary: IBestiary,
         onSubmit: (monster: FullMonster, isTwoColumns: boolean) => void,
     ) {
         super(app);
@@ -23,7 +23,7 @@ export class CreatureChooser extends Modal {
 
     addSearchElement(
         app: App,
-        bestiary: Bestiary,
+        bestiary: IBestiary,
         onSelect: (fullMonster: FullMonster) => void,
     ) {
         const searchEl = new SearchComponent(this.contentEl)

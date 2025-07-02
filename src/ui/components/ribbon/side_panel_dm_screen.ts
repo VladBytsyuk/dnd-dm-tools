@@ -1,8 +1,8 @@
 import { ItemView, Workspace, type WorkspaceLeaf } from "obsidian";
 import type { DmScreen } from "src/data/dm_screen";
+import type { UiEventListener } from "src/data/ui_event_listener";
 import type { DmScreenGroup } from "src/domain/dm_screen_group";
 import type { DmScreenItem } from "src/domain/dm_screen_item";
-import type { HtmlLinkListener } from "src/domain/html_click";
 import type DndStatblockPlugin from "src/main";
 import { TEXTS } from "src/res/texts_ru";
 import DmScreenUi from "src/ui/layout/sidepanel/DmScreenUi.svelte";
@@ -11,11 +11,11 @@ import { mount } from "svelte";
 export function registerSidePanelDmScreen(
     plugin: DndStatblockPlugin,
     dmScreen: DmScreen,
-    htmlLinkListener: HtmlLinkListener,
+    uiEventListener: UiEventListener,
 ) {
     plugin.registerView(
         SIDE_PANEL_DM_SCREEN_VIEW,
-        (leaf: WorkspaceLeaf) => new SidePanelDmScreenView(leaf, dmScreen, htmlLinkListener),
+        (leaf: WorkspaceLeaf) => new SidePanelDmScreenView(leaf, dmScreen, uiEventListener),
     );
     plugin.addRibbonIcon("book-open", TEXTS.ribbonActionDmScreenTitle, async (mouseEvent) => {
         openSidePanelDmScreen(plugin.app.workspace, undefined, undefined);
@@ -31,17 +31,17 @@ class SidePanelDmScreenView extends ItemView {
 
     // ---- fields ----   
     #dmScreen: DmScreen;
-    #htmlLinkListener: HtmlLinkListener;
+    #uiEventListener: UiEventListener;
 
     // ---- constructor ----
     constructor(
         leaf: WorkspaceLeaf, 
         dmScreen: DmScreen,
-        htmlLinkListener: HtmlLinkListener,
+        uiEventListener: UiEventListener,
     ) {
         super(leaf);
         this.#dmScreen = dmScreen;
-        this.#htmlLinkListener = htmlLinkListener;
+        this.#uiEventListener = uiEventListener;
     }
 
     // ---- callbacks ----
@@ -68,7 +68,7 @@ class SidePanelDmScreenView extends ItemView {
                 rootGroup: rootGroup,
                 screenGroup: sidePanelScreenGroup,
                 screenItem: sidePanelScreenItem,
-                htmlLinkListener: this.#htmlLinkListener,
+                uiEventListener: this.#uiEventListener,
                 loadScreenItem: async (group: DmScreenGroup) => await this.#dmScreen.getScreenItemByUrl(group.url),
             }
         });

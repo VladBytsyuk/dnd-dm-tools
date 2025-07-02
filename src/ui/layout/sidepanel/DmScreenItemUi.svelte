@@ -3,7 +3,7 @@
 	import HtmlBlock from "../uikit/HtmlBlock.svelte";
 
     // ---- props ----
-    let { item, htmlLinkListener } = $props();
+    let { item, uiEventListener } = $props();
 </script>
 
 <div class="item">
@@ -21,7 +21,7 @@
         {/if}
         {#if item.description}
         <div class="item-content-text">
-            <HtmlBlock htmlContent={item.description} htmlLinkListener={htmlLinkListener} />
+            <HtmlBlock htmlContent={item.description} uiEventListener={uiEventListener} />
         </div>
         {/if}
     </div>

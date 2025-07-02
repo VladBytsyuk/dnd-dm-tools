@@ -9,9 +9,9 @@
 	import { joinList, joinSpeed, separate } from 'src/domain/utils';
 	import HtmlBlock from '../../uikit/HtmlBlock.svelte';
 
-    let { monster, isTwoColumns, onRoll, htmlLinkListener } = $props()
+    let { monster, isTwoColumns, uiEventListener } = $props()
 
-    const diceRollersManager = new DiceRollersManager(onRoll);
+    const diceRollersManager = new DiceRollersManager(uiEventListener.onRoll);
     
     onMount(() => {
         diceRollersManager.onMount();
@@ -122,7 +122,7 @@
                             `${it.name} <dice-roller label="${TEXTS.layoutSave}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
                         ))
                     }
-                    htmlLinkListener={htmlLinkListener} 
+                    uiEventListener={uiEventListener} 
                 />
             </div>
             {/if}
@@ -137,7 +137,7 @@
                             `${it.name} <dice-roller label="${TEXTS.layoutSkill}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
                         ))
                     }
-                    htmlLinkListener={htmlLinkListener} 
+                    uiEventListener={uiEventListener} 
                 />
             </div>
             {/if}
@@ -205,7 +205,7 @@
         {#if monster.feats}
             <div class="layout-5e-statblock-property-block">
             {#each monster.feats as feat}
-                <div><b>{feat.name}.</b> <HtmlBlock htmlContent={feat.value} htmlLinkListener={htmlLinkListener}/></div>
+                <div><b>{feat.name}.</b> <HtmlBlock htmlContent={feat.value} uiEventListener={uiEventListener}/></div>
             {/each}
             </div>
         {/if}
@@ -221,7 +221,7 @@
                 <div class="layout-5e-statblock-property-block">
                     <div class="layout-5e-statblock-block-header">{item.title}</div>
                     {#each item.action as action}
-                    <div><b>{action.name}.</b>  <HtmlBlock htmlContent={action.value} htmlLinkListener={htmlLinkListener}/></div>
+                    <div><b>{action.name}.</b>  <HtmlBlock htmlContent={action.value} uiEventListener={uiEventListener}/></div>
                     {/each}
                 </div>
                 {/if}
@@ -242,7 +242,7 @@
                 <HtmlBlock 
                     class="layout-5e-statblock-base-info-item-value"
                     htmlContent={item.action}
-                    htmlLinkListener={htmlLinkListener}
+                    uiEventListener={uiEventListener}
                 />
             </div>
         </div>

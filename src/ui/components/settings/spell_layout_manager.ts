@@ -4,7 +4,7 @@ import { App, Notice } from "obsidian";
 import { FullSpellItemView } from "src/ui/layout/spell/FullSpellItem";
 import type { Spellbook } from "src/data/spellbook";
 import { openSidePanelSpellbook } from "../ribbon/side_panel_spellbook";
-import type { HtmlLinkListener } from "src/domain/html_click";
+import type { UiEventListener } from "src/data/ui_event_listener";
 
 class LayoutManagerCache {
 
@@ -29,14 +29,14 @@ export class SpellLayoutManager {
 	// ---- fields ----
     #app: App;
     #spellbook: Spellbook;
-    #htmlLinkListener: HtmlLinkListener;
+    #uiEventListener: UiEventListener;
     #cache: LayoutManagerCache[] = [];
     
 
-    constructor(app: App, spellbook: Spellbook, htmlLinkListener: HtmlLinkListener) {
+    constructor(app: App, spellbook: Spellbook, uiEventListener: UiEventListener) {
         this.#app = app;
         this.#spellbook = spellbook;
-        this.#htmlLinkListener = htmlLinkListener;
+        this.#uiEventListener = uiEventListener;
     }
 
 	// ---- methods ----
@@ -44,20 +44,13 @@ export class SpellLayoutManager {
         container: Element, 
         spell: FullSpell,
     ) {
-        const onRoll = (label: string, value: number): void => {
-            new Notice(`${label ? label + ": " : ""}${value}`);
-        };
-        const onSpellClick = async (url: string) => {
-            const fullSpell = await this.#spellbook.getFullSpellByUrl(url);
-            if (fullSpell) await openSidePanelSpellbook(this.#app.workspace, fullSpell);
-        };
         this.#cache
             .find((item) => item.getContainer() == container)
             ?.getItemView()
             ?.destroy();
         container.empty();
         const viewContainer = container.createDiv("statblock-view-container");
-        let itemView: LayoutItemView = new FullSpellItemView(spell, this.#htmlLinkListener, onRoll);
+        let itemView: LayoutItemView = new FullSpellItemView(spell, this.#uiEventListener);
 
         itemView.render(viewContainer);
         const cacheItem = new LayoutManagerCache(itemView, container, spell);

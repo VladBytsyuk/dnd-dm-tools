@@ -1,5 +1,6 @@
 import { mount } from "svelte";
 import DiceRoller from 'src/ui/layout/dice-roller/DiceRoller.svelte';
+import type { IDiceRollListener } from "src/domain/listeners/dice_roll_listener";
 
 export class DiceRollersManager {
     
@@ -12,6 +13,10 @@ export class DiceRollersManager {
         this.#diceRollers = [];
         this.#onRoll = onRoll;
     }
+
+    static create(diceRollListener: IDiceRollListener): DiceRollersManager {
+        return new DiceRollersManager(diceRollListener.onDiceRoll);
+    }  
 
     onMount() {
         const elements = document.querySelectorAll('dice-roller');

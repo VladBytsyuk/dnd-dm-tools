@@ -11,3 +11,11 @@ export function BestiaryFilter(types: string[], challangeRatings: string[], sour
         sources: sources,
     } as BestiaryFilter;
 }
+
+export function EmptyBestiaryFilter(): BestiaryFilter {
+    return BestiaryFilter([], [], []);
+}
+
+export function isBestiaryFilterEmpty(filter: BestiaryFilter): boolean {
+    return filter.types.length === 0 && filter.challangeRatings.length === 0 && filter.sources.length === 0;
+}

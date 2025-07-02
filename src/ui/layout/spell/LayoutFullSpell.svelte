@@ -8,9 +8,9 @@
 	import { copySpellToClipboard } from 'src/data/clipboard';
 	import HtmlBlock from '../uikit/HtmlBlock.svelte';
 
-    let { spell, onRoll, htmlLinkListener } = $props();
+    let { spell, uiEventListener } = $props();
 
-    const diceRollersManager = new DiceRollersManager(onRoll);
+    const diceRollersManager = new DiceRollersManager(uiEventListener.onRoll);
 
     onMount(async () => {
         diceRollersManager.onMount();
@@ -113,9 +113,9 @@
             <b class="layout-spell-card-need" style="{spell.components && spell.components.m ? "" : "height:2px;padding:0px;"}">{spell.components.m}</b>
             
             <div class="layout-spell-card-text">
-                <HtmlBlock htmlContent={spell.description} htmlLinkListener={htmlLinkListener} />
+                <HtmlBlock htmlContent={spell.description} htmlLinkListener={uiEventListener} />
             </div>	
-            {#if spell.upper}<div class="layout-spell-card-text layout-spell-card-upper-lined"><HtmlBlock htmlContent={spell.upper} htmlLinkListener={htmlLinkListener} /></div>{/if}											
+            {#if spell.upper}<div class="layout-spell-card-text layout-spell-card-upper-lined"><HtmlBlock htmlContent={spell.upper} htmlLinkListener={uiEventListener} /></div>{/if}											
         </div>    
 
         <div class="layout-spell-card-class" title="{classHint}">{spell.classes[0].name}</div>

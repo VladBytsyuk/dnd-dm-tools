@@ -2,26 +2,24 @@
     import { onDestroy, onMount } from 'svelte';
     import { TEXTS } from "src/res/texts_ru";
     import { copyMonsterToClipboard } from "src/data/clipboard";
-	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
 	import { calculateAndFormatModifier, formatModifier } from 'src/domain/modifier';
-	import { DiceRollersManager } from '../../dice-roller/DiceRollersManager';
-	import { joinList, joinSpeed, separate } from 'src/domain/utils';
-	import { getImageSource } from 'src/domain/image_utils';
-	import HtmlBlock from '../../uikit/HtmlBlock.svelte';
+	import { diceRoller, joinList, joinSpeed, separate } from 'src/domain/utils';
+	import HtmlBlock from '../uikit/HtmlBlock.svelte';
+	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 
-    let { app, monster, isTwoColumns, uiEventListener } = $props()
+    let { monster, isTwoColumns, uiEventListener } = $props()
 
     let currentImageIndex = $state(0);
     let imagesLength = $state(monster.images?.length ?? 0);
     let images: string[] = $state([]);
     let isImageExpanded = $state(false);
     
-    const diceRollersManager = new DiceRollersManager(uiEventListener.nRoll);
+    const diceRollersManager = DiceRollersManager.create(uiEventListener);
     
     onMount(async () => {
         diceRollersManager.onMount();
         if (monster.images) {
-            images = await Promise.all(monster.images?.map(async (it: string) => await getImageSource(app, it)));
+            images = await Promise.all(monster.images?.map(async (it: string) => await uiEventListener.onImageRequested(it)));
         }
     });
 
@@ -43,19 +41,9 @@
             isImageExpanded = false;
         }
     }
-
-    let themeClass = $state(getCurrentTheme() === Theme.Light ? 'theme-ttg-light' : 'theme-ttg-dark');
-
-    $effect(() => {
-        const unsubscribe = theme.subscribe(value => {
-            themeClass = value === Theme.Light ? 'theme-ttg-light' : 'theme-ttg-dark';
-        });
-
-        return () => { unsubscribe() };
-    });
 </script>
   
-<div class="layout-ttg {themeClass}">
+<div class="layout-ttg">
     <div class={`layout-ttg-statblock ${isTwoColumns ? 'layout-ttg-statblock-wide' : ''}`}>
 
         <div class="layout-ttg-statblock-section-horizontal">
@@ -181,8 +169,8 @@
                 <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSaves}</span> 
                 <HtmlBlock class="layout-ttg-statblock-base-info-item-value"
                     htmlContent={
-                        separate(monster.savingThrows.map(it => 
-                            `${it.name} <dice-roller label="${TEXTS.layoutSave}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
+                        separate(monster.savingThrows.map((it: { name: string; value: number }) => 
+                            diceRoller(`${TEXTS.layoutSave}. ${it.name}`, `к20${formatModifier(it.value)}`, `${it.name} ${formatModifier(it.value)}`)
                         ))
                     }
                     uiEventListener={uiEventListener}
@@ -196,8 +184,8 @@
                 <HtmlBlock
                     class="layout-ttg-statblock-base-info-item-value"
                     htmlContent={
-                        separate(monster.skills.map(it => 
-                            `${it.name} <dice-roller label="${TEXTS.layoutSkill}. ${it.name}" formula="к20${formatModifier(it.value)}">${formatModifier(it.value)}</dice-roller>`
+                        separate(monster.skills.map((it: { name: string; value: number }) => 
+                            diceRoller(`${TEXTS.layoutSkill}. ${it.name}`, `к20${formatModifier(it.value)}`, `${it.name} ${formatModifier(it.value)}`)
                         ))
                     }
                     uiEventListener={uiEventListener}
@@ -237,7 +225,9 @@
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSenses}</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">
-                    {monster.senses.senses ? separate(monster.senses.senses.map(it => `${it.name} ${it.value} ${TEXTS.layoutFt}.,`)) : ''}
+                    {monster.senses.senses ? 
+                        separate(monster.senses.senses.map((it: { name: string; value: number }) => `${it.name} ${it.value} ${TEXTS.layoutFt}.,`)) : 
+                        ''}
                     {TEXTS.layoutPassivePerception} {monster.senses.passivePerception}
                 </span>
             </div>
@@ -346,15 +336,14 @@
     </div>
 </div>
 
-
 <style>
-    :global(.theme-ttg-light) {
+    :global(.theme-light) {
         --accent-bg: #00000014;
         --accent-bg-sub: #00000007;
         --button-bg: rgba(0,0,0,0.1);
     }
 
-    :global(.theme-ttg-dark) {
+    :global(.theme-dark) {
         --accent-bg: #ffffff0d;
         --accent-bg-sub: #ffffff06;
         --button-bg: rgba(255,255,255,0.1);
