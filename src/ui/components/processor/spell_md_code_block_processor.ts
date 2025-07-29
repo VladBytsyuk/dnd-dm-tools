@@ -2,11 +2,11 @@ import { parseYaml } from "obsidian";
 import DndStatblockPlugin from "src/main";
 import { type FullSpell } from "src/domain/spell";
 import { SpellLayoutManager } from "../settings/spell_layout_manager";
-import type { Spellbook } from "src/data/spellbook";
+import type { ISpellbook } from "src/data/spellbook";
 
 export function registerSpellMdCodeBlockProcessor(
     plugin: DndStatblockPlugin,
-    spellbook: Spellbook,
+    spellbook: ISpellbook,
     layoutManager: SpellLayoutManager,
 ) {
     plugin.registerMarkdownCodeBlockProcessor(
@@ -18,7 +18,7 @@ export function registerSpellMdCodeBlockProcessor(
 async function spellMdCodeBlockProcessor(
     source: string,
     el: HTMLElement,
-    spellbook: Spellbook,
+    spellbook: ISpellbook,
     layoutManager: SpellLayoutManager,
 ) {
     const parameters = parseYaml(source);

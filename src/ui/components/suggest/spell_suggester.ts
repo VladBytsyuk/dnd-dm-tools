@@ -1,17 +1,17 @@
 import { App, SearchComponent, TextComponent, AbstractInputSuggest, prepareSimpleSearch, type FuzzyMatch, renderMatches } from "obsidian";
-import { Spellbook } from "src/data/spellbook";
+import { type ISpellbook } from "src/data/spellbook";
 import type { FullSpell, SmallSpell } from "src/domain/spell";
 
 export class SpellSuggester extends AbstractInputSuggest<FuzzyMatch<SmallSpell>> {
 
     // ---- fileds ----
     #inputEl: TextComponent | SearchComponent;
-    #spellbook: Spellbook;
+    #spellbook: ISpellbook;
 
     constructor(
         app: App,
         input: TextComponent | SearchComponent,
-        spellbook: Spellbook,
+        spellbook: ISpellbook,
     ) {
         super(app, input.inputEl);
         this.#inputEl = input;

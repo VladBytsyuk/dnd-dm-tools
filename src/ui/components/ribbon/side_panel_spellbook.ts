@@ -1,7 +1,7 @@
 import { ItemView, Workspace, type WorkspaceLeaf, SearchComponent, ButtonComponent } from "obsidian";
 import DndStatblockPlugin from "src/main";
 import { TEXTS } from "src/res/texts_ru";
-import type { Spellbook } from "src/data/spellbook";
+import type { ISpellbook } from "src/data/spellbook";
 import { SpellSuggester } from "../suggest/spell_suggester";
 import type { SpellLayoutManager } from "../settings/spell_layout_manager";
 import type { FullSpell, SmallSpell } from "src/domain/spell";
@@ -13,7 +13,7 @@ import { SpellbookFiltersModal } from "../modals/spellbook_filers_modal";
 
 export function registerSidePanelSpellbook(
     plugin: DndStatblockPlugin,
-    spellbook: Spellbook,
+    spellbook: ISpellbook,
     layoutManager: SpellLayoutManager,
 ) {
     plugin.registerView(
@@ -33,7 +33,7 @@ class SidePanelSpellbookView extends ItemView {
     
     // ---- fields ----
     #plugin: DndStatblockPlugin;
-    #spellbook: Spellbook;
+    #spellbook: ISpellbook;
     #layoutManager: SpellLayoutManager;
     #filters: SpellbookFilters = SpellbookFilters([], [], []);
     #filteredSmallSpells: SmallSpell[] = [];
@@ -43,7 +43,7 @@ class SidePanelSpellbookView extends ItemView {
     constructor(
         leaf: WorkspaceLeaf, 
         plugin: DndStatblockPlugin, 
-        spellbook: Spellbook,
+        spellbook: ISpellbook,
         layoutManager: SpellLayoutManager,
     ) {
         super(leaf);

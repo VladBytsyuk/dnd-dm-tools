@@ -1,7 +1,7 @@
 import { App, Notice, type Workspace } from "obsidian";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type { IBestiary } from "./bestiary";
-import type { Spellbook } from "./spellbook";
+import type { ISpellbook } from "./spellbook";
 import type { DmScreen } from "./dm_screen";
 import { openSidePanelBestiary } from "src/ui/components/ribbon/side_panel_bestiary";
 import { openSidePanelSpellbook } from "src/ui/components/ribbon/side_panel_spellbook";
@@ -14,7 +14,7 @@ export class UiEventListener implements IUiEventListener {
     constructor(
         public app: App,
         public bestiary: IBestiary,
-        public spellbook: Spellbook,
+        public spellbook: ISpellbook,
         public dmScreen: DmScreen, 
     ) {}
 

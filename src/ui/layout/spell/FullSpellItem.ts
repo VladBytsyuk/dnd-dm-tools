@@ -3,7 +3,7 @@ import type { LayoutItemView } from "../LayoutItemView";
 import LayoutFullSpell from "./LayoutFullSpell.svelte";
 import { mount, unmount } from 'svelte';
 import { TEXTS } from "src/res/texts_ru";
-import type { UiEventListener } from "src/data/ui_event_listener";
+import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 
 const SPELL_ITEM_VIEW_TYPE_EXAMPLE = 'obsidian-dnd-statblock-spell-item-view';
 
@@ -12,12 +12,11 @@ export class FullSpellItemView implements LayoutItemView {
 	// ---- fields ----
     #component: ReturnType<typeof LayoutFullSpell> | undefined;
     #spell: FullSpell;
-    #uiEventListener: UiEventListener;
+    #uiEventListener: IUiEventListener;
 
     constructor(
         spell: FullSpell,
-        uiEventListener: HtmlLinkListener,
-        onRoll: (label: string, value: number) => void,
+        uiEventListener: IUiEventListener,
     ) {
         this.#spell = spell;
         this.#uiEventListener = uiEventListener;

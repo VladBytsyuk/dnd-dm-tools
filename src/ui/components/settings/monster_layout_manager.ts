@@ -4,8 +4,8 @@ import { LayoutStyle } from "./layout_style";
 import { Layout5eItemView } from "src/ui/layout/statblock/5e/Layout5eItem";
 import { LayoutTtgItemView } from "src/ui/layout/statblock/ttg/LayoutTtgItem";
 import type { LayoutItemView } from "src/ui/layout/LayoutItemView";
-import { App, Notice } from "obsidian";
-import type { Spellbook } from "src/data/spellbook";
+import { App } from "obsidian";
+import type { ISpellbook } from "src/data/spellbook";
 import type { UiEventListener } from "src/data/ui_event_listener";
 
 class LayoutManagerCache {
@@ -33,7 +33,7 @@ export class MonsterLayoutManager {
 	// ---- fields ----
     #app: App;
     #settings: DndStatblockPluginSettings;
-    #spellbook: Spellbook;
+    #spellbook: ISpellbook;
     #uiEventListener: UiEventListener;
     #cache: LayoutManagerCache[] = [];
     
@@ -41,7 +41,7 @@ export class MonsterLayoutManager {
     constructor(
         app: App, 
         settings: DndStatblockPluginSettings, 
-        spellbook: Spellbook, 
+        spellbook: ISpellbook, 
         uiEventListener: UiEventListener,
 ) {
         this.#app = app;

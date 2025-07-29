@@ -10,7 +10,7 @@ import { registerThemeChangeListener } from './ui/theme';
 import { registerSidePanelInitiativeTracker } from './ui/components/ribbon/side_panel_initiative_tracker';
 import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor/encounter_md_code_block_processor';
 import { registerAddEncounterCommand } from './ui/components/command/add_encounter_command';
-import { Spellbook } from './data/spellbook';
+import { type ISpellbook, Spellbook } from './data/spellbook';
 import { registerSidePanelSpellbook } from './ui/components/ribbon/side_panel_spellbook';
 import { SpellLayoutManager } from './ui/components/settings/spell_layout_manager';
 import { registerSpellMdCodeBlockProcessor } from './ui/components/processor/spell_md_code_block_processor';
@@ -26,7 +26,7 @@ export default class DndStatblockPlugin extends Plugin {
 	#monsterLayoutManager: MonsterLayoutManager;
 	#spellLayoutManager: SpellLayoutManager;
 	#bestiary: IBestiary;
-	#spellbook: Spellbook;
+	#spellbook: ISpellbook;
 	#dmScreen: DmScreen;
 	#uiEventListener: UiEventListener;
 

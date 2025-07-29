@@ -1,9 +1,8 @@
 import type { FullSpell } from "src/domain/spell";
 import type { LayoutItemView } from "src/ui/layout/LayoutItemView";
-import { App, Notice } from "obsidian";
+import { App } from "obsidian";
 import { FullSpellItemView } from "src/ui/layout/spell/FullSpellItem";
-import type { Spellbook } from "src/data/spellbook";
-import { openSidePanelSpellbook } from "../ribbon/side_panel_spellbook";
+import type { ISpellbook } from "src/data/spellbook";
 import type { UiEventListener } from "src/data/ui_event_listener";
 
 class LayoutManagerCache {
@@ -28,12 +27,12 @@ export class SpellLayoutManager {
 
 	// ---- fields ----
     #app: App;
-    #spellbook: Spellbook;
+    #spellbook: ISpellbook;
     #uiEventListener: UiEventListener;
     #cache: LayoutManagerCache[] = [];
     
 
-    constructor(app: App, spellbook: Spellbook, uiEventListener: UiEventListener) {
+    constructor(app: App, spellbook: ISpellbook, uiEventListener: UiEventListener) {
         this.#app = app;
         this.#spellbook = spellbook;
         this.#uiEventListener = uiEventListener;
