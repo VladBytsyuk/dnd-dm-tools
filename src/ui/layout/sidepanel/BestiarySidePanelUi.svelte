@@ -44,15 +44,15 @@
     async function onSearchBarFiltersClick() {
         const fullFilters = await bestiary.getAllFilters();
         if (!fullFilters) return;
-            new BestiaryFiltersModal(
-                plugin.app, 
-                fullFilters,
-                filters, 
-                async (newFilters: BestiaryFilter) => { 
-                    filters = newFilters;
-                    await updateMonstersGroups();
-                },
-            ).open();
+        new BestiaryFiltersModal(
+            plugin.app, 
+            fullFilters,
+            filters, 
+            async (newFilters: BestiaryFilter) => { 
+                filters = newFilters;
+                await updateMonstersGroups();
+            },
+        ).open();
     }
 
     const onSmallMonsterClick = (smallMonster: SmallMonster) => async () => {

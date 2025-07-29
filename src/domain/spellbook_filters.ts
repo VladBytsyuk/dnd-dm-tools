@@ -15,3 +15,10 @@ export function SpellbookFilters(
         sources: sources,
     } as SpellbookFilters;
 }
+
+export function EmptySpellbookFilters(): SpellbookFilters {
+    return SpellbookFilters([], [], []);
+}
+export function isSpellbookFiltersEmpty(filters: SpellbookFilters): boolean {
+    return filters.levels.length === 0 && filters.schools.length === 0 && filters.sources.length === 0;
+}

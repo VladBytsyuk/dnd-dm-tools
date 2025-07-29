@@ -36,7 +36,7 @@ export default class DndStatblockPlugin extends Plugin {
 			registerSettingsTab(this, this.#settingsController);
 			registerSidePanelInitiativeTracker(this);
 			registerSidePanelBestiary(this, this.#bestiary, this.#uiEventListener);	
-			registerSidePanelSpellbook(this, this.#spellbook, this.#spellLayoutManager);
+			registerSidePanelSpellbook(this, this.#spellbook, this.#uiEventListener);
 			registerSidePanelDmScreen(this, this.#dmScreen, this.#uiEventListener);
 			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#monsterLayoutManager);
 			registerSpellMdCodeBlockProcessor(this, this.#spellbook, this.#spellLayoutManager);
