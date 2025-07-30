@@ -5,7 +5,7 @@ import type { DmScreenItem } from "src/domain/dm_screen_item";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type DndStatblockPlugin from "src/main";
 import { TEXTS } from "src/res/texts_ru";
-import DmScreenUi from "src/ui/layout/sidepanel/DmScreenUi.svelte";
+import DmScreenSidePanelUi from "src/ui/layout/sidepanel/DmScreenSidePanelUi.svelte";
 import { mount } from "svelte";
 
 export function registerSidePanelDmScreen(
@@ -62,7 +62,7 @@ class SidePanelDmScreenView extends ItemView {
 
         const container = this.containerEl.children[1];
         container.empty();
-        mount(DmScreenUi, { 
+        mount(DmScreenSidePanelUi, { 
             target: container, 
             props: { 
                 rootGroup: rootGroup,

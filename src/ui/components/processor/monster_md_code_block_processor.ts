@@ -2,7 +2,7 @@ import { parseYaml } from "obsidian";
 import DndStatblockPlugin from "src/main";
 import { type IBestiary } from "src/data/bestiary";
 import { type FullMonster } from "src/domain/monster";
-import FullMonsterUi from "src/ui/layout/monster/FullMonsterUi.svelte";
+import MonsterFullUi from "src/ui/layout/monster/MonsterFullUi.svelte";
 import { mount } from "svelte";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 
@@ -38,7 +38,7 @@ async function monsterMdCodeBlockProcessor(
         monster = parameters as FullMonster
     }
 
-    mount(FullMonsterUi, {
+    mount(MonsterFullUi, {
         target: el,
         props: {
             monster: monster,

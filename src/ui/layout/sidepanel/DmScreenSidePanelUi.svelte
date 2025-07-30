@@ -1,9 +1,9 @@
 <script lang="ts">
-	import DmScreenGroupUi from "./DmScreenGroupUi.svelte";
+	import DmScreenGroupUi from "../screen/DmScreenGroupUi.svelte";
 	import { allChildrenOfGroup, EmptyDmScreenGroup, groupedChildrenOf, type DmScreenGroup } from "src/domain/dm_screen_group";
 	import SidePanelHeader from "../uikit/SidePanelHeader.svelte";
 	import type { DmScreenItem } from "src/domain/dm_screen_item";
-	import DmScreenItemUi from "./DmScreenItemUi.svelte";
+	import DmScreenItemUi from "../screen/DmScreenItemUi.svelte";
 
     // ---- Props ----
     let { rootGroup, screenGroup, screenItem, uiEventListener, loadScreenItem } = $props();

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import SmallMonsterUi from "./SmallMonsterUi.svelte";
+	import SmallMonsterUi from "./MonsterSmallUi.svelte";
 
     let { challengeRating, smallMonsters, onmonsterclick } = $props();
 </script>

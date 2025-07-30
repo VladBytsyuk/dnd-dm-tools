@@ -1,10 +1,9 @@
 <script lang="ts">
 	import type { FullMonster, SmallMonster } from "src/domain/monster";
 	import SidePanelHeader from "../uikit/SidePanelHeader.svelte";
-	import FullMonsterUi from "../monster/FullMonsterUi.svelte";
-	import CrMonsterGroupUi from "../monster/CrMonsterGroupUi.svelte";
+	import MonsterFullUi from "../monster/MonsterFullUi.svelte";
+	import MonsterGroupUi from "../monster/MonsterGroupUi.svelte";
 	import { onMount } from "svelte";
-	import { parse } from "path";
 	import { BestiaryFilter, EmptyBestiaryFilter, isBestiaryFilterEmpty } from "src/domain/bestiary_filters";
 	import { BestiaryFiltersModal } from "src/ui/components/modals/bestiary_filers_modal";
 
@@ -109,7 +108,7 @@
     />
     <div style="height:1em;"></div>
     {#if currentFullMonster}
-        <FullMonsterUi
+        <MonsterFullUi
             monster={currentFullMonster}
             isTwoColumns={false}
             uiEventListener={uiEventListener}
@@ -120,7 +119,7 @@
     {:else}
         <div class="content">
             {#each monstersGroups as crGroup (crGroup.challengeRating)}
-                <CrMonsterGroupUi
+                <MonsterGroupUi
                     challengeRating={crGroup.challengeRating}
                     smallMonsters={crGroup.smallMonsters}
                     onmonsterclick={onSmallMonsterClick}       

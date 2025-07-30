@@ -1,5 +1,5 @@
 <script lang="ts">
-	import SmallSpellUi from "./SmallSpellUi.svelte";
+	import SmallSpellUi from "./SpellSmallUi.svelte";
 
     let { level, smallSpells, onspellclick } = $props();
 </script>

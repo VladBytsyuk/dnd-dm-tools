@@ -3,8 +3,8 @@
 	import SidePanelHeader from "../uikit/SidePanelHeader.svelte";
 	import type { FullSpell, SmallSpell } from "src/domain/spell";
 	import { onMount } from "svelte";
-	import LevelSpellGroupUi from "../spell/LevelSpellGroupUi.svelte";
-	import FullSpellUi from "../spell/FullSpellUi.svelte";
+	import SpellGroupUi from "../spell/SpellGroupUi.svelte";
+	import SpellFullUi from "../spell/SpellFullUi.svelte";
 	import { SpellbookFiltersModal } from "src/ui/components/modals/spellbook_filers_modal";
 
     interface SpellGroupByLevel {
@@ -99,7 +99,7 @@
     />
     <div style="height:1em;"></div>
     {#if currentFullSpell}
-        <FullSpellUi
+        <SpellFullUi
             spell={currentFullSpell}
             uiEventListener={uiEventListener}
         />
@@ -109,7 +109,7 @@
     {:else}
         <div class="content">
             {#each spellsGroups as group (group.level)}
-                <LevelSpellGroupUi
+                <SpellGroupUi
                     level={group.level}
                     smallSpells={group.smallSpells}
                     onspellclick={onSmallSpellClick}

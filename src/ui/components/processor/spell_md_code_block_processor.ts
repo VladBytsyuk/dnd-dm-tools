@@ -3,7 +3,7 @@ import DndStatblockPlugin from "src/main";
 import { type FullSpell } from "src/domain/spell";
 import type { ISpellbook } from "src/data/spellbook";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
-import FullSpellUi from "src/ui/layout/spell/FullSpellUi.svelte";
+import SpellFullUi from "src/ui/layout/spell/SpellFullUi.svelte";
 import { mount } from "svelte";
 
 export function registerSpellMdCodeBlockProcessor(
@@ -36,7 +36,7 @@ async function spellMdCodeBlockProcessor(
         spell = parameters as FullSpell
     }
 
-    mount(FullSpellUi, {
+    mount(SpellFullUi, {
         target: el,
         props: {
             spell: spell,
