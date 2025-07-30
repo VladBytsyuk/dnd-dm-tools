@@ -113,9 +113,9 @@
             <b class="layout-spell-card-need" style="{spell.components && spell.components.m ? "" : "height:2px;padding:0px;"}">{spell.components.m}</b>
             
             <div class="layout-spell-card-text">
-                <HtmlBlock htmlContent={spell.description} htmlLinkListener={uiEventListener} />
+                <HtmlBlock htmlContent={spell.description} uiEventListener={uiEventListener} />
             </div>	
-            {#if spell.upper}<div class="layout-spell-card-text layout-spell-card-upper-lined"><HtmlBlock htmlContent={spell.upper} htmlLinkListener={uiEventListener} /></div>{/if}											
+            {#if spell.upper}<div class="layout-spell-card-text layout-spell-card-upper-lined"><HtmlBlock htmlContent={spell.upper} uiEventListener={uiEventListener} /></div>{/if}											
         </div>    
 
         <div class="layout-spell-card-class" title="{classHint}">{spell.classes[0].name}</div>
