@@ -1,8 +1,8 @@
 // ---- public ----
 export interface HtmlLinkListener {
-    onBeastClick: (url: string) => void;
-    onSpellClick: (url: string) => void;
-    onScreenItemClick: (url: string) => void;
+    onBeastClick: (url: string) => Promise<void>;
+    onSpellClick: (url: string) => Promise<void>;
+    onScreenItemClick: (url: string) => Promise<void>;
 }
 
 export const registerHtmlLinkListener = (htmlLinkListener: HtmlLinkListener) => (node: HTMLElement) => {
@@ -18,10 +18,10 @@ export const registerHtmlLinkListener = (htmlLinkListener: HtmlLinkListener) => 
 // ---- private ---- 
 interface LinkListener {
     href: string;
-    onClick: (url: string) => void;
+    onClick: (url: string) => Promise<void>;
 }
 
-function LinkListener(href: string, onClick: (url: string) => void): LinkListener {
+function LinkListener(href: string, onClick: (url: string) => Promise<void>): LinkListener {
     return { href, onClick };
 }
 

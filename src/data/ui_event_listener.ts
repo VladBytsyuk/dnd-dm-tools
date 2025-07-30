@@ -16,7 +16,11 @@ export class UiEventListener implements IUiEventListener {
         public bestiary: IBestiary,
         public spellbook: ISpellbook,
         public dmScreen: DmScreen, 
-    ) {}
+    ) {
+        this.onBeastClick = this.onBeastClick.bind(this);
+        this.onSpellClick = this.onSpellClick.bind(this);
+        this.onScreenItemClick = this.onScreenItemClick.bind(this);
+    }
 
     // ---- methods ----
     async onBeastClick(url: string): Promise<void> {
@@ -30,6 +34,7 @@ export class UiEventListener implements IUiEventListener {
     }
 
     async onScreenItemClick(url: string): Promise<void> {
+        console.log(this)
         const screenItem = await this.dmScreen.getScreenItemByUrl(url);
         if (screenItem) {
             await openSidePanelDmScreen(this.app.workspace, undefined, screenItem);

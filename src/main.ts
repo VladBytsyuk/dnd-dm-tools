@@ -5,7 +5,6 @@ import { registerSettingsTab } from "src/ui/components/settings/settings_tab";
 import { registerMonsterMdCodeBlockProcessor } from "src/ui/components/processor/monster_md_code_block_processor";
 import { registerSidePanelBestiary } from "src/ui/components/ribbon/side_panel_bestiary";
 import { registerAddStatblockCommand } from './ui/components/command/add_statblock_command';
-import { MonsterLayoutManager } from './ui/components/settings/monster_layout_manager';
 import { registerThemeChangeListener } from './ui/theme';
 import { registerSidePanelInitiativeTracker } from './ui/components/ribbon/side_panel_initiative_tracker';
 import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor/encounter_md_code_block_processor';
@@ -23,7 +22,6 @@ export default class DndStatblockPlugin extends Plugin {
 
 	// ---- fields ----
 	#settingsController: DndSettingsController;
-	#monsterLayoutManager: MonsterLayoutManager;
 	#spellLayoutManager: SpellLayoutManager;
 	#bestiary: IBestiary;
 	#spellbook: ISpellbook;
@@ -38,7 +36,7 @@ export default class DndStatblockPlugin extends Plugin {
 			registerSidePanelBestiary(this, this.#bestiary, this.#uiEventListener);	
 			registerSidePanelSpellbook(this, this.#spellbook, this.#uiEventListener);
 			registerSidePanelDmScreen(this, this.#dmScreen, this.#uiEventListener);
-			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#monsterLayoutManager);
+			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#uiEventListener);
 			registerSpellMdCodeBlockProcessor(this, this.#spellbook, this.#spellLayoutManager);
 			registerEncounterMdCodeBlockProcessor(this, this.#bestiary),
 			registerAddStatblockCommand(this, this.#bestiary);
@@ -72,21 +70,18 @@ export default class DndStatblockPlugin extends Plugin {
 
 		this.#uiEventListener = new UiEventListener(this.app, this.#bestiary, this.#spellbook, this.#dmScreen);
 
-		this.#monsterLayoutManager = new MonsterLayoutManager(this.app, this.#settingsController.settings, this.#spellbook, this.#uiEventListener);
 		this.#spellLayoutManager = new SpellLayoutManager(this.app, this.#spellbook, this.#uiEventListener);
 
 		callback();
 	}
 
 	#onLayoutStyleChanged() {
-		this.#monsterLayoutManager.onChangeLayoutStyle();
 	}
 
 	#dispose() {
 		this.#bestiary.dispose();
 		this.#spellbook.dispose();
 		this.#dmScreen.dispose();
-		this.#monsterLayoutManager.dispose();
 		this.#spellLayoutManager.dispose();
 	}
 }
