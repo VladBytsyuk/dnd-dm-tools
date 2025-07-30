@@ -11,22 +11,21 @@ import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor
 import { registerAddEncounterCommand } from './ui/components/command/add_encounter_command';
 import { type ISpellbook, Spellbook } from './data/spellbook';
 import { registerSidePanelSpellbook } from './ui/components/ribbon/side_panel_spellbook';
-import { SpellLayoutManager } from './ui/components/settings/spell_layout_manager';
 import { registerSpellMdCodeBlockProcessor } from './ui/components/processor/spell_md_code_block_processor';
 import { registerAddSpellCommand } from './ui/components/command/add_spell_command';
 import { DmScreen } from './data/dm_screen';
 import { registerSidePanelDmScreen } from './ui/components/ribbon/side_panel_dm_screen';
 import { UiEventListener } from './data/ui_event_listener';
+import type { IUiEventListener } from './domain/listeners/ui_event_listener';
 
 export default class DndStatblockPlugin extends Plugin {
 
 	// ---- fields ----
 	#settingsController: DndSettingsController;
-	#spellLayoutManager: SpellLayoutManager;
 	#bestiary: IBestiary;
 	#spellbook: ISpellbook;
 	#dmScreen: DmScreen;
-	#uiEventListener: UiEventListener;
+	#uiEventListener: IUiEventListener;
 
 	// ---- callbacks ----
 	async onload() {
@@ -37,7 +36,7 @@ export default class DndStatblockPlugin extends Plugin {
 			registerSidePanelSpellbook(this, this.#spellbook, this.#uiEventListener);
 			registerSidePanelDmScreen(this, this.#dmScreen, this.#uiEventListener);
 			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#uiEventListener);
-			registerSpellMdCodeBlockProcessor(this, this.#spellbook, this.#spellLayoutManager);
+			registerSpellMdCodeBlockProcessor(this, this.#spellbook, this.#uiEventListener);
 			registerEncounterMdCodeBlockProcessor(this, this.#bestiary),
 			registerAddStatblockCommand(this, this.#bestiary);
 			registerAddSpellCommand(this, this.#spellbook);
@@ -70,8 +69,6 @@ export default class DndStatblockPlugin extends Plugin {
 
 		this.#uiEventListener = new UiEventListener(this.app, this.#bestiary, this.#spellbook, this.#dmScreen);
 
-		this.#spellLayoutManager = new SpellLayoutManager(this.app, this.#spellbook, this.#uiEventListener);
-
 		callback();
 	}
 
@@ -82,6 +79,5 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#bestiary.dispose();
 		this.#spellbook.dispose();
 		this.#dmScreen.dispose();
-		this.#spellLayoutManager.dispose();
 	}
 }

@@ -1,8 +1,8 @@
 import { ItemView, Workspace, type WorkspaceLeaf } from "obsidian";
 import type { DmScreen } from "src/data/dm_screen";
-import type { UiEventListener } from "src/data/ui_event_listener";
 import type { DmScreenGroup } from "src/domain/dm_screen_group";
 import type { DmScreenItem } from "src/domain/dm_screen_item";
+import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type DndStatblockPlugin from "src/main";
 import { TEXTS } from "src/res/texts_ru";
 import DmScreenUi from "src/ui/layout/sidepanel/DmScreenUi.svelte";
@@ -11,7 +11,7 @@ import { mount } from "svelte";
 export function registerSidePanelDmScreen(
     plugin: DndStatblockPlugin,
     dmScreen: DmScreen,
-    uiEventListener: UiEventListener,
+    uiEventListener: IUiEventListener,
 ) {
     plugin.registerView(
         SIDE_PANEL_DM_SCREEN_VIEW,
@@ -31,13 +31,13 @@ class SidePanelDmScreenView extends ItemView {
 
     // ---- fields ----   
     #dmScreen: DmScreen;
-    #uiEventListener: UiEventListener;
+    #uiEventListener: IUiEventListener;
 
     // ---- constructor ----
     constructor(
         leaf: WorkspaceLeaf, 
         dmScreen: DmScreen,
-        uiEventListener: UiEventListener,
+        uiEventListener: IUiEventListener,
     ) {
         super(leaf);
         this.#dmScreen = dmScreen;

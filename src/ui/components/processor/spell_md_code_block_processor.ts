@@ -1,17 +1,19 @@
 import { parseYaml } from "obsidian";
 import DndStatblockPlugin from "src/main";
 import { type FullSpell } from "src/domain/spell";
-import { SpellLayoutManager } from "../settings/spell_layout_manager";
 import type { ISpellbook } from "src/data/spellbook";
+import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
+import FullSpellUi from "src/ui/layout/spell/FullSpellUi.svelte";
+import { mount } from "svelte";
 
 export function registerSpellMdCodeBlockProcessor(
     plugin: DndStatblockPlugin,
     spellbook: ISpellbook,
-    layoutManager: SpellLayoutManager,
+    uiEventListener: IUiEventListener,
 ) {
     plugin.registerMarkdownCodeBlockProcessor(
         'spell', 
-        (source, el, context) => spellMdCodeBlockProcessor(source, el, spellbook, layoutManager),
+        (source, el, context) => spellMdCodeBlockProcessor(source, el, spellbook, uiEventListener),
     );
 }
 
@@ -19,7 +21,7 @@ async function spellMdCodeBlockProcessor(
     source: string,
     el: HTMLElement,
     spellbook: ISpellbook,
-    layoutManager: SpellLayoutManager,
+    uiEventListener: IUiEventListener,
 ) {
     const parameters = parseYaml(source);
     if (!parameters.name.rus) return;
@@ -34,5 +36,11 @@ async function spellMdCodeBlockProcessor(
         spell = parameters as FullSpell
     }
 
-    layoutManager.renderLayout(el, spell);
+    mount(FullSpellUi, {
+        target: el,
+        props: {
+            spell: spell,
+            uiEventListener: uiEventListener,
+        },
+    });
 }

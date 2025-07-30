@@ -2,15 +2,15 @@ import { ItemView, Workspace, type WorkspaceLeaf } from "obsidian";
 import { mount } from "svelte";
 import DndStatblockPlugin from "src/main";
 import { type IBestiary } from "src/data/bestiary";
-import type { UiEventListener } from "src/data/ui_event_listener";
 import type { FullMonster } from "src/domain/monster";
 import BestiarySidePanelUi from "src/ui/layout/sidepanel/BestiarySidePanelUi.svelte";
 import { TEXTS } from "src/res/texts_ru";
+import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 
 export function registerSidePanelBestiary(
     plugin: DndStatblockPlugin,
     bestiary: IBestiary,
-    uiEventListener: UiEventListener,
+    uiEventListener: IUiEventListener,
 ) {
     plugin.registerView(
         SIDE_PANEL_BESTIARY_VIEW,
@@ -30,13 +30,13 @@ class SidePanelBestiaryView extends ItemView {
     // ---- fields ----
     #plugin: DndStatblockPlugin;
     #bestiary: IBestiary;
-    #uiEventListener: UiEventListener;
+    #uiEventListener: IUiEventListener;
 
     constructor(
         leaf: WorkspaceLeaf, 
         plugin: DndStatblockPlugin, 
         bestiary: IBestiary,    
-        uiEventListener: UiEventListener,
+        uiEventListener: IUiEventListener,
 
     ) {
         super(leaf);

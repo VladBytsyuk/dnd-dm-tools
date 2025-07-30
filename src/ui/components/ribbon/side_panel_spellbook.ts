@@ -4,13 +4,13 @@ import { TEXTS } from "src/res/texts_ru";
 import type { ISpellbook } from "src/data/spellbook";
 import type { FullSpell } from "src/domain/spell";
 import { mount } from "svelte";
-import type { UiEventListener } from "src/data/ui_event_listener";
 import SpellbookSidePanelUi from "src/ui/layout/sidepanel/SpellbookSidePanelUi.svelte";
+import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 
 export function registerSidePanelSpellbook(
     plugin: DndStatblockPlugin,
     spellbook: ISpellbook,
-    uiEventListener: UiEventListener,
+    uiEventListener: IUiEventListener,
 ) {
     plugin.registerView(
         SIDE_PANEL_SPELLBOOK_VIEW,
@@ -30,13 +30,13 @@ class SidePanelSpellbookView extends ItemView {
     // ---- fields ----
     #plugin: DndStatblockPlugin;
     #spellbook: ISpellbook;
-    #uiEventListener: UiEventListener;
+    #uiEventListener: IUiEventListener;
 
     constructor(
         leaf: WorkspaceLeaf, 
         plugin: DndStatblockPlugin, 
         spellbook: ISpellbook,
-        uiEventListener: UiEventListener,
+        uiEventListener: IUiEventListener,
     ) {
         super(leaf);
         this.#plugin = plugin;
