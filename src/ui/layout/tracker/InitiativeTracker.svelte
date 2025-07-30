@@ -8,7 +8,7 @@
 	import { TEXTS } from "src/res/texts_ru";
 	import { getImageSource } from "src/domain/image_utils";
 
-    let { app, encounter, isEditable, onUpdate, onPortraitClick } = $props();
+    let { app, encounter, isEditable, onPortraitClick } = $props();
     let stateEncounter: Encounter = $state(encounter);
     let idCounter: number = encounter.participants.length;
     let calcTempValues = new Map();
@@ -32,7 +32,6 @@
         const clipboard = await getEncounterFromClipboard();
         if (clipboard) {
             stateEncounter = clipboard;
-            onUpdate(stateEncounter);
             idCounter = clipboard.participants.length;
         }
     };
@@ -159,14 +158,12 @@
 
     const updateParticipants = (newParticipants: EncounterParticipant[]) => {
         stateEncounter = { ...stateEncounter, participants: newParticipants };
-        onUpdate(stateEncounter);
     };
 
     const handleEditingKeyPress = (e: any, id: string) => {
         if (e.key === 'Enter') {
             removeEditingState(id);
             e.target.blur();
-            onUpdate(stateEncounter);
         }
     };
 
@@ -177,7 +174,6 @@
 
     const removeEditingState = (id: string): void => {
         editingId = null;
-        onUpdate(stateEncounter);
     }
 
     const onParticipantPortraitClick = (participant: EncounterParticipant) => {
