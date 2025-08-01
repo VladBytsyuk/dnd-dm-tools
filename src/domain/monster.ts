@@ -107,6 +107,7 @@ export interface SmallMonster {
     challengeRating: string;
     url: string;
     source: Source;
+    homebrew?: boolean;
 }
 
 export interface FullMonster extends SmallMonster {

@@ -3,7 +3,6 @@
 	import { handleHtml } from "src/domain/utils";
 
     let { htmlContent, uiEventListener, ...others } = $props();
-    console.log(uiEventListener)
     const linkListener = registerHtmlLinkListener(uiEventListener);   
 </script>
 

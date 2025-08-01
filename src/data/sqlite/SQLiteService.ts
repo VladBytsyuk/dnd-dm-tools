@@ -1,0 +1,127 @@
+import { Buffer } from 'buffer';
+import type { SqlTableDao } from './SqlTableDao';
+import { SmallMosterSqlTableDao } from './SmallMosterSqlTableDao';
+import { FileSystemAdapter, type App, type PluginManifest } from 'obsidian';
+import initSqlJs, { type Database } from 'sql.js';
+import type { SmallMonster } from 'src/domain/monster';
+
+export default class SQLiteService {
+
+    private database: Database | null = null;
+    private databasePath: string;
+    public smallMonsterDao: SqlTableDao<SmallMonster> | null = null;
+
+    constructor(
+        private app: App,
+        private manifest: PluginManifest,
+    ) {
+        this.databasePath = this.pluginFile('database.db');
+    }
+
+    async initialize() {
+        try {
+            let wasmBinary: ArrayBuffer | undefined = undefined;
+            const wasmFile = this.pluginFile('sql-wasm.wasm');
+            try {
+                wasmBinary = await this.app.vault.adapter.readBinary(wasmFile);
+            } catch (e) {
+                try {
+                    const fs = require('fs');
+                    wasmBinary = fs.readFileSync(wasmFile);
+                } catch (nodeError) {
+                    console.error('Failed to load WASM file:', nodeError);
+                }
+            }
+            const SQL = await initSqlJs({ wasmBinary });
+
+            const isDatabaseExists = await this.app.vault.adapter.exists(this.databasePath);
+            let databaseData: Uint8Array | null = null;
+
+            console.log('Database exists:', isDatabaseExists);
+            if (isDatabaseExists) {
+                const databaseContent = await this.app.vault.adapter.readBinary(this.databasePath);
+                databaseData = new Uint8Array(databaseContent);
+            }
+
+            const database = new SQL.Database(databaseData);
+            this.database = database;
+            const sqlTableDaos = this.initDaos(database);
+
+            await this.transaction(async () => {
+                await Promise.all(
+                    sqlTableDaos.map(tableDao => tableDao.initialize())
+                );
+            });
+
+            console.log('Database initialized');
+        } catch (error) {
+            console.error('Database init error:', error);
+        }
+    }
+
+    dispose() {
+        if (this.database) {
+            this.database.close();
+        }
+    }
+
+    async transaction(callback: (database: Database) => Promise<void>) {
+        if (!this.database) throw new Error('Database not initialized');
+        
+        try {
+            console.log('Starting transaction');
+            this.database.exec('BEGIN TRANSACTION');
+            await callback(this.database);
+            this.database.exec('COMMIT');
+            console.log('Transaction committed');
+            await this.saveDatabase();
+            console.log('Database saved');
+        } catch (error) {
+            this.database.exec('ROLLBACK');
+            console.error('Transaction error:', error);
+            throw error;
+        }
+    }
+
+    async saveDatabase() {
+        if (!this.database) return;
+        
+        try {
+            console.log('Saving database to file:', this.databasePath);
+            const databaseData = this.database.export();
+            const buffer = Buffer.from(databaseData);
+            await this.app.vault.adapter.writeBinary(
+                this.databasePath, 
+                buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
+            );
+            console.log('Database saved successfully');
+        } catch (error) {
+            console.error('Database save error:', error);
+        }
+    }
+
+    private initDaos(database: Database): SqlTableDao<any, any>[] {
+        this.smallMonsterDao = new SmallMosterSqlTableDao(database, this.app, this.manifest);
+        return [
+            this.smallMonsterDao,
+        ];
+    }
+
+    private pluginFile(filename: string, absolute: boolean = false) {
+        const path = [
+            this.app.vault.configDir,
+            'plugins',
+            this.manifest.id,
+            filename
+        ]
+        if (absolute) {
+            const adapter = this.app.vault.adapter;
+            if (adapter instanceof FileSystemAdapter) {
+                path.unshift(adapter.getBasePath());
+            } else {
+                throw new Error('Base path недоступен для текущего адаптера');
+            }
+        }
+        return path.join('/').trim();
+    }
+}

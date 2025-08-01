@@ -17,10 +17,12 @@ import { DmScreen } from './data/dm_screen';
 import { registerSidePanelDmScreen } from './ui/components/ribbon/side_panel_dm_screen';
 import { UiEventListener } from './data/ui_event_listener';
 import type { IUiEventListener } from './domain/listeners/ui_event_listener';
+import SQLiteService from './data/sqlite/SQLiteService';
 
 export default class DndStatblockPlugin extends Plugin {
 
 	// ---- fields ----
+	#database: SQLiteService;
 	#settingsController: DndSettingsController;
 	#bestiary: IBestiary;
 	#spellbook: ISpellbook;
@@ -55,6 +57,9 @@ export default class DndStatblockPlugin extends Plugin {
 	async #initialize(
 		callback: () => void,
 	) {
+		this.#database = new SQLiteService(this.app, this.manifest);
+		await this.#database.initialize();
+
 		this.#settingsController = new DndSettingsController(this);
 		await this.#settingsController.initialize(() => this.#onLayoutStyleChanged());
 
@@ -79,5 +84,6 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#bestiary.dispose();
 		this.#spellbook.dispose();
 		this.#dmScreen.dispose();
+		this.#database.dispose();
 	}
 }
