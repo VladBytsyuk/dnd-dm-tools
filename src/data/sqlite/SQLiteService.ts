@@ -3,13 +3,16 @@ import type { SqlTableDao } from './SqlTableDao';
 import { SmallMosterSqlTableDao } from './SmallMosterSqlTableDao';
 import { FileSystemAdapter, type App, type PluginManifest } from 'obsidian';
 import initSqlJs, { type Database } from 'sql.js';
-import type { SmallMonster } from 'src/domain/monster';
+import type { FullMonster, SmallMonster } from 'src/domain/monster';
+import type { BestiaryFilter } from 'src/domain/bestiary_filters';
+import { FullMonsterSqlTableDao } from './FullMonsterSqlTableDao';
 
 export default class SQLiteService {
 
     private database: Database | null = null;
     private databasePath: string;
-    public smallMonsterDao: SqlTableDao<SmallMonster> | null = null;
+    public smallMonsterDao: SqlTableDao<SmallMonster, BestiaryFilter> | null = null;
+    public fullMonsterDao: SqlTableDao<FullMonster, any> | null = null;
 
     constructor(
         private app: App,
@@ -102,8 +105,10 @@ export default class SQLiteService {
 
     private initDaos(database: Database): SqlTableDao<any, any>[] {
         this.smallMonsterDao = new SmallMosterSqlTableDao(database, this.app, this.manifest);
+        this.fullMonsterDao = new FullMonsterSqlTableDao(database);
         return [
             this.smallMonsterDao,
+            this.fullMonsterDao,
         ];
     }
 
