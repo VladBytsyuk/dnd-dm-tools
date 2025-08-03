@@ -44,7 +44,6 @@ export default class SQLiteService {
             const isDatabaseExists = await this.app.vault.adapter.exists(this.databasePath);
             let databaseData: Uint8Array | null = null;
 
-            console.log('Database exists:', isDatabaseExists);
             if (isDatabaseExists) {
                 const databaseContent = await this.app.vault.adapter.readBinary(this.databasePath);
                 databaseData = new Uint8Array(databaseContent);
@@ -54,9 +53,17 @@ export default class SQLiteService {
             this.database = database;
             const sqlTableDaos = this.initDaos(database);
 
+            // Create tables if they do not exist
             await this.transaction(async () => {
                 await Promise.all(
                     sqlTableDaos.map(tableDao => tableDao.initialize())
+                );
+            });
+
+            // Fill tables with initial data
+            await this.transaction(async () => {
+                await Promise.all(
+                    sqlTableDaos.map(tableDao => tableDao.fillTableWithData())
                 );
             });
 
@@ -76,13 +83,10 @@ export default class SQLiteService {
         if (!this.database) throw new Error('Database not initialized');
         
         try {
-            console.log('Starting transaction');
             this.database.exec('BEGIN TRANSACTION');
             await callback(this.database);
             this.database.exec('COMMIT');
-            console.log('Transaction committed');
             await this.saveDatabase();
-            console.log('Database saved');
         } catch (error) {
             this.database.exec('ROLLBACK');
             console.error('Transaction error:', error);
@@ -94,14 +98,12 @@ export default class SQLiteService {
         if (!this.database) return;
         
         try {
-            console.log('Saving database to file:', this.databasePath);
             const databaseData = this.database.export();
             const buffer = Buffer.from(databaseData);
             await this.app.vault.adapter.writeBinary(
                 this.databasePath, 
                 buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
             );
-            console.log('Database saved successfully');
         } catch (error) {
             console.error('Database save error:', error);
         }

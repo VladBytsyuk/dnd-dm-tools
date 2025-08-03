@@ -1,4 +1,5 @@
 import { ItemView, Workspace, type WorkspaceLeaf } from "obsidian";
+import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import DndStatblockPlugin from "src/main";
 import { TEXTS } from "src/res/texts_ru";
 import InitiativeTracker from 'src/ui/layout/tracker/InitiativeTracker.svelte';
@@ -6,10 +7,11 @@ import { mount, unmount } from 'svelte';
 
 export function registerSidePanelInitiativeTracker(
     plugin: DndStatblockPlugin,
+    uiEventListener: IUiEventListener,
 ) {
     plugin.registerView(
         SIDE_PANEL_INITIATIVE_TRACKER_VIEW,
-        (leaf: WorkspaceLeaf) => new SidePanelInitiativeTrackerView(leaf),
+        (leaf: WorkspaceLeaf) => new SidePanelInitiativeTrackerView(leaf, plugin, uiEventListener),
     );
     plugin.addRibbonIcon("swords", TEXTS.ribbonActionInitiativeTrackerTitle, async (mouseEvent) => {
         openSidePanelInitiativeTracker(plugin.app.workspace)
@@ -23,7 +25,7 @@ class SidePanelInitiativeTrackerView extends ItemView {
     // ---- fields ----
     #component: ReturnType<typeof InitiativeTracker> | undefined;
 
-    constructor(leaf: WorkspaceLeaf) {
+    constructor(leaf: WorkspaceLeaf, private plugin: DndStatblockPlugin, private uiEventListener: IUiEventListener) {
         super(leaf);
     }
 
@@ -62,9 +64,10 @@ class SidePanelInitiativeTrackerView extends ItemView {
         this.#component = mount(InitiativeTracker, {
             target: container,
             props: {
+                app: this.plugin.app,
                 encounter: emptyEncounter,
                 isEditable: true,
-                onUpdate: () => {},
+                onPortraitClick: () => this.uiEventListener.onBeastClick.bind(this.uiEventListener),
             }
         });
     }

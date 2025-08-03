@@ -33,7 +33,7 @@ export default class DndStatblockPlugin extends Plugin {
 	async onload() {
 		this.#initialize(() => {
 			registerSettingsTab(this, this.#settingsController);
-			registerSidePanelInitiativeTracker(this);
+			registerSidePanelInitiativeTracker(this, this.#uiEventListener);
 			registerSidePanelBestiary(this, this.#bestiary, this.#uiEventListener);	
 			registerSidePanelSpellbook(this, this.#spellbook, this.#uiEventListener);
 			registerSidePanelDmScreen(this, this.#dmScreen, this.#uiEventListener);

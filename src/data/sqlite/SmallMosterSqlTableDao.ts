@@ -18,17 +18,6 @@ export class SmallMosterSqlTableDao extends SqlTableDao<SmallMonster, BestiaryFi
         return 'small_bestiary';
     }
 
-    async initialize(): Promise<void> {
-        super.initialize();
-        const tableEmpty = await this.isTableEmpty();
-        if (tableEmpty) {
-            const smallMonsters = await this.loadBestiaryData();
-            for (const monster of smallMonsters) {
-                await this.createItem(monster);
-            }
-        }
-    }
-
     // Table management
     async createTable(): Promise<void> {
         this.database.exec(`
@@ -47,6 +36,16 @@ export class SmallMosterSqlTableDao extends SqlTableDao<SmallMonster, BestiaryFi
             );
         `);
         console.log(`Table ${this.getTableName()} created`);
+    }
+
+    async fillTableWithData(): Promise<void> {
+        const tableEmpty = await this.isTableEmpty();
+        if (tableEmpty) {
+            const smallMonsters = await this.loadBestiaryData();
+            for (const monster of smallMonsters) {
+                await this.createItem(monster);
+            }
+        }
     }
     
     // CRUD operations
@@ -84,7 +83,6 @@ export class SmallMosterSqlTableDao extends SqlTableDao<SmallMonster, BestiaryFi
             item.source.group.shortName,
             item.homebrew ? 1 : 0,
         ]);
-        console.log(`Put ${item.url} into ${this.getTableName()}`);
     }
 
     async filterByFilters(filters: BestiaryFilter): Promise<WhereClauseData> {

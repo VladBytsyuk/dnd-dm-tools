@@ -27,6 +27,10 @@ export abstract class SqlTableDao<T, F> {
     // Table management
     abstract createTable() : Promise<void>;
 
+    async fillTableWithData(): Promise<void> {
+        // implementation in subclasses
+    }
+
     async dropTable() {
         this.database.exec(`
             DROP TABLE IF EXISTS ${this.getTableName()};

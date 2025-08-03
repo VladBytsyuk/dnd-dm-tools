@@ -18,17 +18,6 @@ export class SmallSpellSqlTableDao extends SqlTableDao<SmallSpell, SpellbookFilt
         return 'small_spellbook';
     }
 
-    async initialize(): Promise<void> {
-        super.initialize();
-        const tableEmpty = await this.isTableEmpty();
-        if (tableEmpty) {
-            const smallSpells = await this.loadSpellbookData();
-            for (const spell of smallSpells) {
-                await this.createItem(spell);
-            }
-        }
-    }
-
     // Table management
     async createTable(): Promise<void> {
         this.database.exec(`
@@ -54,7 +43,17 @@ export class SmallSpellSqlTableDao extends SqlTableDao<SmallSpell, SpellbookFilt
         `);
         console.log(`Table ${this.getTableName()} created`);
     }
-    
+
+    async fillTableWithData(): Promise<void> {
+        const tableEmpty = await this.isTableEmpty();
+        if (tableEmpty) {
+            const smallSpells = await this.loadSpellbookData();
+            for (const spell of smallSpells) {
+                await this.createItem(spell);
+            }
+        }
+    }
+
     // CRUD operations
     async createItem(item: SmallSpell): Promise<void> {
         const existing = this.database.exec(
@@ -83,7 +82,7 @@ export class SmallSpellSqlTableDao extends SqlTableDao<SmallSpell, SpellbookFilt
                 concentration,
                 ritual,
                 homebrew
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
             item.name.rus,
             item.name.eng,
