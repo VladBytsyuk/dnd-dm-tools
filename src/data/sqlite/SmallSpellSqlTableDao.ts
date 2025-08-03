@@ -166,7 +166,7 @@ export class SmallSpellSqlTableDao extends SqlTableDao<SmallSpell, SpellbookFilt
     }
 
     // Mapper
-    mapSqlValues(sqlValues: SqlValue[]): SmallSpell {
+    async mapSqlValues(sqlValues: SqlValue[]): Promise<SmallSpell> {
         return {
             name: {
                 rus: sqlValues[0] as string,

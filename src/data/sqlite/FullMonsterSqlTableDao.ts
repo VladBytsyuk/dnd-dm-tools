@@ -243,7 +243,7 @@ export class FullMonsterSqlTableDao extends SqlTableDao<FullMonster, any> {
     }
 
     // Mapper
-    mapSqlValues(sqlValues: SqlValue[]): FullMonster {
+    async mapSqlValues(sqlValues: SqlValue[]): Promise<FullMonster> {
         return {
             name: {
                 rus: sqlValues[1] as string,

@@ -130,5 +130,5 @@ export abstract class SqlTableDao<T, F> {
     }
 
     // Mapper
-    abstract mapSqlValues(values: SqlValue[]): T;
+    abstract mapSqlValues(values: SqlValue[]): Promise<T>;
 }

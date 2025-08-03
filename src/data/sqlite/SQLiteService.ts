@@ -10,6 +10,8 @@ import type { FullSpell, SmallSpell } from 'src/domain/spell';
 import type { SpellbookFilters } from 'src/domain/spellbook_filters';
 import { SmallSpellSqlTableDao } from './SmallSpellSqlTableDao';
 import { FullSpellSqlTableDao } from './FullSpellSqlTableDao';
+import type { DmScreenGroup } from 'src/domain/dm_screen_group';
+import { DmScreenGroupSqlTableDao } from './DmScreenGroupSqlTableDao';
 
 export default class SQLiteService {
 
@@ -19,6 +21,7 @@ export default class SQLiteService {
     public fullMonsterDao: SqlTableDao<FullMonster, any> | null = null;
     public smallSpellDao: SqlTableDao<SmallSpell, SpellbookFilters> | null = null;
     public fullSpellDao: SqlTableDao<FullSpell, any> | null = null;
+    public dmScreenGroupDao: SqlTableDao<DmScreenGroup, any> | null = null;
 
     constructor(
         private app: App,
@@ -116,11 +119,13 @@ export default class SQLiteService {
         this.fullMonsterDao = new FullMonsterSqlTableDao(database);
         this.smallSpellDao = new SmallSpellSqlTableDao(database, this.app, this.manifest);
         this.fullSpellDao = new FullSpellSqlTableDao(database);
+        // this.dmScreenGroupDao = new DmScreenGroupSqlTableDao(database, this.app, this.manifest);
         return [
             this.smallMonsterDao,
             this.fullMonsterDao,
             this.smallSpellDao,
             this.fullSpellDao,
+            // this.dmScreenGroupDao,
         ];
     }
 

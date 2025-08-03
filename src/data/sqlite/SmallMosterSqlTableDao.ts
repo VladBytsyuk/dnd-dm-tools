@@ -135,7 +135,7 @@ export class SmallMosterSqlTableDao extends SqlTableDao<SmallMonster, BestiaryFi
     }
 
     // Mapper
-    mapSqlValues(sqlValues: SqlValue[]): SmallMonster {
+    async mapSqlValues(sqlValues: SqlValue[]): Promise<SmallMonster> {
         return {
             name: {
                 rus: sqlValues[1] as string,

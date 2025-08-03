@@ -150,7 +150,7 @@ export class FullSpellSqlTableDao extends SqlTableDao<FullSpell, any> {
     }
 
     // Mapper
-    mapSqlValues(sqlValues: SqlValue[]): FullSpell {
+    async mapSqlValues(sqlValues: SqlValue[]): Promise<FullSpell> {
         return {
             name: {
                 rus: sqlValues[0] as string,
