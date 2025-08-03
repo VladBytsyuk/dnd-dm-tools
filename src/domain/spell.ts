@@ -40,7 +40,7 @@ export interface FullSpell {
     components: SpellComponents;
     concentration?: boolean;
     ritual?: boolean;
-    url?: string;
+    url: string;
     source?: Source;
     id?: number;
     range: string;
@@ -49,7 +49,8 @@ export interface FullSpell {
     classes: SpellClass[] | undefined;
     subclasses: SpellSubclass[] | undefined;
     description: string;
-    upper?: string,
+    upper?: string;
+    homebrew?: boolean;
 }
 
 export interface SmallSpell {
