@@ -6,6 +6,9 @@ import initSqlJs, { type Database } from 'sql.js';
 import type { FullMonster, SmallMonster } from 'src/domain/monster';
 import type { BestiaryFilter } from 'src/domain/bestiary_filters';
 import { FullMonsterSqlTableDao } from './FullMonsterSqlTableDao';
+import type { SmallSpell } from 'src/domain/spell';
+import type { SpellbookFilters } from 'src/domain/spellbook_filters';
+import { SmallSpellSqlTableDao } from './SmallSpellSqlTableDao';
 
 export default class SQLiteService {
 
@@ -13,6 +16,7 @@ export default class SQLiteService {
     private databasePath: string;
     public smallMonsterDao: SqlTableDao<SmallMonster, BestiaryFilter> | null = null;
     public fullMonsterDao: SqlTableDao<FullMonster, any> | null = null;
+    public smallSpellDao: SqlTableDao<SmallSpell, SpellbookFilters> | null = null;
 
     constructor(
         private app: App,
@@ -106,9 +110,11 @@ export default class SQLiteService {
     private initDaos(database: Database): SqlTableDao<any, any>[] {
         this.smallMonsterDao = new SmallMosterSqlTableDao(database, this.app, this.manifest);
         this.fullMonsterDao = new FullMonsterSqlTableDao(database);
+        this.smallSpellDao = new SmallSpellSqlTableDao(database, this.app, this.manifest);
         return [
             this.smallMonsterDao,
             this.fullMonsterDao,
+            this.smallSpellDao,
         ];
     }
 

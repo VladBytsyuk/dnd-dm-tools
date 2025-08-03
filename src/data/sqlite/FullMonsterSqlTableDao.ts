@@ -1,6 +1,6 @@
 import type { Database, SqlValue } from 'sql.js';
 import type { FullMonster } from "src/domain/monster";
-import { SqlTableDao } from "./SqlTableDao";
+import { SqlTableDao, WhereClauseData } from "./SqlTableDao";
 
 export class FullMonsterSqlTableDao extends SqlTableDao<FullMonster, any> {
 
@@ -139,27 +139,6 @@ export class FullMonsterSqlTableDao extends SqlTableDao<FullMonster, any> {
             ]
         );
         console.log(`Put ${item.url} into ${this.getTableName()}`);
-    }
-
-    async readAllItems(name: string | null = null): Promise<FullMonster[]> {
-        let whereClauses: string[] = [];
-        let params: any[] = [];
-
-        if (name) {
-            whereClauses.push(`(rus_name LIKE '%' || ? || '%' OR eng_name LIKE '%' || ? || '%')`);
-            params.push(name, name);
-        }
-
-        let query = `SELECT * FROM ${this.getTableName()}`;
-        if (whereClauses.length > 0) {
-            query += ` WHERE ${whereClauses.join(' AND ')}`;
-        }
-        query += ';';
-        const result = this.database.exec(query, params);
-
-        if (result.length === 0 || result[0].values.length === 0) return [];
-
-        return result[0].values.map(it => this.mapSqlValues(it));
     }
 
     async updateItem(item: FullMonster): Promise<void> {

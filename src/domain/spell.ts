@@ -58,9 +58,10 @@ export interface SmallSpell {
     school: string;
     additionalType?: string;
     components: SpellComponents;
-    url?: string;
+    url: string;
     source: Source;
     id?: number;
     concentration?: boolean;
     ritual?: boolean;
+    homebrew?: boolean;
 }

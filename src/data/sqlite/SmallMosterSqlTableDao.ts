@@ -1,6 +1,6 @@
 import type { Database, SqlValue } from 'sql.js';
 import type { SmallMonster } from 'src/domain/monster';
-import { SqlTableDao } from './SqlTableDao';
+import { SqlTableDao, WhereClauseData } from './SqlTableDao';
 import type { App, PluginManifest } from 'obsidian';
 import type { BestiaryFilter } from 'src/domain/bestiary_filters';
 
@@ -87,40 +87,24 @@ export class SmallMosterSqlTableDao extends SqlTableDao<SmallMonster, BestiaryFi
         console.log(`Put ${item.url} into ${this.getTableName()}`);
     }
 
-    async readAllItems(name: string | null = null, filters: BestiaryFilter | null): Promise<SmallMonster[]> {
+    async filterByFilters(filters: BestiaryFilter): Promise<WhereClauseData> {
         let whereClauses: string[] = [];
-        let params: any[] = [];
+        let params: SqlValue[] = [];
 
-        if (name) {
-            whereClauses.push(`(rus_name LIKE '%' || ? || '%' OR eng_name LIKE '%' || ? || '%')`);
-            params.push(name, name);
+        if (filters.types.length > 0) {
+            whereClauses.push('(' + filters.types.map(() => `type = ?`).join(' OR ') + ')');
+            params.push(...filters.types);
+        }
+        if (filters.challangeRatings.length > 0) {
+            whereClauses.push('(' + filters.challangeRatings.map(() => `challenge_rating = ?`).join(' OR ') + ')');
+            params.push(...filters.challangeRatings);
+        }
+        if (filters.sources.length > 0) {
+            whereClauses.push('(' + filters.sources.map(() => `source_short_name = ?`).join(' OR ') + ')');
+            params.push(...filters.sources);
         }
 
-        if (filters) {
-            if (filters.types.length > 0) {
-                whereClauses.push('(' + filters.types.map(() => `type = ?`).join(' OR ') + ')');
-                params.push(...filters.types);
-            }
-            if (filters.challangeRatings.length > 0) {
-                whereClauses.push('(' + filters.challangeRatings.map(() => `challenge_rating = ?`).join(' OR ') + ')');
-                params.push(...filters.challangeRatings);
-            }
-            if (filters.sources.length > 0) {
-                whereClauses.push('(' + filters.sources.map(() => `source_short_name = ?`).join(' OR ') + ')');
-                params.push(...filters.sources);
-            }
-        }
-
-        let query = `SELECT * FROM ${this.getTableName()}`
-        if (whereClauses.length > 0) {
-            query += ` WHERE ${whereClauses.join(' AND ')}`;
-        }
-        query += ';';
-        const result = this.database.exec(query, params);
-
-        if (result.length === 0 || result[0].values.length === 0) return [];
-
-        return result[0].values.map(it => this.mapSqlValues(it));
+        return WhereClauseData(whereClauses, params);
     }
 
     async updateItem(item: SmallMonster): Promise<void> {

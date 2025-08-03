@@ -1,6 +1,17 @@
 import type { Database, SqlValue } from "sql.js";
 
+export interface WhereClauseData {
+    whereClauses: string[];
+    params: SqlValue[];
+}
+
+export function WhereClauseData(whereClauses: string[], params: SqlValue[]): WhereClauseData {
+    return { whereClauses, params };
+}
+
 export abstract class SqlTableDao<T, F> {
+
+    
 
     constructor(public database: Database) {}
 
@@ -40,7 +51,44 @@ export abstract class SqlTableDao<T, F> {
     // CRUD operations
     abstract createItem(item: T): Promise<void>;
 
-    abstract readAllItems(name: string | null, filters: F | null): Promise<T[]>;
+    async readAllItems(name: string | null, filters: F | null): Promise<T[]> {
+        let whereClauses: string[] = [];
+        let params: SqlValue[] = [];
+
+        if (name) {
+            const filterByNameResult = await this.filterByName(name);
+            whereClauses.push(...filterByNameResult.whereClauses);
+            params.push(...filterByNameResult.params);
+        }
+
+        if (filters) {
+            const filterByFiltersResult = await this.filterByFilters(filters);
+            whereClauses.push(...filterByFiltersResult.whereClauses);
+            params.push(...filterByFiltersResult.params);
+        }
+
+        let query = `SELECT * FROM ${this.getTableName()}`
+        if (whereClauses.length > 0) {
+            query += ` WHERE ${whereClauses.join(' AND ')}`;
+        }
+        query += ';';
+        const result = this.database.exec(query, params);
+
+        if (result.length === 0 || result[0].values.length === 0) return [];
+
+        return result[0].values.map(it => this.mapSqlValues(it));
+    }
+
+    async filterByName(name: string): Promise<WhereClauseData> {
+        return WhereClauseData(
+            [`rus_name LIKE '%' || ? || '%' OR eng_name LIKE '%' || ? || '%'`],
+            [name, name]
+        );
+    }
+
+    async filterByFilters(_: F): Promise<WhereClauseData> {
+        return WhereClauseData([], []);
+    }
 
     async readItemByName(name: string): Promise<T | null> {
         return this.readItem('rus_name = ? OR eng_name = ?', [name, name]);
