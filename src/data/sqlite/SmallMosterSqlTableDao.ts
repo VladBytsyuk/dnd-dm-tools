@@ -1,27 +1,25 @@
 import type { Database, SqlValue } from 'sql.js';
 import type { SmallMonster } from 'src/domain/monster';
-import type { SqlTableDao } from './SqlTableDao';
+import { SqlTableDao } from './SqlTableDao';
 import type { App, PluginManifest } from 'obsidian';
 import type { BestiaryFilter } from 'src/domain/bestiary_filters';
 
-export class SmallMosterSqlTableDao implements SqlTableDao<SmallMonster, BestiaryFilter> {
+export class SmallMosterSqlTableDao extends SqlTableDao<SmallMonster, BestiaryFilter> {
 
     constructor(
-        private database: Database,
+        database: Database,
         private app: App,
         private manifest: PluginManifest,
-    ) {} 
+    ) {
+        super(database);
+    } 
     
     getTableName(): string {
         return 'small_bestiary';
     }
 
     async initialize(): Promise<void> {
-        if (!this.database) return;
-        const tableExists = await this.isTableExists();
-        if (!tableExists) {
-            await this.createTable();
-        }
+        super.initialize();
         const tableEmpty = await this.isTableEmpty();
         if (tableEmpty) {
             const smallMonsters = await this.loadBestiaryData();
@@ -30,7 +28,6 @@ export class SmallMosterSqlTableDao implements SqlTableDao<SmallMonster, Bestiar
             }
         }
     }
-
 
     // Table management
     async createTable(): Promise<void> {
@@ -51,27 +48,6 @@ export class SmallMosterSqlTableDao implements SqlTableDao<SmallMonster, Bestiar
         `);
         console.log(`Table ${this.getTableName()} created`);
     }
-
-    async dropTable(): Promise<void> {
-        this.database.exec(`
-            DROP TABLE IF EXISTS ${this.getTableName()};
-        `);
-    }
-
-    async isTableExists(): Promise<boolean> {
-        const result = this.database.exec(`
-            SELECT name FROM sqlite_master WHERE type='table' AND name='${this.getTableName()}';
-        `);
-        return result.length > 0 && result[0].values.length > 0;
-    }
-
-    async isTableEmpty(): Promise<boolean> {
-        const result = this.database.exec(`
-            SELECT COUNT(*) FROM ${this.getTableName()};
-        `);
-        return result.length === 0 || result[0].values[0][0] === 0;
-    }
-
     
     // CRUD operations
     async createItem(item: SmallMonster): Promise<void> {
@@ -111,7 +87,6 @@ export class SmallMosterSqlTableDao implements SqlTableDao<SmallMonster, Bestiar
         console.log(`Put ${item.url} into ${this.getTableName()}`);
     }
 
-
     async readAllItems(name: string | null = null, filters: BestiaryFilter | null): Promise<SmallMonster[]> {
         let whereClauses: string[] = [];
         let params: any[] = [];
@@ -145,17 +120,8 @@ export class SmallMosterSqlTableDao implements SqlTableDao<SmallMonster, Bestiar
 
         if (result.length === 0 || result[0].values.length === 0) return [];
 
-        return result[0].values.map(it => this.buildSmallMonster(it));
+        return result[0].values.map(it => this.mapSqlValues(it));
     }
-
-    async readItemByName(name: string): Promise<SmallMonster | null> {
-        return this.readItem(`rus_name = ? OR eng_name = ?`, [name, name]);
-    }
-
-    async readItemByUrl(url: string): Promise<SmallMonster | null> {
-        return this.readItem(`url = ?`, [url]);
-    }
-
 
     async updateItem(item: SmallMonster): Promise<void> {
         this.database.exec(`
@@ -186,35 +152,8 @@ export class SmallMosterSqlTableDao implements SqlTableDao<SmallMonster, Bestiar
         ]);
     }
 
-
-    async deleteItemByName(name: string): Promise<void> {
-        await this.deleteItem(`rus_name = ? OR eng_name = ?`, [name, name]);
-    }
-
-    async deleteItemByUrl(url: string): Promise<void> {
-        await this.deleteItem(`url = ?`, [url]);
-    }
-
-
-    // Private methods
-    private readItem(clause: string, params: string[]): SmallMonster | null {
-        const result = this.database.exec(`
-            SELECT * FROM ${this.getTableName()} WHERE ${clause};
-        `, params);
-        if (result.length === 0 || result[0].values.length === 0) return null;
-
-        const row = result[0].values[0];
-        
-        return this.buildSmallMonster(row);
-    }
-
-    private deleteItem(clause: string, params: string[]): Promise<void> {
-        this.database.exec(`
-            DELETE FROM ${this.getTableName()} WHERE ${clause};
-        `, params);
-    }
-
-    private buildSmallMonster(sqlValues: SqlValue[]): SmallMonster {
+    // Mapper
+    mapSqlValues(sqlValues: SqlValue[]): SmallMonster {
         return {
             name: {
                 rus: sqlValues[1] as string,
@@ -235,6 +174,7 @@ export class SmallMosterSqlTableDao implements SqlTableDao<SmallMonster, Bestiar
         };
     }
 
+    // Private methods
     private async loadBestiaryData(): Promise<SmallMonster[]> {
         try {
             // Путь к файлу относительно корневой директории плагина

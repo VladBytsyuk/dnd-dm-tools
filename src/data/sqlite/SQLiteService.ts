@@ -86,7 +86,7 @@ export default class SQLiteService {
         }
     }
 
-    async saveDatabase() {
+    private async saveDatabase() {
         if (!this.database) return;
         
         try {
