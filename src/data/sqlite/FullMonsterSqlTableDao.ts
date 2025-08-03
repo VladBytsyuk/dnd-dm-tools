@@ -278,7 +278,7 @@ export class FullMonsterSqlTableDao extends SqlTableDao<FullMonster, any> {
                 sign: sqlValues[21] as string,
                 bonus: sqlValues[22] as number,
             },
-            speed: JSON.parse(sqlValues[23] as string || '[]') as Speed[],
+            speed: JSON.parse(sqlValues[23] as string || '[]'),
             ability: {
                 str: sqlValues[24] as number,
                 dex: sqlValues[25] as number,
