@@ -88,11 +88,11 @@ export class FullMonsterSqlTableDao extends SqlTableDao<FullMonster, any> {
                 ability_str, ability_dex, ability_con, ability_int, ability_wiz, ability_cha,
                 saving_throws, skills, damage_vulnerabilities, damage_resistances, damage_immunities, condition_immunities,
                 senses, languages, feats, actions, bonus_actions, reactions, legendary, mythic, lair, tags, images
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
             [
                 item.name.rus,
                 item.name.eng,
-                item.type,
+                JSON.stringify(item.type),
                 item.challengeRating,
                 item.url,
                 item.source.shortName,
@@ -124,7 +124,7 @@ export class FullMonsterSqlTableDao extends SqlTableDao<FullMonster, any> {
                 JSON.stringify(item.damageVulnerabilities ?? []),
                 JSON.stringify(item.damageResistances ?? []),
                 JSON.stringify(item.damageImmunities ?? []),
-                JSON.stringify(item.conditionImmunities ?? []),
+                JSON.stringify(item.conditionImmunities ?? []),//
                 JSON.stringify(item.senses ?? {}),
                 JSON.stringify(item.languages ?? []),
                 JSON.stringify(item.feats ?? []),
@@ -139,6 +139,12 @@ export class FullMonsterSqlTableDao extends SqlTableDao<FullMonster, any> {
             ]
         );
         console.log(`Put ${item.url} into ${this.getTableName()}`);
+    }
+
+    async readAllItemsNames(): Promise<string[]> {
+        const result = this.database.exec(`SELECT DISTINCT rus_name FROM ${this.getTableName()};`);
+        if (result.length === 0 || result[0].values.length === 0) return [];
+        return result[0].values.map(it => it[0] as string);
     }
 
     async updateItem(item: FullMonster): Promise<void> {
@@ -249,7 +255,7 @@ export class FullMonsterSqlTableDao extends SqlTableDao<FullMonster, any> {
                 rus: sqlValues[1] as string,
                 eng: sqlValues[2] as string,
             },
-            type: sqlValues[3] as string,
+            type: JSON.parse(sqlValues[3] as string),
             challengeRating: sqlValues[4] as string,
             url: sqlValues[5] as string,
             source: {

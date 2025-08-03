@@ -1,9 +1,7 @@
-import type { DataAdapter } from "obsidian";
 import { requestUrl } from 'obsidian';
 import type { FullMonster, SmallMonster } from "src/domain/monster";
-import { PersistentCache } from "./cache";
-import type { DndSettingsController } from "src/ui/components/settings/settings_controller";
 import { BestiaryFilter } from "src/domain/bestiary_filters";
+import type SQLiteService from "./sqlite/SQLiteService";
 
 export interface IBestiary {
     
@@ -71,23 +69,15 @@ export interface IBestiary {
 export class Bestiary implements IBestiary {
 
 	// ---- fields ----
-    #rootDir: string;
-    #dataAdapter: DataAdapter;
-    #smallBestiary: SmallMonster[];
+    #smallBestiary: SmallMonster[] | undefined = undefined;
     #filters: BestiaryFilter | null;
-    #cache: PersistentCache<FullMonster>;
 
     // ---- public functions ----
-    constructor(rootDir: string, dataAdapter: DataAdapter, settingsController: DndSettingsController) {
-        this.#rootDir = rootDir;
-        this.#dataAdapter = dataAdapter;
-        this.#cache = new PersistentCache("bestiary", 200, settingsController);
-    }
+    constructor(private database: SQLiteService) {}
 
     async initialize() {
-        this.#smallBestiary = await this.#loadBestiaryData();
+        this.#smallBestiary = await this.database.smallMonsterDao?.readAllItems(null, null);
         this.#filters = await this.#collectBestiaryFilters();
-        await this.#cache.init();
     }
 
     async getAllSmallMonsters(): Promise<SmallMonster[]> {
@@ -97,33 +87,31 @@ export class Bestiary implements IBestiary {
     }
 
     async getAllSmallMonstersNames(): Promise<string[]> {
-        const allSmallMosnters = await this.getAllSmallMonsters();
-        return allSmallMosnters.map(smallMonster => smallMonster.name.rus);
+        return await this.database.smallMonsterDao?.readAllItemsNames() || [];
     }
 
     async getFullMonsterByUrl(url: string): Promise<FullMonster | null> {
-        const cachedFullMonster = this.#cache.get(url);
+        const cachedFullMonster = await this.database.fullMonsterDao?.readItemByUrl(url) || null;
         if (cachedFullMonster) {
             console.log(`Loaded ${cachedFullMonster.name.rus} from local storage.`);
             return cachedFullMonster;
         }
         const fullMonster = await this.#fetchCreatureFromAPI(url);
-        if (fullMonster) this.#cache.set(url, fullMonster);
+        if (fullMonster) {
+            this.database.transaction(async () => {
+                await this.database.fullMonsterDao?.createItem(fullMonster);
+            });
+        }
         return fullMonster;
     }
 
     async getFullMonsterBySmallMonster(smallMonster: SmallMonster): Promise<FullMonster | null> {
+        if (!smallMonster.url) return null;
         return await this.getFullMonsterByUrl(smallMonster.url);
     }
 
     async getFullMonsterByName(monsterName: string): Promise<FullMonster | null> {
-        const allSmallMosnters = await this.getAllSmallMonsters();
-        const smallMonster = allSmallMosnters.find(smallMonster => smallMonster.name.rus == monsterName);
-        if (smallMonster == null) {
-            return null;
-        } else {
-            return await this.getFullMonsterByUrl(smallMonster?.url);
-        }
+        return await this.database.fullMonsterDao?.readItemByName(monsterName) || null;
     }
 
     async getAllFilters(): Promise<BestiaryFilter | null> {
@@ -133,35 +121,12 @@ export class Bestiary implements IBestiary {
     }
 
     async getFilteredSmallMonsters(filters: BestiaryFilter): Promise<SmallMonster[]> {
-        const allSmallMonsters = await this.getAllSmallMonsters();
-        if (filters.types.length === 0 && filters.challangeRatings.length === 0 && filters.sources.length === 0) {
-            return allSmallMonsters;    
-        }
-        return allSmallMonsters.filter(monster => {
-            const typeMatch = filters.types.length === 0 || filters.types.includes(monster.type);
-            const challengeRatingMatch = filters.challangeRatings.length === 0 || filters.challangeRatings.includes(monster.challengeRating);
-            const sourceMatch = filters.sources.length === 0 || filters.sources.includes(monster.source.shortName);
-            return typeMatch && challengeRatingMatch && sourceMatch;    
-        });
+        return await this.database.smallMonsterDao?.readAllItems(null, filters) || [];
     }
 
     dispose() {}
 
     // ---- private functions ----
-    async #loadBestiaryData(): Promise<SmallMonster[]> {
-        try {
-            // Путь к файлу относительно корневой директории плагина
-            const filePath = `${this.#rootDir}/data/bestiary.json`;
-            const data = await this.#dataAdapter.read(filePath);
-            const smallMonsters = JSON.parse(data) as SmallMonster[];
-            console.log(`Loaded ${smallMonsters.length} small monsters from local storage.`);
-            return smallMonsters;
-        } catch (error) {
-            console.error("Failed to load bestiary data:", error);
-            return [];
-        }
-    }
-
     async #collectBestiaryFilters(): Promise<BestiaryFilter | null> {
         const smallMonsters = await this.getAllSmallMonsters();
         if (!smallMonsters) return null;

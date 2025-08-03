@@ -64,7 +64,7 @@ export class FullSpellSqlTableDao extends SqlTableDao<FullSpell, any> {
                 source_short_name, source_name, group_name, group_short_name,
                 concentration, ritual, homebrew, range, duration, time,
                 classes, subclasses, description, upper
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         `, [
             item.name.rus,
             item.name.eng,
@@ -90,7 +90,12 @@ export class FullSpellSqlTableDao extends SqlTableDao<FullSpell, any> {
             item.description,
             item.upper ?? null,
         ]);
-        console.log(`Put ${item.url} into ${this.getTableName()}`);
+    }
+
+    async readAllItemsNames(): Promise<string[]> {
+        const result = this.database.exec(`SELECT DISTINCT rus_name FROM ${this.getTableName()};`);
+        if (result.length === 0 || result[0].values.length === 0) return [];
+        return result[0].values.map(it => it[0] as string);
     }
 
     async updateItem(item: FullSpell): Promise<void> {
@@ -153,36 +158,36 @@ export class FullSpellSqlTableDao extends SqlTableDao<FullSpell, any> {
     async mapSqlValues(sqlValues: SqlValue[]): Promise<FullSpell> {
         return {
             name: {
-                rus: sqlValues[0] as string,
-                eng: sqlValues[1] as string,
+                rus: sqlValues[1] as string,
+                eng: sqlValues[2] as string,
             },
-            level: sqlValues[2] as number,
-            school: sqlValues[3] as string,
-            additionalType: sqlValues[4] ? (sqlValues[4] as string) : undefined,
+            level: sqlValues[3] as number,
+            school: sqlValues[4] as string,
+            additionalType: sqlValues[5] ? (sqlValues[5] as string) : undefined,
             components: {
-                v: Boolean(sqlValues[5]),
-                s: Boolean(sqlValues[6]),
-                m: sqlValues[7] ? (sqlValues[7] as string) : undefined,
+                v: Boolean(sqlValues[6]),
+                s: Boolean(sqlValues[7]),
+                m: sqlValues[8] ? (sqlValues[8] as string) : undefined,
             },
-            url: sqlValues[8] as string,
+            url: sqlValues[9] as string,
             source: {
-                shortName: sqlValues[9] as string,
-                name: sqlValues[10] as string,
+                shortName: sqlValues[10] as string,
+                name: sqlValues[11] as string,
                 group: {
-                    name: sqlValues[11] as string,
-                    shortName: sqlValues[12] as string,
+                    name: sqlValues[12] as string,
+                    shortName: sqlValues[13] as string,
                 },
             },
-            concentration: Boolean(sqlValues[13]),
-            ritual: Boolean(sqlValues[14]),
-            homebrew: Boolean(sqlValues[15]),
-            range: sqlValues[16] as string,
-            duration: sqlValues[17] as string,
-            time: sqlValues[18] as string,
-            classes: JSON.parse(sqlValues[19] as string) || [],
-            subclasses: JSON.parse(sqlValues[20] as string) || [],
-            description: sqlValues[21] as string,
-            upper: sqlValues[22] ? (sqlValues[22] as string) : undefined,
+            concentration: Boolean(sqlValues[14]),
+            ritual: Boolean(sqlValues[15]),
+            homebrew: Boolean(sqlValues[16]),
+            range: sqlValues[17] as string,
+            duration: sqlValues[18] as string,
+            time: sqlValues[19] as string,
+            classes: JSON.parse(sqlValues[20] as string) || [],
+            subclasses: JSON.parse(sqlValues[21] as string) || [],
+            description: sqlValues[22] as string,
+            upper: sqlValues[23] ? (sqlValues[23] as string) : undefined,
         };
     }
 }

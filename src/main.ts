@@ -63,10 +63,10 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#settingsController = new DndSettingsController(this);
 		await this.#settingsController.initialize(() => this.#onLayoutStyleChanged());
 
-		this.#bestiary = new Bestiary(`${this.manifest.dir}`, this.app.vault.adapter, this.#settingsController);
+		this.#bestiary = new Bestiary(this.#database);
 		await this.#bestiary.initialize();
 
-		this.#spellbook = new Spellbook(`${this.manifest.dir}`, this.app.vault.adapter, this.#settingsController);
+		this.#spellbook = new Spellbook(this.#database);
 		await this.#spellbook.initialize();
 
 		this.#dmScreen = new DmScreen(`${this.manifest.dir}`, this.app.vault.adapter, this.#settingsController);

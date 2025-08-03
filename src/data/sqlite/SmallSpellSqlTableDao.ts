@@ -30,7 +30,7 @@ export class SmallSpellSqlTableDao extends SqlTableDao<SmallSpell, SpellbookFilt
                 additional_type TEXT,
                 components_v INTEGER NOT NULL,
                 components_s INTEGER NOT NULL,
-                components_m TEXT DEFAULT 0,
+                components_m INTEGER,
                 url TEXT NOT NULL UNIQUE,
                 source_short_name TEXT NOT NULL,
                 source_name TEXT NOT NULL,
@@ -91,7 +91,7 @@ export class SmallSpellSqlTableDao extends SqlTableDao<SmallSpell, SpellbookFilt
             item.additionalType || null,
             item.components.v ? 1 : 0,
             item.components.s ? 1 : 0,
-            item.components.m || null,
+            item.components.m ? 1 : 0,
             item.url,
             item.source.shortName,
             item.source.name,
@@ -101,7 +101,6 @@ export class SmallSpellSqlTableDao extends SqlTableDao<SmallSpell, SpellbookFilt
             item.ritual ? 1 : 0,
             item.homebrew ? 1 : 0
         ]);
-        console.log(`Put ${item.url} into ${this.getTableName()}`);
     }
 
     async filterByFilters(filters: SpellbookFilters): Promise<WhereClauseData> {
@@ -122,6 +121,12 @@ export class SmallSpellSqlTableDao extends SqlTableDao<SmallSpell, SpellbookFilt
         }
 
         return WhereClauseData(whereClauses, params);
+    }
+
+    async readAllItemsNames(): Promise<string[]> {
+        const result = this.database.exec(`SELECT DISTINCT rus_name FROM ${this.getTableName()};`);
+        if (result.length === 0 || result[0].values.length === 0) return [];
+        return result[0].values.map(it => it[0] as string);
     }
 
     async updateItem(item: SmallSpell): Promise<void> {
@@ -152,7 +157,7 @@ export class SmallSpellSqlTableDao extends SqlTableDao<SmallSpell, SpellbookFilt
             item.additionalType || null,
             item.components.v ? 1 : 0,
             item.components.s ? 1 : 0,
-            item.components.m || null,
+            item.components.m ? 1 : 0,
             item.url,
             item.source.shortName,
             item.source.name,
@@ -169,29 +174,29 @@ export class SmallSpellSqlTableDao extends SqlTableDao<SmallSpell, SpellbookFilt
     async mapSqlValues(sqlValues: SqlValue[]): Promise<SmallSpell> {
         return {
             name: {
-                rus: sqlValues[0] as string,
-                eng: sqlValues[1] as string,
+                rus: sqlValues[1] as string,
+                eng: sqlValues[2] as string,
             },
-            level: sqlValues[2] as number,
-            school: sqlValues[3] as string,
-            additionalType: sqlValues[4] ? (sqlValues[4] as string) : undefined,
+            level: sqlValues[3] as number,
+            school: sqlValues[4] as string,
+            additionalType: sqlValues[5] ? (sqlValues[5] as string) : undefined,
             components: {
-                v: Boolean(sqlValues[5]),
-                s: Boolean(sqlValues[6]),
-                m: sqlValues[7] ? (sqlValues[7] as string) : undefined,
+                v: Boolean(sqlValues[6]),
+                s: Boolean(sqlValues[7]),
+                m: Boolean(sqlValues[7]) ? (sqlValues[8] as string) : undefined,
             },
-            url: sqlValues[8] as string,
+            url: sqlValues[9] as string,
             source: {
-                shortName: sqlValues[9] as string,
-                name: sqlValues[10] as string,
+                shortName: sqlValues[10] as string,
+                name: sqlValues[11] as string,
                 group: {
-                    name: sqlValues[11] as string,
-                    shortName: sqlValues[12] as string,
+                    name: sqlValues[12] as string,
+                    shortName: sqlValues[13] as string,
                 },
             },
             concentration: sqlValues[14] ? Boolean(sqlValues[14]) : undefined,
             ritual: sqlValues[15] ? Boolean(sqlValues[15]) : undefined,
-            homebrew: Boolean(sqlValues[10])
+            homebrew: Boolean(sqlValues[16])
         };
     }
 

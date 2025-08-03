@@ -80,7 +80,7 @@ export abstract class SqlTableDao<T, F> {
 
         if (result.length === 0 || result[0].values.length === 0) return [];
 
-        return result[0].values.map(it => this.mapSqlValues(it));
+        return Promise.all(result[0].values.map(it => this.mapSqlValues(it)));
     }
 
     async filterByName(name: string): Promise<WhereClauseData> {
@@ -93,6 +93,8 @@ export abstract class SqlTableDao<T, F> {
     async filterByFilters(_: F): Promise<WhereClauseData> {
         return WhereClauseData([], []);
     }
+
+    abstract readAllItemsNames(): Promise<string[]>;
 
     async readItemByName(name: string): Promise<T | null> {
         return this.readItem('rus_name = ? OR eng_name = ?', [name, name]);
