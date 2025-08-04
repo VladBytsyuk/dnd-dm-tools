@@ -1,5 +1,3 @@
-import type { DmScreenItem } from "./dm_screen_item";
-
 interface SourceGroup {
     name: string;
     shortName: string;
@@ -16,18 +14,18 @@ interface Name {
     eng: string;
 }
 
-export interface DmScreenGroup {
+export interface DmScreenItem {
     name: Name;
     url: string;
     order: number;
     source: Source;
+    description?: string;
     group?: string;
     icon?: string;
-    description?: string;
-    children?: DmScreenGroup[];
+    parentUrl?: string;
 } 
 
-export function EmptyDmScreenGroup() : DmScreenGroup {
+export function EmptyDmScreenItem() : DmScreenItem {
     return {
         name: { rus: '', eng: '' },
         url: '',
@@ -40,11 +38,11 @@ export function EmptyDmScreenGroup() : DmScreenGroup {
         group: undefined,
         icon: undefined,
         description: undefined,
-        children: []
+        parentUrl: undefined,
     };
 }
 
-export function DmScreenGroup(
+export function DmScreenItem(
     name: Name,
     url: string,
     order: number,
@@ -52,8 +50,8 @@ export function DmScreenGroup(
     group?: string,
     icon?: string,
     description?: string,
-    children?: DmScreenGroup[]
-): DmScreenGroup {
+    parentUrl?: string,
+): DmScreenItem {
     return {
         name,
         url,
@@ -62,32 +60,6 @@ export function DmScreenGroup(
         group,
         icon,
         description,
-        children
+        parentUrl
     };
 }       
-
-export function allChildrenOfGroup(group: DmScreenGroup): DmScreenGroup[] {
-    if (!group.children || group.children.length === 0) {
-        return [group];
-    }   
-    return group.children.reduce((acc: DmScreenGroup[], child: DmScreenGroup) => {
-        return acc.concat(allChildrenOfGroup(child));
-    }, []);
-}
-
-export function groupedChildrenOf(group: DmScreenGroup): Array<{ subgroupName: string, group: DmScreenGroup[] }> {
-    const map = new Map<string, DmScreenGroup[]>();
-    if (group.children) {
-        for (const child of group.children) {
-            if (!map.has(child.group || '')) {
-                map.set(child.group || '', []);
-            }
-            map.get(child.group || '')!.push(child);
-        }
-    }
-    const result: Array<{ subgroupName: string, group: DmScreenGroup[] }> = [];         
-    for (const [subgroupName, group] of map.entries()) {
-        result.push({ subgroupName, group });
-    }
-    return result;
-}

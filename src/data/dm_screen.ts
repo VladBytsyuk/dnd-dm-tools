@@ -1,81 +1,118 @@
 import { requestUrl, type DataAdapter } from "obsidian";
-import { DmScreenGroup, EmptyDmScreenGroup } from "src/domain/dm_screen_group";
+import { DmScreenItem, EmptyDmScreenItem } from "src/domain/dm_screen_group";
 import { PersistentCache } from "./cache";
 import type { DndSettingsController } from "src/ui/components/settings/settings_controller";
-import type { DmScreenItem } from "src/domain/dm_screen_item";
 import { TEXTS } from "src/res/texts_ru";
+import type SQLiteService from "./sqlite/SQLiteService";
 
-export class DmScreen {
+export interface IDmScreen {
+
+    /**
+     * Initializes the dm screen by loading data.
+     * This method should be called before using any other methods of the dm screen.
+     * It loads the dm screen items data.
+     * @returns {Promise<void>} A promise that resolves when the dm screen is initialized.
+     * TODO: rework error hadling
+     */
+    initialize(): Promise<void>;
+    /**
+     * Disposes of the dm screen resources.          
+     * This method should be called when the dm screen is no longer needed to free up resources. 
+     * It does not return a value.
+     * @returns {void}
+     */
+    dispose(): void;
+
+    /**
+     * Returns all root dm screen items.
+     * @returns {Promise<DmScreenItem[]} A promise that resolves to an array of root DmScreenItem objects.
+     */
+    getAllRootItems(): Promise<DmScreenItem[]>;
+    /**
+     * Returns all dm screen items that contain search value in its rus or eng name.
+     * @param {string} searchValue - The string value to apply to dmm screen items.
+     * @returns {Promise<DmScreenItem[]} A promise that resolves to an array of root DmScreenItem objects that match the search value.
+     */
+    getFilteredItems(searchValue: string): Promise<DmScreenItem[]>;
+
+    /**
+     * Returns count of children of given DmScreenItem.
+     * @param {DmScreenItem} item - The DmScreenItem which children should be counted.
+     * @returns {Promise<number>} A promise that resolves to a number of item children.
+     */
+    getChildrenCount(item: DmScreenItem): Promise<number>;
+    /**
+     * Returns children of given DmScreenItem.
+     * @param {DmScreenItem} item - The DmScreenItem which children should be collected.
+     * @returns {Promise<DmScreenItem[]>} A promise that resolves to an item children.
+     */
+    getChildren(item: DmScreenItem): Promise<DmScreenItem[]>;
+
+    /**
+     * Returns a dull dm screen item by its DmScreenItem object.
+     * @param {DmScreenItem} item - dm screen item in a group
+     * @returns {Promise<DmScreenItem | null>} A promise that resolves to a full dm screen item if found, or null if not found. 
+     */
+    getFullItem(item: DmScreenItem): Promise<DmScreenItem | null>;
+    /**
+     * Returns a dull dm screen item by its URL.
+     * @param {string} url - The URL of the dm screen item to fetch
+     * @returns {Promise<DmScreenItem | null>} A promise that resolves to a full dm screen item if found, or null if not found. 
+     */
+    getFullItemByUrl(url: string): Promise<DmScreenItem | null>;
+}
+
+export class DmScreen implements IDmScreen {
 
     // ---- fields ----
-    #rootDir: string;
-    #dataAdapter: DataAdapter;
-    #rootGroup: DmScreenGroup;
-    #cache: PersistentCache<DmScreenItem>;       
+    #rootItems: DmScreenItem[] | undefined = undefined;     
     
-    constructor(rootDir: string, dataAdapter: DataAdapter, settingsController: DndSettingsController) {
-        this.#rootDir = rootDir;
-        this.#dataAdapter = dataAdapter;
-        this.#cache = new PersistentCache("dm_screen", 200, settingsController);
-    }
+    constructor(private database: SQLiteService) {}
 
     async initialize() {
-        this.#rootGroup = await this.#loadDmScreenGroups();
-        await this.#cache.init();
+        this.#rootItems = await this.database.dmScreenGroupDao?.readChildren();
     }
-
-    async getRootGroup(): Promise<DmScreenGroup> {
-        if (this.#rootGroup) return this.#rootGroup;    
-        await this.initialize();    
-        return await this.getRootGroup();
-    }
-
-    async getScreenGroupByUrl(url: string): Promise<DmScreenGroup | undefined> {
-        const group = this.#rootGroup.children?.find(it => it.url === url);
-        return group;
-    }
-
-    async getScreenItemByUrl(url: string): Promise<DmScreenItem | null> {
-        const cachedItem = this.#cache.get(url);
-        if (cachedItem) {
-            console.log(`Loaded ${cachedItem.name.rus} from local storage.`);
-            return cachedItem;
-        }
-        const screenItem = await this.#fetchScreenItemFromAPI(url);
-        if (screenItem) this.#cache.set(url, screenItem);
-        return screenItem;
-    }   
 
     dispose() {}
 
-    // ---- private functions ----
-    async #loadDmScreenGroups(): Promise<DmScreenGroup> {
-        try {
-            // Путь к файлу относительно корневой директории плагина
-            const filePath = `${this.#rootDir}/data/dm_screen.json`;
-            const data = await this.#dataAdapter.read(filePath);
-            const groups = JSON.parse(data) as DmScreenGroup[];
-            console.log(`Loaded ${groups.length} DM Screen groups from local storage.`);
-            return DmScreenGroup(
-                { rus: TEXTS.dmScreenTitle, eng: '' },
-                '',
-                0,
-                {      
-                    shortName: '',
-                    name: '',
-                    group: { name: '', shortName: '' }
-                },          
-                undefined,
-                undefined,
-                undefined,        
-                groups
-            );
-        } catch (error) {
-            console.error("Failed to load  DM Screen groups:", error);
-            return EmptyDmScreenGroup();  
-        }
+    async getAllRootItems(): Promise<DmScreenItem[]> {
+        if (this.#rootItems) return this.#rootItems;
+        this.initialize();
+        return await this.getAllRootItems();
     }
-    
+
+    async getFilteredItems(searchValue: string): Promise<DmScreenItem[]> {
+        return await this.database.dmScreenGroupDao?.readAllItems(searchValue, null) || [];
+    }
+
+    async getChildrenCount(item: DmScreenItem): Promise<number> {
+        return await this.database.dmScreenGroupDao?.readChildrenCount(item.url) || 0;
+    }
+
+    async getChildren(item: DmScreenItem): Promise<DmScreenItem[]> {
+        return await this.database.dmScreenGroupDao?.readChildren(item.url) || [];
+    }
+
+    async getFullItem(item: DmScreenItem): Promise<DmScreenItem | null> {
+        return await this.getFullItemByUrl(item.url);
+    }
+
+    async getFullItemByUrl(url: string): Promise<DmScreenItem | null> {
+        const cachedFullItem = await this.database.dmScreenGroupDao?.readItemByUrl(url) || null;
+        if (cachedFullItem && cachedFullItem.description) {
+            console.log(`Loaded ${cachedFullItem.name.rus} from local storage.`);
+            return cachedFullItem;
+        }
+        const fullItem = await this.#fetchScreenItemFromAPI(url);
+        if (fullItem) {
+            this.database.transaction(async () => {
+                await this.database.dmScreenGroupDao?.updateItem(fullItem);
+            });
+        }
+        return fullItem;
+    }
+
+    // ---- private functions ----
     async #fetchScreenItemFromAPI(url: string): Promise<DmScreenItem | null> {      
         const requestedUrl = `https://ttg.club/api/v1${url}`
         try {

@@ -1,10 +1,9 @@
-import { DmScreenGroup, EmptyDmScreenGroup } from "src/domain/dm_screen_group";
+import { DmScreenItem, EmptyDmScreenItem } from "src/domain/dm_screen_group";
 import { SqlTableDao } from "./SqlTableDao";
 import type { App, PluginManifest } from "obsidian";
 import type { Database, SqlValue } from "sql.js";
-import { TEXTS } from "src/res/texts_ru";
 
-export class DmScreenGroupSqlTableDao extends SqlTableDao<DmScreenGroup, any> {
+export class DmScreenGroupSqlTableDao extends SqlTableDao<DmScreenItem, any> {
 
     constructor(
         database: Database,
@@ -16,7 +15,7 @@ export class DmScreenGroupSqlTableDao extends SqlTableDao<DmScreenGroup, any> {
     
 
     getTableName(): string {
-        return 'dm_screen_groups';
+        return 'dm_screen_items';
     }
 
     // Table management
@@ -24,18 +23,18 @@ export class DmScreenGroupSqlTableDao extends SqlTableDao<DmScreenGroup, any> {
         this.database.exec(`
             CREATE TABLE ${this.getTableName()} (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name_rus TEXT NOT NULL,
-                name_eng TEXT NOT NULL,
+                rus_name TEXT NOT NULL,
+                eng_name TEXT NOT NULL,
                 url TEXT NOT NULL UNIQUE,
-                order INTEGER DEFAULT 0,
+                order_item INTEGER DEFAULT 0,
                 source_short_name TEXT NOT NULL,
                 source_name TEXT NOT NULL,
                 group_name TEXT NOT NULL,
                 group_short_name TEXT NOT NULL,
-                group TEXT,
+                group_item TEXT,
                 icon TEXT,
                 description TEXT,
-                parent_url TEXT,
+                parent_url TEXT
             );
         `);
         console.log(`Table ${this.getTableName()} created`);
@@ -44,16 +43,15 @@ export class DmScreenGroupSqlTableDao extends SqlTableDao<DmScreenGroup, any> {
     async fillTableWithData(): Promise<void> {
         const tableEmpty = await this.isTableEmpty();
         if (tableEmpty) {
-            const mainGroup = await this.loadDmScreenGroups();
-            for (const group of mainGroup.children || []) {
-                await this.createItem(group, mainGroup.url);
+            const groups = await this.loadDmScreenGroups();
+            for (const group of groups || []) {
+                await this.createItem(group);
             }
-            await this.createItem(mainGroup);
         }
     }
 
     // CRUD operations
-    async createItem(item: DmScreenGroup, parentUrl: string| null = null): Promise<void> {
+    async createItem(item: DmScreenItem): Promise<void> {
         const existing = this.database.exec(
             `SELECT 1 FROM ${this.getTableName()} WHERE url = ? LIMIT 1;`,
             [item.url]
@@ -62,20 +60,17 @@ export class DmScreenGroupSqlTableDao extends SqlTableDao<DmScreenGroup, any> {
             console.warn(`Item with url ${item.url} already exists in ${this.getTableName()}. Skipping creation.`);
             return;
         }
-        for (const child of item.children || []) {
-            await this.createItem(child, item.url);
-        }
         this.database.exec(`
             INSERT INTO ${this.getTableName()} (
-                name_rus, 
-                name_eng,
+                rus_name, 
+                eng_name,
                 url,
-                order,
+                order_item,
                 source_short_name,
                 source_name,
                 group_name,
                 group_short_name,
-                group,
+                group_item,
                 icon,
                 description,
                 parent_url
@@ -92,9 +87,8 @@ export class DmScreenGroupSqlTableDao extends SqlTableDao<DmScreenGroup, any> {
             item.group || null,
             item.icon || null,
             item.description || null,
-            parentUrl || null,
+            item.parentUrl || null,
         ]);
-        console.log(`Put ${item.url} in ${this.getTableName()}`);
     }
 
     async readAllItemsNames(): Promise<string[]> {
@@ -103,18 +97,17 @@ export class DmScreenGroupSqlTableDao extends SqlTableDao<DmScreenGroup, any> {
         return result[0].values.map(it => it[0] as string);
     }
 
-    async updateItem(item: DmScreenGroup): Promise<void> {
+    async updateItem(item: DmScreenItem): Promise<void> {
         this.database.exec(`
             UPDATE ${this.getTableName()} SET
-                name_rus = ?,
-                name_eng = ?,
-                order = ?,
+                rus_name = ?,
+                eng_name = ?,
+                order_item = ?,
                 source_short_name = ?,
                 source_name = ?,
                 group_name = ?,
                 group_short_name = ?,
-                group = ?,
-                icon = ?,
+                group_item = ?,
                 description = ?
             WHERE url = ?;
         `, [
@@ -126,16 +119,14 @@ export class DmScreenGroupSqlTableDao extends SqlTableDao<DmScreenGroup, any> {
             item.source.group.name || null,
             item.source.group.shortName || null,
             item.group || null,
-            item.icon || null,
             item.description || null,
             item.url
         ]);
         console.log(`Updated ${item.url} in ${this.getTableName()}`);
     }
 
-    async mapSqlValues(values: SqlValue[]): Promise<DmScreenGroup> {
-        const children = await this.readChildren(values[3] as string);
-        return DmScreenGroup(
+    async mapSqlValues(values: SqlValue[]): Promise<DmScreenItem> {
+        return DmScreenItem(
             { rus: values[1] as string, eng: values[2] as string },
             values[3] as string,
             values[4] as number,
@@ -150,43 +141,98 @@ export class DmScreenGroupSqlTableDao extends SqlTableDao<DmScreenGroup, any> {
             values[9] as string | undefined,
             values[10] as string | undefined,
             values[11] as string | undefined,
-            children
+            values[12] as string | undefined,
         );
     }
 
-    // Private methods
-    private async readChildren(url: string): Promise<DmScreenGroup[]> {
+    async readChildrenCount(url: string): Promise<number> {
         const result = this.database.exec(`
-            SELECT * FROM ${this.getTableName()} WHERE parent_url = ?;
+            SELECT COUNT(*) FROM ${this.getTableName()} WHERE parent_url = ?;
         `, [url]);
+        return result.length;
+    }
+
+    async readChildren(url: string | undefined = undefined): Promise<DmScreenItem[]> {
+        let result = [];
+        if (url) {
+            result = this.database.exec(`
+                SELECT * FROM ${this.getTableName()} WHERE parent_url = ?;
+            `, [url]);
+        } else {
+            result = this.database.exec(`
+                SELECT * FROM ${this.getTableName()} WHERE parent_url IS NULL;
+            `);
+        }
         if (result.length === 0 || result[0].values.length === 0) return [];
         return await Promise.all(result[0].values.map(it => this.mapSqlValues(it)));
     }
 
-    private async loadDmScreenGroups(): Promise<DmScreenGroup> {
+    // Private methods
+    private async loadDmScreenGroups(): Promise<DmScreenItem[]> {
         try {
             // Путь к файлу относительно корневой директории плагина
             const filePath = `${this.manifest.dir}/data/dm_screen.json`;
             const data = await this.app.vault.adapter.read(filePath);
             const groups = JSON.parse(data) as DmScreenGroup[];
             console.log(`Loaded ${groups.length} DM Screen groups from local storage.`);
-            return DmScreenGroup(
-                { rus: TEXTS.dmScreenTitle, eng: '' },
-                '',
-                0,
-                {      
-                    shortName: '',
-                    name: '',
-                    group: { name: '', shortName: '' }
-                },          
-                undefined,
-                undefined,
-                undefined,        
-                groups
-            );
+            const result = [];
+            for (const group of groups) {
+                result.push(this.mapGroupToItem(group))
+                result.push(...this.allChildrenOfGroup(group, group.url))
+            }
+            return result;
         } catch (error) {
             console.error("Failed to load  DM Screen groups:", error);
-            return EmptyDmScreenGroup();  
+            return [];  
         }
     }
+
+    private allChildrenOfGroup(group: DmScreenGroup, parentUrl: string): DmScreenItem[] {
+        const result = [];
+        for (const child of group.children || []) {
+            result.push(this.mapGroupToItem(child, parentUrl));
+            result.push(...this.allChildrenOfGroup(child, child.url))
+        }
+        return result;
+    }
+
+    private mapGroupToItem(group: DmScreenGroup, parentUrl: string | undefined = undefined): DmScreenItem {
+        return DmScreenItem(
+            group.name,
+            group.url,
+            group.order,
+            group.source,
+            group.group,
+            group.icon,
+            group.description,
+            parentUrl,
+        )
+    }
+}
+
+interface DmScreenGroup {
+    name: Name;
+    url: string;
+    order: number;
+    source: Source;
+    group?: string;
+    icon?: string;
+    description?: string;
+    children?: DmScreenGroup[];
+} 
+
+interface SourceGroup {
+    name: string;
+    shortName: string;
+}
+
+interface Source {
+    shortName: string;
+    name: string;
+    group: SourceGroup;
+}
+
+interface Name {
+    rus: string;
+    eng: string;
 }

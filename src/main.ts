@@ -13,7 +13,7 @@ import { type ISpellbook, Spellbook } from './data/spellbook';
 import { registerSidePanelSpellbook } from './ui/components/ribbon/side_panel_spellbook';
 import { registerSpellMdCodeBlockProcessor } from './ui/components/processor/spell_md_code_block_processor';
 import { registerAddSpellCommand } from './ui/components/command/add_spell_command';
-import { DmScreen } from './data/dm_screen';
+import { DmScreen, type IDmScreen } from './data/dm_screen';
 import { registerSidePanelDmScreen } from './ui/components/ribbon/side_panel_dm_screen';
 import { UiEventListener } from './data/ui_event_listener';
 import type { IUiEventListener } from './domain/listeners/ui_event_listener';
@@ -26,7 +26,7 @@ export default class DndStatblockPlugin extends Plugin {
 	#settingsController: DndSettingsController;
 	#bestiary: IBestiary;
 	#spellbook: ISpellbook;
-	#dmScreen: DmScreen;
+	#dmScreen: IDmScreen;
 	#uiEventListener: IUiEventListener;
 
 	// ---- callbacks ----
@@ -69,7 +69,7 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#spellbook = new Spellbook(this.#database);
 		await this.#spellbook.initialize();
 
-		this.#dmScreen = new DmScreen(`${this.manifest.dir}`, this.app.vault.adapter, this.#settingsController);
+		this.#dmScreen = new DmScreen(this.#database);
 		await this.#dmScreen.initialize();
 
 		this.#uiEventListener = new UiEventListener(this.app, this.#bestiary, this.#spellbook, this.#dmScreen);

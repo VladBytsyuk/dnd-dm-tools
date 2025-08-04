@@ -76,7 +76,6 @@ export class Spellbook implements ISpellbook {
 
     async initialize() {
         this.#smallSpellbook = await this.database.smallSpellDao?.readAllItems(null, null) || [];
-        console.log(this.#smallSpellbook);
         this.#filters = await this.#collectSpellbookFilters();
     }
 

@@ -2,7 +2,7 @@ import { App, Notice, type Workspace } from "obsidian";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type { IBestiary } from "./bestiary";
 import type { ISpellbook } from "./spellbook";
-import type { DmScreen } from "./dm_screen";
+import type { IDmScreen } from "./dm_screen";
 import { openSidePanelBestiary } from "src/ui/components/ribbon/side_panel_bestiary";
 import { openSidePanelSpellbook } from "src/ui/components/ribbon/side_panel_spellbook";
 import { openSidePanelDmScreen } from "src/ui/components/ribbon/side_panel_dm_screen";
@@ -15,7 +15,7 @@ export class UiEventListener implements IUiEventListener {
         public app: App,
         public bestiary: IBestiary,
         public spellbook: ISpellbook,
-        public dmScreen: DmScreen, 
+        public dmScreen: IDmScreen, 
     ) {
         this.onBeastClick = this.onBeastClick.bind(this);
         this.onSpellClick = this.onSpellClick.bind(this);
@@ -34,16 +34,8 @@ export class UiEventListener implements IUiEventListener {
     }
 
     async onScreenItemClick(url: string): Promise<void> {
-        console.log(this)
-        const screenItem = await this.dmScreen.getScreenItemByUrl(url);
-        if (screenItem) {
-            await openSidePanelDmScreen(this.app.workspace, undefined, screenItem);
-        } else {
-            const screenGroup = await this.dmScreen.getScreenGroupByUrl(url);
-            if (screenGroup) {
-                await openSidePanelDmScreen(this.app.workspace, screenGroup, undefined);
-            }
-        }
+        const screenItem = await this.dmScreen.getFullItemByUrl(url);
+        if (screenItem) await openSidePanelDmScreen(this.app.workspace, screenItem);
     }
 
     onDiceRoll(label: string, value: number): void {

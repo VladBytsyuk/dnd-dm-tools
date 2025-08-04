@@ -3,25 +3,20 @@ import type { SqlTableDao } from './SqlTableDao';
 import { SmallMosterSqlTableDao } from './SmallMosterSqlTableDao';
 import { FileSystemAdapter, type App, type PluginManifest } from 'obsidian';
 import initSqlJs, { type Database } from 'sql.js';
-import type { FullMonster, SmallMonster } from 'src/domain/monster';
-import type { BestiaryFilter } from 'src/domain/bestiary_filters';
 import { FullMonsterSqlTableDao } from './FullMonsterSqlTableDao';
-import type { FullSpell, SmallSpell } from 'src/domain/spell';
-import type { SpellbookFilters } from 'src/domain/spellbook_filters';
 import { SmallSpellSqlTableDao } from './SmallSpellSqlTableDao';
 import { FullSpellSqlTableDao } from './FullSpellSqlTableDao';
-import type { DmScreenGroup } from 'src/domain/dm_screen_group';
 import { DmScreenGroupSqlTableDao } from './DmScreenGroupSqlTableDao';
 
 export default class SQLiteService {
 
     private database: Database | null = null;
     private databasePath: string;
-    public smallMonsterDao: SqlTableDao<SmallMonster, BestiaryFilter> | null = null;
-    public fullMonsterDao: SqlTableDao<FullMonster, any> | null = null;
-    public smallSpellDao: SqlTableDao<SmallSpell, SpellbookFilters> | null = null;
-    public fullSpellDao: SqlTableDao<FullSpell, any> | null = null;
-    public dmScreenGroupDao: SqlTableDao<DmScreenGroup, any> | null = null;
+    public smallMonsterDao: SmallMosterSqlTableDao | null = null;
+    public fullMonsterDao: FullMonsterSqlTableDao | null = null;
+    public smallSpellDao: SmallSpellSqlTableDao | null = null;
+    public fullSpellDao: FullSpellSqlTableDao | null = null;
+    public dmScreenGroupDao: DmScreenGroupSqlTableDao | null = null;
 
     constructor(
         private app: App,
@@ -119,13 +114,13 @@ export default class SQLiteService {
         this.fullMonsterDao = new FullMonsterSqlTableDao(database);
         this.smallSpellDao = new SmallSpellSqlTableDao(database, this.app, this.manifest);
         this.fullSpellDao = new FullSpellSqlTableDao(database);
-        // this.dmScreenGroupDao = new DmScreenGroupSqlTableDao(database, this.app, this.manifest);
+        this.dmScreenGroupDao = new DmScreenGroupSqlTableDao(database, this.app, this.manifest);
         return [
             this.smallMonsterDao,
             this.fullMonsterDao,
             this.smallSpellDao,
             this.fullSpellDao,
-            // this.dmScreenGroupDao,
+            this.dmScreenGroupDao,
         ];
     }
 

@@ -1,67 +1,83 @@
 <script lang="ts">
 	import DmScreenGroupUi from "../screen/DmScreenGroupUi.svelte";
-	import { allChildrenOfGroup, EmptyDmScreenGroup, groupedChildrenOf, type DmScreenGroup } from "src/domain/dm_screen_group";
+	import { type DmScreenItem } from "src/domain/dm_screen_group";
 	import SidePanelHeader from "../uikit/SidePanelHeader.svelte";
-	import type { DmScreenItem } from "src/domain/dm_screen_item";
 	import DmScreenItemUi from "../screen/DmScreenItemUi.svelte";
 
     // ---- Props ----
-    let { rootGroup, screenGroup, screenItem, uiEventListener, loadScreenItem } = $props();
+    let { item, children, uiEventListener, getFilteredItems, getChildrenCount, getChildren, getFullItem } = $props();
 
     // ---- State ----
-    let groupsStack: DmScreenGroup[] = $state(screenGroup ? [rootGroup, screenGroup] : [rootGroup]);
-    let currentGroup: DmScreenGroup = $state(screenGroup || rootGroup);
+    let itemsStack: DmScreenItem[] = $state(item ? [item] : []);
+    let currentItem: DmScreenItem | undefined = $state(item ? item : undefined);
+    let currentChildren: DmScreenItem[] = $state(item ? [] : children);
     let searchBarValue: string = $state('');
-    let filteredGroups: DmScreenGroup[] = $state([]);
-    let currentScreenItem: DmScreenItem | null = $state(screenItem);
+    
+    let filteredItems: DmScreenItem[] = $state([]);
 
-    function filterGroups() {
+    async function filterItems() {
         if (searchBarValue.length === 0) {
-            filteredGroups = [];
+            filteredItems = [];
             return 
         }
 
-        const searchValueNormalized = searchBarValue.toLowerCase();
-        const checkName = (name: string) => name.toLowerCase().includes(searchValueNormalized);
-
-        filteredGroups = allChildrenOfGroup(rootGroup).filter(item => checkName(item.name.rus) || checkName(item.name.eng));
+        filteredItems = await getFilteredItems(searchBarValue);
     }
 
     // ---- Event Handlers ----
-    function onSearchBarBackClick() {
-        if (currentScreenItem) {
-            currentScreenItem = null;
-            return;
-        }   
-        if (groupsStack.length > 1) {
-            groupsStack.pop();
-            currentGroup = groupsStack.last() || EmptyDmScreenGroup();
+    async function onSearchBarBackClick() {
+        if (itemsStack.length > 0) {
+            itemsStack.pop();
+            const lastItem = itemsStack.last();
+            currentChildren = lastItem ? await getChildren(lastItem) : children;
+            currentItem = lastItem;
         }
     }
 
     function onSearchBarValueChanged(value: string) {
         searchBarValue = value;
-        filterGroups();
+        filterItems();
     }
 
-    const onGroupClick = (group: DmScreenGroup) => async () => {
-        if (group.children && group.children.length > 0) {
-            groupsStack.push(group);
-            currentGroup = group;
+    const onItemClick = (item: DmScreenItem) => async () => {
+        currentItem = item;
+        if (!item.description) {
+            const loadedItem = await getFullItem(item);
+            currentItem = loadedItem ?? item;
+        }
+        if (currentItem) {
+            itemsStack.push(currentItem);
+        }
+        const childrenCount = await getChildrenCount(item);
+        if (childrenCount > 0) {
+            currentChildren = await getChildren(item);
         } else {
-            await handleGroupClick(group);
+            currentChildren = [];
         }
     }
 
-    async function handleGroupClick(group: DmScreenGroup) {
-        const screenItem = await loadScreenItem(group);
-        currentScreenItem = screenItem
+    // ---- Private utils ----
+    function groupedChildren(): Array<{ subgroupName: string, group: DmScreenItem[] }> {
+        const map = new Map<string, DmScreenItem[]>();
+        if (currentChildren) {
+            for (const child of currentChildren) {
+                if (!map.has(child.group || '')) {
+                    map.set(child.group || '', []);
+                }
+                map.get(child.group || '')!.push(child);
+            }
+        }
+        const result: Array<{ subgroupName: string, group: DmScreenItem[] }> = [];         
+        for (const [subgroupName, group] of map.entries()) {
+            result.push({ subgroupName, group });
+        }
+        return result;
     }
 </script>
 
 <div>
     <SidePanelHeader
-        onbackclick={groupsStack.length > 1 || currentScreenItem ? onSearchBarBackClick : undefined}
+        onbackclick={itemsStack.length > 0 ? onSearchBarBackClick : undefined}
         onvaluechange={onSearchBarValueChanged}
         isvaluechangable={undefined}
         onclearclick={undefined}
@@ -69,34 +85,36 @@
         isfiltersapplied={undefined}
     />
     <div style="height:1em;"></div>
-    {#if currentScreenItem}
+    {#if currentChildren.length === 0 && currentItem?.description}
         <DmScreenItemUi 
-            item={currentScreenItem}
+            item={currentItem}
             uiEventListener={uiEventListener}
         />
-    {:else if searchBarValue.length > 0}
+    {:else if !currentItem && searchBarValue.length > 0}
         <h2>Результаты поиска</h2>
-        {#if filteredGroups.length === 0}
+        {#if filteredItems.length === 0}
             <div class="group-description">Ничего не найдено</div>
         {:else}
             <div>
-                {#each filteredGroups as group}
+                {#each filteredItems as item}
                     <DmScreenGroupUi
-                        icon={group.icon}
-                        name={group.name}
-                        source={group.source.shortName}
-                        onclick={onGroupClick(group)}        
+                        icon={item.icon}
+                        name={item.name}
+                        source={item.source.shortName}
+                        onclick={onItemClick(item)}        
                     />
                 {/each}
             </div>
         {/if}
-    {:else if currentGroup}
-        <h2>{currentGroup.name.rus}</h2>
-        {#if currentGroup.description}
-            <div class="group-description">{@html currentGroup.description}</div>
+    {:else}
+        {#if currentItem}
+            <h2>{currentItem.name.rus}</h2>
+        {/if}
+        {#if currentItem && currentItem.description}
+            <div class="group-description">{@html currentItem.description}</div>
         {/if}
         <div>
-            {#each (groupedChildrenOf(currentGroup)) as childGroup}
+            {#each (groupedChildren()) as childGroup}
                 <div class="group-header">{@html childGroup.subgroupName}</div>
                 <div class="content">
                 {#each childGroup.group as group}
@@ -104,7 +122,7 @@
                         icon={group.icon}
                         name={group.name}
                         source={group.source.shortName}
-                        onclick={onGroupClick(group)}        
+                        onclick={onItemClick(group)}        
                     />
                 {/each}
                 </div>
