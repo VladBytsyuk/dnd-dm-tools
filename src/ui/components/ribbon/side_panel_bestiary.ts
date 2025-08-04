@@ -1,10 +1,10 @@
 import { ItemView, Workspace, type WorkspaceLeaf } from "obsidian";
 import { mount } from "svelte";
 import DndStatblockPlugin from "src/main";
-import type { FullMonster } from "src/domain/monster";
 import BestiarySidePanelUi from "src/ui/layout/sidepanel/BestiarySidePanelUi.svelte";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type { Bestiary } from "src/domain/repositories/Bestiary";
+import type { FullMonster } from "src/domain/models/monster/FullMonster";
 
 export function registerSidePanelBestiary(
     plugin: DndStatblockPlugin,

@@ -1,5 +1,6 @@
 import type { BestiaryFilter } from "../bestiary_filters";
-import type { FullMonster, SmallMonster } from "../monster";
+import type { FullMonster } from "../models/monster/FullMonster";
+import type { SmallMonster } from "../models/monster/SmallMonster";
 
 export interface Bestiary {
     

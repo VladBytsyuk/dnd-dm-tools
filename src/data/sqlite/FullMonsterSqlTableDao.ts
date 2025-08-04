@@ -1,6 +1,6 @@
 import type { Database, SqlValue } from 'sql.js';
-import type { FullMonster } from "src/domain/monster";
 import { SqlTableDao } from "./SqlTableDao";
+import type { FullMonster } from 'src/domain/models/monster/FullMonster';
 
 export class FullMonsterSqlTableDao extends SqlTableDao<FullMonster, any> {
 

@@ -1,8 +1,9 @@
 import { requestUrl } from 'obsidian';
-import type { FullMonster, SmallMonster } from "src/domain/monster";
+import type { SmallMonster } from "src/domain/models/monster/SmallMonster";
 import { BestiaryFilter } from "src/domain/bestiary_filters";
 import type DB from "./sqlite/DB";
 import type { Bestiary } from 'src/domain/repositories/Bestiary';
+import type { FullMonster } from 'src/domain/models/monster/FullMonster';
 
 
 export class BestiaryRepository implements Bestiary {

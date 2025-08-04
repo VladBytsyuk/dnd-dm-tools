@@ -1,4 +1,4 @@
-import type { Speed } from "./monster";
+import type { Speed } from "./models/monster/SmallMonster";
 import { mapDiceRollerTags } from "./mappers";
 
 export const handleHtml = (text: string): string => {

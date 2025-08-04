@@ -1,10 +1,10 @@
 import { parseYaml } from "obsidian";
 import DndStatblockPlugin from "src/main";
-import { type FullMonster } from "src/domain/monster";
 import MonsterFullUi from "src/ui/layout/monster/MonsterFullUi.svelte";
 import { mount } from "svelte";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type { Bestiary } from "src/domain/repositories/Bestiary";
+import type { FullMonster } from "src/domain/models/monster/FullMonster";
 
 export function registerMonsterMdCodeBlockProcessor(
     plugin: DndStatblockPlugin,

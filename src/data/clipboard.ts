@@ -1,9 +1,9 @@
 import { Notice, parseYaml, stringifyYaml } from "obsidian";
-import { type FullMonster } from "../domain/monster";
 import type { Encounter, EncounterParticipant } from "src/domain/encounter";
 import { mapMonsterToEncounterParticipant } from "src/domain/mappers";
 import type { FullSpell } from "src/domain/spell";
 import type { DmScreenItem } from "src/domain/dm_screen_group";
+import type { FullMonster } from "src/domain/models/monster/FullMonster";
 
 // ---- Copy to clipboard ----
 export function copyMonsterToClipboard(monster: FullMonster) {

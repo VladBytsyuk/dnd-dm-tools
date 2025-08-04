@@ -1,5 +1,5 @@
 import type { Database, SqlValue } from 'sql.js';
-import type { SmallMonster } from 'src/domain/monster';
+import type { SmallMonster } from 'src/domain/models/monster/SmallMonster';
 import { SqlTableDao, WhereClauseData } from './SqlTableDao';
 import type { App, PluginManifest } from 'obsidian';
 import type { BestiaryFilter } from 'src/domain/bestiary_filters';

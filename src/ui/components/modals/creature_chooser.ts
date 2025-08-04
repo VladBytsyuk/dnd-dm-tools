@@ -1,5 +1,5 @@
 import { App, Modal, Setting, SearchComponent } from "obsidian";
-import type { FullMonster } from "src/domain/monster";
+import type { FullMonster } from "src/domain/models/monster/FullMonster";
 import type { Bestiary } from "src/domain/repositories/Bestiary";
 import { MonsterSuggester } from "src/ui/components/suggest/monster_suggester";
 
