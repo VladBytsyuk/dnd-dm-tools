@@ -1,11 +1,11 @@
 import { Editor, stringifyYaml } from "obsidian";
 import DndStatblockPlugin from "src/main";
 import { CreatureChooser } from "../modals/creature_chooser";
-import type { IBestiary } from "src/data/bestiary";
+import type { Bestiary } from "src/domain/repositories/Bestiary";
 
 const ADD_STATBLOCK_COMMAND_ID = 'add-statblock-command-id';
 
-export function registerAddStatblockCommand(plugin: DndStatblockPlugin, bestiary: IBestiary) {
+export function registerAddStatblockCommand(plugin: DndStatblockPlugin, bestiary: Bestiary) {
     plugin.addCommand({
         id: ADD_STATBLOCK_COMMAND_ID,
         name: "Добавить статблок",

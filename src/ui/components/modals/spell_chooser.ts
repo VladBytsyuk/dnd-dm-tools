@@ -1,5 +1,5 @@
 import { App, Modal, Setting, SearchComponent } from "obsidian";
-import type { ISpellbook } from "src/data/spellbook";
+import type { Spellbook } from "src/domain/repositories/Spellbook";
 import type { FullSpell } from "src/domain/spell";
 import { SpellSuggester } from "src/ui/components/suggest/spell_suggester";
 
@@ -7,7 +7,7 @@ export class SpellChooser extends Modal {
     
     constructor(
         app: App,
-        spellbook: ISpellbook,
+        spellbook: Spellbook,
         onSubmit: (spell: FullSpell) => void,
     ) {
         super(app);
@@ -20,7 +20,7 @@ export class SpellChooser extends Modal {
 
     addSearchElement(
         app: App,
-        spellbook: ISpellbook,
+        spellbook: Spellbook,
         onSelect: (spell: FullSpell) => void,
     ) {
         const searchEl = new SearchComponent(this.contentEl)

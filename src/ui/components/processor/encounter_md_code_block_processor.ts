@@ -2,13 +2,13 @@ import { parseYaml } from "obsidian";
 import type { Encounter } from "src/domain/encounter";
 import DndStatblockPlugin from "src/main";
 import { openSidePanelBestiary } from "../ribbon/side_panel_bestiary";
-import type { IBestiary } from "src/data/bestiary";
 import { mount } from "svelte";
 import InitiativeTracker from "./../../layout/tracker/InitiativeTracker.svelte";
+import type { Bestiary } from "src/domain/repositories/Bestiary";
 
 export function registerEncounterMdCodeBlockProcessor(
     plugin: DndStatblockPlugin,
-    bestiary: IBestiary,
+    bestiary: Bestiary,
 ) {
     plugin.registerMarkdownCodeBlockProcessor(
         'encounter', 
@@ -20,7 +20,7 @@ async function encounterMdCodeBlockProcessor(
     plugin: DndStatblockPlugin,
     source: string,
     el: HTMLElement,
-    bestiary: IBestiary,
+    bestiary: Bestiary,
 
 ) {
     const parameters = parseYaml(source);

@@ -1,14 +1,14 @@
 import { ItemView, Workspace, type WorkspaceLeaf } from "obsidian";
 import DndStatblockPlugin from "src/main";
-import type { ISpellbook } from "src/data/spellbook";
 import type { FullSpell } from "src/domain/spell";
 import { mount } from "svelte";
 import SpellbookSidePanelUi from "src/ui/layout/sidepanel/SpellbookSidePanelUi.svelte";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
+import type { Spellbook } from "src/domain/repositories/Spellbook";
 
 export function registerSidePanelSpellbook(
     plugin: DndStatblockPlugin,
-    spellbook: ISpellbook,
+    spellbook: Spellbook,
     uiEventListener: IUiEventListener,
 ) {
     plugin.registerView(
@@ -28,13 +28,13 @@ class SidePanelSpellbookView extends ItemView {
     
     // ---- fields ----
     #plugin: DndStatblockPlugin;
-    #spellbook: ISpellbook;
+    #spellbook: Spellbook;
     #uiEventListener: IUiEventListener;
 
     constructor(
         leaf: WorkspaceLeaf, 
         plugin: DndStatblockPlugin, 
-        spellbook: ISpellbook,
+        spellbook: Spellbook,
         uiEventListener: IUiEventListener,
     ) {
         super(leaf);

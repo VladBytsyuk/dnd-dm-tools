@@ -1,5 +1,5 @@
 import { Plugin } from 'obsidian';
-import { Bestiary, type IBestiary } from "src/data/bestiary";
+import { BestiaryRepository } from "src/data/BestiaryRepository";
 import { registerMonsterMdCodeBlockProcessor } from "src/ui/components/processor/monster_md_code_block_processor";
 import { registerSidePanelBestiary } from "src/ui/components/ribbon/side_panel_bestiary";
 import { registerAddStatblockCommand } from './ui/components/command/add_statblock_command';
@@ -7,23 +7,26 @@ import { registerThemeChangeListener } from './ui/theme';
 import { registerSidePanelInitiativeTracker } from './ui/components/ribbon/side_panel_initiative_tracker';
 import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor/encounter_md_code_block_processor';
 import { registerAddEncounterCommand } from './ui/components/command/add_encounter_command';
-import { type ISpellbook, Spellbook } from './data/spellbook';
+import { SpellbookRepository } from './data/SpellbookRepository';
 import { registerSidePanelSpellbook } from './ui/components/ribbon/side_panel_spellbook';
 import { registerSpellMdCodeBlockProcessor } from './ui/components/processor/spell_md_code_block_processor';
 import { registerAddSpellCommand } from './ui/components/command/add_spell_command';
-import { DmScreen, type IDmScreen } from './data/dm_screen';
+import { DmScreenRepository } from './data/DmScreenRepository';
 import { registerSidePanelDmScreen } from './ui/components/ribbon/side_panel_dm_screen';
 import { UiEventListener } from './data/ui_event_listener';
 import type { IUiEventListener } from './domain/listeners/ui_event_listener';
 import DB from './data/sqlite/DB';
 import { registerScreenMdCodeBlockProcessor } from './ui/components/processor/screen_md_code_block_processor';
+import type { Bestiary } from './domain/repositories/Bestiary';
+import type { DmScreen } from './domain/repositories/DmScreen';
+import type { Spellbook } from './domain/repositories/Spellbook';
 export default class DndStatblockPlugin extends Plugin {
 
 	// ---- fields ----
 	#database: DB;
-	#bestiary: IBestiary;
-	#spellbook: ISpellbook;
-	#dmScreen: IDmScreen;
+	#bestiary: Bestiary;
+	#spellbook: Spellbook;
+	#dmScreen: DmScreen;
 	#uiEventListener: IUiEventListener;
 
 	// ---- callbacks ----
@@ -57,13 +60,13 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#database = new DB(this.app, this.manifest);
 		await this.#database.initialize();
 
-		this.#bestiary = new Bestiary(this.#database);
+		this.#bestiary = new BestiaryRepository(this.#database);
 		await this.#bestiary.initialize();
 
-		this.#spellbook = new Spellbook(this.#database);
+		this.#spellbook = new SpellbookRepository(this.#database);
 		await this.#spellbook.initialize();
 
-		this.#dmScreen = new DmScreen(this.#database);
+		this.#dmScreen = new DmScreenRepository(this.#database);
 		await this.#dmScreen.initialize();
 
 		this.#uiEventListener = new UiEventListener(this.app, this.#bestiary, this.#spellbook, this.#dmScreen);

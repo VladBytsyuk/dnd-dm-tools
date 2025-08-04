@@ -1,17 +1,17 @@
 import { App, SearchComponent, TextComponent, AbstractInputSuggest, prepareSimpleSearch, type FuzzyMatch, renderMatches } from "obsidian";
-import { type IBestiary } from "src/data/bestiary";
 import type { FullMonster, SmallMonster } from "src/domain/monster";
+import type { Bestiary } from "src/domain/repositories/Bestiary";
 
 export class MonsterSuggester extends AbstractInputSuggest<FuzzyMatch<SmallMonster>> {
 
     // ---- fileds ----
     #inputEl: TextComponent | SearchComponent;
-    #bestiary: IBestiary;
+    #bestiary: Bestiary;
 
     constructor(
         app: App,
         input: TextComponent | SearchComponent,
-        bestiary: IBestiary,
+        bestiary: Bestiary,
     ) {
         super(app, input.inputEl);
         this.#inputEl = input;

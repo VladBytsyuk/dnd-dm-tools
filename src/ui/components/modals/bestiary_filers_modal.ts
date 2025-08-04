@@ -1,4 +1,4 @@
-import { App, ButtonComponent, Modal, TextComponent } from "obsidian";
+import { App, ButtonComponent, Modal } from "obsidian";
 import { BestiaryFilter } from "src/domain/bestiary_filters";
 
 export class BestiaryFiltersModal extends Modal {

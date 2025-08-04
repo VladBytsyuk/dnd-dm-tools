@@ -1,21 +1,21 @@
-import { App, Notice, type Workspace } from "obsidian";
+import { App, Notice } from "obsidian";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
-import type { IBestiary } from "./bestiary";
-import type { ISpellbook } from "./spellbook";
-import type { IDmScreen } from "./dm_screen";
 import { openSidePanelBestiary } from "src/ui/components/ribbon/side_panel_bestiary";
 import { openSidePanelSpellbook } from "src/ui/components/ribbon/side_panel_spellbook";
 import { openSidePanelDmScreen } from "src/ui/components/ribbon/side_panel_dm_screen";
 import { getImageSource } from "src/domain/image_utils";
+import type { Bestiary } from "src/domain/repositories/Bestiary";
+import type { Spellbook } from "src/domain/repositories/Spellbook";
+import type { DmScreen } from "src/domain/repositories/DmScreen";
 
 export class UiEventListener implements IUiEventListener {
 
     // ---- constructor ----
     constructor(
         public app: App,
-        public bestiary: IBestiary,
-        public spellbook: ISpellbook,
-        public dmScreen: IDmScreen, 
+        public bestiary: Bestiary,
+        public spellbook: Spellbook,
+        public dmScreen: DmScreen, 
     ) {
         this.onBeastClick = this.onBeastClick.bind(this);
         this.onSpellClick = this.onSpellClick.bind(this);

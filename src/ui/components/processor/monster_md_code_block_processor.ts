@@ -1,14 +1,14 @@
 import { parseYaml } from "obsidian";
 import DndStatblockPlugin from "src/main";
-import { type IBestiary } from "src/data/bestiary";
 import { type FullMonster } from "src/domain/monster";
 import MonsterFullUi from "src/ui/layout/monster/MonsterFullUi.svelte";
 import { mount } from "svelte";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
+import type { Bestiary } from "src/domain/repositories/Bestiary";
 
 export function registerMonsterMdCodeBlockProcessor(
     plugin: DndStatblockPlugin,
-    bestiary: IBestiary,
+    bestiary: Bestiary,
     uiEventListener: IUiEventListener,
 ) {
     plugin.registerMarkdownCodeBlockProcessor(
@@ -20,7 +20,7 @@ export function registerMonsterMdCodeBlockProcessor(
 async function monsterMdCodeBlockProcessor(
     source: string,
     el: HTMLElement,
-    bestiary: IBestiary,
+    bestiary: Bestiary,
     uiEventListener: IUiEventListener,
 ) {
     const parameters = parseYaml(source);

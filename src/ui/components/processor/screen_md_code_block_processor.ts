@@ -1,14 +1,14 @@
 import { parseYaml } from "obsidian";
-import type { IDmScreen } from "src/data/dm_screen";
 import type { DmScreenItem } from "src/domain/dm_screen_group";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
+import type { DmScreen } from "src/domain/repositories/DmScreen";
 import type DndStatblockPlugin from "src/main";
 import DmScreenItemUi from "src/ui/layout/screen/DmScreenItemUi.svelte";
 import { mount } from "svelte";
 
 export function registerScreenMdCodeBlockProcessor(
     plugin: DndStatblockPlugin,
-    dmScreen: IDmScreen,
+    dmScreen: DmScreen,
     uiEventListener: IUiEventListener,
 ) {
     plugin.registerMarkdownCodeBlockProcessor(
@@ -20,7 +20,7 @@ export function registerScreenMdCodeBlockProcessor(
 async function screenMdCodeBlockProcessor(
     source: string,
     el: HTMLElement,
-    dmScreen: IDmScreen,
+    dmScreen: DmScreen,
     uiEventListener: IUiEventListener,
 ) {
     const parameters = parseYaml(source);

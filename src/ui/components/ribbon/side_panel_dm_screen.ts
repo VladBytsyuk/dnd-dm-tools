@@ -1,14 +1,14 @@
 import { ItemView, Workspace, type WorkspaceLeaf } from "obsidian";
-import type { IDmScreen } from "src/data/dm_screen";
 import type { DmScreenItem } from "src/domain/dm_screen_group";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
+import type { DmScreen } from "src/domain/repositories/DmScreen";
 import type DndStatblockPlugin from "src/main";
 import DmScreenSidePanelUi from "src/ui/layout/sidepanel/DmScreenSidePanelUi.svelte";
 import { mount } from "svelte";
 
 export function registerSidePanelDmScreen(
     plugin: DndStatblockPlugin,
-    dmScreen: IDmScreen,
+    dmScreen: DmScreen,
     uiEventListener: IUiEventListener,
 ) {
     plugin.registerView(
@@ -27,13 +27,13 @@ const SIDE_PANEL_DM_SCREEN_VIEW = "obsidian-dnd-statblock-side-panel-dm-screen";
 class SidePanelDmScreenView extends ItemView {
 
     // ---- fields ----   
-    #dmScreen: IDmScreen;
+    #dmScreen: DmScreen;
     #uiEventListener: IUiEventListener;
 
     // ---- constructor ----
     constructor(
         leaf: WorkspaceLeaf, 
-        dmScreen: IDmScreen,
+        dmScreen: DmScreen,
         uiEventListener: IUiEventListener,
     ) {
         super(leaf);

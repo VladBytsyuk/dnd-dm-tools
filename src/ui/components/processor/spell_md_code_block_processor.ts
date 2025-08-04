@@ -1,14 +1,14 @@
 import { parseYaml } from "obsidian";
 import DndStatblockPlugin from "src/main";
 import { type FullSpell } from "src/domain/spell";
-import type { ISpellbook } from "src/data/spellbook";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import SpellFullUi from "src/ui/layout/spell/SpellFullUi.svelte";
 import { mount } from "svelte";
+import type { Spellbook } from "src/domain/repositories/Spellbook";
 
 export function registerSpellMdCodeBlockProcessor(
     plugin: DndStatblockPlugin,
-    spellbook: ISpellbook,
+    spellbook: Spellbook,
     uiEventListener: IUiEventListener,
 ) {
     plugin.registerMarkdownCodeBlockProcessor(
@@ -20,7 +20,7 @@ export function registerSpellMdCodeBlockProcessor(
 async function spellMdCodeBlockProcessor(
     source: string,
     el: HTMLElement,
-    spellbook: ISpellbook,
+    spellbook: Spellbook,
     uiEventListener: IUiEventListener,
 ) {
     const parameters = parseYaml(source);

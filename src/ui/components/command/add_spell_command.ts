@@ -1,11 +1,11 @@
 import { Editor, stringifyYaml } from "obsidian";
 import DndStatblockPlugin from "src/main";
 import { SpellChooser } from "../modals/spell_chooser";
-import type { ISpellbook } from "src/data/spellbook";
+import type { Spellbook } from "src/domain/repositories/Spellbook";
 
 const ADD_SPELL_COMMAND_ID = 'add-spell-command-id';
 
-export function registerAddSpellCommand(plugin: DndStatblockPlugin, spellbook: ISpellbook) {
+export function registerAddSpellCommand(plugin: DndStatblockPlugin, spellbook: Spellbook) {
     plugin.addCommand({
         id: ADD_SPELL_COMMAND_ID,
         name: "Добавить заклинание",

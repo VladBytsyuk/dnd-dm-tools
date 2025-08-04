@@ -1,7 +1,7 @@
 import type { FullMonster } from "./monster"
 import type { EncounterParticipant } from "./encounter"
 import { calculateModifier } from "./modifier";
-import { randomSpeciality } from "src/res/text_utils";
+import { randomSpeciality } from "src/data/text_utils";
 import { Dice, rollRaw, type Formula, type FormulaEntry } from "./dice";
 
 export const mapMonsterToEncounterParticipant = (monster: FullMonster): EncounterParticipant => {
