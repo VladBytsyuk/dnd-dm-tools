@@ -110,7 +110,13 @@ export class Spellbook implements ISpellbook {
     }
     
     async getFullSpellByName(spellName: string): Promise<FullSpell | null> {
-        return await this.database.fullSpellDao?.readItemByName(spellName) || null;
+        const daoResult = await this.database.fullSpellDao?.readItemByName(spellName) || null;
+        if (daoResult) return daoResult;
+
+        const smallSpell = await this.database.smallSpellDao?.readItemByName(spellName) || null;
+        if (!smallSpell) return null;
+        
+        return this.getFullSpellByUrl(smallSpell.url);
     }
 
     async getAllFilters(): Promise<SpellbookFilters | null> {

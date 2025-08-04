@@ -111,7 +111,13 @@ export class Bestiary implements IBestiary {
     }
 
     async getFullMonsterByName(monsterName: string): Promise<FullMonster | null> {
-        return await this.database.fullMonsterDao?.readItemByName(monsterName) || null;
+        const daoResult = await this.database.fullMonsterDao?.readItemByName(monsterName) || null;
+        if (daoResult) return daoResult;
+
+        const smallMonster = await this.database.smallMonsterDao?.readItemByName(monsterName) || null;
+        if (!smallMonster) return null;
+
+        return this.getFullMonsterByUrl(smallMonster.url);
     }
 
     async getAllFilters(): Promise<BestiaryFilter | null> {

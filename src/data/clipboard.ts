@@ -3,6 +3,7 @@ import { type FullMonster } from "../domain/monster";
 import type { Encounter, EncounterParticipant } from "src/domain/encounter";
 import { mapMonsterToEncounterParticipant } from "src/domain/mappers";
 import type { FullSpell } from "src/domain/spell";
+import type { DmScreenItem } from "src/domain/dm_screen_group";
 
 // ---- Copy to clipboard ----
 export function copyMonsterToClipboard(monster: FullMonster) {
@@ -15,6 +16,10 @@ export function copyEncounterToClipboard(encounter: Encounter) {
 
 export function copySpellToClipboard(spell: FullSpell) {
     copyToClipboard(spell, spell.name.rus, "spell", `spell: ${spell.name.rus}`);    
+}
+
+export function copyDmScreenItem(dmScreenItem: DmScreenItem) {
+    copyToClipboard(dmScreenItem, dmScreenItem.name.rus, "screen")
 }
 
 function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string, additionalContent: string | null = null) {

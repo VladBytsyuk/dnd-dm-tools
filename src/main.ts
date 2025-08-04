@@ -16,6 +16,7 @@ import { registerSidePanelDmScreen } from './ui/components/ribbon/side_panel_dm_
 import { UiEventListener } from './data/ui_event_listener';
 import type { IUiEventListener } from './domain/listeners/ui_event_listener';
 import DB from './data/sqlite/DB';
+import { registerScreenMdCodeBlockProcessor } from './ui/components/processor/screen_md_code_block_processor';
 export default class DndStatblockPlugin extends Plugin {
 
 	// ---- fields ----
@@ -34,7 +35,8 @@ export default class DndStatblockPlugin extends Plugin {
 			registerSidePanelDmScreen(this, this.#dmScreen, this.#uiEventListener);
 			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#uiEventListener);
 			registerSpellMdCodeBlockProcessor(this, this.#spellbook, this.#uiEventListener);
-			registerEncounterMdCodeBlockProcessor(this, this.#bestiary),
+			registerScreenMdCodeBlockProcessor(this, this.#dmScreen, this.#uiEventListener);
+			registerEncounterMdCodeBlockProcessor(this, this.#bestiary);
 			registerAddStatblockCommand(this, this.#bestiary);
 			registerAddSpellCommand(this, this.#spellbook);
 			registerAddEncounterCommand(this);

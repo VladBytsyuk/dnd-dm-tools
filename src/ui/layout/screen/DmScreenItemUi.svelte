@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { copyDmScreenItem } from "src/data/clipboard";
 	import HtmlBlock from "../uikit/HtmlBlock.svelte";
 
     // ---- props ----
@@ -8,7 +9,16 @@
 <div class="item">
     {#if item.name}
     <div class="item-header-box">
-        <div class="item-header-title">{item.name.rus} <span class="item-header-subtitle">[{item.name.eng}]</span></div>
+        <div 
+            class="item-header-title"
+            role="button"
+            tabindex="0"
+            onclick={() => copyDmScreenItem(item)}
+            onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyDmScreenItem(item); } }}
+            aria-label="Скопировать в буфер обмена"
+        >
+            {item.name.rus} <span class="item-header-subtitle">[{item.name.eng}]</span>  📋
+        </div>
     </div>
     {/if}
     <div class="item-content">

@@ -52,6 +52,12 @@ export interface IDmScreen {
      */
     getFullItem(item: DmScreenItem): Promise<DmScreenItem | null>;
     /**
+     * Returns a dull dm screen item by its name.
+     * @param {string} name - The name of the dm screen item to fetch
+     * @returns {Promise<DmScreenItem | null>} A promise that resolves to a full dm screen item if found, or null if not found. 
+     */
+    getFullItemByName(name: string): Promise<DmScreenItem | null>;
+    /**
      * Returns a dull dm screen item by its URL.
      * @param {string} url - The URL of the dm screen item to fetch
      * @returns {Promise<DmScreenItem | null>} A promise that resolves to a full dm screen item if found, or null if not found. 
@@ -92,6 +98,16 @@ export class DmScreen implements IDmScreen {
 
     async getFullItem(item: DmScreenItem): Promise<DmScreenItem | null> {
         return await this.getFullItemByUrl(item.url);
+    }
+
+    async getFullItemByName(name: string): Promise<DmScreenItem | null> {
+        const cachedFullItem = await this.database.dmScreenGroupDao?.readItemByName(name) || null;
+        if (cachedFullItem && cachedFullItem.description) {
+            console.log(`Loaded ${cachedFullItem.name.rus} from local storage.`);
+            return cachedFullItem;
+        }
+        if (!cachedFullItem) return null;
+        return await this.getFullItemByUrl(cachedFullItem.url);
     }
 
     async getFullItemByUrl(url: string): Promise<DmScreenItem | null> {
