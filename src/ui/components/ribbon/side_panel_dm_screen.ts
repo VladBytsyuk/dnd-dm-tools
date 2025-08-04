@@ -3,7 +3,6 @@ import type { IDmScreen } from "src/data/dm_screen";
 import type { DmScreenItem } from "src/domain/dm_screen_group";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type DndStatblockPlugin from "src/main";
-import { TEXTS } from "src/res/texts_ru";
 import DmScreenSidePanelUi from "src/ui/layout/sidepanel/DmScreenSidePanelUi.svelte";
 import { mount } from "svelte";
 
@@ -16,7 +15,7 @@ export function registerSidePanelDmScreen(
         SIDE_PANEL_DM_SCREEN_VIEW,
         (leaf: WorkspaceLeaf) => new SidePanelDmScreenView(leaf, dmScreen, uiEventListener),
     );
-    plugin.addRibbonIcon("book-open", TEXTS.ribbonActionDmScreenTitle, async (mouseEvent) => {
+    plugin.addRibbonIcon("book-open", "Ширма", async () => {
         openSidePanelDmScreen(plugin.app.workspace, undefined);
     });
 }
@@ -34,7 +33,7 @@ class SidePanelDmScreenView extends ItemView {
     // ---- constructor ----
     constructor(
         leaf: WorkspaceLeaf, 
-        dmScreen: DmScreen,
+        dmScreen: IDmScreen,
         uiEventListener: IUiEventListener,
     ) {
         super(leaf);
@@ -48,7 +47,7 @@ class SidePanelDmScreenView extends ItemView {
     }
 
     getDisplayText() {
-        return TEXTS.sidePanelDmScreenTitle;
+        return "Ширма";
     }
 
     getIcon() {

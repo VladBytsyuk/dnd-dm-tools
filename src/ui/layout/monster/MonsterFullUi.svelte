@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
-    import { TEXTS } from "src/res/texts_ru";
     import { copyMonsterToClipboard } from "src/data/clipboard";
 	import { calculateAndFormatModifier, formatModifier } from 'src/domain/modifier';
 	import { diceRoller, joinList, joinSpeed, separate } from 'src/domain/utils';
@@ -57,7 +56,7 @@
                         tabindex="0"
                         onclick={() => copyMonsterToClipboard(monster)}
                         onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyMonsterToClipboard(monster); } }}
-                        aria-label="{TEXTS.copyToClipboard}"
+                        aria-label="Скопировать в буфер обмена"
                     >
                         {monster.name.rus} 📋
                     </div>
@@ -74,7 +73,7 @@
                         {/if}
                         {#if monster.source}
                         <div class="layout-ttg-statblock-header-source">
-                            {TEXTS.layoutSource}: {monster.source.name} ({monster.source.shortName})
+                            Источник: {monster.source.name} ({monster.source.shortName})
                         </div>
                         {/if}
                     </div>
@@ -84,7 +83,7 @@
                 <div class="layout-ttg-statblock-base-info">
                     {#if monster.armorClass}
                     <div class="layout-ttg-statblock-base-info-item">
-                        <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutArmorClass}</span> 
+                        <span class="layout-ttg-statblock-base-info-item-title">Класс доспеха</span> 
                         <span class="layout-ttg-statblock-base-info-item-value">
                             {monster.armorClass}
                             {#if monster.armors?.length}
@@ -96,16 +95,16 @@
 
                     {#if monster.hits}
                     <div class="layout-ttg-statblock-base-info-item">
-                        <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutHits}</span>
+                        <span class="layout-ttg-statblock-base-info-item-title">Хиты</span>
                         <span class="layout-ttg-statblock-base-info-item-value">
-                            {monster.hits.average} (<dice-roller label={TEXTS.layoutHits} formula="{monster.hits.formula}{monster.hits.sign}{monster.hits.bonus}">{monster.hits.formula}{monster.hits.sign}{monster.hits.bonus}</dice-roller>)
+                            {monster.hits.average} (<dice-roller label="Хиты" formula="{monster.hits.formula}{monster.hits.sign}{monster.hits.bonus}">{monster.hits.formula}{monster.hits.sign}{monster.hits.bonus}</dice-roller>)
                         </span>
                     </div>
                     {/if}
 
                     {#if monster.speed}
                     <div class="layout-ttg-statblock-base-info-item">
-                        <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSpeed}</span> 
+                        <span class="layout-ttg-statblock-base-info-item-title">Скорость</span> 
                         {#if monster.speed?.length}
                         <span class="layout-ttg-statblock-base-info-item-value">{joinSpeed(monster.speed)}</span>
                         {/if}
@@ -143,12 +142,12 @@
         {#if monster.ability}
             <div class="layout-ttg-statblock-scores-table">
             {#each Object.entries({
-                [TEXTS.layoutStr]: monster.ability.str,
-                [TEXTS.layoutDex]: monster.ability.dex,
-                [TEXTS.layoutCon]: monster.ability.con,
-                [TEXTS.layoutInt]: monster.ability.int,
-                [TEXTS.layoutWis]: monster.ability.wiz,
-                [TEXTS.layoutCha]: monster.ability.cha
+                ["СИЛ"]: monster.ability.str,
+                ["ЛОВ"]: monster.ability.dex,
+                ["ТЕЛ"]: monster.ability.con,
+                ["ИНТ"]: monster.ability.int,
+                ["МУД"]: monster.ability.wiz,
+                ["ХАР"]: monster.ability.cha
             }) as entry}
                 <div class="layout-ttg-statblock-scores-table-item">
                 <div class="layout-ttg-statblock-scores-table-item-title"><b>{entry[0]}</b></div>
@@ -166,11 +165,11 @@
         <div class="layout-ttg-statblock-base-info">
             {#if monster.savingThrows}
             <div class="layout-ttg-statblock-base-info-item">
-                <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSaves}</span> 
+                <span class="layout-ttg-statblock-base-info-item-title">Спасброски</span> 
                 <HtmlBlock class="layout-ttg-statblock-base-info-item-value"
                     htmlContent={
                         separate(monster.savingThrows.map((it: { name: string; value: number }) => 
-                            diceRoller(`${TEXTS.layoutSave}. ${it.name}`, `к20${formatModifier(it.value)}`, `${it.name} ${formatModifier(it.value)}`)
+                            diceRoller(`Спасбросок. ${it.name}`, `к20${formatModifier(it.value)}`, `${it.name} ${formatModifier(it.value)}`)
                         ))
                     }
                     uiEventListener={uiEventListener}
@@ -180,12 +179,12 @@
 
             {#if monster.skills}
             <div class="layout-ttg-statblock-base-info-item">
-                <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSkills}</span> 
+                <span class="layout-ttg-statblock-base-info-item-title">Навыки</span> 
                 <HtmlBlock
                     class="layout-ttg-statblock-base-info-item-value"
                     htmlContent={
                         separate(monster.skills.map((it: { name: string; value: number }) => 
-                            diceRoller(`${TEXTS.layoutSkill}. ${it.name}`, `к20${formatModifier(it.value)}`, `${it.name} ${formatModifier(it.value)}`)
+                            diceRoller(`Навык. ${it.name}`, `к20${formatModifier(it.value)}`, `${it.name} ${formatModifier(it.value)}`)
                         ))
                     }
                     uiEventListener={uiEventListener}
@@ -195,54 +194,54 @@
 
             {#if monster.damageVulnerabilities}
             <div class="layout-ttg-statblock-base-info-item">
-                <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutDamageVulnerabilities}</span> 
+                <span class="layout-ttg-statblock-base-info-item-title">Уязвимость к урону</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">{separate(monster.damageVulnerabilities)}</span>
             </div>
             {/if}
 
             {#if monster.damageResistances}
             <div class="layout-ttg-statblock-base-info-item">
-                <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutDamageResistances}</span> 
+                <span class="layout-ttg-statblock-base-info-item-title">Сопротивление к урону</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">{separate(monster.damageResistances)}</span>
             </div>
             {/if}
 
             {#if monster.damageImmunities}
             <div class="layout-ttg-statblock-base-info-item">
-                <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutDamageImmunities}</span> 
+                <span class="layout-ttg-statblock-base-info-item-title">Иммунитет к урону</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">{separate(monster.damageImmunities)}</span>
             </div>
             {/if}
 
             {#if monster.conditionImmunities}
             <div class="layout-ttg-statblock-base-info-item">
-                <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutConditionImmunities}</span> 
+                <span class="layout-ttg-statblock-base-info-item-title">Иммунитет к состоянию</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">{separate(monster.conditionImmunities)}</span>
             </div>
             {/if}
 
             {#if monster.senses}
             <div class="layout-ttg-statblock-base-info-item">
-                <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutSenses}</span> 
+                <span class="layout-ttg-statblock-base-info-item-title">Чувства</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">
                     {monster.senses.senses ? 
-                        separate(monster.senses.senses.map((it: { name: string; value: number }) => `${it.name} ${it.value} ${TEXTS.layoutFt}.,`)) : 
+                        separate(monster.senses.senses.map((it: { name: string; value: number }) => `${it.name} ${it.value} фт.,`)) : 
                         ''}
-                    {TEXTS.layoutPassivePerception} {monster.senses.passivePerception}
+                    пассивная внимательность {monster.senses.passivePerception}
                 </span>
             </div>
             {/if}
 
             {#if monster.languages}
             <div class="layout-ttg-statblock-base-info-item">
-                <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutLanguages}</span> 
+                <span class="layout-ttg-statblock-base-info-item-title">Языки</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">{separate(monster.languages)}</span>
             </div>
             {/if}
 
             {#if monster.challengeRating}
             <div class="layout-ttg-statblock-base-info-item">
-                <span class="layout-ttg-statblock-base-info-item-title">{TEXTS.layoutChallengeRating}</span> 
+                <span class="layout-ttg-statblock-base-info-item-title">Опасность</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">
                     {monster.challengeRating + (monster.experience ? ` (${monster.experience} XP)` : '')}
                 </span>
@@ -264,9 +263,9 @@
 
         <!-- Action Blocks -->
         {#each [
-            { action: monster.actions, title: TEXTS.layoutActions},
-            { action: monster.bonusActions, title: TEXTS.layoutBonusActions},
-            { action: monster.reactions, title: TEXTS.layoutReactions},
+            { action: monster.actions, title: "Действия"},
+            { action: monster.bonusActions, title: "Бонусные действия"},
+            { action: monster.reactions, title: "Реакции"},
         ] as item}
             {#if item.action != undefined} 
                 {#if item.action.length}
@@ -285,7 +284,7 @@
 
         {#if monster.legendary}
         <div class="layout-ttg-statblock-property-block">
-            <div class="layout-ttg-statblock-block-header">{TEXTS.layoutLegendaryActions}</div>
+            <div class="layout-ttg-statblock-block-header">Легендарные действия</div>
             {#if monster.legendary?.description}
                 <HtmlBlock class="layout-ttg-statblock-base-info-item-value" htmlContent={monster.legendary.description} uiEventListener={uiEventListener} />
             {/if}
@@ -300,9 +299,9 @@
 
         <!-- Lair Blocks -->
         {#each [
-            { action: monster.lair?.description, title: TEXTS.layoutLair},
-            { action: monster.lair?.action, title: TEXTS.layoutLairActions},
-            { action: monster.lair?.effect, title: TEXTS.layoutRegionalEffects},
+            { action: monster.lair?.description, title: "Логово"},
+            { action: monster.lair?.action, title: "Действия логова"},
+            { action: monster.lair?.effect, title: "Региональные эффекты"},
         ] as item}
             {#if item.action != undefined} 
             <div class="layout-ttg-statblock-property-block">
@@ -317,7 +316,7 @@
         <!-- Description -->
         {#if monster.description}
             <details class="layout-ttg-statblock-generic-block">
-                <summary class="layout-ttg-statblock-block-header">{TEXTS.layoutDescription}</summary>
+                <summary class="layout-ttg-statblock-block-header">Описание</summary>
                 <div class="layout-ttg-statblock-generic-description">
                     <HtmlBlock htmlContent={monster.description} uiEventListener={uiEventListener} />
                 </div>

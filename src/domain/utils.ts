@@ -1,4 +1,3 @@
-import { TEXTS } from "src/res/texts_ru";
 import type { Speed } from "./monster";
 import { mapDiceRollerTags } from "./mappers";
 
@@ -20,7 +19,7 @@ export const joinSpeed = (items: Array<Speed>) =>
     separate(items?.map(it => {
         let result = '';
         if (it.name) result += it.name + ' ';
-        if (it.value) result += it.value + ` ${TEXTS.layoutFt}. `;
+        if (it.value) result += it.value + ` фт. `;
         if (it.additional) result += '(' + it.additional + ')';
         return result;
     })) || '';

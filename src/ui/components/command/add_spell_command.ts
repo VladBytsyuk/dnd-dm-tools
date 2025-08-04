@@ -1,6 +1,5 @@
 import { Editor, stringifyYaml } from "obsidian";
 import DndStatblockPlugin from "src/main";
-import { TEXTS } from "src/res/texts_ru";
 import { SpellChooser } from "../modals/spell_chooser";
 import type { ISpellbook } from "src/data/spellbook";
 
@@ -9,7 +8,7 @@ const ADD_SPELL_COMMAND_ID = 'add-spell-command-id';
 export function registerAddSpellCommand(plugin: DndStatblockPlugin, spellbook: ISpellbook) {
     plugin.addCommand({
         id: ADD_SPELL_COMMAND_ID,
-        name: TEXTS.commandAddSpell,
+        name: "Добавить заклинание",
         editorCallback: (editor: Editor) => {
             new SpellChooser(plugin.app, spellbook, (spell) => {
                 const yamlSpell = stringifyYaml(spell);

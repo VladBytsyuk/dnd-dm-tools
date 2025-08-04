@@ -1,7 +1,5 @@
 import { Plugin } from 'obsidian';
 import { Bestiary, type IBestiary } from "src/data/bestiary";
-import { DndSettingsController } from "src/ui/components/settings/settings_controller";
-import { registerSettingsTab } from "src/ui/components/settings/settings_tab";
 import { registerMonsterMdCodeBlockProcessor } from "src/ui/components/processor/monster_md_code_block_processor";
 import { registerSidePanelBestiary } from "src/ui/components/ribbon/side_panel_bestiary";
 import { registerAddStatblockCommand } from './ui/components/command/add_statblock_command';
@@ -17,13 +15,11 @@ import { DmScreen, type IDmScreen } from './data/dm_screen';
 import { registerSidePanelDmScreen } from './ui/components/ribbon/side_panel_dm_screen';
 import { UiEventListener } from './data/ui_event_listener';
 import type { IUiEventListener } from './domain/listeners/ui_event_listener';
-import SQLiteService from './data/sqlite/SQLiteService';
-
+import DB from './data/sqlite/DB';
 export default class DndStatblockPlugin extends Plugin {
 
 	// ---- fields ----
-	#database: SQLiteService;
-	#settingsController: DndSettingsController;
+	#database: DB;
 	#bestiary: IBestiary;
 	#spellbook: ISpellbook;
 	#dmScreen: IDmScreen;
@@ -32,7 +28,6 @@ export default class DndStatblockPlugin extends Plugin {
 	// ---- callbacks ----
 	async onload() {
 		this.#initialize(() => {
-			registerSettingsTab(this, this.#settingsController);
 			registerSidePanelInitiativeTracker(this, this.#uiEventListener);
 			registerSidePanelBestiary(this, this.#bestiary, this.#uiEventListener);	
 			registerSidePanelSpellbook(this, this.#spellbook, this.#uiEventListener);
@@ -57,11 +52,8 @@ export default class DndStatblockPlugin extends Plugin {
 	async #initialize(
 		callback: () => void,
 	) {
-		this.#database = new SQLiteService(this.app, this.manifest);
+		this.#database = new DB(this.app, this.manifest);
 		await this.#database.initialize();
-
-		this.#settingsController = new DndSettingsController(this);
-		await this.#settingsController.initialize(() => this.#onLayoutStyleChanged());
 
 		this.#bestiary = new Bestiary(this.#database);
 		await this.#bestiary.initialize();
@@ -75,9 +67,6 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#uiEventListener = new UiEventListener(this.app, this.#bestiary, this.#spellbook, this.#dmScreen);
 
 		callback();
-	}
-
-	#onLayoutStyleChanged() {
 	}
 
 	#dispose() {

@@ -1,7 +1,7 @@
 import { requestUrl } from 'obsidian';
 import type { FullMonster, SmallMonster } from "src/domain/monster";
 import { BestiaryFilter } from "src/domain/bestiary_filters";
-import type SQLiteService from "./sqlite/SQLiteService";
+import type DB from "./sqlite/DB";
 
 export interface IBestiary {
     
@@ -73,7 +73,7 @@ export class Bestiary implements IBestiary {
     #filters: BestiaryFilter | null;
 
     // ---- public functions ----
-    constructor(private database: SQLiteService) {}
+    constructor(private database: DB) {}
 
     async initialize() {
         this.#smallBestiary = await this.database.smallMonsterDao?.readAllItems(null, null);

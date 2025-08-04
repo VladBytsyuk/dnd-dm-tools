@@ -1,6 +1,5 @@
 import { Editor, stringifyYaml } from "obsidian";
 import DndStatblockPlugin from "src/main";
-import { TEXTS } from "src/res/texts_ru";
 import type { Encounter } from "src/domain/encounter";
 
 const ADD_ENCOUNTER_COMMAND_ID = 'add-encounter-command-id';
@@ -8,7 +7,7 @@ const ADD_ENCOUNTER_COMMAND_ID = 'add-encounter-command-id';
 export function registerAddEncounterCommand(plugin: DndStatblockPlugin) {
     plugin.addCommand({
         id: ADD_ENCOUNTER_COMMAND_ID,
-        name: TEXTS.commandAddEncounter,
+        name: "Добавить боевое столкновение",
         editorCallback: (editor: Editor) => {
             const encounter = {
                 name: "-",

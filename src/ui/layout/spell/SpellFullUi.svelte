@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { separate } from 'src/domain/utils';
     import { onDestroy, onMount } from 'svelte';
-    import { TEXTS } from "src/res/texts_ru";
 	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
     import type { SpellClass, SpellSubclass } from 'src/domain/spell';
@@ -68,7 +67,7 @@
 
     let subClasses = !spell.subclasses ? undefined : separate(spell.subclasses.map((it: SpellSubclass) => it.name + " (" + it.class + ")"));
     let classes = separate(spell.classes.map((it: SpellClass) => it.name));
-    let classHint = TEXTS.spellClasses + ": " + classes + (subClasses ? "\n" + TEXTS.spellSubclasses + ": " + subClasses : "");
+    let classHint = "Классы: " + classes + (subClasses ? "\nПодклассы: " + subClasses : "");
 </script>
 
 <div class="layout-spell-card {themeClass} {classTheme}">
@@ -81,30 +80,30 @@
                 tabindex="0"
                 onclick={() => copySpellToClipboard(spell)}
                 onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copySpellToClipboard(spell); } }}
-                aria-label="{TEXTS.copyToClipboard}"
-            >{spell.name.rus}{spell.ritual ? " [" + TEXTS.spellRitual + "]" : ""} 📋</h3>
+                aria-label="Скопировать в буфер обмена"
+            >{spell.name.rus}{spell.ritual ? " [Ритуал]" : ""} 📋</h3>
             
             <div class="layout-spell-card-table">
 
                 <div class="layout-spell-card-table-item">
-                    <em class="layout-spell-card-block-title">{TEXTS.spellCastingTime}</em>
+                    <em class="layout-spell-card-block-title">Время</em>
                     {spell.time}
                 </div>
 
                 <div class="layout-spell-card-table-item">
-                    <em class="layout-spell-card-block-title">{TEXTS.spellRange}</em>
+                    <em class="layout-spell-card-block-title">Дистанция</em>
                     {spell.range}
                 </div>
 
                 <div class="layout-spell-card-table-item">
-                    <em class="layout-spell-card-block-title">{TEXTS.spellComponents}</em>
-                    {#if spell.components.v}{TEXTS.spellVerbal}{/if}
-                    {#if spell.components.s}{TEXTS.spellSomatic}{/if}
-                    {#if spell.components.m}{TEXTS.spellMaterial}{/if}
+                    <em class="layout-spell-card-block-title">Компоненты</em>
+                    {#if spell.components.v}В{/if}
+                    {#if spell.components.s}С{/if}
+                    {#if spell.components.m}М{/if}
                 </div>
 
                 <div class="layout-spell-card-table-item">
-                    <em class="layout-spell-card-block-title">{TEXTS.spellDuration}</em>
+                    <em class="layout-spell-card-block-title">Длительность</em>
                     {spell.duration}
                 </div>
 
@@ -121,9 +120,9 @@
         <div class="layout-spell-card-class" title="{classHint}">{spell.classes[0].name}</div>
         {#if spell.source && spell.source.shortName}<div class="layout-spell-card-source">{spell.source.shortName}</div>{/if}
         {#if spell.level === 0}
-            <b class="layout-spell-card-type">{TEXTS.spellCantrip} {spell.school}</b>
+            <b class="layout-spell-card-type">заговор {spell.school}</b>
         {:else}
-            <b class="layout-spell-card-type">{spell.level} {TEXTS.spellLevel} {spell.school}</b>
+            <b class="layout-spell-card-type">{spell.level} круг {spell.school}</b>
         {/if}
     </div>
 </div>

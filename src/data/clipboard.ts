@@ -1,6 +1,5 @@
 import { Notice, parseYaml, stringifyYaml } from "obsidian";
 import { type FullMonster } from "../domain/monster";
-import { TEXTS } from "src/res/texts_ru";
 import type { Encounter, EncounterParticipant } from "src/domain/encounter";
 import { mapMonsterToEncounterParticipant } from "src/domain/mappers";
 import type { FullSpell } from "src/domain/spell";
@@ -23,7 +22,7 @@ function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string, addi
     const content = `\`\`\`${codeBlockName}\n${additionalContent ? `${additionalContent}\n`: ''}${yaml}\n\`\`\``
     try {
         navigator.clipboard.writeText(content);
-        new Notice(`${objName}${TEXTS.noticeClipboardSuccess}`);
+        new Notice(`${objName} - успешно скопировано.`);
     } catch(e) {
         console.error(`Failed to save ${codeBlockName} into clipboard: ${e}`);
     }

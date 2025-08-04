@@ -1,7 +1,6 @@
 import { App, Modal, Setting, SearchComponent } from "obsidian";
 import type { IBestiary } from "src/data/bestiary";
 import type { FullMonster } from "src/domain/monster";
-import { TEXTS } from "src/res/texts_ru";
 import { MonsterSuggester } from "src/ui/components/suggest/monster_suggester";
 
 export class CreatureChooser extends Modal {
@@ -27,7 +26,7 @@ export class CreatureChooser extends Modal {
         onSelect: (fullMonster: FullMonster) => void,
     ) {
         const searchEl = new SearchComponent(this.contentEl)
-            .setPlaceholder(TEXTS.bestiarySearchPlaceholder);
+            .setPlaceholder("Поиск по имени в бестиарии");
         searchEl.clearButtonEl.addEventListener('click', () => {
             searchEl.setValue("");
             suggester.close();
@@ -43,14 +42,14 @@ export class CreatureChooser extends Modal {
 
     addTwoColumnsElement(onSelect: (value: boolean) => void) {
         new Setting(this.contentEl)
-            .setName(TEXTS.addStatblockModalTwoColumns)
+            .setName("2 столбца")
             .addToggle((toggle) => onSelect(toggle.getValue()));
     }
 
     addSubmitButton(onClick: () => void) {
         new Setting(this.contentEl)
             .addButton((btn) =>
-                btn.setButtonText(TEXTS.addStatblockModalSubmit)
+                btn.setButtonText("Добавить")
                     .setCta()
                     .onClick(() => {
                         this.close();

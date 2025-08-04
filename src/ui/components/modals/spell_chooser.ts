@@ -1,7 +1,6 @@
 import { App, Modal, Setting, SearchComponent } from "obsidian";
 import type { ISpellbook } from "src/data/spellbook";
 import type { FullSpell } from "src/domain/spell";
-import { TEXTS } from "src/res/texts_ru";
 import { SpellSuggester } from "src/ui/components/suggest/spell_suggester";
 
 export class SpellChooser extends Modal {
@@ -25,7 +24,7 @@ export class SpellChooser extends Modal {
         onSelect: (spell: FullSpell) => void,
     ) {
         const searchEl = new SearchComponent(this.contentEl)
-            .setPlaceholder(TEXTS.spellbookSearchPlaceholder);
+            .setPlaceholder("Поиск по книге заклинаний");
         searchEl.clearButtonEl.addEventListener('click', () => {
             searchEl.setValue("");
             suggester.close();
@@ -42,7 +41,7 @@ export class SpellChooser extends Modal {
     addSubmitButton(onClick: () => void) {
         new Setting(this.contentEl)
             .addButton((btn) =>
-                btn.setButtonText(TEXTS.addSpellModalSubmit)
+                btn.setButtonText("Добавить")
                     .setCta()
                     .onClick(() => {
                         this.close();

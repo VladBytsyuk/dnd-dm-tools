@@ -1,6 +1,5 @@
 import { Editor, stringifyYaml } from "obsidian";
 import DndStatblockPlugin from "src/main";
-import { TEXTS } from "src/res/texts_ru";
 import { CreatureChooser } from "../modals/creature_chooser";
 import type { IBestiary } from "src/data/bestiary";
 
@@ -9,7 +8,7 @@ const ADD_STATBLOCK_COMMAND_ID = 'add-statblock-command-id';
 export function registerAddStatblockCommand(plugin: DndStatblockPlugin, bestiary: IBestiary) {
     plugin.addCommand({
         id: ADD_STATBLOCK_COMMAND_ID,
-        name: TEXTS.commandAddStatblock,
+        name: "Добавить статблок",
         editorCallback: (editor: Editor) => {
             new CreatureChooser(plugin.app, bestiary, (monster, isTwoColumns) => {
                 const yamlMonster = stringifyYaml(monster);

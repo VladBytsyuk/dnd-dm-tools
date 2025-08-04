@@ -1,9 +1,6 @@
-import { requestUrl, type DataAdapter } from "obsidian";
-import { DmScreenItem, EmptyDmScreenItem } from "src/domain/dm_screen_group";
-import { PersistentCache } from "./cache";
-import type { DndSettingsController } from "src/ui/components/settings/settings_controller";
-import { TEXTS } from "src/res/texts_ru";
-import type SQLiteService from "./sqlite/SQLiteService";
+import { requestUrl } from "obsidian";
+import { DmScreenItem } from "src/domain/dm_screen_group";
+import type DB from "./sqlite/DB";
 
 export interface IDmScreen {
 
@@ -67,7 +64,7 @@ export class DmScreen implements IDmScreen {
     // ---- fields ----
     #rootItems: DmScreenItem[] | undefined = undefined;     
     
-    constructor(private database: SQLiteService) {}
+    constructor(private database: DB) {}
 
     async initialize() {
         this.#rootItems = await this.database.dmScreenGroupDao?.readChildren();

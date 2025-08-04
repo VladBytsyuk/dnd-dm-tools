@@ -5,7 +5,6 @@
     import type { Encounter, EncounterParticipant } from "src/domain/encounter";
 	import { formatModifier } from "src/domain/modifier";
 	import { copyEncounterToClipboard, getEncounterFromClipboard, getEncounterParticipantFromClipboard } from "src/data/clipboard";
-	import { TEXTS } from "src/res/texts_ru";
 	import { getImageSource } from "src/domain/image_utils";
 
     let { app, encounter, isEditable, onPortraitClick } = $props();
@@ -197,36 +196,36 @@
         {/if}
         <button class="initiative-tracker-header-button" 
             onclick={saveEncounterToClipboard}
-            title={TEXTS.initiativeTrackerHintCopy}
+            title="Копировать"
         ><ClipboardCopy/></button>
         <button class="initiative-tracker-header-button"
             onclick={fillEncounterFromClipboard}
-            title={TEXTS.initiativeTrackerHintPaste}
+            title="Вставить"
         ><ClipboardPaste/></button>
         <button class="initiative-tracker-header-button" 
             onclick={nextStepEncounter}
-            title={TEXTS.initiativeTrackerHintNext}
+            title="Следующий ход"
         >
             {#if activeParticipantIndex !== null}<StepForward/>{:else}<Play/>{/if}
         </button>
         <button class="initiative-tracker-header-button" 
             onclick={() => stopEncounter()}
-            title={TEXTS.initiativeTrackerHintStop}
+            title="Остановить"
         ><Ban/></button>
     </div>
     <div class="participants-list">
         <div class="participants-list-row">
             <button class="participants-list-cell-header-value" 
                 onclick={() => rollInitiative()}
-                title={TEXTS.initiativeTrackerHintRoll}
+                title="Бросить инициативу"
             ><Dices/></button>
             <button class="participants-list-cell-header-value" 
                 onclick={() => sortByInitiative()}
-                title={TEXTS.initiativeTrackerHintSort}
+                title="Сортировать по инициативе"
             ><Sword/></button>
             <div class="participants-list-cell-name">Имя</div>
-            <div class="participants-list-cell-header-value" title={TEXTS.initiativeTrackerHintHits}><Heart/></div>
-            <div class="participants-list-cell-header-value" title={TEXTS.initiativeTrackerHintArmorClass}><Shield/></div>
+            <div class="participants-list-cell-header-value" title="Хиты"><Heart/></div>
+            <div class="participants-list-cell-header-value" title="Класс Доспеха"><Shield/></div>
             <div class="participants-list-cell-header-value"></div>
         </div>
         {#each stateEncounter.participants as participant, index (participant.id)}
@@ -244,12 +243,12 @@
                         value={calcTempValues.get(`${participant.id}-initiative`) ?? participant.initiative}
                         onkeydown={(e) => handleKeyPress(e, participant, 'initiative')}
                         onblur={(e) => handleBlur(e, participant, 'initiative')}
-                        title={TEXTS.initiativeTrackerHintInitiative}
+                        title="Инициатива"
                     />
                 {:else}
                     <button class="participants-list-cell-value" class:active-row={activeParticipantIndex === index} 
                         onclick={() => addEditingState(`${participant.id}-initiative`)}
-                        title={TEXTS.initiativeTrackerHintInitiative}
+                        title="Инициатива"
                     >
                         {participant.initiative}
                     </button>
@@ -275,21 +274,21 @@
                             value={calcTempValues.get(`${participant.id}-hpCurrent`) ?? participant.hpCurrent}
                             onkeydown={(e) => handleKeyPress(e, participant, 'hpCurrent', 0, participant.hpMax)}
                             onblur={(e) => handleBlur(e, participant, 'hpCurrent', 0, participant.hpMax)}
-                            title={TEXTS.initiativeTrackerHintHitsCurrent}
+                            title="Текущие"
                         />
                         <input class="participants-list-cell-hp-item" id="hp-temporary" 
                             placeholder={formatModifier(participant.hpTemporary)}
                             value={calcTempValues.get(`${participant.id}-hpTemporary`) ?? participant.hpTemporary}
                             onkeydown={(e) => handleKeyPress(e, participant, 'hpTemporary', 0)}
                             onblur={(e) => handleBlur(e, participant, 'hpTemporary', 0)}
-                            title={TEXTS.initiativeTrackerHintHitsTemporary}
+                            title="Временные"
                         />
                         <input class="participants-list-cell-hp-item" id="hp-max" 
                             placeholder={formatModifier(participant.hpMax)}
                             value={calcTempValues.get(`${participant.id}-hpMax`) ?? participant.hpMax}
                             onkeydown={(e) => handleKeyPress(e, participant, 'hpMax', 0)}
                             onblur={(e) => handleBlur(e, participant, 'hpMax', 0)}
-                            title={TEXTS.initiativeTrackerHintHitsMax}
+                            title="Максимум"
                         />
                     </div>
                 {:else}
@@ -315,18 +314,18 @@
                 {/if}
                 <button class="participants-list-cell-header-value" class:active-row={activeParticipantIndex === index} 
                     onclick={() => removeParticipant(participant.id)}
-                    title={TEXTS.initiativeTrackerHintClear}
+                    title="Убрать"
                 ><Eraser/></button>
             </div>
         {/each}
         <div class="participants-list-cell-footer">
             <button class="participants-list-cell-add" 
                 onclick={(e) => addParticipant()}
-                title={TEXTS.initiativeTrackerHintAdd}
+                title="Добавить"
             ><Plus/></button>
             <button class="participants-list-cell-header-value"
                 onclick={(e) => addMonsterFromClipboard()}
-                title={TEXTS.initiativeTrackerHintPaste}
+                title="Вставить"
             ><ClipboardPaste/></button>
         </div>
     </div>

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { TEXTS } from "src/res/texts_ru";
 	import HtmlBlock from "../uikit/HtmlBlock.svelte";
 
     // ---- props ----
@@ -15,8 +14,8 @@
     <div class="item-content">
         {#if item.parent && item.source}
         <div class="item-content-source">
-            {#if item.parent}<div class="item-content-source-left">{TEXTS.dmScreenItemParent}: {item.parent.name.rus}</div>{/if}
-            {#if item.source}<div class="item-content-source-right">{TEXTS.dmScreenItemSource}: {item.source.shortName}</div>{/if}
+            {#if item.parent}<div class="item-content-source-left">Раздел: {item.parent.name.rus}</div>{/if}
+            {#if item.source}<div class="item-content-source-right">Источник: {item.source.shortName}</div>{/if}
         </div>
         {/if}
         {#if item.description}

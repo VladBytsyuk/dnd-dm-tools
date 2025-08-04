@@ -4,7 +4,6 @@ import DndStatblockPlugin from "src/main";
 import { type IBestiary } from "src/data/bestiary";
 import type { FullMonster } from "src/domain/monster";
 import BestiarySidePanelUi from "src/ui/layout/sidepanel/BestiarySidePanelUi.svelte";
-import { TEXTS } from "src/res/texts_ru";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 
 export function registerSidePanelBestiary(
@@ -16,7 +15,7 @@ export function registerSidePanelBestiary(
         SIDE_PANEL_BESTIARY_VIEW,
         (leaf: WorkspaceLeaf) => new SidePanelBestiaryView(leaf, plugin, bestiary, uiEventListener),
     );
-    plugin.addRibbonIcon("skull", TEXTS.ribbonActionBestiaryTitle, async (mouseEvent) => {
+    plugin.addRibbonIcon("skull", "Бестиарий", async () => {
         openSidePanelBestiary(plugin.app.workspace, undefined);
     });
 }
@@ -51,7 +50,7 @@ class SidePanelBestiaryView extends ItemView {
     }
 
     getDisplayText() {
-        return TEXTS.sidePanelBestiaryTitle;
+        return "Бестиарий";
     }
 
     getIcon(): string {

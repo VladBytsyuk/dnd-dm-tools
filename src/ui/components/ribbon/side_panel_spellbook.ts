@@ -1,6 +1,5 @@
 import { ItemView, Workspace, type WorkspaceLeaf } from "obsidian";
 import DndStatblockPlugin from "src/main";
-import { TEXTS } from "src/res/texts_ru";
 import type { ISpellbook } from "src/data/spellbook";
 import type { FullSpell } from "src/domain/spell";
 import { mount } from "svelte";
@@ -16,7 +15,7 @@ export function registerSidePanelSpellbook(
         SIDE_PANEL_SPELLBOOK_VIEW,
         (leaf: WorkspaceLeaf) => new SidePanelSpellbookView(leaf, plugin, spellbook, uiEventListener),
     );
-    plugin.addRibbonIcon("sparkles", TEXTS.ribbonActionSpellbookTitle, async (mouseEvent) => {
+    plugin.addRibbonIcon("sparkles", "Книга заклинаний", async () => {
         openSidePanelSpellbook(plugin.app.workspace, undefined);
     });
 }
@@ -50,7 +49,7 @@ class SidePanelSpellbookView extends ItemView {
     }
 
     getDisplayText() {
-        return TEXTS.sidePanelSpellbookTitle;
+        return "Книга заклинаний";
     }
 
     getIcon(): string {

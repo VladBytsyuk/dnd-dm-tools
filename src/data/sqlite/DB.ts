@@ -8,7 +8,7 @@ import { SmallSpellSqlTableDao } from './SmallSpellSqlTableDao';
 import { FullSpellSqlTableDao } from './FullSpellSqlTableDao';
 import { DmScreenGroupSqlTableDao } from './DmScreenGroupSqlTableDao';
 
-export default class SQLiteService {
+export default class DB {
 
     private database: Database | null = null;
     private databasePath: string;

@@ -1,7 +1,7 @@
 import { requestUrl } from 'obsidian';
 import type { FullSpell, SmallSpell } from "src/domain/spell";
 import { SpellbookFilters } from "src/domain/spellbook_filters";
-import type SQLiteService from "./sqlite/SQLiteService";
+import type DB from "./sqlite/DB";
 
 export interface ISpellbook {
 
@@ -72,7 +72,7 @@ export class Spellbook implements ISpellbook {
     #filters: SpellbookFilters | null;
 
     // ---- public functions ----
-    constructor(private database: SQLiteService) {}
+    constructor(private database: DB) {}
 
     async initialize() {
         this.#smallSpellbook = await this.database.smallSpellDao?.readAllItems(null, null) || [];
