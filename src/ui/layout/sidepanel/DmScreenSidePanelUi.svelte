@@ -1,6 +1,6 @@
 <script lang="ts">
 	import DmScreenGroupUi from "../screen/DmScreenGroupUi.svelte";
-	import { type DmScreenItem } from "src/domain/dm_screen_group";
+	import { type DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 	import SidePanelHeader from "../uikit/SidePanelHeader.svelte";
 	import DmScreenItemUi from "../screen/DmScreenItemUi.svelte";
 

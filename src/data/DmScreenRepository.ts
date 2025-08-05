@@ -1,5 +1,5 @@
 import { requestUrl } from "obsidian";
-import { DmScreenItem } from "src/domain/dm_screen_group";
+import { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import type DB from "./sqlite/DB";
 import type { DmScreen } from "src/domain/repositories/DmScreen";
 

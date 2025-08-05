@@ -1,7 +1,7 @@
 import type { Database, SqlValue } from 'sql.js';
 import { SqlTableDao, WhereClauseData } from './SqlTableDao';
 import type { App, PluginManifest } from 'obsidian';
-import type { SpellbookFilters } from 'src/domain/spellbook_filters';
+import type { SpellbookFilters } from 'src/domain/models/spell/SpellbookFilters';
 import type { SmallSpell } from 'src/domain/models/spell/SmallSpell';
 
 export class SmallSpellSqlTableDao extends SqlTableDao<SmallSpell, SpellbookFilters> {

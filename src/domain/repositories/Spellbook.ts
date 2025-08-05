@@ -1,6 +1,6 @@
 import type { FullSpell } from "../models/spell/FullSpell";
 import type { SmallSpell } from "../models/spell/SmallSpell";
-import type { SpellbookFilters } from "../spellbook_filters";
+import type { SpellbookFilters } from "../models/spell/SpellbookFilters";
 
 export interface Spellbook {
 

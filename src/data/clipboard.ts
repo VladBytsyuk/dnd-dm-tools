@@ -1,9 +1,10 @@
 import { Notice, parseYaml, stringifyYaml } from "obsidian";
-import type { Encounter, EncounterParticipant } from "src/domain/encounter";
+import type { Encounter } from "src/domain/models/encounter/Encounter";
 import { mapMonsterToEncounterParticipant } from "src/domain/mappers";
 import type { FullSpell } from "src/domain/models/spell/FullSpell";
-import type { DmScreenItem } from "src/domain/dm_screen_group";
+import type { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import type { FullMonster } from "src/domain/models/monster/FullMonster";
+import type { EncounterParticipant } from "src/domain/models/encounter/EncounterParticipant";
 
 // ---- Copy to clipboard ----
 export function copyMonsterToClipboard(monster: FullMonster) {

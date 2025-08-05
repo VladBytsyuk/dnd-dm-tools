@@ -1,6 +1,6 @@
 import { Editor, stringifyYaml } from "obsidian";
 import DndStatblockPlugin from "src/main";
-import type { Encounter } from "src/domain/encounter";
+import type { Encounter } from "src/domain/models/encounter/Encounter";
 
 const ADD_ENCOUNTER_COMMAND_ID = 'add-encounter-command-id';
 

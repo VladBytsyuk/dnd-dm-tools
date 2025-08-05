@@ -1,6 +1,6 @@
 import { requestUrl } from 'obsidian';
 import type { SmallMonster } from "src/domain/models/monster/SmallMonster";
-import { BestiaryFilter } from "src/domain/bestiary_filters";
+import { BestiaryFilters } from "src/domain/models/monster/BestiaryFilters";
 import type DB from "./sqlite/DB";
 import type { Bestiary } from 'src/domain/repositories/Bestiary';
 import type { FullMonster } from 'src/domain/models/monster/FullMonster';
@@ -10,7 +10,7 @@ export class BestiaryRepository implements Bestiary {
 
 	// ---- fields ----
     #smallBestiary: SmallMonster[] | undefined = undefined;
-    #filters: BestiaryFilter | null;
+    #filters: BestiaryFilters | null;
 
     // ---- public functions ----
     constructor(private database: DB) {}
@@ -60,20 +60,20 @@ export class BestiaryRepository implements Bestiary {
         return this.getFullMonsterByUrl(smallMonster.url);
     }
 
-    async getAllFilters(): Promise<BestiaryFilter | null> {
+    async getAllFilters(): Promise<BestiaryFilters | null> {
         if (this.#filters) return this.#filters;
         this.initialize();
         return await this.getAllFilters();
     }
 
-    async getFilteredSmallMonsters(filters: BestiaryFilter): Promise<SmallMonster[]> {
+    async getFilteredSmallMonsters(filters: BestiaryFilters): Promise<SmallMonster[]> {
         return await this.database.smallMonsterDao?.readAllItems(null, filters) || [];
     }
 
     dispose() {}
 
     // ---- private functions ----
-    async #collectBestiaryFilters(): Promise<BestiaryFilter | null> {
+    async #collectBestiaryFilters(): Promise<BestiaryFilters | null> {
         const smallMonsters = await this.getAllSmallMonsters();
         if (!smallMonsters) return null;
 
@@ -85,7 +85,7 @@ export class BestiaryRepository implements Bestiary {
             challengeRatingsSet.add(monster.challengeRating);
             sourcesSet.add(monster.source.shortName + (monster.source.group.shortName != "Basic" ? "*" : ""));
         }
-        return BestiaryFilter(Array.from(typesSet), Array.from(challengeRatingsSet), Array.from(sourcesSet));
+        return BestiaryFilters(Array.from(typesSet), Array.from(challengeRatingsSet), Array.from(sourcesSet));
     }
 
     async #fetchCreatureFromAPI(url: string): Promise<FullMonster | null> {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { EmptySpellbookFilters, isSpellbookFiltersEmpty, type SpellbookFilters } from "src/domain/spellbook_filters";
+	import { EmptySpellbookFilters, isSpellbookFiltersEmpty, type SpellbookFilters } from "src/domain/models/spell/SpellbookFilters";
 	import SidePanelHeader from "../uikit/SidePanelHeader.svelte";
 	import { onMount } from "svelte";
 	import SpellGroupUi from "../spell/SpellGroupUi.svelte";

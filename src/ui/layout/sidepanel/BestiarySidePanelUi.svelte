@@ -3,7 +3,7 @@
 	import MonsterFullUi from "../monster/MonsterFullUi.svelte";
 	import MonsterGroupUi from "../monster/MonsterGroupUi.svelte";
 	import { onMount } from "svelte";
-	import { BestiaryFilter, EmptyBestiaryFilter, isBestiaryFilterEmpty } from "src/domain/bestiary_filters";
+	import { BestiaryFilters, EmptyBestiaryFilter, isBestiaryFilterEmpty } from "src/domain/BestiaryFilter";
 	import { BestiaryFiltersModal } from "src/ui/components/modals/bestiary_filers_modal";
 	import type { FullMonster } from "src/domain/models/monster/FullMonster";
 	import type { SmallMonster } from "src/domain/models/monster/SmallMonster";
@@ -18,7 +18,7 @@
 
     // ---- State ----
     let searchBarValue: string = $state('');
-    let filters: BestiaryFilter = $state(EmptyBestiaryFilter());
+    let filters: BestiaryFilters = $state(EmptyBestiaryFilter());
     let monstersStack: FullMonster[] = $state(initialFullMonster ? [initialFullMonster] : []);
     let currentFullMonster: FullMonster | undefined = $state(initialFullMonster || undefined);
     let monstersGroups: MonsterGroupByCr[] = $state([]);
@@ -48,7 +48,7 @@
             plugin.app, 
             fullFilters,
             filters, 
-            async (newFilters: BestiaryFilter) => { 
+            async (newFilters: BestiaryFilters) => { 
                 filters = newFilters;
                 await updateMonstersGroups();
             },

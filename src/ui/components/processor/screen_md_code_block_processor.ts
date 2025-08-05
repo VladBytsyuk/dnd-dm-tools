@@ -1,5 +1,5 @@
 import { parseYaml } from "obsidian";
-import type { DmScreenItem } from "src/domain/dm_screen_group";
+import type { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type { DmScreen } from "src/domain/repositories/DmScreen";
 import type DndStatblockPlugin from "src/main";

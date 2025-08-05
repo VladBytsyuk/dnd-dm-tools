@@ -1,5 +1,5 @@
-import { mapDiceRollerTags } from "./mappers";
-import type { Speed } from "./models/common/Speed";
+import { mapDiceRollerTags } from "../mappers";
+import type { Speed } from "../models/common/Speed";
 
 export const handleHtml = (text: string): string => {
     return mapDiceRollerTags(getRidOfP(text))

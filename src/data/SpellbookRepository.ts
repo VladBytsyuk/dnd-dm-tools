@@ -1,5 +1,5 @@
 import { requestUrl } from 'obsidian';
-import { SpellbookFilters } from "src/domain/spellbook_filters";
+import { SpellbookFilters } from "src/domain/models/spell/SpellbookFilters";
 import type DB from "./sqlite/DB";
 import type { Spellbook } from 'src/domain/repositories/Spellbook';
 import type { FullSpell } from "src/domain/models/spell/FullSpell";

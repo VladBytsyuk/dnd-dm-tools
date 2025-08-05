@@ -1,8 +1,3 @@
-export interface Encounter {
-    name: string;
-    participants: EncounterParticipant[];
-}
-
 export interface EncounterParticipant {
     id: number;
     url?: string;

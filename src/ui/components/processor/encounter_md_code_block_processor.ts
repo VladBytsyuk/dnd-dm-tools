@@ -1,5 +1,5 @@
 import { parseYaml } from "obsidian";
-import type { Encounter } from "src/domain/encounter";
+import type { Encounter } from "src/domain/models/encounter/Encounter";
 import DndStatblockPlugin from "src/main";
 import { openSidePanelBestiary } from "../ribbon/side_panel_bestiary";
 import { mount } from "svelte";

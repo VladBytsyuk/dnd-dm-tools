@@ -1,4 +1,4 @@
-import { DmScreenItem, EmptyDmScreenItem } from "src/domain/dm_screen_group";
+import { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import { SqlTableDao } from "./SqlTableDao";
 import type { App, PluginManifest } from "obsidian";
 import type { Database, SqlValue } from "sql.js";

@@ -1,4 +1,4 @@
-import type { DmScreenItem } from "../dm_screen_group";
+import type { DmScreenItem } from "../models/dm_screen/DmScreenItem";
 
 export interface DmScreen {
 

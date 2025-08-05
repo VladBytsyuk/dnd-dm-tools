@@ -1,4 +1,4 @@
-import type { BestiaryFilter } from "../bestiary_filters";
+import type { BestiaryFilters } from "../models/monster/BestiaryFilters";
 import type { FullMonster } from "../models/monster/FullMonster";
 import type { SmallMonster } from "../models/monster/SmallMonster";
 
@@ -22,10 +22,10 @@ export interface Bestiary {
 
     /**
      * Returns all filters from the bestiary.      
-     * @returns {Promise<BestiaryFilter | null>} A promise that resolves to a BestiaryFilter object containing all 
+     * @returns {Promise<BestiaryFilters | null>} A promise that resolves to a BestiaryFilter object containing all 
      * available filters, or null if no filters are available.
      */
-    getAllFilters(): Promise<BestiaryFilter | null>;
+    getAllFilters(): Promise<BestiaryFilters | null>;
 
     /**
      * Returns all small monsters from the bestiary.
@@ -34,10 +34,10 @@ export interface Bestiary {
     getAllSmallMonsters(): Promise<SmallMonster[]>;
     /**
      * Returns all small monsters from the bestiary that match the given filters.
-     * @param {BestiaryFilter} filters - The filters to apply to the small monsters.
+     * @param {BestiaryFilters} filters - The filters to apply to the small monsters.
      * @returns {Promise<SmallMonster[]>} A promise that resolves to an array of SmallMonster objects that match the filters.   
      */
-    getFilteredSmallMonsters(filters: BestiaryFilter): Promise<SmallMonster[]>;
+    getFilteredSmallMonsters(filters: BestiaryFilters): Promise<SmallMonster[]>;
 
     /**
      * Returns all small monsters names from the bestiary.

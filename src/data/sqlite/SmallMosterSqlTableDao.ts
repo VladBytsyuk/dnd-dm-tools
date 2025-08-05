@@ -2,9 +2,9 @@ import type { Database, SqlValue } from 'sql.js';
 import type { SmallMonster } from 'src/domain/models/monster/SmallMonster';
 import { SqlTableDao, WhereClauseData } from './SqlTableDao';
 import type { App, PluginManifest } from 'obsidian';
-import type { BestiaryFilter } from 'src/domain/bestiary_filters';
+import type { BestiaryFilters } from 'src/domain/models/monster/BestiaryFilters';
 
-export class SmallMosterSqlTableDao extends SqlTableDao<SmallMonster, BestiaryFilter> {
+export class SmallMosterSqlTableDao extends SqlTableDao<SmallMonster, BestiaryFilters> {
 
     constructor(
         database: Database,
@@ -85,7 +85,7 @@ export class SmallMosterSqlTableDao extends SqlTableDao<SmallMonster, BestiaryFi
         ]);
     }
 
-    async filterByFilters(filters: BestiaryFilter): Promise<WhereClauseData> {
+    async filterByFilters(filters: BestiaryFilters): Promise<WhereClauseData> {
         let whereClauses: string[] = [];
         let params: SqlValue[] = [];
 

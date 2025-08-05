@@ -1,5 +1,5 @@
 import { App, ButtonComponent, Modal } from "obsidian";
-import { SpellbookFilters } from "src/domain/spellbook_filters";
+import { SpellbookFilters } from "src/domain/models/spell/SpellbookFilters";
 
 export class SpellbookFiltersModal extends Modal {
 

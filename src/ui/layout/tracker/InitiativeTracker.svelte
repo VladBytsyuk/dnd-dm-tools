@@ -2,10 +2,10 @@
 	import { d20, roll } from "src/domain/dice";
     import { ClipboardCopy, ClipboardPaste, Play, StepForward, Ban, Dices, Sword, Heart, Shield, Eraser, Plus } from 'lucide-svelte';
     import { onMount } from 'svelte';
-    import type { Encounter, EncounterParticipant } from "src/domain/encounter";
+    import type { Encounter, EncounterParticipant } from "src/domain/models/encounter/encounter";
 	import { formatModifier } from "src/domain/modifier";
 	import { copyEncounterToClipboard, getEncounterFromClipboard, getEncounterParticipantFromClipboard } from "src/data/clipboard";
-	import { getImageSource } from "src/domain/image_utils";
+	import { getImageSource } from "src/domain/utils/image_utils";
 
     let { app, encounter, isEditable, onPortraitClick } = $props();
     let stateEncounter: Encounter = $state(encounter);
