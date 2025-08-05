@@ -1,6 +1,6 @@
 import type { Database, SqlValue } from 'sql.js';
 import { SqlTableDao } from "./SqlTableDao";
-import type { FullSpell } from 'src/domain/spell';
+import type { FullSpell } from 'src/domain/models/spell/FullSpell';
 
 export class FullSpellSqlTableDao extends SqlTableDao<FullSpell, any> {
 
@@ -81,7 +81,7 @@ export class FullSpellSqlTableDao extends SqlTableDao<FullSpell, any> {
             item.source?.group.shortName || null,
             item.concentration ? 1 : 0,
             item.ritual ? 1 : 0,
-            item.homebrew ? 1 : 0,
+            item.source.homebrew ? 1 : 0,
             item.range,
             item.duration,
             item.time,
@@ -141,7 +141,7 @@ export class FullSpellSqlTableDao extends SqlTableDao<FullSpell, any> {
             item.source?.group.shortName || null,
             item.concentration ? 1 : 0,
             item.ritual ? 1 : 0,
-            item.homebrew ? 1 : 0,
+            item.source.homebrew ? 1 : 0,
             item.range,
             item.duration,
             item.time,
@@ -177,10 +177,10 @@ export class FullSpellSqlTableDao extends SqlTableDao<FullSpell, any> {
                     name: sqlValues[12] as string,
                     shortName: sqlValues[13] as string,
                 },
+                homebrew: Boolean(sqlValues[16]),
             },
             concentration: Boolean(sqlValues[14]),
             ritual: Boolean(sqlValues[15]),
-            homebrew: Boolean(sqlValues[16]),
             range: sqlValues[17] as string,
             duration: sqlValues[18] as string,
             time: sqlValues[19] as string,

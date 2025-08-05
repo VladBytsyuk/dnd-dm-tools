@@ -11,8 +11,6 @@ export function WhereClauseData(whereClauses: string[], params: SqlValue[]): Whe
 
 export abstract class SqlTableDao<T, F> {
 
-    
-
     constructor(public database: Database) {}
 
     abstract getTableName(): string;

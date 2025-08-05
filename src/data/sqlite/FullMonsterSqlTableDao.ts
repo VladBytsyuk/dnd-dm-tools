@@ -99,7 +99,7 @@ export class FullMonsterSqlTableDao extends SqlTableDao<FullMonster, any> {
                 item.source.name,
                 item.source.group.name,
                 item.source.group.shortName,
-                item.homebrew ? 1 : 0,
+                item.source.homebrew ? 1 : 0,
                 item.size?.rus ?? null,
                 item.size?.eng ?? null,
                 item.size?.cell ?? null,
@@ -205,7 +205,7 @@ export class FullMonsterSqlTableDao extends SqlTableDao<FullMonster, any> {
                 item.source.name,
                 item.source.group.name,
                 item.source.group.shortName,
-                item.homebrew ? 1 : 0,
+                item.source.homebrew ? 1 : 0,
                 item.size?.rus ?? null,
                 item.size?.eng ?? null,
                 item.size?.cell ?? null,
@@ -264,9 +264,9 @@ export class FullMonsterSqlTableDao extends SqlTableDao<FullMonster, any> {
                 group: {
                     name: sqlValues[8] as string,
                     shortName: sqlValues[9] as string,
-                }
+                },
+                homebrew: Boolean(sqlValues[10]),
             },
-            homebrew: Boolean(sqlValues[10]),
             size: {
                 rus: sqlValues[11] as string,
                 eng: sqlValues[12] as string,

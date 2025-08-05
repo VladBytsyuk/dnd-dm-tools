@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { EmptySpellbookFilters, isSpellbookFiltersEmpty, type SpellbookFilters } from "src/domain/spellbook_filters";
 	import SidePanelHeader from "../uikit/SidePanelHeader.svelte";
-	import type { FullSpell, SmallSpell } from "src/domain/spell";
 	import { onMount } from "svelte";
 	import SpellGroupUi from "../spell/SpellGroupUi.svelte";
 	import SpellFullUi from "../spell/SpellFullUi.svelte";
 	import { SpellbookFiltersModal } from "src/ui/components/modals/spellbook_filers_modal";
+	import type { SmallSpell } from "src/domain/models/spell/SmallSpell";
+	import type { FullSpell } from "src/domain/models/spell/FullSpell";
 
     interface SpellGroupByLevel {
         level: number;

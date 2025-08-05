@@ -1,6 +1,6 @@
 import { App, Modal, Setting, SearchComponent } from "obsidian";
 import type { Spellbook } from "src/domain/repositories/Spellbook";
-import type { FullSpell } from "src/domain/spell";
+import type { FullSpell } from "src/domain/models/spell/FullSpell";
 import { SpellSuggester } from "src/ui/components/suggest/spell_suggester";
 
 export class SpellChooser extends Modal {

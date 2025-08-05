@@ -1,6 +1,7 @@
 import { App, SearchComponent, TextComponent, AbstractInputSuggest, prepareSimpleSearch, type FuzzyMatch, renderMatches } from "obsidian";
 import type { Spellbook } from "src/domain/repositories/Spellbook";
-import type { FullSpell, SmallSpell } from "src/domain/spell";
+import type { FullSpell } from "src/domain/models/spell/FullSpell";
+import type { SmallSpell } from "src/domain/models/spell/SmallSpell";
 
 export class SpellSuggester extends AbstractInputSuggest<FuzzyMatch<SmallSpell>> {
 

@@ -1,5 +1,5 @@
 import type { Name } from "../common/Name";
-import type { Source } from "../../spell";
+import type { Source } from "../common/Source";
 
 export interface SmallMonster {
     name: Name;
@@ -7,5 +7,4 @@ export interface SmallMonster {
     challengeRating: string;
     url: string;
     source: Source;
-    homebrew?: boolean;
 }

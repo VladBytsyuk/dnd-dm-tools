@@ -20,6 +20,7 @@ import { registerScreenMdCodeBlockProcessor } from './ui/components/processor/sc
 import type { Bestiary } from './domain/repositories/Bestiary';
 import type { DmScreen } from './domain/repositories/DmScreen';
 import type { Spellbook } from './domain/repositories/Spellbook';
+
 export default class DndStatblockPlugin extends Plugin {
 
 	// ---- fields ----

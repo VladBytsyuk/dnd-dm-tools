@@ -1,8 +1,9 @@
 import { requestUrl } from 'obsidian';
-import type { FullSpell, SmallSpell } from "src/domain/spell";
 import { SpellbookFilters } from "src/domain/spellbook_filters";
 import type DB from "./sqlite/DB";
 import type { Spellbook } from 'src/domain/repositories/Spellbook';
+import type { FullSpell } from "src/domain/models/spell/FullSpell";
+import type { SmallSpell } from 'src/domain/models/spell/SmallSpell';
 
 export class SpellbookRepository implements Spellbook {
 

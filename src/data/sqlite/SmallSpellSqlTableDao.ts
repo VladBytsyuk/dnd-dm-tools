@@ -1,8 +1,8 @@
 import type { Database, SqlValue } from 'sql.js';
 import { SqlTableDao, WhereClauseData } from './SqlTableDao';
 import type { App, PluginManifest } from 'obsidian';
-import type { SmallSpell } from 'src/domain/spell';
 import type { SpellbookFilters } from 'src/domain/spellbook_filters';
+import type { SmallSpell } from 'src/domain/models/spell/SmallSpell';
 
 export class SmallSpellSqlTableDao extends SqlTableDao<SmallSpell, SpellbookFilters> {
 
@@ -99,7 +99,7 @@ export class SmallSpellSqlTableDao extends SqlTableDao<SmallSpell, SpellbookFilt
             item.source.group.shortName,
             item.concentration ? 1 : 0,
             item.ritual ? 1 : 0,
-            item.homebrew ? 1 : 0
+            item.source.homebrew ? 1 : 0
         ]);
     }
 
@@ -165,7 +165,7 @@ export class SmallSpellSqlTableDao extends SqlTableDao<SmallSpell, SpellbookFilt
             item.source.group.shortName,
             item.concentration ? 1 : 0,
             item.ritual ? 1 : 0,
-            item.homebrew ? 1 : 0,
+            item.source.homebrew ? 1 : 0,
             item.url
         ]);
     }
@@ -193,10 +193,10 @@ export class SmallSpellSqlTableDao extends SqlTableDao<SmallSpell, SpellbookFilt
                     name: sqlValues[12] as string,
                     shortName: sqlValues[13] as string,
                 },
+                homebrew: Boolean(sqlValues[16]),
             },
             concentration: sqlValues[14] ? Boolean(sqlValues[14]) : undefined,
             ritual: sqlValues[15] ? Boolean(sqlValues[15]) : undefined,
-            homebrew: Boolean(sqlValues[16])
         };
     }
 

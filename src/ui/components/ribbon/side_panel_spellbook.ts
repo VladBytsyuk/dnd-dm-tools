@@ -1,6 +1,6 @@
 import { ItemView, Workspace, type WorkspaceLeaf } from "obsidian";
 import DndStatblockPlugin from "src/main";
-import type { FullSpell } from "src/domain/spell";
+import type { FullSpell } from "src/domain/models/spell/FullSpell";
 import { mount } from "svelte";
 import SpellbookSidePanelUi from "src/ui/layout/sidepanel/SpellbookSidePanelUi.svelte";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";

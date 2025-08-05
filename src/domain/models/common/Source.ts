@@ -5,4 +5,5 @@ export interface Source {
         name: string;
         shortName: string;
     };
+    homebrew?: boolean;
 }

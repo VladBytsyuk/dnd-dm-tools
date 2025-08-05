@@ -1,6 +1,6 @@
 import { parseYaml } from "obsidian";
 import DndStatblockPlugin from "src/main";
-import { type FullSpell } from "src/domain/spell";
+import { type FullSpell } from "src/domain/models/spell/FullSpell";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import SpellFullUi from "src/ui/layout/spell/SpellFullUi.svelte";
 import { mount } from "svelte";

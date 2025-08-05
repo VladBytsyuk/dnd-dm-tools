@@ -3,9 +3,9 @@
     import { onDestroy, onMount } from 'svelte';
 	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
-    import type { SpellClass, SpellSubclass } from 'src/domain/spell';
 	import { copySpellToClipboard } from 'src/data/clipboard';
 	import HtmlBlock from '../uikit/HtmlBlock.svelte';
+	import type { Class } from 'src/domain/models/common/Class';
 
     let { spell, uiEventListener } = $props();
 
@@ -66,7 +66,7 @@
     });
 
     let subClasses = !spell.subclasses ? undefined : separate(spell.subclasses.map((it: SpellSubclass) => it.name + " (" + it.class + ")"));
-    let classes = separate(spell.classes.map((it: SpellClass) => it.name));
+    let classes = separate(spell.classes.map((it: Class) => it.name));
     let classHint = "Классы: " + classes + (subClasses ? "\nПодклассы: " + subClasses : "");
 </script>
 

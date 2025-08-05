@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { SmallMonster } from "src/domain/models/monster/SmallMonster";
 	import SidePanelHeader from "../uikit/SidePanelHeader.svelte";
 	import MonsterFullUi from "../monster/MonsterFullUi.svelte";
 	import MonsterGroupUi from "../monster/MonsterGroupUi.svelte";
@@ -7,6 +6,7 @@
 	import { BestiaryFilter, EmptyBestiaryFilter, isBestiaryFilterEmpty } from "src/domain/bestiary_filters";
 	import { BestiaryFiltersModal } from "src/ui/components/modals/bestiary_filers_modal";
 	import type { FullMonster } from "src/domain/models/monster/FullMonster";
+	import type { SmallMonster } from "src/domain/models/monster/SmallMonster";
 
     interface MonsterGroupByCr {
         challengeRating: string;
