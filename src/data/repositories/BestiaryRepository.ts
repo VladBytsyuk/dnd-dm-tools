@@ -22,7 +22,7 @@ export class BestiaryRepository implements Bestiary {
 
     async getAllSmallMonsters(): Promise<SmallMonster[]> {
         if (this.#smallBestiary) return this.#smallBestiary;
-        this.initialize();
+        await this.initialize();
         return await this.getAllSmallMonsters();
     }
 

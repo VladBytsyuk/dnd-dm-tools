@@ -1,4 +1,4 @@
 export interface Type {
     name: string;
-    order?: string;
+    order?: number;
 }

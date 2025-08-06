@@ -7,6 +7,8 @@ import { FullMonsterSqlTableDao } from './FullMonsterSqlTableDao';
 import { SmallSpellSqlTableDao } from './SmallSpellSqlTableDao';
 import { FullSpellSqlTableDao } from './FullSpellSqlTableDao';
 import { DmScreenGroupSqlTableDao } from './DmScreenGroupSqlTableDao';
+import { SmallWeaponSqlTableDao } from './SmallWeaponSqlTableDao';
+import { FullWeaponSqlTableDao } from './FullWeaponSqlTableDao';
 
 export default class DB {
 
@@ -17,6 +19,8 @@ export default class DB {
     public smallSpellDao: SmallSpellSqlTableDao | null = null;
     public fullSpellDao: FullSpellSqlTableDao | null = null;
     public dmScreenGroupDao: DmScreenGroupSqlTableDao | null = null;
+    public smallWeaponDao: SmallWeaponSqlTableDao | null = null;
+    public fullWeaponDao: FullWeaponSqlTableDao | null = null;
 
     constructor(
         private app: App,
@@ -115,12 +119,16 @@ export default class DB {
         this.smallSpellDao = new SmallSpellSqlTableDao(database, this.app, this.manifest);
         this.fullSpellDao = new FullSpellSqlTableDao(database);
         this.dmScreenGroupDao = new DmScreenGroupSqlTableDao(database, this.app, this.manifest);
+        this.smallWeaponDao = new SmallWeaponSqlTableDao(database, this.app, this.manifest);
+        this.fullWeaponDao = new FullWeaponSqlTableDao(database);
         return [
             this.smallMonsterDao,
             this.fullMonsterDao,
             this.smallSpellDao,
             this.fullSpellDao,
             this.dmScreenGroupDao,
+            this.smallWeaponDao,
+            this.fullWeaponDao,
         ];
     }
 

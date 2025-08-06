@@ -1,5 +1,6 @@
 import type { FullWeapon } from "../models/weapon/FullWeapon";
 import type { SmallWeapon } from "../models/weapon/SmallWeapon";
+import type { WeaponFilters } from "../models/weapon/WeaponFilters";
 
 export interface Arsenal {   
 
@@ -20,15 +21,29 @@ export interface Arsenal {
     dispose(): void;
 
     /**
+     * Returns all filters from the arsenal.      
+     * @returns {Promise<WeaponFilters | null>} A promise that resolves to a WeaponFilters object containing all 
+     * available filters, or null if no filters are available.
+     */
+    getAllFilters(): Promise<WeaponFilters | null>;
+
+    /**
      * Returns all small weapons from the arsenal.
      * @returns {Promise<SmallWeapon[]>} A promise that resolves to an array of SmallWeapon objects.
      */
     getAllSmallWeapons(): Promise<SmallWeapon[]>;
     /**
+     * Returns all small weapon from the arsenal that match the given filters.
+     * @param {WeaponFilters} filters - The filters to apply to the small weapon.
+     * @returns {Promise<SmallWeapon[]>} A promise that resolves to an array of SmallWeapon objects that match the filters.   
+     */
+    getFilteredSmallMonsters(filters: WeaponFilters): Promise<SmallWeapon[]>;
+
+    /**
      * Returns all small weapons names from the arsenal.
      * @returns {Promise<string[]>} A promise that resolves to an array of strings containing the names of all small weapons.
      */ 
-    getAllSmallWeaponsNames(): Promise<string>;
+    getAllSmallWeaponsNames(): Promise<string[]>;
 
     /**
      * Returns a full weapon by its URL.

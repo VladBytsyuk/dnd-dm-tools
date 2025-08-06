@@ -18,7 +18,7 @@ export class DmScreenRepository implements DmScreen {
 
     async getAllRootItems(): Promise<DmScreenItem[]> {
         if (this.#rootItems) return this.#rootItems;
-        this.initialize();
+        await this.initialize();
         return await this.getAllRootItems();
     }
 

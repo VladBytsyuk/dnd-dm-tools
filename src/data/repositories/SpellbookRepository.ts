@@ -21,7 +21,7 @@ export class SpellbookRepository implements Spellbook {
 
     async getAllSmallSpells(): Promise<SmallSpell[]> {
         if (this.#smallSpellbook) return this.#smallSpellbook;
-        this.initialize();
+        await this.initialize();
         return await this.getAllSmallSpells();
     }
     
