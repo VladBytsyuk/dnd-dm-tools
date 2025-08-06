@@ -32,9 +32,9 @@ export class FullWeaponSqlTableDao extends SqlTableDao<FullWeapon, any> {
                 group_name TEXT NOT NULL,
                 group_short_name TEXT NOT NULL,
                 homebrew INTEGER DEFAULT 0,
-                weight REAL,
+                weight TEXT NOT NULL,
                 special TEXT,
-                properties: TEXT
+                properties TEXT
             );
         `);
         console.log(`Table ${this.getTableName()} created`)
@@ -83,7 +83,7 @@ export class FullWeaponSqlTableDao extends SqlTableDao<FullWeapon, any> {
             item.source.group.name,
             item.source.group.shortName,
             item.source.homebrew ? 1 : 0,
-            item.weight,
+            "" + item.weight,
             item.special ?? null,
             JSON.stringify(item.properties ?? []),
         ]);
@@ -129,7 +129,7 @@ export class FullWeaponSqlTableDao extends SqlTableDao<FullWeapon, any> {
             item.source.group.name,
             item.source.group.shortName,
             item.source.homebrew ? 1 : 0,
-            item.weight,
+            "" + item.weight,
             item.special ?? null,
             JSON.stringify(item.properties ?? []),
             item.url,
@@ -162,7 +162,7 @@ export class FullWeaponSqlTableDao extends SqlTableDao<FullWeapon, any> {
                 },
                 homebrew: Boolean(sqlValues[13]),
             },
-            weight: sqlValues[14] as number,
+            weight: +(sqlValues[14] as string),
             special: sqlValues[15] ? sqlValues[15] as string : undefined,
             properties: JSON.parse(sqlValues[16] as string) || [],
         }

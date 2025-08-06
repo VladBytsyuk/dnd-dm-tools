@@ -1,4 +1,4 @@
 export class Damage {
-    dice: string;
+    dice?: string;
     type: string;
 }

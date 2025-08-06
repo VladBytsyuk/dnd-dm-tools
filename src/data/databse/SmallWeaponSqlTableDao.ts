@@ -28,7 +28,7 @@ export class SmallWeaponSqlTableDao extends SqlTableDao<SmallWeapon, WeaponFilte
                 type_name TEXT NOT NULL,
                 type_order INTEGER,
                 url TEXT NOT NULL UNIQUE,
-                damage_dice TEXT NOT NULL,
+                damage_dice TEXT,
                 damage_type TEXT NOT NULL,
                 price TEXT NOT_NULL,
                 source_short_name TEXT NOT NULL,
@@ -76,14 +76,14 @@ export class SmallWeaponSqlTableDao extends SqlTableDao<SmallWeapon, WeaponFilte
                 group_name,
                 group_short_name,
                 homebrew
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
             item.name.rus,
             item.name.eng,
             item.type.name,
-            item.type.order ?? null,
+            item.type.order ?? 0,
             item.url,
-            item.damage.dice,
+            item.damage.dice ?? null,
             item.damage.type,
             item.price,
             item.source.shortName,
@@ -139,7 +139,7 @@ export class SmallWeaponSqlTableDao extends SqlTableDao<SmallWeapon, WeaponFilte
             item.type.name,
             item.type.order ?? null,
             item.url,
-            item.damage.dice,
+            item.damage.dice ?? null,
             item.damage.type,
             item.price,
             item.source.shortName,
@@ -164,7 +164,7 @@ export class SmallWeaponSqlTableDao extends SqlTableDao<SmallWeapon, WeaponFilte
             },
             url: sqlValues[5] as string,
             damage: {
-                dice: sqlValues[6] as string,
+                dice: sqlValues[6] ? sqlValues[6] as string : undefined,
                 type: sqlValues[7] as string,
             },
             price: sqlValues[8] as string,
