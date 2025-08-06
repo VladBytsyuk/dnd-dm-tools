@@ -2,6 +2,7 @@
 export interface HtmlLinkListener {
     onBeastClick: (url: string) => Promise<void>;
     onSpellClick: (url: string) => Promise<void>;
+    onWeaponClick: (url: string) => Promise<void>;
     onScreenItemClick: (url: string) => Promise<void>;
 }
 
@@ -11,6 +12,7 @@ export const registerHtmlLinkListener = (htmlLinkListener: HtmlLinkListener) => 
             LinkListener('/bestiary/', htmlLinkListener.onBeastClick),
             LinkListener('/spells/', htmlLinkListener.onSpellClick),
             LinkListener('/screens/', htmlLinkListener.onScreenItemClick),
+            LinkListener('/weapons/', htmlLinkListener.onWeaponClick),
         ]
     )(node);
 }
