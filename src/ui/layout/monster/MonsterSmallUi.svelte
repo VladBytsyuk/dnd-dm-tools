@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onkeydown } from "src/domain/utils";
+    import { onkeydown } from "src/domain/utils/utils";
 
     let { smallMonster, onclick } = $props();
     const { name, type, challengeRating, source } = smallMonster;

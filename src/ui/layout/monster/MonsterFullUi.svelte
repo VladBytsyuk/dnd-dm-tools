@@ -2,7 +2,7 @@
     import { onDestroy, onMount } from 'svelte';
     import { copyMonsterToClipboard } from "src/data/clipboard";
 	import { calculateAndFormatModifier, formatModifier } from 'src/domain/modifier';
-	import { diceRoller, joinList, joinSpeed, separate } from 'src/domain/utils';
+	import { diceRoller, joinList, joinSpeed, separate } from 'src/domain/utils/utils';
 	import HtmlBlock from '../uikit/HtmlBlock.svelte';
 	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 

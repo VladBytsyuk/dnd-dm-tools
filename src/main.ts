@@ -20,6 +20,8 @@ import { registerScreenMdCodeBlockProcessor } from './ui/components/processor/sc
 import type { Bestiary } from './domain/repositories/Bestiary';
 import type { DmScreen } from './domain/repositories/DmScreen';
 import type { Spellbook } from './domain/repositories/Spellbook';
+import type { Arsenal } from './domain/repositories/Arsenal';
+import { ArsenalRepository } from './data/repositories/ArsenalRepository';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -28,6 +30,7 @@ export default class DndStatblockPlugin extends Plugin {
 	#bestiary: Bestiary;
 	#spellbook: Spellbook;
 	#dmScreen: DmScreen;
+	#arsenal: Arsenal;
 	#uiEventListener: IUiEventListener;
 
 	// ---- callbacks ----
@@ -69,6 +72,9 @@ export default class DndStatblockPlugin extends Plugin {
 
 		this.#dmScreen = new DmScreenRepository(this.#database);
 		await this.#dmScreen.initialize();
+
+		this.#arsenal = new ArsenalRepository(this.#database);
+		await this.#arsenal.initialize();
 
 		this.#uiEventListener = new UiEventListener(this.app, this.#bestiary, this.#spellbook, this.#dmScreen);
 

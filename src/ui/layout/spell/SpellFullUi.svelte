@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { separate } from 'src/domain/utils';
+	import { separate } from 'src/domain/utils/utils';
     import { onDestroy, onMount } from 'svelte';
 	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';

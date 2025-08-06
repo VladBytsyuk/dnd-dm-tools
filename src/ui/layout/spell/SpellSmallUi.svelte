@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { onkeydown } from "src/domain/utils";
-
     let { smallSpell, onclick } = $props();
     const { name, school, level, source, components } = smallSpell;
 </script>
@@ -37,7 +35,6 @@
         background: #00000040;
         border-radius: 12px;
     }
-
 
     .spell-small:hover {
         background: #00000060;
