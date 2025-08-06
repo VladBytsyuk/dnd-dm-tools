@@ -15,7 +15,7 @@ export abstract class BaseRepository<
     #filters?: Filter;
 
     constructor(
-        private database: DB,
+        protected database: DB,
         private smallItemDao: Dao<SmallItem, Filter>,
         private fullItemDao: Dao<FullItem, any>,
     ) {}
@@ -66,7 +66,7 @@ export abstract class BaseRepository<
             console.log(`Loaded ${url} from local storage.`);
             return cachedFullItem;
         }
-        const fullItem = await this.#fetchFromAPI(url);
+        const fullItem = await this.fetchFromAPI(url);
         if (fullItem) {
             this.database.transaction(async () => {
                 await this.fullItemDao?.createItem(fullItem);
@@ -92,7 +92,7 @@ export abstract class BaseRepository<
     }
 
     // ---- private functions ----   
-    async #fetchFromAPI(url: string): Promise<FullItem | null> {
+    protected async fetchFromAPI(url: string): Promise<FullItem | null> {
         try {
             const response = await requestUrl({
                 url: `https://ttg.club/api/v1/${url}`,

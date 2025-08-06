@@ -122,7 +122,6 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
             item.description || null,
             item.url
         ]);
-        console.log(`Updated ${item.url} in ${this.getTableName()}`);
     }
 
     async mapSqlValues(values: SqlValue[]): Promise<DmScreenItem> {

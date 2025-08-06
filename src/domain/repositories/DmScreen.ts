@@ -1,22 +1,7 @@
 import type { DmScreenItem } from "../models/dm_screen/DmScreenItem";
+import type { Repository } from "./Repository";
 
-export interface DmScreen {
-
-    /**
-     * Initializes the dm screen by loading data.
-     * This method should be called before using any other methods of the dm screen.
-     * It loads the dm screen items data.
-     * @returns {Promise<void>} A promise that resolves when the dm screen is initialized.
-     * TODO: rework error hadling
-     */
-    initialize(): Promise<void>;
-    /**
-     * Disposes of the dm screen resources.          
-     * This method should be called when the dm screen is no longer needed to free up resources. 
-     * It does not return a value.
-     * @returns {void}
-     */
-    dispose(): void;
+export interface DmScreen extends Repository<DmScreenItem, DmScreenItem, any> {
 
     /**
      * Returns all root dm screen items.
@@ -44,21 +29,9 @@ export interface DmScreen {
     getChildren(item: DmScreenItem): Promise<DmScreenItem[]>;
 
     /**
-     * Returns a dull dm screen item by its DmScreenItem object.
+     * Returns a full dm screen item by its DmScreenItem object.
      * @param {DmScreenItem} item - dm screen item in a group
      * @returns {Promise<DmScreenItem | null>} A promise that resolves to a full dm screen item if found, or null if not found. 
      */
     getFullItem(item: DmScreenItem): Promise<DmScreenItem | null>;
-    /**
-     * Returns a dull dm screen item by its name.
-     * @param {string} name - The name of the dm screen item to fetch
-     * @returns {Promise<DmScreenItem | null>} A promise that resolves to a full dm screen item if found, or null if not found. 
-     */
-    getFullItemByName(name: string): Promise<DmScreenItem | null>;
-    /**
-     * Returns a dull dm screen item by its URL.
-     * @param {string} url - The URL of the dm screen item to fetch
-     * @returns {Promise<DmScreenItem | null>} A promise that resolves to a full dm screen item if found, or null if not found. 
-     */
-    getFullItemByUrl(url: string): Promise<DmScreenItem | null>;
 }

@@ -22,6 +22,7 @@ import type { DmScreen } from './domain/repositories/DmScreen';
 import type { Spellbook } from './domain/repositories/Spellbook';
 import type { Arsenal } from './domain/repositories/Arsenal';
 import { ArsenalRepository } from './data/repositories/ArsenalRepository';
+import type { Repository } from './domain/repositories/Repository';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -31,6 +32,7 @@ export default class DndStatblockPlugin extends Plugin {
 	#spellbook: Spellbook;
 	#dmScreen: DmScreen;
 	#arsenal: Arsenal;
+	#repositories: Repository<any, any, any>[];
 	#uiEventListener: IUiEventListener;
 
 	// ---- callbacks ----
@@ -65,16 +67,17 @@ export default class DndStatblockPlugin extends Plugin {
 		await this.#database.initialize();
 
 		this.#bestiary = new BestiaryRepository(this.#database);
-		await this.#bestiary.initialize();
-
 		this.#spellbook = new SpellbookRepository(this.#database);
-		await this.#spellbook.initialize();
-
 		this.#dmScreen = new DmScreenRepository(this.#database);
-		await this.#dmScreen.initialize();
-
 		this.#arsenal = new ArsenalRepository(this.#database);
-		await this.#arsenal.initialize();
+
+		this.#repositories = [
+			this.#bestiary,
+			this.#spellbook,
+			this.#arsenal,
+			this.#dmScreen,
+		];
+		this.#repositories.forEach(async repository => await repository.initialize());
 
 		this.#uiEventListener = new UiEventListener(this.app, this.#bestiary, this.#spellbook, this.#dmScreen);
 
@@ -82,9 +85,6 @@ export default class DndStatblockPlugin extends Plugin {
 	}
 
 	#dispose() {
-		this.#bestiary.dispose();
-		this.#spellbook.dispose();
-		this.#dmScreen.dispose();
-		this.#database.dispose();
+		this.#repositories.forEach(repository => repository.dispose());
 	}
 }
