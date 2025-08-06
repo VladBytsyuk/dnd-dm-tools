@@ -22,7 +22,7 @@ export class MonsterSuggester extends AbstractInputSuggest<FuzzyMatch<SmallMonst
     // ---- callbacks ----
     async getSuggestions(query: string) {
         if (query.length < 3) return [];
-        const smallMonsters = await this.#bestiary.getAllSmallMonsters();
+        const smallMonsters = await this.#bestiary.getAllSmallItems();
         const simpleSearchFn = prepareSimpleSearch(query);
         const results = [];
         for (const item of smallMonsters) {
@@ -58,7 +58,7 @@ export class MonsterSuggester extends AbstractInputSuggest<FuzzyMatch<SmallMonst
             if (result == null) return;
 
             const smallMonster = result.item;
-            const fullMonster = await this.#bestiary.getFullMonsterBySmallMonster(smallMonster);
+            const fullMonster = await this.#bestiary.getFullItemBySmallItem(smallMonster);
             if (fullMonster != null) {
                 this.#inputEl.setValue("");
                 callback(fullMonster);

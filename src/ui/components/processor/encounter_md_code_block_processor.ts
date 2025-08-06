@@ -27,7 +27,7 @@ async function encounterMdCodeBlockProcessor(
     let encounter: Encounter = parameters as Encounter;
 
     const openBestiary = async (url: string) => {
-        const fullMonster = await bestiary.getFullMonsterByUrl(url);
+        const fullMonster = await bestiary.getFullItemByUrl(url);
         if (fullMonster) openSidePanelBestiary(plugin.app.workspace, fullMonster);
     }
 

@@ -1,10 +1,10 @@
 import type { Database, SqlValue } from 'sql.js';
 import type { SmallMonster } from 'src/domain/models/monster/SmallMonster';
-import { SqlTableDao, WhereClauseData } from './SqlTableDao';
+import { Dao, WhereClauseData } from '../../domain/Dao';
 import type { App, PluginManifest } from 'obsidian';
 import type { BestiaryFilters } from 'src/domain/models/monster/BestiaryFilters';
 
-export class SmallMosterSqlTableDao extends SqlTableDao<SmallMonster, BestiaryFilters> {
+export class SmallMosterSqlTableDao extends Dao<SmallMonster, BestiaryFilters> {
 
     constructor(
         database: Database,

@@ -14,7 +14,14 @@
     }
 
     // ---- Props ----
-    let { plugin, spellbook, initialFullSpell, uiEventListener } = $props();
+    let { 
+        plugin, 
+        getAllFilters,
+        getFullItemBySmallItem,
+        getFilteredSmallItems, 
+        initialFullSpell, 
+        uiEventListener,
+     } = $props();
     
     // ---- State ----
     let searchBarValue: string = $state('');
@@ -42,7 +49,7 @@
     }
 
     async function onSearchBarFiltersClick() {
-        const fullFilters = await spellbook.getAllFilters();
+        const fullFilters = await getAllFilters();
         if (!fullFilters) return;
         new SpellbookFiltersModal(
             plugin.app,
@@ -56,7 +63,7 @@
     }
 
     const onSmallSpellClick = (smallSpell: SmallSpell) => async () => {
-        currentFullSpell = await spellbook.getFullSpellBySmallSpell(smallSpell);
+        currentFullSpell = await getFullItemBySmallItem(smallSpell);
         if (currentFullSpell) {
             spellsStack.push(currentFullSpell);
         }
@@ -65,15 +72,10 @@
     // ---- private methods ----
     async function updateSpellsGroups() {
         const searchValueNormalized = searchBarValue.trim().toLowerCase();
-        const checkName = (name: string) => name.toLowerCase().includes(searchValueNormalized);
-        const bySearchValue = (smallSpell: SmallSpell) => checkName(smallSpell.name.rus) || checkName(smallSpell.name.eng);
 
-        const smallSpells: SmallSpell[] = await spellbook.getFilteredSmallSpells(filters);
-        const filteredSmallSpells = searchBarValue.length === 0
-            ? smallSpells
-            : smallSpells.filter(bySearchValue);
+        const smallSpells: SmallSpell[] = await getFilteredSmallItems(searchValueNormalized, filters);
 
-        spellsGroups = groupByLevel(filteredSmallSpells);
+        spellsGroups = groupByLevel(smallSpells);
     }
 
     function groupByLevel(smallSpells: SmallSpell[]): SpellGroupByLevel[] {

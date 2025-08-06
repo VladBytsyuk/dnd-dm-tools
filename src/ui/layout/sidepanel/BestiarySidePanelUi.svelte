@@ -14,7 +14,14 @@
     }
 
     // ---- Props ----
-    let { plugin, bestiary, initialFullMonster, uiEventListener } = $props();
+    let { 
+        plugin,
+        getAllFilters,
+        getFullItemBySmallItem,
+        getFilteredSmallItems,
+        initialFullMonster, 
+        uiEventListener,
+     } = $props();
 
     // ---- State ----
     let searchBarValue: string = $state('');
@@ -42,7 +49,7 @@
     }                       
 
     async function onSearchBarFiltersClick() {
-        const fullFilters = await bestiary.getAllFilters();
+        const fullFilters = await getAllFilters();
         if (!fullFilters) return;
         new BestiaryFiltersModal(
             plugin.app, 
@@ -56,7 +63,7 @@
     }
 
     const onSmallMonsterClick = (smallMonster: SmallMonster) => async () => {
-        currentFullMonster = await bestiary.getFullMonsterBySmallMonster(smallMonster);
+        currentFullMonster = await getFullItemBySmallItem(smallMonster);
         if (currentFullMonster) {
             monstersStack.push(currentFullMonster);
         }
@@ -65,15 +72,8 @@
     // ---- private functions ----
     async function updateMonstersGroups() {
         const searchValueNormalized = searchBarValue.toLowerCase();
-        const checkName = (name: string) => name.toLowerCase().includes(searchValueNormalized);
-        const bySearchValue = (monster: SmallMonster) => checkName(monster.name.rus) || checkName(monster.name.eng);
-
-        const smallMonsters: SmallMonster[] = await bestiary.getFilteredSmallMonsters(filters);
-        const filteredSmallMonsters = searchBarValue.length === 0 
-            ? smallMonsters
-            : smallMonsters.filter(bySearchValue);
-            
-        monstersGroups = groupByCr(filteredSmallMonsters);
+        const smallMonsters: SmallMonster[] = await getFilteredSmallItems(searchValueNormalized, filters);
+        monstersGroups = groupByCr(smallMonsters);
     }
 
     function groupByCr(smallMonsters: SmallMonster[]): MonsterGroupByCr[] {

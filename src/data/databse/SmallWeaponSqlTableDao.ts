@@ -1,10 +1,10 @@
 import type { SmallWeapon } from "src/domain/models/weapon/SmallWeapon";
-import { SqlTableDao, WhereClauseData } from "./SqlTableDao";
+import { Dao, WhereClauseData } from "../../domain/Dao";
 import type { WeaponFilters } from "src/domain/models/weapon/WeaponFilters";
 import type { App, PluginManifest } from "obsidian";
 import type { Database, SqlValue } from "sql.js";
 
-export class SmallWeaponSqlTableDao extends SqlTableDao<SmallWeapon, WeaponFilters> {
+export class SmallWeaponSqlTableDao extends Dao<SmallWeapon, WeaponFilters> {
 
     constructor(
         database: Database,

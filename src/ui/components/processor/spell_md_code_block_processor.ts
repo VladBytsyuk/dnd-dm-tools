@@ -28,7 +28,7 @@ async function spellMdCodeBlockProcessor(
 
     let spell: FullSpell
     if (!parameters.name.eng) {
-        const fullSpell = await spellbook.getFullSpellByName(parameters.name.rus);
+        const fullSpell = await spellbook.getFullItemByUrl(parameters.name.rus);
         if (fullSpell == null) return;
 
         spell = fullSpell;

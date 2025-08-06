@@ -22,7 +22,7 @@ export class SpellSuggester extends AbstractInputSuggest<FuzzyMatch<SmallSpell>>
     // ---- callbacks ----
     async getSuggestions(query: string) {
         if (query.length < 3) return [];
-        const smallSpells = await this.#spellbook.getAllSmallSpells();
+        const smallSpells = await this.#spellbook.getAllSmallItems();
         const simpleSearchFn = prepareSimpleSearch(query);
         const results = [];
         for (const item of smallSpells) {
@@ -58,7 +58,7 @@ export class SpellSuggester extends AbstractInputSuggest<FuzzyMatch<SmallSpell>>
             if (result == null) return;
 
             const smallSpell = result.item;
-            const fullSpell = await this.#spellbook.getFullSpellBySmallSpell(smallSpell);
+            const fullSpell = await this.#spellbook.getFullItemBySmallItem(smallSpell);
             if (fullSpell != null) {
                 this.#inputEl.setValue("");
                 callback(fullSpell);

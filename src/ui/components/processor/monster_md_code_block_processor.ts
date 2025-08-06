@@ -30,7 +30,7 @@ async function monsterMdCodeBlockProcessor(
 
     let monster: FullMonster
     if (!parameters.name) {
-        const fullMonster = await bestiary.getFullMonsterByName(parameters.creature);
+        const fullMonster = await bestiary.getFullItemByUrl(parameters.creature);
         if (fullMonster == null) return;
 
         monster = fullMonster;

@@ -1,9 +1,9 @@
 import { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
-import { SqlTableDao } from "./SqlTableDao";
+import { Dao } from "../../domain/Dao";
 import type { App, PluginManifest } from "obsidian";
 import type { Database, SqlValue } from "sql.js";
 
-export class DmScreenGroupSqlTableDao extends SqlTableDao<DmScreenItem, any> {
+export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
 
     constructor(
         database: Database,

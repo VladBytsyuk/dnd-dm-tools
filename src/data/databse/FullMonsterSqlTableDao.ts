@@ -1,8 +1,8 @@
 import type { Database, SqlValue } from 'sql.js';
-import { SqlTableDao } from "./SqlTableDao";
+import { Dao } from "../../domain/Dao";
 import type { FullMonster } from 'src/domain/models/monster/FullMonster';
 
-export class FullMonsterSqlTableDao extends SqlTableDao<FullMonster, any> {
+export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
 
     constructor(
         database: Database,
@@ -138,7 +138,6 @@ export class FullMonsterSqlTableDao extends SqlTableDao<FullMonster, any> {
                 JSON.stringify(item.images ?? [])
             ]
         );
-        console.log(`Put ${item.url} into ${this.getTableName()}`);
     }
 
     async readAllItemsNames(): Promise<string[]> {

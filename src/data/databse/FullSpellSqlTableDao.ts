@@ -1,8 +1,8 @@
 import type { Database, SqlValue } from 'sql.js';
-import { SqlTableDao } from "./SqlTableDao";
+import { Dao } from "../../domain/Dao";
 import type { FullSpell } from 'src/domain/models/spell/FullSpell';
 
-export class FullSpellSqlTableDao extends SqlTableDao<FullSpell, any> {
+export class FullSpellSqlTableDao extends Dao<FullSpell, any> {
 
     constructor(
         database: Database,

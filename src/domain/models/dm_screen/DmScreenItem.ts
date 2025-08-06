@@ -1,9 +1,9 @@
 import type { Name } from "../common/Name";
 import type { Source } from "../common/Source";
+import type { WithUrl } from "../common/WithUrl";
 
-export interface DmScreenItem {
+export interface DmScreenItem extends WithUrl {
     name: Name;
-    url: string;
     order: number;
     source: Source;
     description?: string;
@@ -23,13 +23,13 @@ export function DmScreenItem(
     parentUrl?: string,
 ): DmScreenItem {
     return {
-        name,
-        url,
-        order,
-        source,
-        group,
-        icon,
-        description,
-        parentUrl
+        name: name,
+        url: url,
+        order: order,
+        source: source,
+        group: group,
+        icon: icon,
+        description: description,
+        parentUrl: parentUrl
     };
 }       

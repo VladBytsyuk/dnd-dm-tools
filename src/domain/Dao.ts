@@ -9,7 +9,7 @@ export function WhereClauseData(whereClauses: string[], params: SqlValue[]): Whe
     return { whereClauses, params };
 }
 
-export abstract class SqlTableDao<T, F> {
+export abstract class Dao<T, F> {
 
     constructor(public database: Database) {}
 

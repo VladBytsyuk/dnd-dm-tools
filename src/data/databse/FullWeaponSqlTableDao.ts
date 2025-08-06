@@ -1,8 +1,8 @@
 import type { FullWeapon } from "src/domain/models/weapon/FullWeapon";
-import { SqlTableDao } from "./SqlTableDao";
+import { Dao } from "../../domain/Dao";
 import type { Database, SqlValue } from "sql.js";
 
-export class FullWeaponSqlTableDao extends SqlTableDao<FullWeapon, any> {
+export class FullWeaponSqlTableDao extends Dao<FullWeapon, any> {
 
     constructor(
         database: Database,
@@ -75,7 +75,7 @@ export class FullWeaponSqlTableDao extends SqlTableDao<FullWeapon, any> {
             item.type.name,
             item.type.order ?? null,
             item.url,
-            item.damage.dice,
+            item.damage.dice ?? null,
             item.damage.type,
             item.price,
             item.source.shortName,
@@ -121,7 +121,7 @@ export class FullWeaponSqlTableDao extends SqlTableDao<FullWeapon, any> {
             item.type.name,
             item.type.order ?? null,
             item.url,
-            item.damage.dice,
+            item.damage.dice ?? null,
             item.damage.type,
             item.price,
             item.source.shortName,
@@ -149,7 +149,7 @@ export class FullWeaponSqlTableDao extends SqlTableDao<FullWeapon, any> {
             },
             url: sqlValues[5] as string,
             damage: {
-                dice: sqlValues[6] as string,
+                dice: sqlValues[6] ? sqlValues[6] as string : undefined,
                 type: sqlValues[7] as string,
             },
             price: sqlValues[8] as string,

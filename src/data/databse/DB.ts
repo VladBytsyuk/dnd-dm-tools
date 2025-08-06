@@ -1,5 +1,5 @@
 import { Buffer } from 'buffer';
-import type { SqlTableDao } from './SqlTableDao';
+import type { Dao } from '../../domain/Dao';
 import { SmallMosterSqlTableDao } from './SmallMosterSqlTableDao';
 import { FileSystemAdapter, type App, type PluginManifest } from 'obsidian';
 import initSqlJs, { type Database } from 'sql.js';
@@ -14,13 +14,13 @@ export default class DB {
 
     private database: Database | null = null;
     private databasePath: string;
-    public smallMonsterDao: SmallMosterSqlTableDao | null = null;
-    public fullMonsterDao: FullMonsterSqlTableDao | null = null;
-    public smallSpellDao: SmallSpellSqlTableDao | null = null;
-    public fullSpellDao: FullSpellSqlTableDao | null = null;
-    public dmScreenGroupDao: DmScreenGroupSqlTableDao | null = null;
-    public smallWeaponDao: SmallWeaponSqlTableDao | null = null;
-    public fullWeaponDao: FullWeaponSqlTableDao | null = null;
+    public smallMonsterDao: SmallMosterSqlTableDao;
+    public fullMonsterDao: FullMonsterSqlTableDao;
+    public smallSpellDao: SmallSpellSqlTableDao;
+    public fullSpellDao: FullSpellSqlTableDao;
+    public dmScreenGroupDao: DmScreenGroupSqlTableDao;
+    public smallWeaponDao: SmallWeaponSqlTableDao;
+    public fullWeaponDao: FullWeaponSqlTableDao;
 
     constructor(
         private app: App,
@@ -113,7 +113,7 @@ export default class DB {
         }
     }
 
-    private initDaos(database: Database): SqlTableDao<any, any>[] {
+    private initDaos(database: Database): Dao<any, any>[] {
         this.smallMonsterDao = new SmallMosterSqlTableDao(database, this.app, this.manifest);
         this.fullMonsterDao = new FullMonsterSqlTableDao(database);
         this.smallSpellDao = new SmallSpellSqlTableDao(database, this.app, this.manifest);

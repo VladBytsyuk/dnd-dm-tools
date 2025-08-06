@@ -5,6 +5,8 @@ import { mount } from "svelte";
 import SpellbookSidePanelUi from "src/ui/layout/sidepanel/SpellbookSidePanelUi.svelte";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type { Spellbook } from "src/domain/repositories/Spellbook";
+import type { SmallSpell } from "src/domain/models/spell/SmallSpell";
+import type { SpellbookFilters } from "src/domain/models/spell/SpellbookFilters";
 
 export function registerSidePanelSpellbook(
     plugin: DndStatblockPlugin,
@@ -64,7 +66,9 @@ class SidePanelSpellbookView extends ItemView {
             target: container,
             props: {
                 plugin: this.#plugin,
-                spellbook: this.#spellbook,
+                getAllFilters: async () => await this.#spellbook.getAllFilters(),
+                getFullItemBySmallItem: async (smallItem: SmallSpell) => await this.#spellbook.getFullItemBySmallItem(smallItem),
+                getFilteredSmallItems: async (name: string, filters: SpellbookFilters) => await this.#spellbook.getFilteredSmallItems(name, filters),
                 initialFullSpell: sidePanelFullSpell,
                 uiEventListener: this.#uiEventListener,
             },

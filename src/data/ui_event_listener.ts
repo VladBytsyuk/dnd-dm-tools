@@ -24,12 +24,12 @@ export class UiEventListener implements IUiEventListener {
 
     // ---- methods ----
     async onBeastClick(url: string): Promise<void> {
-        const fullMonster = await this.bestiary.getFullMonsterByUrl(url);
+        const fullMonster = await this.bestiary.getFullItemByUrl(url);
         if (fullMonster) await openSidePanelBestiary(this.app.workspace, fullMonster);
     }
 
     async onSpellClick(url: string): Promise<void> {
-        const fullSpell = await this.spellbook.getFullSpellByUrl(url);
+        const fullSpell = await this.spellbook.getFullItemByUrl(url);
         if (fullSpell) await openSidePanelSpellbook(this.app.workspace, fullSpell);
     }
 
