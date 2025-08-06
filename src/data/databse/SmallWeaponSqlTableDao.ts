@@ -98,13 +98,21 @@ export class SmallWeaponSqlTableDao extends Dao<SmallWeapon, WeaponFilters> {
         let whereClauses: string[] = [];
         let params: SqlValue[] = [];
 
-        if (filters.types.length > 0) {
-            whereClauses.push('(' + filters.types.map(() => `damage_type = ?`).join(' OR ') + ')');
-            params.push(...filters.types);
-        }
         if (filters.dices.length > 0) {
             whereClauses.push('(' + filters.dices.map(() => `damage_dice = ?`).join(' OR ') + ')');
             params.push(...filters.dices);
+        }
+        if (filters.damageTypes.length > 0) {
+            whereClauses.push('(' + filters.damageTypes.map(() => `damage_type = ?`).join(' OR ') + ')');
+            params.push(...filters.damageTypes);
+        }
+        if (filters.types.length > 0) {
+            whereClauses.push('(' + filters.types.map(() => `type_name = ?`).join(' OR ') + ')');
+            params.push(...filters.types);
+        }
+        if (filters.sources.length > 0) {
+            whereClauses.push('(' + filters.sources.map(() => `source_short_name = ?`).join(' OR ') + ')');
+            params.push(...filters.sources);
         }
 
         return WhereClauseData(whereClauses, params);

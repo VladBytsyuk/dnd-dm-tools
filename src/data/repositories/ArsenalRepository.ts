@@ -18,12 +18,21 @@ export class ArsenalRepository
     }
 
     async collectFiltersFromAllItems(allSmallItems: SmallWeapon[]): Promise<WeaponFilters | null> {
-        let dicesSet: Set<string> = new Set();
+        let dicesSet: Set<string> = new Set();        
+        let damageTypesSet: Set<string> = new Set();
         let typesSet: Set<string> = new Set();
+        let sourcesSet: Set<string> = new Set();
         for (const weapon of allSmallItems) {
             if (weapon.damage.dice) dicesSet.add(weapon.damage.dice);
-            typesSet.add(weapon.damage.type);
+            damageTypesSet.add(weapon.damage.type);
+            typesSet.add(weapon.type.name);
+            sourcesSet.add(weapon.source.shortName + (weapon.source.group.shortName != "Basic" ? "*" : ""))
         }
-        return WeaponFilters(Array.from(dicesSet), Array.from(typesSet));
+        return WeaponFilters(
+            Array.from(dicesSet), 
+            Array.from(damageTypesSet), 
+            Array.from(typesSet), 
+            Array.from(sourcesSet),
+        );
     }
 }
