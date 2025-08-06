@@ -1,6 +1,6 @@
 import { requestUrl } from "obsidian";
 import { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
-import type DB from "./sqlite/DB";
+import type DB from "../databse/DB";
 import type { DmScreen } from "src/domain/repositories/DmScreen";
 
 export class DmScreenRepository implements DmScreen {
