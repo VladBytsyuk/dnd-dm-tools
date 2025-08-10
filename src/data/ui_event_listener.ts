@@ -9,6 +9,7 @@ import type { Spellbook } from "src/domain/repositories/Spellbook";
 import type { DmScreen } from "src/domain/repositories/DmScreen";
 import type { Arsenal } from "src/domain/repositories/Arsenal";
 import type { Armory } from "src/domain/repositories/Armory";
+import type { Equipment } from "src/domain/repositories/Equipment";
 
 export class UiEventListener implements IUiEventListener {
 
@@ -19,6 +20,7 @@ export class UiEventListener implements IUiEventListener {
         public spellbook: Spellbook,
         public arsenal: Arsenal,
         public armory: Armory,
+        public equipment: Equipment,
         public dmScreen: DmScreen, 
     ) {
         this.onBeastClick = this.onBeastClick.bind(this);
@@ -47,6 +49,11 @@ export class UiEventListener implements IUiEventListener {
     async onArmorClick(url: string): Promise<void> {
         const fullArmor = await this.armory.getFullItemByUrl(url);
         //if (fullArmor) await openSidePanelSpellbook(this.app.workspace, fullArmor);
+    }
+
+    async onItemClick(url: string): Promise<void> {
+        const fullItem = await this.equipment.getFullItemByUrl(url);
+        // if (fullItem) await openSidePanelDmScreen(this.app.workspace, fullItem);
     }
 
     async onScreenItemClick(url: string): Promise<void> {

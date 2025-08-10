@@ -25,6 +25,8 @@ import { ArsenalRepository } from './data/repositories/ArsenalRepository';
 import type { Repository } from './domain/repositories/Repository';
 import type { Armory } from './domain/repositories/Armory';
 import { ArmoryRepository } from './data/repositories/ArmoryRepository';
+import type { Equipment } from './domain/repositories/Equipment';
+import { EquipmentRepository } from './data/repositories/EquipmentRepository';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -35,6 +37,7 @@ export default class DndStatblockPlugin extends Plugin {
 	#dmScreen: DmScreen;
 	#arsenal: Arsenal;
 	#armory: Armory;
+	#equipment: Equipment;
 	#repositories: Repository<any, any, any>[];
 	#uiEventListener: IUiEventListener;
 
@@ -74,6 +77,7 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#dmScreen = new DmScreenRepository(this.#database);
 		this.#arsenal = new ArsenalRepository(this.#database);
 		this.#armory = new ArmoryRepository(this.#database);
+		this.#equipment = new EquipmentRepository(this.#database);
 
 		this.#repositories = [
 			this.#bestiary,
@@ -84,7 +88,7 @@ export default class DndStatblockPlugin extends Plugin {
 		];
 		this.#repositories.forEach(async repository => await repository.initialize());
 
-		this.#uiEventListener = new UiEventListener(this.app, this.#bestiary, this.#spellbook, this.#arsenal, this.#armory, this.#dmScreen);
+		this.#uiEventListener = new UiEventListener(this.app, this.#bestiary, this.#spellbook, this.#arsenal, this.#armory, this.#equipment, this.#dmScreen);
 
 		callback();
 	}
