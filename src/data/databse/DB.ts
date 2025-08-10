@@ -11,6 +11,8 @@ import { SmallWeaponSqlTableDao } from './SmallWeaponSqlTableDao';
 import { FullWeaponSqlTableDao } from './FullWeaponSqlTableDao';
 import { SmallArmorSqlTableDao } from './SmallArmorSqlTableDao';
 import { FullArmorSqlTableDao } from './FullArmorSqlTableDao';
+import { SmallItemSqlTableDao } from './SmallItemSqlTableDao';
+import { FullItemSqlTableDao } from './FullItemSqlTableDao';
 
 export default class DB {
 
@@ -25,6 +27,8 @@ export default class DB {
     public fullWeaponDao: FullWeaponSqlTableDao;
     public smallArmorDao: SmallArmorSqlTableDao;
     public fullArmorDao: FullArmorSqlTableDao;
+    public smallItemDao: SmallItemSqlTableDao;
+    public fullItemDao: FullItemSqlTableDao;
 
     constructor(
         private app: App,
@@ -127,6 +131,8 @@ export default class DB {
         this.fullWeaponDao = new FullWeaponSqlTableDao(database);
         this.smallArmorDao = new SmallArmorSqlTableDao(database, this.app, this.manifest);
         this.fullArmorDao = new FullArmorSqlTableDao(database);
+        this.smallItemDao = new SmallItemSqlTableDao(database, this.app, this.manifest);
+        this.fullItemDao = new FullItemSqlTableDao(database);
         return [
             this.smallMonsterDao,
             this.fullMonsterDao,
@@ -137,6 +143,8 @@ export default class DB {
             this.fullWeaponDao,
             this.smallArmorDao,
             this.fullArmorDao,
+            this.smallItemDao,
+            this.fullItemDao,
         ];
     }
 

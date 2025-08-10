@@ -1,5 +1,4 @@
-import { Dao, WhereClauseData } from "../../domain/Dao";
-import type { App, PluginManifest } from "obsidian";
+import { Dao } from "../../domain/Dao";
 import type { Database, SqlValue } from "sql.js";
 import type { FullArmor } from "src/domain/models/armor/FullArmor";
 

@@ -182,7 +182,7 @@ export class SmallArmorSqlTableDao extends Dao<SmallArmor, ArmorFilters> {
             console.log(`Loaded ${smallWeapons.length} small armors from local storage.`);
             return smallWeapons;
         } catch (error) {
-            console.error("Failed to load arsenal data:", error);
+            console.error("Failed to load armory data:", error);
             return [];
         }
     }
