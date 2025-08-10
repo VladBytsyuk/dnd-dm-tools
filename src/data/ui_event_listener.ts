@@ -8,6 +8,7 @@ import type { Bestiary } from "src/domain/repositories/Bestiary";
 import type { Spellbook } from "src/domain/repositories/Spellbook";
 import type { DmScreen } from "src/domain/repositories/DmScreen";
 import type { Arsenal } from "src/domain/repositories/Arsenal";
+import type { Armory } from "src/domain/repositories/Armory";
 
 export class UiEventListener implements IUiEventListener {
 
@@ -17,11 +18,13 @@ export class UiEventListener implements IUiEventListener {
         public bestiary: Bestiary,
         public spellbook: Spellbook,
         public arsenal: Arsenal,
+        public armory: Armory,
         public dmScreen: DmScreen, 
     ) {
         this.onBeastClick = this.onBeastClick.bind(this);
         this.onSpellClick = this.onSpellClick.bind(this);
         this.onWeaponClick = this.onWeaponClick.bind(this);
+        this.onArmorClick = this.onArmorClick.bind(this);
         this.onScreenItemClick = this.onScreenItemClick.bind(this);
     }
 
@@ -39,6 +42,11 @@ export class UiEventListener implements IUiEventListener {
     async onWeaponClick(url: string): Promise<void> {
         const fullWeapon = await this.arsenal.getFullItemByUrl(url);
         //if (fullWeapon) await openSidePanelSpellbook(this.app.workspace, fullWeapon);
+    }
+
+    async onArmorClick(url: string): Promise<void> {
+        const fullArmor = await this.armory.getFullItemByUrl(url);
+        //if (fullArmor) await openSidePanelSpellbook(this.app.workspace, fullArmor);
     }
 
     async onScreenItemClick(url: string): Promise<void> {
