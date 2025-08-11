@@ -10,6 +10,7 @@ import type { DmScreen } from "src/domain/repositories/DmScreen";
 import type { Arsenal } from "src/domain/repositories/Arsenal";
 import type { Armory } from "src/domain/repositories/Armory";
 import type { Equipment } from "src/domain/repositories/Equipment";
+import type { Artifactory } from "src/domain/repositories/Artifactory";
 
 export class UiEventListener implements IUiEventListener {
 
@@ -21,6 +22,7 @@ export class UiEventListener implements IUiEventListener {
         public arsenal: Arsenal,
         public armory: Armory,
         public equipment: Equipment,
+        public artifactory: Artifactory,
         public dmScreen: DmScreen, 
     ) {
         this.onBeastClick = this.onBeastClick.bind(this);
@@ -54,6 +56,11 @@ export class UiEventListener implements IUiEventListener {
     async onItemClick(url: string): Promise<void> {
         const fullItem = await this.equipment.getFullItemByUrl(url);
         // if (fullItem) await openSidePanelDmScreen(this.app.workspace, fullItem);
+    }
+
+    async onArtifactClick(url: string): Promise<void> {
+        const fullArtifact = await this.artifactory.getFullItemByUrl(url);
+        // if (fullArtifact) await openSidePanelDmScreen(this.app.workspace, fullArtifact);
     }
 
     async onScreenItemClick(url: string): Promise<void> {

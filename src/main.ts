@@ -27,6 +27,7 @@ import type { Armory } from './domain/repositories/Armory';
 import { ArmoryRepository } from './data/repositories/ArmoryRepository';
 import type { Equipment } from './domain/repositories/Equipment';
 import { EquipmentRepository } from './data/repositories/EquipmentRepository';
+import type { Artifactory } from './domain/repositories/Artifactory';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -38,6 +39,7 @@ export default class DndStatblockPlugin extends Plugin {
 	#arsenal: Arsenal;
 	#armory: Armory;
 	#equipment: Equipment;
+	#artifactory: Artifactory;
 	#repositories: Repository<any, any, any>[];
 	#uiEventListener: IUiEventListener;
 
@@ -88,7 +90,16 @@ export default class DndStatblockPlugin extends Plugin {
 		];
 		this.#repositories.forEach(async repository => await repository.initialize());
 
-		this.#uiEventListener = new UiEventListener(this.app, this.#bestiary, this.#spellbook, this.#arsenal, this.#armory, this.#equipment, this.#dmScreen);
+		this.#uiEventListener = new UiEventListener(
+			this.app, 
+			this.#bestiary, 
+			this.#spellbook, 
+			this.#arsenal, 
+			this.#armory, 
+			this.#equipment, 
+			this.#artifactory, 
+			this.#dmScreen,
+		);
 
 		callback();
 	}
