@@ -150,7 +150,7 @@ export class FullArmorSqlTableDao extends Dao<FullArmor, any> {
             },
             type: {
                 name: sqlValues[3] as string,
-                order: sqlValues[4] as number,
+                order: sqlValues[4] ? sqlValues[4] as number : undefined,
             },
             url: sqlValues[5] as string,
             armorClass: sqlValues[6] as string,

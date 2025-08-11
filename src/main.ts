@@ -28,6 +28,7 @@ import { ArmoryRepository } from './data/repositories/ArmoryRepository';
 import type { Equipment } from './domain/repositories/Equipment';
 import { EquipmentRepository } from './data/repositories/EquipmentRepository';
 import type { Artifactory } from './domain/repositories/Artifactory';
+import { ArtifactoryRepository } from './data/repositories/ArtifactoryRepository';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -80,12 +81,15 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#arsenal = new ArsenalRepository(this.#database);
 		this.#armory = new ArmoryRepository(this.#database);
 		this.#equipment = new EquipmentRepository(this.#database);
+		this.#artifactory = new ArtifactoryRepository(this.#database);
 
 		this.#repositories = [
 			this.#bestiary,
 			this.#spellbook,
 			this.#arsenal,
 			this.#armory,
+			this.#equipment,
+			this.#artifactory,
 			this.#dmScreen,
 		];
 		this.#repositories.forEach(async repository => await repository.initialize());

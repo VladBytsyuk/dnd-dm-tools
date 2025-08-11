@@ -7,4 +7,5 @@ export interface FullArtifact extends SmallArtifact {
     detailType?: DetailType[];
     cost: Price;
     images?: string[];
+    detailCustamization?: string[];
 }
