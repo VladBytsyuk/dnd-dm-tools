@@ -8,10 +8,13 @@ export class SmallArtifactSqlTableDao extends Dao<SmallArtifact, ArtifactFilters
     
     constructor(
         database: Database,
-        private app: App,
-        private manifest: PluginManifest,
+        app: App,
+        manifest: PluginManifest,
     ) {
         super(database);
+        this.app = app;
+        this.manifest = manifest;
+        this.preloadFileName = 'artifacts.json';
     }
 
     getTableName(): string {
@@ -40,29 +43,12 @@ export class SmallArtifactSqlTableDao extends Dao<SmallArtifact, ArtifactFilters
                 homebrew INTEGER DEFAULT 0
             );
         `);
-        console.log(`Table ${this.getTableName()} created`);
-    }
-
-    async fillTableWithData(): Promise<void> {
-        const tableEmpty = await this.isTableEmpty();
-        if (tableEmpty) {
-            const smallArtifacts = await this.loadArtifactoryData();
-            for (const artifact of smallArtifacts) {
-                await this.createItem(artifact);
-            }
-        }
     }
 
     // CRUD operations
     async createItem(item: SmallArtifact): Promise<void> {
-        const existing = this.database.exec(
-            `SELECT 1 FROM ${this.getTableName()} WHERE url = ? LIMIT 1;`,
-            [item.url]
-        );
-        if (existing.length > 0 && existing[0].values.length > 0) {
-            console.warn(`Item with url ${item.url} already exists in ${this.getTableName()}. Skipping creation.`);
-            return;
-        }
+        const existing = this.checkItemExists(item);
+        if (!existing) return;
         this.database.exec(`
             INSERT INTO ${this.getTableName()} (
                 rus_name, eng_name, type_name, type_order, url, 
@@ -107,12 +93,6 @@ export class SmallArtifactSqlTableDao extends Dao<SmallArtifact, ArtifactFilters
         }
 
         return WhereClauseData(whereClauses, params);
-    }
-
-    async readAllItemsNames(): Promise<string[]> {
-        const result = this.database.exec(`SELECT DISTINCT rus_name FROM ${this.getTableName()};`);
-        if (result.length === 0 || result[0].values.length === 0) return [];
-        return result[0].values.map(it => it[0] as string);        
     }
 
     async updateItem(item: SmallArtifact): Promise<void> {
@@ -173,20 +153,5 @@ export class SmallArtifactSqlTableDao extends Dao<SmallArtifact, ArtifactFilters
                 homebrew: Boolean(values[14]),
             }
         };
-    }
-
-    // Private methods
-    private async loadArtifactoryData(): Promise<SmallArtifact[]> {
-        try {
-            // Путь к файлу относительно корневой директории плагина
-            const filePath = `${this.manifest.dir}/data/artifacts.json`;
-            const data = await this.app.vault.adapter.read(filePath);
-            const smallWeapons = JSON.parse(data) as SmallArtifact[];
-            console.log(`Loaded ${smallWeapons.length} small artifacts from local storage.`);
-            return smallWeapons;
-        } catch (error) {
-            console.error("Failed to load artifactory data:", error);
-            return [];
-        }
     }
 }

@@ -7,10 +7,13 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
 
     constructor(
         database: Database,
-        private app: App,
-        private manifest: PluginManifest,
+        app: App,
+        manifest: PluginManifest,
     ) {
         super(database);
+        this.app = app;
+        this.manifest = manifest;
+        this.preloadFileName = 'dm_screen.json';
     }
     
 
@@ -37,7 +40,6 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
                 parent_url TEXT
             );
         `);
-        console.log(`Table ${this.getTableName()} created`);
     }
 
     async fillTableWithData(): Promise<void> {
@@ -168,20 +170,27 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
 
     // Private methods
     private async loadDmScreenGroups(): Promise<DmScreenItem[]> {
+        const app = this.app;
+        const manifest = this.manifest;
+        const fileName = this.preloadFileName;
+        if (!app || !manifest || !fileName) {
+            console.warn("App, manifest or fileName is not defined. Cannot load data from local storage.");
+            return [];
+        }
         try {
             // Путь к файлу относительно корневой директории плагина
-            const filePath = `${this.manifest.dir}/data/dm_screen.json`;
-            const data = await this.app.vault.adapter.read(filePath);
+            const filePath = `${manifest.dir}/data/${this.preloadFileName}`;
+            const data = await app.vault.adapter.read(filePath);
             const groups = JSON.parse(data) as DmScreenGroup[];
-            console.log(`Loaded ${groups.length} DM Screen groups from local storage.`);
             const result = [];
             for (const group of groups) {
                 result.push(this.mapGroupToItem(group))
                 result.push(...this.allChildrenOfGroup(group, group.url))
             }
+            console.log(`${this.getTableName()} is preloaded with ${result.length} items from local storage.`);
             return result;
         } catch (error) {
-            console.error("Failed to load  DM Screen groups:", error);
+            console.error(`Failed to preload data for ${this.getTableName()}:`, error);
             return [];  
         }
     }

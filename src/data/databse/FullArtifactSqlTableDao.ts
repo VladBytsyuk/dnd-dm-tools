@@ -42,7 +42,6 @@ export class FullArtifactSqlTableDao extends Dao<FullArtifact, any> {
                 detail_customization TEXT
             );
         `);
-        console.log(`Table ${this.getTableName()} created`);
     }
 
     // CRUD operations

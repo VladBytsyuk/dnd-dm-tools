@@ -44,7 +44,6 @@ export class FullSpellSqlTableDao extends Dao<FullSpell, any> {
                 upper TEXT
             );
         `);
-        console.log(`Table ${this.getTableName()} created`);
     }
 
     // CRUD operations

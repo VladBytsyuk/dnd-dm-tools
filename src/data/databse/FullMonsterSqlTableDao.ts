@@ -67,7 +67,6 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
                 images TEXT
             );
         `);
-        console.log(`Table ${this.getTableName()} created`);
     }
 
     // CRUD operations

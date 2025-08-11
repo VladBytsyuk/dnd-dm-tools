@@ -8,10 +8,13 @@ export class SmallSpellSqlTableDao extends Dao<SmallSpell, SpellbookFilters> {
 
     constructor(
         database: Database,
-        private app: App,
-        private manifest: PluginManifest,
+        app: App,
+        manifest: PluginManifest,
     ) {
         super(database);
+        this.app = app;
+        this.manifest = manifest;
+        this.preloadFileName = 'spellbook.json';
     } 
     
     getTableName(): string {
@@ -41,29 +44,12 @@ export class SmallSpellSqlTableDao extends Dao<SmallSpell, SpellbookFilters> {
                 homebrew INTEGER DEFAULT 0
             );
         `);
-        console.log(`Table ${this.getTableName()} created`);
-    }
-
-    async fillTableWithData(): Promise<void> {
-        const tableEmpty = await this.isTableEmpty();
-        if (tableEmpty) {
-            const smallSpells = await this.loadSpellbookData();
-            for (const spell of smallSpells) {
-                await this.createItem(spell);
-            }
-        }
     }
 
     // CRUD operations
     async createItem(item: SmallSpell): Promise<void> {
-        const existing = this.database.exec(
-            `SELECT 1 FROM ${this.getTableName()} WHERE url = ? LIMIT 1;`,
-            [item.url]
-        );
-        if (existing.length > 0 && existing[0].values.length > 0) {
-            console.warn(`Item with url ${item.url} already exists in ${this.getTableName()}. Skipping creation.`);
-            return;
-        }
+        const existing = this.checkItemExists(item);
+        if (!existing) return;
         this.database.exec(`
             INSERT INTO ${this.getTableName()} (
                 rus_name, 
@@ -121,12 +107,6 @@ export class SmallSpellSqlTableDao extends Dao<SmallSpell, SpellbookFilters> {
         }
 
         return WhereClauseData(whereClauses, params);
-    }
-
-    async readAllItemsNames(): Promise<string[]> {
-        const result = this.database.exec(`SELECT DISTINCT rus_name FROM ${this.getTableName()};`);
-        if (result.length === 0 || result[0].values.length === 0) return [];
-        return result[0].values.map(it => it[0] as string);
     }
 
     async updateItem(item: SmallSpell): Promise<void> {
@@ -198,20 +178,5 @@ export class SmallSpellSqlTableDao extends Dao<SmallSpell, SpellbookFilters> {
             concentration: sqlValues[14] ? Boolean(sqlValues[14]) : undefined,
             ritual: sqlValues[15] ? Boolean(sqlValues[15]) : undefined,
         };
-    }
-
-    // Private methods
-    private async loadSpellbookData(): Promise<SmallSpell[]> {
-        try {
-            // Путь к файлу относительно корневой директории плагина
-            const filePath = `${this.manifest.dir}/data/spellbook.json`;
-            const data = await this.app.vault.adapter.read(filePath);
-            const smallMonsters = JSON.parse(data) as SmallSpell[];
-            console.log(`Loaded ${smallMonsters.length} small spells from local storage.`);
-            return smallMonsters;
-        } catch (error) {
-            console.error("Failed to load spellbook data:", error);
-            return [];
-        }
     }
 }

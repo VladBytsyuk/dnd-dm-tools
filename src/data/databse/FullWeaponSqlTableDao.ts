@@ -37,7 +37,6 @@ export class FullWeaponSqlTableDao extends Dao<FullWeapon, any> {
                 properties TEXT
             );
         `);
-        console.log(`Table ${this.getTableName()} created`)
     }
 
     // CRUD operations

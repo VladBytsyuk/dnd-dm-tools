@@ -8,10 +8,13 @@ export class SmallMosterSqlTableDao extends Dao<SmallMonster, BestiaryFilters> {
 
     constructor(
         database: Database,
-        private app: App,
-        private manifest: PluginManifest,
+        app: App,
+        manifest: PluginManifest,
     ) {
         super(database);
+        this.app = app;
+        this.manifest = manifest;
+        this.preloadFileName = 'bestiary.json';
     } 
     
     getTableName(): string {
@@ -35,29 +38,12 @@ export class SmallMosterSqlTableDao extends Dao<SmallMonster, BestiaryFilters> {
                 homebrew INTEGER DEFAULT 0
             );
         `);
-        console.log(`Table ${this.getTableName()} created`);
-    }
-
-    async fillTableWithData(): Promise<void> {
-        const tableEmpty = await this.isTableEmpty();
-        if (tableEmpty) {
-            const smallMonsters = await this.loadBestiaryData();
-            for (const monster of smallMonsters) {
-                await this.createItem(monster);
-            }
-        }
     }
     
     // CRUD operations
     async createItem(item: SmallMonster): Promise<void> {
-        const existing = this.database.exec(
-            `SELECT 1 FROM ${this.getTableName()} WHERE url = ? LIMIT 1;`,
-            [item.url]
-        );
-        if (existing.length > 0 && existing[0].values.length > 0) {
-            console.warn(`Item with url ${item.url} already exists in ${this.getTableName()}. Skipping creation.`);
-            return;
-        }
+        const existing = this.checkItemExists(item);
+        if (!existing) return;
         this.database.exec(`
             INSERT INTO ${this.getTableName()} (
                 rus_name, 
@@ -103,12 +89,6 @@ export class SmallMosterSqlTableDao extends Dao<SmallMonster, BestiaryFilters> {
         }
 
         return WhereClauseData(whereClauses, params);
-    }
-
-    async readAllItemsNames(): Promise<string[]> {
-        const result = this.database.exec(`SELECT DISTINCT rus_name FROM ${this.getTableName()};`);
-        if (result.length === 0 || result[0].values.length === 0) return [];
-        return result[0].values.map(it => it[0] as string);
     }
 
     async updateItem(item: SmallMonster): Promise<void> {
@@ -161,20 +141,4 @@ export class SmallMosterSqlTableDao extends Dao<SmallMonster, BestiaryFilters> {
             },
         };
     }
-
-    // Private methods
-    private async loadBestiaryData(): Promise<SmallMonster[]> {
-        try {
-            // Путь к файлу относительно корневой директории плагина
-            const filePath = `${this.manifest.dir}/data/bestiary.json`;
-            const data = await this.app.vault.adapter.read(filePath);
-            const smallMonsters = JSON.parse(data) as SmallMonster[];
-            console.log(`Loaded ${smallMonsters.length} small monsters from local storage.`);
-            return smallMonsters;
-        } catch (error) {
-            console.error("Failed to load bestiary data:", error);
-            return [];
-        }
-    }
-
 }

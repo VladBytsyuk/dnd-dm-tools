@@ -33,7 +33,6 @@ export class FullItemSqlTableDao extends Dao<FullItem, any> {
                 categories TEXT
             );
         `);
-        console.log(`Table ${this.getTableName()} created`);
     }
 
     // CRUD operations

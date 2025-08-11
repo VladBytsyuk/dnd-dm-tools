@@ -8,10 +8,13 @@ export class SmallArmorSqlTableDao extends Dao<SmallArmor, ArmorFilters> {
 
     constructor(
         database: Database,
-        private app: App,
-        private manifest: PluginManifest,
+        app: App,
+        manifest: PluginManifest,
     ) {
         super(database);
+        this.app = app;
+        this.manifest = manifest;
+        this.preloadFileName = 'armory.json';
     }
 
     getTableName(): string {
@@ -37,29 +40,12 @@ export class SmallArmorSqlTableDao extends Dao<SmallArmor, ArmorFilters> {
                 homebrew INTEGER DEFAULT 0
             );
         `);
-        console.log(`Table ${this.getTableName()} created`)
-    }
-
-    async fillTableWithData(): Promise<void> {
-        const tableEmpty = await this.isTableEmpty();
-        if (tableEmpty) {
-            const smallArmors = await this.loadArmoryData();
-            for (const armors of smallArmors) {
-                await this.createItem(armors);
-            }
-        }
     }
 
     // CRUD operations
     async createItem(item: SmallArmor): Promise<void> {
-        const existing = this.database.exec(
-            `SELECT 1 FROM ${this.getTableName()} WHERE url = ? LIMIT 1;`,
-            [item.url]
-        );
-        if (existing.length > 0 && existing[0].values.length > 0) {
-            console.warn(`Item with url ${item.url} already exists in ${this.getTableName()}. Skipping creation.`);
-            return;
-        }
+        const existing = this.checkItemExists(item);
+        if (!existing) return;
         this.database.exec(`
             INSERT INTO ${this.getTableName()} (
                 rus_name,
@@ -105,12 +91,6 @@ export class SmallArmorSqlTableDao extends Dao<SmallArmor, ArmorFilters> {
         }
 
         return WhereClauseData(whereClauses, params);
-    }
-
-    async readAllItemsNames(): Promise<string[]> {
-        const result = this.database.exec(`SELECT DISTINCT rus_name FROM ${this.getTableName()};`);
-        if (result.length === 0 || result[0].values.length === 0) return [];
-        return result[0].values.map(it => it[0] as string);
     }
 
     async updateItem(item: SmallArmor): Promise<void> {
@@ -169,21 +149,6 @@ export class SmallArmorSqlTableDao extends Dao<SmallArmor, ArmorFilters> {
                 },
                 homebrew: Boolean(sqlValues[12]),
             },
-        }
-    }
-
-    // Private methods
-    private async loadArmoryData(): Promise<SmallArmor[]> {
-        try {
-            // Путь к файлу относительно корневой директории плагина
-            const filePath = `${this.manifest.dir}/data/armory.json`;
-            const data = await this.app.vault.adapter.read(filePath);
-            const smallWeapons = JSON.parse(data) as SmallArmor[];
-            console.log(`Loaded ${smallWeapons.length} small armors from local storage.`);
-            return smallWeapons;
-        } catch (error) {
-            console.error("Failed to load armory data:", error);
-            return [];
         }
     }
 }

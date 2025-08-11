@@ -38,7 +38,6 @@ export class FullArmorSqlTableDao extends Dao<FullArmor, any> {
                 duration TEXT NOT NULL
             );
         `);
-        console.log(`Table ${this.getTableName()} created`)
     }
 
     // CRUD operations
