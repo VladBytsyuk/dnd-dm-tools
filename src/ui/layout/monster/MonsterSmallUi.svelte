@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onkeydown } from "src/domain/utils/utils";
+	import SourceLabel from "../uikit/SourceLabel.svelte";
 
     let { smallItem, onItemClick } = $props();
     const { name, type, challengeRating, source } = smallItem;
@@ -21,9 +22,7 @@
                 <span class="name--rus">{name.rus}</span>
                 <span class="name--eng"> [{name.eng}]</span>
             </div>
-            <div class="source">
-                {source.shortName}{source.group.shortName != "Basic" ? "*" : ""}
-            </div>
+            <SourceLabel source={source} />
         </div>
         <div class="row">
             <div class="type">{type}</div>
@@ -93,16 +92,7 @@
         color: var(--text-color);
         opacity: 0.5;
     }
-
-    .source {
-        margin-left: 8px;
-        padding: 0 6px;
-        font-size: 10px;
-        color: var(--text-color);
-        border: 1px solid var(--text-color);
-        border-radius: 20px;
-    }
-
+    
     .type {
         font-size: 13px;
         line-height: normal;
