@@ -1,10 +1,17 @@
 <script lang="ts">
-    let { smallSpell, onclick } = $props();
-    const { name, school, level, source, components } = smallSpell;
+    import { onkeydown } from "src/domain/utils/utils";
+
+    let { smallItem, onItemClick } = $props();
+    const { name, school, level, source, components } = smallItem;
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions (because of no reason) -->
-<div class="spell-small" onclick={() => onclick(smallSpell)}>
+<div 
+    class="spell-small"
+    role="button"
+    tabindex="0"
+    onclick={onItemClick}
+    onkeydown={onkeydown(onItemClick)}
+>
     <div class="level">
         <span>{level}</span>
     </div>

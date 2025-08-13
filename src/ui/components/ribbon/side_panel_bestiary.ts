@@ -67,8 +67,8 @@ class SidePanelBestiaryView extends ItemView {
         mount(BestiarySidePanelUi, {     
             target: container,
             props: {
-                initialFullMonster: sidePanelFullMonster,
-                bestiary: this.#bestiary,
+                initialFullItem: sidePanelFullMonster,
+                repository: this.#bestiary,
                 uiEventListener: this.#uiEventListener,
                 openFiltersModal: (fullFilters: BestiaryFilters, filters: BestiaryFilters, onApply: (newFilters: BestiaryFilters) => Promise<void>) => {
                     new BestiaryFiltersModal(this.#plugin.app, fullFilters, filters, onApply).open();

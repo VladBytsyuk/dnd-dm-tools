@@ -1,7 +1,7 @@
 <script lang="ts">
-	import SidePanelHeader from "../uikit/SidePanelHeader.svelte";
+	import SidePanelHeader from "./SidePanelHeader.svelte";
 	import { onMount } from "svelte";
-	import GroupBlockUi from "../uikit/GroupBlockUi.svelte";
+	import GroupBlockUi from "./GroupBlockUi.svelte";
 	import type { WithUrl } from "src/domain/models/common/WithUrl";
 	import type { Group, Repository } from "src/domain/repositories/Repository";
 	import { isFiltersEmpty, type Filters } from "src/domain/models/common/Filters";
@@ -14,6 +14,7 @@
         uiEventListener: IUiEventListener;
         repository: Repository<Small, Full, F>;
         openFiltersModal: (fullFilters: F, filters: F, onApply: (newFilters: F) => Promise<void>) => void;
+        groupTitleBuilder: (group: Group<Small>) => string;
         FullItemSlot: any;
         SmallItemSlot: any;
     }
@@ -24,6 +25,7 @@
         uiEventListener,
         repository,
         openFiltersModal,
+        groupTitleBuilder,
         FullItemSlot,
         SmallItemSlot,
     }: Props<any, any, any> = $props();
@@ -101,7 +103,7 @@
         <div class="content">
             {#each groups as group (group.sort)}
                 <GroupBlockUi
-                    groupTitle="Опасность {group.sort}"
+                    groupTitle={groupTitleBuilder(group)}
                     items={group.smallItems}
                     onItemClick={onSmallItemClick}
                     SmallItemSlot={SmallItemSlot}

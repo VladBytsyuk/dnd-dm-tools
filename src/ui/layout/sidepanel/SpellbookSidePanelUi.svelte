@@ -1,131 +1,29 @@
 <script lang="ts">
 	import { type SpellbookFilters } from "src/domain/models/spell/SpellbookFilters";
-	import SidePanelHeader from "../uikit/SidePanelHeader.svelte";
-	import { onMount } from "svelte";
-	import SpellGroupUi from "../spell/SpellGroupUi.svelte";
-	import SpellFullUi from "../spell/SpellFullUi.svelte";
-	import { SpellbookFiltersModal } from "src/ui/components/modals/spellbook_filers_modal";
-	import type { SmallSpell } from "src/domain/models/spell/SmallSpell";
 	import type { FullSpell } from "src/domain/models/spell/FullSpell";
-	import { emptyFilters, isFiltersEmpty } from "src/domain/models/common/Filters";
+	import type { Spellbook } from "src/domain/repositories/Spellbook";
+	import BaseSidePanelUi from "../uikit/BaseSidePanelUi.svelte";
+	import SpellFullUi from "../spell/SpellFullUi.svelte";
+	import SpellSmallUi from "../spell/SpellSmallUi.svelte";
+	import { emptyFilters } from "src/domain/models/common/Filters";
+	import type { SidePanelProps } from "src/domain/utils/props/SidePanelProps";
+	import type { SmallSpell } from "src/domain/models/spell/SmallSpell";
 
-    interface SpellGroupByLevel {
-        level: number;
-        smallSpells: SmallSpell[];
-    }
-
-    // ---- Props ----
     let { 
-        plugin, 
-        getAllFilters,
-        getFullItemBySmallItem,
-        getFilteredSmallItems, 
-        initialFullSpell, 
+        initialFullItem,
+        repository,
         uiEventListener,
-     } = $props();
-    
-    // ---- State ----
-    let searchBarValue: string = $state('');
-    let filters: SpellbookFilters = $state(emptyFilters<SpellbookFilters>(['levels', 'schools', 'sources']));
-    let spellsStack: FullSpell[] = $state(initialFullSpell ? [initialFullSpell] : []);
-    let currentFullSpell: FullSpell | undefined = $state(initialFullSpell || undefined);
-    let spellsGroups: SpellGroupByLevel[] = $state([]);
-    
-    // ---- Lifecycle ----
-    onMount(async () => {
-        updateSpellsGroups();
-    });
-
-    // ---- Event Handlers ----
-    function onSearchBarBackClick() {
-        if (spellsStack.length >= 1) {
-            spellsStack.pop();
-            currentFullSpell = spellsStack.last() || undefined;
-        }
-    }
-
-    function onSearchBarValueChanged(value: string) {
-        searchBarValue = value;
-        updateSpellsGroups();
-    }
-
-    async function onSearchBarFiltersClick() {
-        const fullFilters = await getAllFilters();
-        if (!fullFilters) return;
-        new SpellbookFiltersModal(
-            plugin.app,
-            fullFilters,
-            filters,
-            async (newFilters: SpellbookFilters) => {
-                filters = newFilters;
-                await updateSpellsGroups();
-            },
-        ).open();
-    }
-
-    const onSmallSpellClick = (smallSpell: SmallSpell) => async () => {
-        currentFullSpell = await getFullItemBySmallItem(smallSpell);
-        if (currentFullSpell) {
-            spellsStack.push(currentFullSpell);
-        }
-    }
-
-    // ---- private methods ----
-    async function updateSpellsGroups() {
-        const searchValueNormalized = searchBarValue.trim().toLowerCase();
-
-        const smallSpells: SmallSpell[] = await getFilteredSmallItems(searchValueNormalized, filters);
-
-        spellsGroups = groupByLevel(smallSpells);
-    }
-
-    function groupByLevel(smallSpells: SmallSpell[]): SpellGroupByLevel[] {
-        const groups = smallSpells.reduce((acc, spell) => {
-            const level = spell.level;
-            (acc[level] ||= []).push(spell);
-            return acc;
-        }, {} as { [key: string]: SmallSpell[] });
-
-        return Object.entries(groups)
-            .map(([level, smallSpells]) => ({ level: +level, smallSpells:smallSpells} as SpellGroupByLevel))
-            .sort((a, b) => a.level - b.level);
-    }
+        openFiltersModal,
+    }: SidePanelProps<SmallSpell, FullSpell, SpellbookFilters, Spellbook> = $props(); 
 </script>
 
-<div>
-    <SidePanelHeader
-        onbackclick={currentFullSpell ? onSearchBarBackClick : undefined}
-        onvaluechange={onSearchBarValueChanged}
-        isvaluechangable={() => !currentFullSpell}
-        onclearclick={undefined}
-        onfiltersclick={currentFullSpell ? undefined : onSearchBarFiltersClick}
-        isfiltersapplied={() => !isFiltersEmpty(filters)}
-    />
-    <div style="height:1em;"></div>
-    {#if currentFullSpell}
-        <SpellFullUi
-            spell={currentFullSpell}
-            uiEventListener={uiEventListener}
-        />
-    {:else if searchBarValue.length > 0 && spellsGroups.length === 0}
-        <h2>Результаты поиска</h2>
-        <div>Ничего не найдено</div>
-    {:else}
-        <div class="content">
-            {#each spellsGroups as group (group.level)}
-                <SpellGroupUi
-                    level={group.level}
-                    smallSpells={group.smallSpells}
-                    onspellclick={onSmallSpellClick}
-                />
-            {/each}
-        </div>
-    {/if}
-</div>
-
-<style>
-    .content {
-        background-color: var(--color-background);
-        gap: 4px;
-    }
-</style>
+<BaseSidePanelUi
+    initialFullItem={initialFullItem}
+    initialFilters={emptyFilters<SpellbookFilters>(['schools', 'levels', 'classes', 'sources'])}
+    uiEventListener={uiEventListener}
+    repository={repository}
+    openFiltersModal={openFiltersModal}
+    groupTitleBuilder={(group) => group.sort !== "0" ? `Круг ${group.sort}` : "Заговоры"}
+    FullItemSlot={SpellFullUi}
+    SmallItemSlot={SpellSmallUi}
+/>

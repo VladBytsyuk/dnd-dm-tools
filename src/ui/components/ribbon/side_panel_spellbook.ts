@@ -5,8 +5,8 @@ import { mount } from "svelte";
 import SpellbookSidePanelUi from "src/ui/layout/sidepanel/SpellbookSidePanelUi.svelte";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type { Spellbook } from "src/domain/repositories/Spellbook";
-import type { SmallSpell } from "src/domain/models/spell/SmallSpell";
 import type { SpellbookFilters } from "src/domain/models/spell/SpellbookFilters";
+import { SpellbookFiltersModal } from "../modals/spellbook_filers_modal";
 
 export function registerSidePanelSpellbook(
     plugin: DndStatblockPlugin,
@@ -65,12 +65,12 @@ class SidePanelSpellbookView extends ItemView {
         mount(SpellbookSidePanelUi, {
             target: container,
             props: {
-                plugin: this.#plugin,
-                getAllFilters: async () => await this.#spellbook.getAllFilters(),
-                getFullItemBySmallItem: async (smallItem: SmallSpell) => await this.#spellbook.getFullItemBySmallItem(smallItem),
-                getFilteredSmallItems: async (name: string, filters: SpellbookFilters) => await this.#spellbook.getFilteredSmallItems(name, filters),
-                initialFullSpell: sidePanelFullSpell,
+                initialFullItem: sidePanelFullSpell,
+                repository: this.#spellbook,
                 uiEventListener: this.#uiEventListener,
+                openFiltersModal: (fullFilters: SpellbookFilters, filters: SpellbookFilters, onApply: (newFilters: SpellbookFilters) => Promise<void>) => {
+                    new SpellbookFiltersModal(this.#plugin.app, fullFilters, filters, onApply).open();
+                },
             },
         });
     }

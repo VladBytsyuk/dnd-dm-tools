@@ -7,7 +7,7 @@
 	import HtmlBlock from '../uikit/HtmlBlock.svelte';
 	import type { Class } from 'src/domain/models/common/Class';
 
-    let { spell, uiEventListener } = $props();
+    let { currentItem, uiEventListener } = $props();
 
     const diceRollersManager = new DiceRollersManager(uiEventListener.onRoll);
 
@@ -23,7 +23,7 @@
     let themeClass = $state(getCurrentTheme() === Theme.Light ? 'theme-light' : 'theme-dark');
     
     let classThemeName: string;
-    switch (spell.classes[0].url) {
+    switch (currentItem.classes[0].url) {
         case "/classes/bard":
             classThemeName = "bard";
             break;
@@ -65,8 +65,8 @@
         return () => { unsubscribe() };
     });
 
-    let subClasses = !spell.subclasses ? undefined : separate(spell.subclasses.map((it: SpellSubclass) => it.name + " (" + it.class + ")"));
-    let classes = separate(spell.classes.map((it: Class) => it.name));
+    let subClasses = !currentItem.subclasses ? undefined : separate(currentItem.subclasses.map((it: SpellSubclass) => it.name + " (" + it.class + ")"));
+    let classes = separate(currentItem.classes.map((it: Class) => it.name));
     let classHint = "Классы: " + classes + (subClasses ? "\nПодклассы: " + subClasses : "");
 </script>
 
@@ -78,51 +78,51 @@
                 class="layout-spell-card-name layout-spell-card-lined"
                 role="button"
                 tabindex="0"
-                onclick={() => copySpellToClipboard(spell)}
-                onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copySpellToClipboard(spell); } }}
+                onclick={() => copySpellToClipboard(currentItem)}
+                onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copySpellToClipboard(currentItem); } }}
                 aria-label="Скопировать в буфер обмена"
-            >{spell.name.rus}{spell.ritual ? " [Ритуал]" : ""} 📋</h3>
+            >{currentItem.name.rus}{currentItem.ritual ? " [Ритуал]" : ""} 📋</h3>
             
             <div class="layout-spell-card-table">
 
                 <div class="layout-spell-card-table-item">
                     <em class="layout-spell-card-block-title">Время</em>
-                    {spell.time}
+                    {currentItem.time}
                 </div>
 
                 <div class="layout-spell-card-table-item">
                     <em class="layout-spell-card-block-title">Дистанция</em>
-                    {spell.range}
+                    {currentItem.range}
                 </div>
 
                 <div class="layout-spell-card-table-item">
                     <em class="layout-spell-card-block-title">Компоненты</em>
-                    {#if spell.components.v}В{/if}
-                    {#if spell.components.s}С{/if}
-                    {#if spell.components.m}М{/if}
+                    {#if currentItem.components.v}В{/if}
+                    {#if currentItem.components.s}С{/if}
+                    {#if currentItem.components.m}М{/if}
                 </div>
 
                 <div class="layout-spell-card-table-item">
                     <em class="layout-spell-card-block-title">Длительность</em>
-                    {spell.duration}
+                    {currentItem.duration}
                 </div>
 
             </div>
 
-            <b class="layout-spell-card-need" style="{spell.components && spell.components.m ? "" : "height:2px;padding:0px;"}">{spell.components.m}</b>
+            <b class="layout-spell-card-need" style="{currentItem.components && currentItem.components.m ? "" : "height:2px;padding:0px;"}">{currentItem.components.m}</b>
             
             <div class="layout-spell-card-text">
-                <HtmlBlock htmlContent={spell.description} uiEventListener={uiEventListener} />
+                <HtmlBlock htmlContent={currentItem.description} uiEventListener={uiEventListener} />
             </div>	
-            {#if spell.upper}<div class="layout-spell-card-text layout-spell-card-upper-lined"><HtmlBlock htmlContent={spell.upper} uiEventListener={uiEventListener} /></div>{/if}											
+            {#if currentItem.upper}<div class="layout-spell-card-text layout-spell-card-upper-lined"><HtmlBlock htmlContent={currentItem.upper} uiEventListener={uiEventListener} /></div>{/if}											
         </div>    
 
-        <div class="layout-spell-card-class" title="{classHint}">{spell.classes[0].name}</div>
-        {#if spell.source && spell.source.shortName}<div class="layout-spell-card-source">{spell.source.shortName}</div>{/if}
-        {#if spell.level === 0}
-            <b class="layout-spell-card-type">заговор {spell.school}</b>
+        <div class="layout-spell-card-class" title="{classHint}">{currentItem.classes[0].name}</div>
+        {#if currentItem.source && currentItem.source.shortName}<div class="layout-spell-card-source">{currentItem.source.shortName}</div>{/if}
+        {#if currentItem.level === 0}
+            <b class="layout-spell-card-type">заговор {currentItem.school}</b>
         {:else}
-            <b class="layout-spell-card-type">{spell.level} круг {spell.school}</b>
+            <b class="layout-spell-card-type">{currentItem.level} круг {currentItem.school}</b>
         {/if}
     </div>
 </div>

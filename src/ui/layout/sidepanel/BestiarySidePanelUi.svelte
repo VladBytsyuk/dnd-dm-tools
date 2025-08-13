@@ -1,35 +1,29 @@
 <script lang="ts">
 	import type { Bestiary } from "src/domain/repositories/Bestiary";
-	import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 	import type { BestiaryFilters } from "src/domain/models/monster/BestiaryFilters";
 	import type { FullMonster } from "src/domain/models/monster/FullMonster";
 	import { emptyFilters } from "src/domain/models/common/Filters";
 	import MonsterFullUi from "../monster/MonsterFullUi.svelte";
 	import MonsterSmallUi from "../monster/MonsterSmallUi.svelte";
-	import BaseSidePanelUi from "./BaseSidePanelUi.svelte";
-
-    // ---- Props ----
-    interface Props {
-        initialFullMonster?: FullMonster;
-        bestiary: Bestiary;
-        uiEventListener: IUiEventListener;
-        openFiltersModal: (fullFilters: BestiaryFilters, filters: BestiaryFilters, onApply: (newFilters: BestiaryFilters) => Promise<void>) => void;
-    }
+	import BaseSidePanelUi from "../uikit/BaseSidePanelUi.svelte";
+	import type { SidePanelProps } from "src/domain/utils/props/SidePanelProps";
+	import type { SmallMonster } from "src/domain/models/monster/SmallMonster";
 
     let { 
-        initialFullMonster,
-        bestiary,
+        initialFullItem,
+        repository,
         uiEventListener,
         openFiltersModal,
-    }: Props = $props();           
+    }: SidePanelProps<SmallMonster, FullMonster, BestiaryFilters, Bestiary> = $props();           
 </script>
 
 <BaseSidePanelUi
-    initialFullItem={initialFullMonster}
+    initialFullItem={initialFullItem}
     initialFilters={emptyFilters<BestiaryFilters>(['types', 'challangeRatings', 'sources'])}
     uiEventListener={uiEventListener}
-    repository={bestiary}
+    repository={repository}
     openFiltersModal={openFiltersModal}
+    groupTitleBuilder={(group) => `Опасность ${group.sort}`}
     FullItemSlot={MonsterFullUi}
     SmallItemSlot={MonsterSmallUi}
 />
