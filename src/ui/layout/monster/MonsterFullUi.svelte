@@ -6,10 +6,10 @@
 	import HtmlBlock from '../uikit/HtmlBlock.svelte';
 	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 
-    let { monster, isTwoColumns, uiEventListener } = $props()
+    let { currentItem, uiEventListener, isTwoColumns = false } = $props()
 
     let currentImageIndex = $state(0);
-    let imagesLength = $state(monster.images?.length ?? 0);
+    let imagesLength = $state(currentItem?.images?.length ?? 0);
     let images: string[] = $state([]);
     let isImageExpanded = $state(false);
     
@@ -17,8 +17,8 @@
     
     onMount(async () => {
         diceRollersManager.onMount();
-        if (monster.images) {
-            images = await Promise.all(monster.images?.map(async (it: string) => await uiEventListener.onImageRequested(it)));
+        if (currentItem?.images) {
+            images = await Promise.all(currentItem?.images?.map(async (it: string) => await uiEventListener.onImageRequested(it)));
         }
     });
 
@@ -42,6 +42,7 @@
     }
 </script>
   
+{#if currentItem}
 <div class="layout-ttg">
     <div class={`layout-ttg-statblock ${isTwoColumns ? 'layout-ttg-statblock-wide' : ''}`}>
 
@@ -54,26 +55,26 @@
                         class="layout-ttg-statblock-header-name"
                         role="button"
                         tabindex="0"
-                        onclick={() => copyMonsterToClipboard(monster)}
-                        onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyMonsterToClipboard(monster); } }}
+                        onclick={() => copyMonsterToClipboard(currentItem)}
+                        onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyMonsterToClipboard(currentItem); } }}
                         aria-label="Скопировать в буфер обмена"
                     >
-                        {monster.name.rus} 📋
+                        {currentItem.name.rus} 📋
                     </div>
-                    <div class="layout-ttg-statblock-header-subname">{monster.name.eng}</div>
+                    <div class="layout-ttg-statblock-header-subname">{currentItem.name.eng}</div>
                     <div class="layout-ttg-statblock-header-block">
-                        {#if monster.size || monster.type || monster.alignment}
+                        {#if currentItem.size || currentItem.type || currentItem.alignment}
                         <div class="layout-ttg-statblock-header-subtitle">
-                            {[monster.size?.rus, monster.type?.name].filter(Boolean).join(' ')}
-                            {monster.alignment ? `, ${monster.alignment}` : ''}
-                            {monster.size?.eng || monster.size?.cell ? '/ ' : ''}
-                            {monster.size?.eng ? monster.size.eng: ' '}
-                            {monster.size?.cell ? monster.size.cell: ''}
+                            {[currentItem.size?.rus, currentItem.type?.name].filter(Boolean).join(' ')}
+                            {currentItem.alignment ? `, ${currentItem.alignment}` : ''}
+                            {currentItem.size?.eng || currentItem.size?.cell ? '/ ' : ''}
+                            {currentItem.size?.eng ? currentItem.size.eng: ' '}
+                            {currentItem.size?.cell ? currentItem.size.cell: ''}
                         </div>
                         {/if}
-                        {#if monster.source}
+                        {#if currentItem.source}
                         <div class="layout-ttg-statblock-header-source">
-                            Источник: {monster.source.name} ({monster.source.shortName})
+                            Источник: {currentItem.source.name} ({currentItem.source.shortName})
                         </div>
                         {/if}
                     </div>
@@ -81,32 +82,32 @@
 
                 <!-- Base Info -->
                 <div class="layout-ttg-statblock-base-info">
-                    {#if monster.armorClass}
+                    {#if currentItem.armorClass}
                     <div class="layout-ttg-statblock-base-info-item">
                         <span class="layout-ttg-statblock-base-info-item-title">Класс доспеха</span> 
                         <span class="layout-ttg-statblock-base-info-item-value">
-                            {monster.armorClass}
-                            {#if monster.armors?.length}
-                            ({joinList(monster.armors)})
+                            {currentItem.armorClass}
+                            {#if currentItem.armors?.length}
+                            ({joinList(currentItem.armors)})
                             {/if}
                         </span>
                     </div>
                     {/if}
 
-                    {#if monster.hits}
+                    {#if currentItem.hits}
                     <div class="layout-ttg-statblock-base-info-item">
                         <span class="layout-ttg-statblock-base-info-item-title">Хиты</span>
                         <span class="layout-ttg-statblock-base-info-item-value">
-                            {monster.hits.average} (<dice-roller label="Хиты" formula="{monster.hits.formula}{monster.hits.sign}{monster.hits.bonus}">{monster.hits.formula}{monster.hits.sign}{monster.hits.bonus}</dice-roller>)
+                            {currentItem.hits.average} (<dice-roller label="Хиты" formula="{currentItem.hits.formula}{currentItem.hits.sign}{currentItem.hits.bonus}">{currentItem.hits.formula}{currentItem.hits.sign}{currentItem.hits.bonus}</dice-roller>)
                         </span>
                     </div>
                     {/if}
 
-                    {#if monster.speed}
+                    {#if currentItem.speed}
                     <div class="layout-ttg-statblock-base-info-item">
                         <span class="layout-ttg-statblock-base-info-item-title">Скорость</span> 
-                        {#if monster.speed?.length}
-                        <span class="layout-ttg-statblock-base-info-item-value">{joinSpeed(monster.speed)}</span>
+                        {#if currentItem.speed?.length}
+                        <span class="layout-ttg-statblock-base-info-item-value">{joinSpeed(currentItem.speed)}</span>
                         {/if}
                     </div>
                     {/if}
@@ -124,7 +125,7 @@
                     <img 
                         class="layout-ttg-statblock-images-item {isImageExpanded ? 'expanded' : ''}" 
                         src={images[currentImageIndex]} 
-                        alt={monster.name.rus}
+                        alt={currentItem.name.rus}
                         onclick={(e) => { isImageExpanded = !isImageExpanded; handleOverlayClick(e); }}
                         onerror={(e) => { if (e.target) (e.target as HTMLImageElement).src = "https://ttg.club/img/no-img.webp"; } }/>
                     {#if imagesLength > 1}
@@ -139,15 +140,15 @@
         </div>
 
         <!-- Scores Table -->
-        {#if monster.ability}
+        {#if currentItem.ability}
             <div class="layout-ttg-statblock-scores-table">
             {#each Object.entries({
-                ["СИЛ"]: monster.ability.str,
-                ["ЛОВ"]: monster.ability.dex,
-                ["ТЕЛ"]: monster.ability.con,
-                ["ИНТ"]: monster.ability.int,
-                ["МУД"]: monster.ability.wiz,
-                ["ХАР"]: monster.ability.cha
+                ["СИЛ"]: currentItem.ability.str,
+                ["ЛОВ"]: currentItem.ability.dex,
+                ["ТЕЛ"]: currentItem.ability.con,
+                ["ИНТ"]: currentItem.ability.int,
+                ["МУД"]: currentItem.ability.wiz,
+                ["ХАР"]: currentItem.ability.cha
             }) as entry}
                 <div class="layout-ttg-statblock-scores-table-item">
                 <div class="layout-ttg-statblock-scores-table-item-title"><b>{entry[0]}</b></div>
@@ -163,12 +164,12 @@
 
         <!-- Base Info 2 -->
         <div class="layout-ttg-statblock-base-info">
-            {#if monster.savingThrows}
+            {#if currentItem.savingThrows}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Спасброски</span> 
                 <HtmlBlock class="layout-ttg-statblock-base-info-item-value"
                     htmlContent={
-                        separate(monster.savingThrows.map((it: { name: string; value: number }) => 
+                        separate(currentItem.savingThrows.map((it: { name: string; value: number }) => 
                             diceRoller(`Спасбросок. ${it.name}`, `к20${formatModifier(it.value)}`, `${it.name} ${formatModifier(it.value)}`)
                         ))
                     }
@@ -177,13 +178,13 @@
             </div>
             {/if}
 
-            {#if monster.skills}
+            {#if currentItem.skills}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Навыки</span> 
                 <HtmlBlock
                     class="layout-ttg-statblock-base-info-item-value"
                     htmlContent={
-                        separate(monster.skills.map((it: { name: string; value: number }) => 
+                        separate(currentItem.skills.map((it: { name: string; value: number }) => 
                             diceRoller(`Навык. ${it.name}`, `к20${formatModifier(it.value)}`, `${it.name} ${formatModifier(it.value)}`)
                         ))
                     }
@@ -192,67 +193,67 @@
             </div>
             {/if}
 
-            {#if monster.damageVulnerabilities}
+            {#if currentItem.damageVulnerabilities}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Уязвимость к урону</span> 
-                <span class="layout-ttg-statblock-base-info-item-value">{separate(monster.damageVulnerabilities)}</span>
+                <span class="layout-ttg-statblock-base-info-item-value">{separate(currentItem.damageVulnerabilities)}</span>
             </div>
             {/if}
 
-            {#if monster.damageResistances}
+            {#if currentItem.damageResistances}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Сопротивление к урону</span> 
-                <span class="layout-ttg-statblock-base-info-item-value">{separate(monster.damageResistances)}</span>
+                <span class="layout-ttg-statblock-base-info-item-value">{separate(currentItem.damageResistances)}</span>
             </div>
             {/if}
 
-            {#if monster.damageImmunities}
+            {#if currentItem.damageImmunities}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Иммунитет к урону</span> 
-                <span class="layout-ttg-statblock-base-info-item-value">{separate(monster.damageImmunities)}</span>
+                <span class="layout-ttg-statblock-base-info-item-value">{separate(currentItem.damageImmunities)}</span>
             </div>
             {/if}
 
-            {#if monster.conditionImmunities}
+            {#if currentItem.conditionImmunities}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Иммунитет к состоянию</span> 
-                <span class="layout-ttg-statblock-base-info-item-value">{separate(monster.conditionImmunities)}</span>
+                <span class="layout-ttg-statblock-base-info-item-value">{separate(currentItem.conditionImmunities)}</span>
             </div>
             {/if}
 
-            {#if monster.senses}
+            {#if currentItem.senses}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Чувства</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">
-                    {monster.senses.senses ? 
-                        separate(monster.senses.senses.map((it: { name: string; value: number }) => `${it.name} ${it.value} фт.,`)) : 
+                    {currentItem.senses.senses ? 
+                        separate(currentItem.senses.senses.map((it: { name: string; value: number }) => `${it.name} ${it.value} фт.,`)) : 
                         ''}
-                    пассивная внимательность {monster.senses.passivePerception}
+                    пассивная внимательность {currentItem.senses.passivePerception}
                 </span>
             </div>
             {/if}
 
-            {#if monster.languages}
+            {#if currentItem.languages}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Языки</span> 
-                <span class="layout-ttg-statblock-base-info-item-value">{separate(monster.languages)}</span>
+                <span class="layout-ttg-statblock-base-info-item-value">{separate(currentItem.languages)}</span>
             </div>
             {/if}
 
-            {#if monster.challengeRating}
+            {#if currentItem.challengeRating}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Опасность</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">
-                    {monster.challengeRating + (monster.experience ? ` (${monster.experience} XP)` : '')}
+                    {currentItem.challengeRating + (currentItem.experience ? ` (${currentItem.experience} XP)` : '')}
                 </span>
             </div>
             {/if}
         </div>
 
         <!-- Abilities Block -->
-        {#if monster.feats}
+        {#if currentItem.feats}
             <div class="layout-ttg-statblock-property-block">
-            {#each monster.feats as feat}
+            {#each currentItem.feats as feat}
                 <div class="layout-ttg-statblock-base-info-item">
                     <span class="layout-ttg-statblock-base-info-item-title">{feat.name}.</span>
                     <HtmlBlock class="layout-ttg-statblock-base-info-item-value" htmlContent={feat.value} uiEventListener={uiEventListener} />  
@@ -263,9 +264,9 @@
 
         <!-- Action Blocks -->
         {#each [
-            { action: monster.actions, title: "Действия"},
-            { action: monster.bonusActions, title: "Бонусные действия"},
-            { action: monster.reactions, title: "Реакции"},
+            { action: currentItem.actions, title: "Действия"},
+            { action: currentItem.bonusActions, title: "Бонусные действия"},
+            { action: currentItem.reactions, title: "Реакции"},
         ] as item}
             {#if item.action != undefined} 
                 {#if item.action.length}
@@ -282,13 +283,13 @@
             {/if}
         {/each}
 
-        {#if monster.legendary}
+        {#if currentItem.legendary}
         <div class="layout-ttg-statblock-property-block">
             <div class="layout-ttg-statblock-block-header">Легендарные действия</div>
-            {#if monster.legendary?.description}
-                <HtmlBlock class="layout-ttg-statblock-base-info-item-value" htmlContent={monster.legendary.description} uiEventListener={uiEventListener} />
+            {#if currentItem.legendary?.description}
+                <HtmlBlock class="layout-ttg-statblock-base-info-item-value" htmlContent={currentItem.legendary.description} uiEventListener={uiEventListener} />
             {/if}
-            {#each monster.legendary?.list as action}
+            {#each currentItem.legendary?.list as action}
                 <div class="layout-ttg-statblock-base-info-item">
                     <span class="layout-ttg-statblock-base-info-item-title">{action.name}.</span>
                     <HtmlBlock class="layout-ttg-statblock-base-info-item-value" htmlContent={action.value} uiEventListener={uiEventListener} />
@@ -299,9 +300,9 @@
 
         <!-- Lair Blocks -->
         {#each [
-            { action: monster.lair?.description, title: "Логово"},
-            { action: monster.lair?.action, title: "Действия логова"},
-            { action: monster.lair?.effect, title: "Региональные эффекты"},
+            { action: currentItem.lair?.description, title: "Логово"},
+            { action: currentItem.lair?.action, title: "Действия логова"},
+            { action: currentItem.lair?.effect, title: "Региональные эффекты"},
         ] as item}
             {#if item.action != undefined} 
             <div class="layout-ttg-statblock-property-block">
@@ -314,17 +315,17 @@
         {/each}
 
         <!-- Description -->
-        {#if monster.description}
+        {#if currentItem.description}
             <details class="layout-ttg-statblock-generic-block">
                 <summary class="layout-ttg-statblock-block-header">Описание</summary>
                 <div class="layout-ttg-statblock-generic-description">
-                    <HtmlBlock htmlContent={monster.description} uiEventListener={uiEventListener} />
+                    <HtmlBlock htmlContent={currentItem.description} uiEventListener={uiEventListener} />
                 </div>
             </details>
         {/if}
 
         <!-- Tags -->
-        {#each monster.tags as tag}
+        {#each currentItem.tags as tag}
             <details class="layout-ttg-statblock-generic-block">
                 <summary class="layout-ttg-statblock-block-header">{tag.name}</summary>
                 <div class="layout-ttg-statblock-generic-description">
@@ -334,6 +335,7 @@
         {/each}
     </div>
 </div>
+{/if}
 
 <style>
     :global(.theme-light) {

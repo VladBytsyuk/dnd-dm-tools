@@ -1,16 +1,16 @@
 <script lang="ts">
     import { onkeydown } from "src/domain/utils/utils";
 
-    let { smallMonster, onclick } = $props();
-    const { name, type, challengeRating, source } = smallMonster;
+    let { smallItem, onItemClick } = $props();
+    const { name, type, challengeRating, source } = smallItem;
 </script>
 
 <div 
     class="bestiary-small"
     role="button"
     tabindex="0"
-    onclick={onclick}
-    onkeydown={onkeydown(onclick)}
+    onclick={onItemClick}
+    onkeydown={onkeydown(onItemClick)}
 >
     <div class="rating">
         <span>{challengeRating}</span>

@@ -1,5 +1,6 @@
 import type { Filters } from "../common/Filters";
 
-export interface EquipmentFilters extends Filters {
+export interface ArmoryFilters extends Filters {
+    types: string[];
     sources: string[];
 }

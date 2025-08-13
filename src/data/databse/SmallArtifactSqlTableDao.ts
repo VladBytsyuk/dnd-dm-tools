@@ -1,10 +1,10 @@
 import type { App, PluginManifest } from "obsidian";
 import type { Database, SqlValue } from "sql.js";
 import { Dao, WhereClauseData } from "src/domain/Dao";
-import type { ArtifactFilters } from "src/domain/models/artifact/ArtifactFilters";
+import type { ArtifactoryFilters } from "src/domain/models/artifact/ArtifactoryFilters";
 import type { SmallArtifact } from "src/domain/models/artifact/SmallArtifact";
 
-export class SmallArtifactSqlTableDao extends Dao<SmallArtifact, ArtifactFilters> {
+export class SmallArtifactSqlTableDao extends Dao<SmallArtifact, ArtifactoryFilters> {
     
     constructor(
         database: Database,
@@ -75,7 +75,7 @@ export class SmallArtifactSqlTableDao extends Dao<SmallArtifact, ArtifactFilters
         ]);
     }
 
-    async filterByFilters(filters: ArtifactFilters): Promise<WhereClauseData> {
+    async filterByFilters(filters: ArtifactoryFilters): Promise<WhereClauseData> {
         let whereClauses: string[] = [];
         let params: SqlValue[] = [];
 

@@ -1,10 +1,10 @@
 import { Dao, WhereClauseData } from "../../domain/Dao";
 import type { App, PluginManifest } from "obsidian";
 import type { Database, SqlValue } from "sql.js";
-import type { ArmorFilters } from "src/domain/models/armor/ArmorFilters";
+import type { ArmoryFilters } from "src/domain/models/armor/ArmoryFilters";
 import type { SmallArmor } from "src/domain/models/armor/SmallArmor";
 
-export class SmallArmorSqlTableDao extends Dao<SmallArmor, ArmorFilters> {
+export class SmallArmorSqlTableDao extends Dao<SmallArmor, ArmoryFilters> {
 
     constructor(
         database: Database,
@@ -77,7 +77,7 @@ export class SmallArmorSqlTableDao extends Dao<SmallArmor, ArmorFilters> {
         ]);
     }
 
-    async filterByFilters(filters: ArmorFilters): Promise<WhereClauseData> {
+    async filterByFilters(filters: ArmoryFilters): Promise<WhereClauseData> {
         let whereClauses: string[] = [];
         let params: SqlValue[] = [];
 

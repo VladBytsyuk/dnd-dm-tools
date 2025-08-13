@@ -7,6 +7,7 @@ import type { Bestiary } from "src/domain/repositories/Bestiary";
 import type { FullMonster } from "src/domain/models/monster/FullMonster";
 import type { SmallMonster } from "src/domain/models/monster/SmallMonster";
 import type { BestiaryFilters } from "src/domain/models/monster/BestiaryFilters";
+import { BestiaryFiltersModal } from "../modals/bestiary_filers_modal";
 
 export function registerSidePanelBestiary(
     plugin: DndStatblockPlugin,
@@ -66,12 +67,12 @@ class SidePanelBestiaryView extends ItemView {
         mount(BestiarySidePanelUi, {     
             target: container,
             props: {
-                plugin: this.#plugin,
-                getAllFilters: async () => await this.#bestiary.getAllFilters(),
-                getFullItemBySmallItem: async (smallItem: SmallMonster) => await this.#bestiary.getFullItemBySmallItem(smallItem),
-                getFilteredSmallItems: async (name: string, filters: BestiaryFilters) => await this.#bestiary.getFilteredSmallItems(name, filters),
                 initialFullMonster: sidePanelFullMonster,
+                bestiary: this.#bestiary,
                 uiEventListener: this.#uiEventListener,
+                openFiltersModal: (fullFilters: BestiaryFilters, filters: BestiaryFilters, onApply: (newFilters: BestiaryFilters) => Promise<void>) => {
+                    new BestiaryFiltersModal(this.#plugin.app, fullFilters, filters, onApply).open();
+                },
             },  
         });
     }

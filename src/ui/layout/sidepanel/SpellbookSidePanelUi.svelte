@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { EmptySpellbookFilters, isSpellbookFiltersEmpty, type SpellbookFilters } from "src/domain/models/spell/SpellbookFilters";
+	import { type SpellbookFilters } from "src/domain/models/spell/SpellbookFilters";
 	import SidePanelHeader from "../uikit/SidePanelHeader.svelte";
 	import { onMount } from "svelte";
 	import SpellGroupUi from "../spell/SpellGroupUi.svelte";
@@ -7,6 +7,7 @@
 	import { SpellbookFiltersModal } from "src/ui/components/modals/spellbook_filers_modal";
 	import type { SmallSpell } from "src/domain/models/spell/SmallSpell";
 	import type { FullSpell } from "src/domain/models/spell/FullSpell";
+	import { emptyFilters, isFiltersEmpty } from "src/domain/models/common/Filters";
 
     interface SpellGroupByLevel {
         level: number;
@@ -25,7 +26,7 @@
     
     // ---- State ----
     let searchBarValue: string = $state('');
-    let filters: SpellbookFilters = $state(EmptySpellbookFilters());
+    let filters: SpellbookFilters = $state(emptyFilters<SpellbookFilters>(['levels', 'schools', 'sources']));
     let spellsStack: FullSpell[] = $state(initialFullSpell ? [initialFullSpell] : []);
     let currentFullSpell: FullSpell | undefined = $state(initialFullSpell || undefined);
     let spellsGroups: SpellGroupByLevel[] = $state([]);
@@ -98,7 +99,7 @@
         isvaluechangable={() => !currentFullSpell}
         onclearclick={undefined}
         onfiltersclick={currentFullSpell ? undefined : onSearchBarFiltersClick}
-        isfiltersapplied={() => !isSpellbookFiltersEmpty(filters)}
+        isfiltersapplied={() => !isFiltersEmpty(filters)}
     />
     <div style="height:1em;"></div>
     {#if currentFullSpell}

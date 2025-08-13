@@ -1,4 +1,6 @@
-export interface Repository<SmallItem, FullItem, Filter> {
+import type { WithUrl } from "../models/common/WithUrl";
+
+export interface Repository<SmallItem extends WithUrl, FullItem extends SmallItem, Filter> {
 
     initialize(): Promise<void>;
     dispose(): void;
@@ -16,4 +18,11 @@ export interface Repository<SmallItem, FullItem, Filter> {
     getFullItemByUrl(url: string): Promise<FullItem | null>;
     getFullItemByName(name: string): Promise<FullItem | null>;
     getFullItemBySmallItem(smallItem: SmallItem): Promise<FullItem | null>;
+
+    groupItems(smallItems: SmallItem[]): Promise<Group<SmallItem>[]>;
+}
+
+export interface Group<SmallItem> {
+    sort: string;
+    smallItems: SmallItem[];
 }

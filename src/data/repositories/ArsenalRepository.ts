@@ -2,11 +2,12 @@ import type { SmallWeapon } from 'src/domain/models/weapon/SmallWeapon';
 import type { Arsenal } from 'src/domain/repositories/Arsenal';
 import type DB from '../databse/DB';
 import type { FullWeapon } from 'src/domain/models/weapon/FullWeapon';
-import { WeaponFilters } from 'src/domain/models/weapon/WeaponFilters';
+import { type ArsenalFilters } from 'src/domain/models/weapon/ArsenalFilters';
 import { BaseRepository } from './BaseRepository';
+import { createFilters } from 'src/domain/models/common/Filters';
 
 export class ArsenalRepository 
-    extends BaseRepository<SmallWeapon, FullWeapon, WeaponFilters> 
+    extends BaseRepository<SmallWeapon, FullWeapon, ArsenalFilters> 
     implements Arsenal {
 
     constructor(database: DB) {
@@ -17,7 +18,7 @@ export class ArsenalRepository
         );
     }
 
-    async collectFiltersFromAllItems(allSmallItems: SmallWeapon[]): Promise<WeaponFilters | null> {
+    async collectFiltersFromAllItems(allSmallItems: SmallWeapon[]): Promise<ArsenalFilters | null> {
         let dicesSet: Set<string> = new Set();        
         let damageTypesSet: Set<string> = new Set();
         let typesSet: Set<string> = new Set();
@@ -28,11 +29,11 @@ export class ArsenalRepository
             typesSet.add(weapon.type.name);
             sourcesSet.add(weapon.source.shortName + (weapon.source.group.shortName != "Basic" ? "*" : ""))
         }
-        return WeaponFilters(
-            Array.from(dicesSet), 
-            Array.from(damageTypesSet), 
-            Array.from(typesSet), 
-            Array.from(sourcesSet),
-        );
+        return createFilters<ArsenalFilters>({
+            dices: Array.from(dicesSet), 
+            damageTypes: Array.from(damageTypesSet), 
+            types: Array.from(typesSet), 
+            sources: Array.from(sourcesSet),
+        });
     }
 }

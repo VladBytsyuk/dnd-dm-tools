@@ -1,4 +1,4 @@
-import type { Repository } from "src/domain/repositories/Repository";
+import type { Group, Repository } from "src/domain/repositories/Repository";
 import type DB from "../databse/DB";
 import type { Dao } from "src/domain/Dao";
 import { requestUrl } from "obsidian";
@@ -110,4 +110,8 @@ export abstract class BaseRepository<
             return null;
         }
     };
+
+    async groupItems(smallItems: SmallItem[]): Promise<Group<SmallItem>[]> {
+        return [];
+    }
 }

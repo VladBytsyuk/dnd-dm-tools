@@ -1,5 +1,6 @@
 import { App, ButtonComponent, Modal } from "obsidian";
-import { BestiaryFilters } from "src/domain/models/monster/BestiaryFilters";
+import { createFilters } from "src/domain/models/common/Filters";
+import { type BestiaryFilters } from "src/domain/models/monster/BestiaryFilters";
 
 export class BestiaryFiltersModal extends Modal {
 
@@ -102,7 +103,13 @@ export class BestiaryFiltersModal extends Modal {
             .setClass("submit-button")
             .onClick(() => {
                 this.close();
-                this.#onSubmit(BestiaryFilters(this.#types, this.#challengeRatings, this.#sources));
+                this.#onSubmit(
+                    createFilters<BestiaryFilters>({
+                        types: this.#types,
+                        challangeRatings: this.#challengeRatings, 
+                        sources: this.#sources,
+                    })
+                );
             });
         this.#updateSubmitButtonCta(); 
     }

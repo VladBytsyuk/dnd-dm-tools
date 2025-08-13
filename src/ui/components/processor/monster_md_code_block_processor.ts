@@ -41,7 +41,7 @@ async function monsterMdCodeBlockProcessor(
     mount(MonsterFullUi, {
         target: el,
         props: {
-            monster: monster,
+            currentItem: monster,
             isTwoColumns: isTwoColumns,
             uiEventListener: uiEventListener,
         },

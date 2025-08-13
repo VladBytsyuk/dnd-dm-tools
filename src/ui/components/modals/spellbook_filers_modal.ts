@@ -1,4 +1,5 @@
 import { App, ButtonComponent, Modal } from "obsidian";
+import { createFilters } from "src/domain/models/common/Filters";
 import { SpellbookFilters } from "src/domain/models/spell/SpellbookFilters";
 
 export class SpellbookFiltersModal extends Modal {
@@ -102,7 +103,13 @@ export class SpellbookFiltersModal extends Modal {
             .setClass("submit-button")
             .onClick(() => {
                 this.close();
-                this.#onSubmit(SpellbookFilters(this.#levels.map(level => +level), this.#schools, this.#sources));
+                this.#onSubmit(
+                    createFilters<SpellbookFilters>({
+                        levels: this.#levels.map(level => +level),
+                        schools: this.#schools,
+                        sources: this.#sources
+                    })
+                );
             });
         this.#updateSubmitButtonCta(); 
     }
