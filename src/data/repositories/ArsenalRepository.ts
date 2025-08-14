@@ -5,6 +5,7 @@ import type { FullWeapon } from 'src/domain/models/weapon/FullWeapon';
 import { type ArsenalFilters } from 'src/domain/models/weapon/ArsenalFilters';
 import { BaseRepository } from './BaseRepository';
 import { createFilters } from 'src/domain/models/common/Filters';
+import type { Group } from 'src/domain/repositories/Repository';
 
 export class ArsenalRepository 
     extends BaseRepository<SmallWeapon, FullWeapon, ArsenalFilters> 
@@ -35,5 +36,17 @@ export class ArsenalRepository
             types: Array.from(typesSet), 
             sources: Array.from(sourcesSet),
         });
+    }
+
+    async groupItems(smallItems: SmallWeapon[]): Promise<Group<SmallWeapon>[]> {
+        const groups = smallItems.reduce((acc, weapon) => {
+            const type = weapon.type.name;
+            (acc[type] ||= []).push(weapon);
+            return acc;
+        }, {} as { [key: string]: SmallWeapon[] });
+
+        return Object.entries(groups)
+            .map(([type, smallWeapons]) => ({ sort: type, smallItems: smallWeapons } as Group<SmallWeapon>))
+            .sort((a, b) => a.sort.localeCompare(b.sort));
     }
 }

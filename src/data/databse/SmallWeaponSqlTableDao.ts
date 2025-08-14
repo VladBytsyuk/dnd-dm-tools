@@ -84,7 +84,6 @@ export class SmallWeaponSqlTableDao extends Dao<SmallWeapon, ArsenalFilters> {
         let whereClauses: string[] = [];
         let params: SqlValue[] = [];
 
-        console.log("Filtering SmallWeaponSqlTableDao with filters:", filters);
         if (filters.dices.length > 0) {
             whereClauses.push('(' + filters.dices.map(() => `damage_dice = ?`).join(' OR ') + ')');
             params.push(...filters.dices);

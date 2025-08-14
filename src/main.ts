@@ -34,6 +34,7 @@ import type { FullMonster } from './domain/models/monster/FullMonster';
 import type { FullSpell } from './domain/models/spell/FullSpell';
 import type { DmScreenItem } from './domain/models/dm_screen/DmScreenItem';
 import { ArsenalSidePanel } from './ui/components/sidepanel/ArsenalSidePanel';
+import type { FullWeapon } from './domain/models/weapon/FullWeapon';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -115,6 +116,7 @@ export default class DndStatblockPlugin extends Plugin {
 			async (fullMonster: FullMonster) => { await this.bestiarySidePanel.open(fullMonster) },
 			async (fullSpell: FullSpell) => { await this.spellbookSidePanel.open(fullSpell) },
 			async (dmScreenItem: DmScreenItem) => { await this.dmScreenSidePanel.open(dmScreenItem) },
+			async (fullWeapon: FullWeapon) => { await this.arsenalSidePanel.open(fullWeapon) },
 		);
 
 		this.bestiarySidePanel = new BestiarySidePanel(this, this.#bestiary, this.#uiEventListener);

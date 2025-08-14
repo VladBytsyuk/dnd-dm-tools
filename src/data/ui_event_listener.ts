@@ -12,6 +12,7 @@ import type { FullMonster } from "src/domain/models/monster/FullMonster";
 import type { FullSpell } from "src/domain/models/spell/FullSpell";
 import { openSidePanelDmScreen } from "src/ui/components/sidepanel/DmScreenSidePanel";
 import type { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
+import type { FullWeapon } from "src/domain/models/weapon/FullWeapon";
 
 export class UiEventListener implements IUiEventListener {
 
@@ -28,6 +29,7 @@ export class UiEventListener implements IUiEventListener {
         public openBestiary: (fullMonster: FullMonster) => Promise<void>,
         public openSpellboook: (fullSpell: FullSpell) => Promise<void>,
         public openDmScreen: (dmScreenItem: DmScreenItem) => Promise<void>,
+        public openArsenal: (fullWeapon: FullWeapon) => Promise<void>,
     ) {
         this.onBeastClick = this.onBeastClick.bind(this);
         this.onSpellClick = this.onSpellClick.bind(this);
@@ -49,7 +51,7 @@ export class UiEventListener implements IUiEventListener {
 
     async onWeaponClick(url: string): Promise<void> {
         const fullWeapon = await this.arsenal.getFullItemByUrl(url);
-        //if (fullWeapon) await openSidePanelSpellbook(this.app.workspace, fullWeapon);
+        if (fullWeapon) await this.openArsenal(fullWeapon);
     }
 
     async onArmorClick(url: string): Promise<void> {

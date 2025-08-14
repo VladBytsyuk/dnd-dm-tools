@@ -23,7 +23,7 @@
     uiEventListener={uiEventListener}
     repository={repository}
     openFiltersModal={openFiltersModal}
-    groupTitleBuilder={(group) => `Тип: ${group.sort}`}
+    groupTitleBuilder={(group) => group.sort}
     FullItemSlot={WeaponFullUi}
     SmallItemSlot={WeaponSmallUi}
 />
