@@ -9,7 +9,9 @@ import type { Armory } from "src/domain/repositories/Armory";
 import type { Equipment } from "src/domain/repositories/Equipment";
 import type { Artifactory } from "src/domain/repositories/Artifactory";
 import type { FullMonster } from "src/domain/models/monster/FullMonster";
-import { openSidePanelSpellbook } from "src/ui/components/sidepanel/side_panel_spellbook";
+import type { FullSpell } from "src/domain/models/spell/FullSpell";
+import { openSidePanelDmScreen } from "src/ui/components/sidepanel/DmScreenSidePanel";
+import type { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 
 export class UiEventListener implements IUiEventListener {
 
@@ -24,6 +26,8 @@ export class UiEventListener implements IUiEventListener {
         public artifactory: Artifactory,
         public dmScreen: DmScreen, 
         public openBestiary: (fullMonster: FullMonster) => Promise<void>,
+        public openSpellboook: (fullSpell: FullSpell) => Promise<void>,
+        public openDmScreen: (dmScreenItem: DmScreenItem) => Promise<void>,
     ) {
         this.onBeastClick = this.onBeastClick.bind(this);
         this.onSpellClick = this.onSpellClick.bind(this);
@@ -40,7 +44,7 @@ export class UiEventListener implements IUiEventListener {
 
     async onSpellClick(url: string): Promise<void> {
         const fullSpell = await this.spellbook.getFullItemByUrl(url);
-        if (fullSpell) await openSidePanelSpellbook(this.app.workspace, fullSpell);
+        if (fullSpell) await this.openSpellboook(fullSpell);
     }
 
     async onWeaponClick(url: string): Promise<void> {
@@ -65,7 +69,7 @@ export class UiEventListener implements IUiEventListener {
 
     async onScreenItemClick(url: string): Promise<void> {
         const screenItem = await this.dmScreen.getFullItemByUrl(url);
-        if (screenItem) await openSidePanelDmScreen(this.app.workspace, screenItem);
+        if (screenItem) await this.openDmScreen(screenItem);
     }
 
     onDiceRoll(label: string, value: number): void {
@@ -76,7 +80,3 @@ export class UiEventListener implements IUiEventListener {
         return await getImageSource(this.app, imageUrl)
     }
 }
-function openSidePanelBestiary(workspace: Workspace, fullMonster: FullMonster) {
-    throw new Error("Function not implemented.");
-}
-

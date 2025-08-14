@@ -11,7 +11,7 @@ export abstract class BaseSidePanel<ST extends WithUrl, FT extends ST, F extends
     abstract getRibbonIconName(): string;
     abstract getTitle(): string;
 
-    abstract mountSvelteComponent(element: Element): void;
+    abstract mountSvelteComponent(element: Element): Promise<void>;
 
     private viewId = `obsidian-dnd-statblock-side-panel-${this.getKey()}`;
     public fullItem: FT | undefined = undefined;
@@ -32,12 +32,12 @@ export abstract class BaseSidePanel<ST extends WithUrl, FT extends ST, F extends
                     this.viewId,
                     this.getTitle(),
                     this.getRibbonIconName(),
-                    (target: Element) => this.mountSvelteComponent(target),
+                    async (target: Element) => await this.mountSvelteComponent(target),
                 )
                 return this.sidePanelItemView;
             },
         );
-        this.plugin.addRibbonIcon(this.getRibbonIconName(), this.getTitle(), async () => open(undefined));
+        this.plugin.addRibbonIcon(this.getRibbonIconName(), this.getTitle(), async () => this.open(undefined));
     }
 
     async open(fullItem: FT | undefined) {
@@ -71,7 +71,7 @@ class SidePanelItemView<ST extends WithUrl, FT extends ST, F extends Filters> ex
         private viewId: string,
         private title: string,
         private ribbonIconName: string,
-        private onMountSvelteComponent: (target: Element) => void,
+        private onMountSvelteComponent: (target: Element) => Promise<void>,
     ) {
         super(leaf);
     }
@@ -91,7 +91,7 @@ class SidePanelItemView<ST extends WithUrl, FT extends ST, F extends Filters> ex
     async onOpen() {
         const container = this.containerEl.children[1];
         container.empty();
-        this.onMountSvelteComponent(container);
+        await this.onMountSvelteComponent(container);
     }
 
     async onClose() {}

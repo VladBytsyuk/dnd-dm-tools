@@ -79,7 +79,7 @@
     <SidePanelHeader
         onbackclick={itemsStack.length > 0 ? onSearchBarBackClick : undefined}
         onvaluechange={onSearchBarValueChanged}
-        isvaluechangable={undefined}
+        isvaluechangable={() => !currentItem}
         onclearclick={undefined}
         onfiltersclick={undefined}
         isfiltersapplied={undefined}
