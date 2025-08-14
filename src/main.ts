@@ -33,6 +33,7 @@ import { DmScreenSidePanel } from './ui/components/sidepanel/DmScreenSidePanel';
 import type { FullMonster } from './domain/models/monster/FullMonster';
 import type { FullSpell } from './domain/models/spell/FullSpell';
 import type { DmScreenItem } from './domain/models/dm_screen/DmScreenItem';
+import { ArsenalSidePanel } from './ui/components/sidepanel/ArsenalSidePanel';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -50,6 +51,7 @@ export default class DndStatblockPlugin extends Plugin {
 	bestiarySidePanel: BestiarySidePanel;
 	spellbookSidePanel: SpellBookSidePanel;
 	dmScreenSidePanel: DmScreenSidePanel;
+	arsenalSidePanel: ArsenalSidePanel;
 	#sidePanels: BaseSidePanel<any, any, any>[];
 
 	#uiEventListener: IUiEventListener;
@@ -118,10 +120,12 @@ export default class DndStatblockPlugin extends Plugin {
 		this.bestiarySidePanel = new BestiarySidePanel(this, this.#bestiary, this.#uiEventListener);
 		this.spellbookSidePanel = new SpellBookSidePanel(this, this.#spellbook, this.#uiEventListener);
 		this.dmScreenSidePanel = new DmScreenSidePanel(this, this.#dmScreen, this.#uiEventListener);
+		this.arsenalSidePanel = new ArsenalSidePanel(this, this.#arsenal, this.#uiEventListener);
 		this.#sidePanels = [
 			this.bestiarySidePanel,
 			this.spellbookSidePanel,
 			this.dmScreenSidePanel,
+			this.arsenalSidePanel,
 		];
 
 		callback();
