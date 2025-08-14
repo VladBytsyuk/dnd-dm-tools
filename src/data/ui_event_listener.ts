@@ -1,8 +1,5 @@
-import { App, Notice } from "obsidian";
+import { App, Notice, Workspace } from "obsidian";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
-import { openSidePanelBestiary } from "src/ui/components/ribbon/side_panel_bestiary";
-import { openSidePanelSpellbook } from "src/ui/components/ribbon/side_panel_spellbook";
-import { openSidePanelDmScreen } from "src/ui/components/ribbon/side_panel_dm_screen";
 import { getImageSource } from "src/domain/utils/image_utils";
 import type { Bestiary } from "src/domain/repositories/Bestiary";
 import type { Spellbook } from "src/domain/repositories/Spellbook";
@@ -11,6 +8,8 @@ import type { Arsenal } from "src/domain/repositories/Arsenal";
 import type { Armory } from "src/domain/repositories/Armory";
 import type { Equipment } from "src/domain/repositories/Equipment";
 import type { Artifactory } from "src/domain/repositories/Artifactory";
+import type { FullMonster } from "src/domain/models/monster/FullMonster";
+import { openSidePanelSpellbook } from "src/ui/components/sidepanel/side_panel_spellbook";
 
 export class UiEventListener implements IUiEventListener {
 
@@ -24,6 +23,7 @@ export class UiEventListener implements IUiEventListener {
         public equipment: Equipment,
         public artifactory: Artifactory,
         public dmScreen: DmScreen, 
+        public openBestiary: (fullMonster: FullMonster) => Promise<void>,
     ) {
         this.onBeastClick = this.onBeastClick.bind(this);
         this.onSpellClick = this.onSpellClick.bind(this);
@@ -35,7 +35,7 @@ export class UiEventListener implements IUiEventListener {
     // ---- methods ----
     async onBeastClick(url: string): Promise<void> {
         const fullMonster = await this.bestiary.getFullItemByUrl(url);
-        if (fullMonster) await openSidePanelBestiary(this.app.workspace, fullMonster);
+        if (fullMonster) await this.openBestiary(fullMonster);
     }
 
     async onSpellClick(url: string): Promise<void> {
@@ -76,3 +76,7 @@ export class UiEventListener implements IUiEventListener {
         return await getImageSource(this.app, imageUrl)
     }
 }
+function openSidePanelBestiary(workspace: Workspace, fullMonster: FullMonster) {
+    throw new Error("Function not implemented.");
+}
+

@@ -1,7 +1,6 @@
 import { parseYaml } from "obsidian";
 import type { Encounter } from "src/domain/models/encounter/Encounter";
 import DndStatblockPlugin from "src/main";
-import { openSidePanelBestiary } from "../ribbon/side_panel_bestiary";
 import { mount } from "svelte";
 import InitiativeTracker from "./../../layout/tracker/InitiativeTracker.svelte";
 import type { Bestiary } from "src/domain/repositories/Bestiary";
@@ -28,7 +27,7 @@ async function encounterMdCodeBlockProcessor(
 
     const openBestiary = async (url: string) => {
         const fullMonster = await bestiary.getFullItemByUrl(url);
-        if (fullMonster) openSidePanelBestiary(plugin.app.workspace, fullMonster);
+        if (fullMonster) plugin.bestiarySidePanel.open(fullMonster);
     }
 
     el.empty();

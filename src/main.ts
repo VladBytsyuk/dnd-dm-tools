@@ -1,18 +1,14 @@
 import { Plugin } from 'obsidian';
 import { BestiaryRepository } from "src/data/repositories/BestiaryRepository";
 import { registerMonsterMdCodeBlockProcessor } from "src/ui/components/processor/monster_md_code_block_processor";
-import { registerSidePanelBestiary } from "src/ui/components/ribbon/side_panel_bestiary";
 import { registerAddStatblockCommand } from './ui/components/command/add_statblock_command';
 import { registerThemeChangeListener } from './ui/theme';
-import { registerSidePanelInitiativeTracker } from './ui/components/ribbon/side_panel_initiative_tracker';
 import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor/encounter_md_code_block_processor';
 import { registerAddEncounterCommand } from './ui/components/command/add_encounter_command';
 import { SpellbookRepository } from './data/repositories/SpellbookRepository';
-import { registerSidePanelSpellbook } from './ui/components/ribbon/side_panel_spellbook';
 import { registerSpellMdCodeBlockProcessor } from './ui/components/processor/spell_md_code_block_processor';
 import { registerAddSpellCommand } from './ui/components/command/add_spell_command';
 import { DmScreenRepository } from './data/repositories/DmScreenRepository';
-import { registerSidePanelDmScreen } from './ui/components/ribbon/side_panel_dm_screen';
 import { UiEventListener } from './data/ui_event_listener';
 import type { IUiEventListener } from './domain/listeners/ui_event_listener';
 import DB from './data/databse/DB';
@@ -29,6 +25,12 @@ import type { Equipment } from './domain/repositories/Equipment';
 import { EquipmentRepository } from './data/repositories/EquipmentRepository';
 import type { Artifactory } from './domain/repositories/Artifactory';
 import { ArtifactoryRepository } from './data/repositories/ArtifactoryRepository';
+import type { BaseSidePanel } from './ui/components/sidepanel/BaseSidePanel';
+import { BestiarySidePanel } from './ui/components/sidepanel/side_panel_bestiary';
+import { registerSidePanelInitiativeTracker } from './ui/components/sidepanel/side_panel_initiative_tracker';
+import { registerSidePanelSpellbook } from './ui/components/sidepanel/side_panel_spellbook';
+import { registerSidePanelDmScreen } from './ui/components/sidepanel/side_panel_dm_screen';
+import type { FullMonster } from './domain/models/monster/FullMonster';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -42,13 +44,16 @@ export default class DndStatblockPlugin extends Plugin {
 	#equipment: Equipment;
 	#artifactory: Artifactory;
 	#repositories: Repository<any, any, any>[];
+
+	bestiarySidePanel: BestiarySidePanel;
+	#sidePanels: BaseSidePanel<any, any, any>[];
+
 	#uiEventListener: IUiEventListener;
 
 	// ---- callbacks ----
 	async onload() {
 		this.#initialize(() => {
 			registerSidePanelInitiativeTracker(this, this.#uiEventListener);
-			registerSidePanelBestiary(this, this.#bestiary, this.#uiEventListener);	
 			registerSidePanelSpellbook(this, this.#spellbook, this.#uiEventListener);
 			registerSidePanelDmScreen(this, this.#dmScreen, this.#uiEventListener);
 			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#uiEventListener);
@@ -82,7 +87,6 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#armory = new ArmoryRepository(this.#database);
 		this.#equipment = new EquipmentRepository(this.#database);
 		this.#artifactory = new ArtifactoryRepository(this.#database);
-
 		this.#repositories = [
 			this.#bestiary,
 			this.#spellbook,
@@ -103,7 +107,14 @@ export default class DndStatblockPlugin extends Plugin {
 			this.#equipment, 
 			this.#artifactory, 
 			this.#dmScreen,
+			async (fullMonster: FullMonster) => { await this.bestiarySidePanel.open(fullMonster) },
 		);
+
+		this,this.bestiarySidePanel = new BestiarySidePanel(this, this.#bestiary, this.#uiEventListener);
+		this.#sidePanels = [
+			this.bestiarySidePanel,
+		];
+		this.#sidePanels.forEach(sidePanel => sidePanel.register());
 
 		callback();
 	}
