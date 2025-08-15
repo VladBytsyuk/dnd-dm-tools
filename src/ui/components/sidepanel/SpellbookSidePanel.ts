@@ -2,7 +2,7 @@ import type { FullSpell } from "src/domain/models/spell/FullSpell";
 import { mount } from "svelte";
 import SpellbookSidePanelUi from "src/ui/layout/sidepanel/SpellbookSidePanelUi.svelte";
 import type { SpellbookFilters } from "src/domain/models/spell/SpellbookFilters";
-import { SpellbookFiltersModal } from "../modals/spellbook_filers_modal";
+import { SpellbookFiltersModal } from "../modals/SpellbookFiltersModal";
 import { BaseSidePanel } from "./BaseSidePanel";
 import type { SmallSpell } from "src/domain/models/spell/SmallSpell";
 

@@ -2,7 +2,7 @@ import { mount } from "svelte";
 import BestiarySidePanelUi from "src/ui/layout/sidepanel/BestiarySidePanelUi.svelte";
 import type { FullMonster } from "src/domain/models/monster/FullMonster";
 import type { BestiaryFilters } from "src/domain/models/monster/BestiaryFilters";
-import { BestiaryFiltersModal } from "../modals/bestiary_filers_modal";
+import { BestiaryFiltersModal } from "../modals/BestiaryFiltersModal";
 import { BaseSidePanel } from "./BaseSidePanel";
 import type { SmallMonster } from "src/domain/models/monster/SmallMonster";
 

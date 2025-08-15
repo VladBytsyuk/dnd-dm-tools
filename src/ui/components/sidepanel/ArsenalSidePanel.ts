@@ -4,7 +4,7 @@ import type { FullWeapon } from "src/domain/models/weapon/FullWeapon";
 import type { ArsenalFilters } from "src/domain/models/weapon/ArsenalFilters";
 import ArsenalSidePanelUi from "src/ui/layout/sidepanel/ArsenalSidePanelUi.svelte";
 import { mount } from "svelte";
-import { ArsenalFiltersModal } from "../modals/arsenal_filters_modal";
+import { ArsenalFiltersModal } from "../modals/ArsenalFiltersModal";
 
 export class ArsenalSidePanel extends BaseSidePanel<SmallWeapon, FullWeapon, ArsenalFilters> {
 
