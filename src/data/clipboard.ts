@@ -5,6 +5,7 @@ import type { FullSpell } from "src/domain/models/spell/FullSpell";
 import type { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import type { FullMonster } from "src/domain/models/monster/FullMonster";
 import type { EncounterParticipant } from "src/domain/models/encounter/EncounterParticipant";
+import type { FullWeapon } from "src/domain/models/weapon/FullWeapon";
 
 // ---- Copy to clipboard ----
 export function copyMonsterToClipboard(monster: FullMonster) {
@@ -21,6 +22,10 @@ export function copySpellToClipboard(spell: FullSpell) {
 
 export function copyDmScreenItem(dmScreenItem: DmScreenItem) {
     copyToClipboard(dmScreenItem, dmScreenItem.name.rus, "screen")
+}
+
+export function copyWeaponToClipboard(weapon: FullWeapon) {
+    copyToClipboard(weapon, weapon.name.rus, "weapon");
 }
 
 function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string, additionalContent: string | null = null) {

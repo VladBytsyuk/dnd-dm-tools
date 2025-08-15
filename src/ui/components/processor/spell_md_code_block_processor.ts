@@ -39,7 +39,7 @@ async function spellMdCodeBlockProcessor(
     mount(SpellFullUi, {
         target: el,
         props: {
-            spell: spell,
+            currentItem: spell,
             uiEventListener: uiEventListener,
         },
     });

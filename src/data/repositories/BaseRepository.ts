@@ -67,6 +67,9 @@ export abstract class BaseRepository<
             return cachedFullItem;
         }
         const fullItem = await this.fetchFromAPI(url);
+        if (fullItem && !fullItem.url) {
+            fullItem.url = url;
+        }
         if (fullItem) {
             this.database.transaction(async () => {
                 await this.fullItemDao?.createItem(fullItem);

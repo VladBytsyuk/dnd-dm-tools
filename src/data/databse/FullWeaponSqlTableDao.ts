@@ -24,7 +24,7 @@ export class FullWeaponSqlTableDao extends Dao<FullWeapon, any> {
                 type_name TEXT NOT NULL,
                 type_order INTEGER,
                 url TEXT NOT NULL UNIQUE,
-                damage_dice TEXT NOT NULL,
+                damage_dice TEXT,
                 damage_type TEXT NOT NULL,
                 price TEXT NOT_NULL,
                 source_short_name TEXT NOT NULL,
@@ -34,6 +34,7 @@ export class FullWeaponSqlTableDao extends Dao<FullWeapon, any> {
                 homebrew INTEGER DEFAULT 0,
                 weight TEXT NOT NULL,
                 special TEXT,
+                description TEXT,
                 properties TEXT
             );
         `);
@@ -66,8 +67,9 @@ export class FullWeaponSqlTableDao extends Dao<FullWeapon, any> {
                 homebrew,
                 weight,
                 special,
+                description,
                 properties
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
             item.name.rus,
             item.name.eng,
@@ -84,6 +86,7 @@ export class FullWeaponSqlTableDao extends Dao<FullWeapon, any> {
             item.source.homebrew ? 1 : 0,
             "" + item.weight,
             item.special ?? null,
+            item.description ?? null,
             JSON.stringify(item.properties ?? []),
         ]);
     }
@@ -112,6 +115,7 @@ export class FullWeaponSqlTableDao extends Dao<FullWeapon, any> {
                 homebrew = ?,
                 weight = ?,
                 special = ?,
+                description = ?,
                 properties = ?
             WHERE url = ?;
         `, [
@@ -130,6 +134,7 @@ export class FullWeaponSqlTableDao extends Dao<FullWeapon, any> {
             item.source.homebrew ? 1 : 0,
             "" + item.weight,
             item.special ?? null,
+            item.description ?? null,
             JSON.stringify(item.properties ?? []),
             item.url,
         ]);
@@ -163,7 +168,8 @@ export class FullWeaponSqlTableDao extends Dao<FullWeapon, any> {
             },
             weight: +(sqlValues[14] as string),
             special: sqlValues[15] ? sqlValues[15] as string : undefined,
-            properties: JSON.parse(sqlValues[16] as string) || [],
+            description: sqlValues[16] ? sqlValues[16] as string : undefined,
+            properties: JSON.parse(sqlValues[17] as string) || [],
         }
     }
 }

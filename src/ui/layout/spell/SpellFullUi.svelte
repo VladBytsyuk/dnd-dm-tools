@@ -9,7 +9,7 @@
 
     let { currentItem, uiEventListener } = $props();
 
-    const diceRollersManager = new DiceRollersManager(uiEventListener.onRoll);
+    const diceRollersManager = new DiceRollersManager(uiEventListener.onDiceRoll);
 
     onMount(async () => {
         diceRollersManager.onMount();
@@ -23,36 +23,41 @@
     let themeClass = $state(getCurrentTheme() === Theme.Light ? 'theme-light' : 'theme-dark');
     
     let classThemeName: string;
-    switch (currentItem.classes[0].url) {
-        case "/classes/bard":
-            classThemeName = "bard";
-            break;
-        case "/classes/wizard":
-            classThemeName = "wizard";
-            break;
-        case "/classes/druid":
-            classThemeName = "druid";
-            break;
-        case "/classes/cleric":
-            classThemeName = "cleric";
-            break;
-        case "/classes/artificer":
-            classThemeName = "artificer";
-            break;
-        case "/classes/warlock":
-            classThemeName = "warlock";
-            break;
-        case "/classes/paladin":
-            classThemeName = "paladin";
-            break;
-        case "/classes/ranger":
-            classThemeName = "ranger";
-            break;
-        case "/classes/sorcerer":
-            classThemeName = "sorcerer";
-            break;
-        default:
-            classThemeName = "default"
+
+    if (currentItem) {
+        switch (currentItem.classes[0].url) {
+            case "/classes/bard":
+                classThemeName = "bard";
+                break;
+            case "/classes/wizard":
+                classThemeName = "wizard";
+                break;
+            case "/classes/druid":
+                classThemeName = "druid";
+                break;
+            case "/classes/cleric":
+                classThemeName = "cleric";
+                break;
+            case "/classes/artificer":
+                classThemeName = "artificer";
+                break;
+            case "/classes/warlock":
+                classThemeName = "warlock";
+                break;
+            case "/classes/paladin":
+                classThemeName = "paladin";
+                break;
+            case "/classes/ranger":
+                classThemeName = "ranger";
+                break;
+            case "/classes/sorcerer":
+                classThemeName = "sorcerer";
+                break;
+            default:
+                classThemeName = "default"
+        }
+    } else {
+        classThemeName = "default";
     }
     
     let classTheme = $state(classThemeName);
@@ -65,11 +70,12 @@
         return () => { unsubscribe() };
     });
 
-    let subClasses = !currentItem.subclasses ? undefined : separate(currentItem.subclasses.map((it: SpellSubclass) => it.name + " (" + it.class + ")"));
-    let classes = separate(currentItem.classes.map((it: Class) => it.name));
+    let subClasses = (!currentItem || !currentItem.subclasses) ? undefined : separate(currentItem.subclasses.map((it: Class) => it.name + " (" + it.class + ")"));
+    let classes = currentItem ? separate(currentItem.classes.map((it: Class) => it.name)) : "";
     let classHint = "Классы: " + classes + (subClasses ? "\nПодклассы: " + subClasses : "");
 </script>
 
+{#if currentItem}
 <div class="layout-spell-card {themeClass} {classTheme}">
     <div class="layout-spell-card-front">
         <div class="layout-spell-card-body">
@@ -126,6 +132,7 @@
         {/if}
     </div>
 </div>
+{/if}
 
 <style>
     :global(.bard) {
