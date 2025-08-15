@@ -35,6 +35,7 @@ import type { FullSpell } from './domain/models/spell/FullSpell';
 import type { DmScreenItem } from './domain/models/dm_screen/DmScreenItem';
 import { ArsenalSidePanel } from './ui/components/sidepanel/ArsenalSidePanel';
 import type { FullWeapon } from './domain/models/weapon/FullWeapon';
+import { regissterArsenalMdCodeBlockProcessor } from './ui/components/processor/arsenal_md_coode_block_processor';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -65,6 +66,7 @@ export default class DndStatblockPlugin extends Plugin {
 			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#uiEventListener);
 			registerSpellMdCodeBlockProcessor(this, this.#spellbook, this.#uiEventListener);
 			registerScreenMdCodeBlockProcessor(this, this.#dmScreen, this.#uiEventListener);
+			regissterArsenalMdCodeBlockProcessor(this, this.#arsenal, this.#uiEventListener);
 			registerEncounterMdCodeBlockProcessor(this, this.#bestiary);
 			registerAddStatblockCommand(this, this.#bestiary);
 			registerAddSpellCommand(this, this.#spellbook);

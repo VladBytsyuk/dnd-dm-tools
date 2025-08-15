@@ -63,7 +63,7 @@
         {#if currentItem.weight}
             <div class="table-item">
                 <em class="table-title">Вес</em>
-                {currentItem.weight + " фун."}
+                {currentItem.weight} фун.
             </div>
         {/if}
         {#if currentItem.properties}
