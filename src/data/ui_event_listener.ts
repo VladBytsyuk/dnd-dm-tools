@@ -10,7 +10,6 @@ import type { Equipment } from "src/domain/repositories/Equipment";
 import type { Artifactory } from "src/domain/repositories/Artifactory";
 import type { FullMonster } from "src/domain/models/monster/FullMonster";
 import type { FullSpell } from "src/domain/models/spell/FullSpell";
-import { openSidePanelDmScreen } from "src/ui/components/sidepanel/DmScreenSidePanel";
 import type { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import type { FullWeapon } from "src/domain/models/weapon/FullWeapon";
 

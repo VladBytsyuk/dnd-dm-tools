@@ -15,8 +15,9 @@ import { SmallItemSqlTableDao } from './SmallItemSqlTableDao';
 import { FullItemSqlTableDao } from './FullItemSqlTableDao';
 import { SmallArtifactSqlTableDao } from './SmallArtifactSqlTableDao';
 import { FullArtifactSqlTableDao } from './FullArtifactSqlTableDao';
+import type { Initializable } from 'src/domain/Initializable';
 
-export default class DB {
+export default class DB implements Initializable {
 
     private database: Database | null = null;
     private databasePath: string;
@@ -89,7 +90,8 @@ export default class DB {
         }
     }
 
-    dispose() {
+    async dispose() {
+        this.getDaos().forEach(dao => dao.dispose());
         if (this.database) {
             this.database.close();
         }
@@ -139,6 +141,10 @@ export default class DB {
         this.fullItemDao = new FullItemSqlTableDao(database);
         this.smallArtifactDao = new SmallArtifactSqlTableDao(database, this.app, this.manifest);
         this.fullArtifactDao = new FullArtifactSqlTableDao(database);
+        return this.getDaos();
+    }
+
+    private getDaos(): Dao<any, any>[] {
         return [
             this.smallMonsterDao,
             this.fullMonsterDao,

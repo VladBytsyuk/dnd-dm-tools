@@ -3,34 +3,34 @@
 	import HtmlBlock from "../uikit/HtmlBlock.svelte";
 
     // ---- props ----
-    let { item, uiEventListener } = $props();
+    let { currentItem, uiEventListener } = $props();
 </script>
 
 <div class="item">
-    {#if item.name}
+    {#if currentItem.name}
     <div class="item-header-box">
         <div 
             class="item-header-title"
             role="button"
             tabindex="0"
-            onclick={() => copyDmScreenItem(item)}
-            onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyDmScreenItem(item); } }}
+            onclick={() => copyDmScreenItem(currentItem)}
+            onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyDmScreenItem(currentItem); } }}
             aria-label="Скопировать в буфер обмена"
         >
-            {item.name.rus} <span class="item-header-subtitle">[{item.name.eng}]</span>  📋
+            {currentItem.name.rus} <span class="item-header-subtitle">[{currentItem.name.eng}]</span>  📋
         </div>
     </div>
     {/if}
     <div class="item-content">
-        {#if item.parent && item.source}
+        {#if currentItem.parent && currentItem.source}
         <div class="item-content-source">
-            {#if item.parent}<div class="item-content-source-left">Раздел: {item.parent.name.rus}</div>{/if}
-            {#if item.source}<div class="item-content-source-right">Источник: {item.source.shortName}</div>{/if}
+            {#if currentItem.parent}<div class="item-content-source-left">Раздел: {currentItem.parent.name.rus}</div>{/if}
+            {#if currentItem.source}<div class="item-content-source-right">Источник: {currentItem.source.shortName}</div>{/if}
         </div>
         {/if}
-        {#if item.description}
+        {#if currentItem.description}
         <div class="item-content-text">
-            <HtmlBlock htmlContent={item.description} uiEventListener={uiEventListener} />
+            <HtmlBlock htmlContent={currentItem.description} uiEventListener={uiEventListener} />
         </div>
         {/if}
     </div>

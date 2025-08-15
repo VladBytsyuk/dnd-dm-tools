@@ -1,9 +1,7 @@
+import type { Initializable } from "../Initializable";
 import type { WithUrl } from "../models/common/WithUrl";
 
-export interface Repository<SmallItem extends WithUrl, FullItem extends SmallItem, Filter> {
-
-    initialize(): Promise<void>;
-    dispose(): void;
+export interface Repository<SmallItem extends WithUrl, FullItem extends SmallItem, Filter> extends Initializable {
 
     getAllFilters(): Promise<Filter | null>;
 

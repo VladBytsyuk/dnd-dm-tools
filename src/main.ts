@@ -1,18 +1,18 @@
 import { Plugin } from 'obsidian';
 import { BestiaryRepository } from "src/data/repositories/BestiaryRepository";
-import { registerMonsterMdCodeBlockProcessor } from "src/ui/components/processor/monster_md_code_block_processor";
+import { BestiaryMdCodeBlockProcessor } from "src/ui/components/processor/BestiaryMdCodeBlockProcessor";
 import { registerAddStatblockCommand } from './ui/components/command/add_statblock_command';
 import { registerThemeChangeListener } from './ui/theme';
 import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor/encounter_md_code_block_processor';
 import { registerAddEncounterCommand } from './ui/components/command/add_encounter_command';
 import { SpellbookRepository } from './data/repositories/SpellbookRepository';
-import { registerSpellMdCodeBlockProcessor } from './ui/components/processor/spell_md_code_block_processor';
+import { registerSpellMdCodeBlockProcessor, SpellbookMdCodeBlockProcessor } from './ui/components/processor/SpellbookMdCodeBlockProcessor';
 import { registerAddSpellCommand } from './ui/components/command/add_spell_command';
 import { DmScreenRepository } from './data/repositories/DmScreenRepository';
 import { UiEventListener } from './data/ui_event_listener';
 import type { IUiEventListener } from './domain/listeners/ui_event_listener';
 import DB from './data/databse/DB';
-import { registerScreenMdCodeBlockProcessor } from './ui/components/processor/screen_md_code_block_processor';
+import { DmScreenMdCodeBlockProcessor, registerScreenMdCodeBlockProcessor } from './ui/components/processor/DmScreenMdCodeBlockProcessor';
 import type { Bestiary } from './domain/repositories/Bestiary';
 import type { DmScreen } from './domain/repositories/DmScreen';
 import type { Spellbook } from './domain/repositories/Spellbook';
@@ -35,7 +35,7 @@ import type { FullSpell } from './domain/models/spell/FullSpell';
 import type { DmScreenItem } from './domain/models/dm_screen/DmScreenItem';
 import { ArsenalSidePanel } from './ui/components/sidepanel/ArsenalSidePanel';
 import type { FullWeapon } from './domain/models/weapon/FullWeapon';
-import { regissterArsenalMdCodeBlockProcessor } from './ui/components/processor/arsenal_md_coode_block_processor';
+import { ArsenalMdCodeBlockProcessor } from './ui/components/processor/ArsenalMdCodeBlockProcessor';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -63,10 +63,6 @@ export default class DndStatblockPlugin extends Plugin {
 		this.#initialize(() => {
 			this.#sidePanels.forEach(sidePanel => sidePanel.register());
 			registerSidePanelInitiativeTracker(this, this.#uiEventListener);
-			registerMonsterMdCodeBlockProcessor(this, this.#bestiary, this.#uiEventListener);
-			registerSpellMdCodeBlockProcessor(this, this.#spellbook, this.#uiEventListener);
-			registerScreenMdCodeBlockProcessor(this, this.#dmScreen, this.#uiEventListener);
-			regissterArsenalMdCodeBlockProcessor(this, this.#arsenal, this.#uiEventListener);
 			registerEncounterMdCodeBlockProcessor(this, this.#bestiary);
 			registerAddStatblockCommand(this, this.#bestiary);
 			registerAddSpellCommand(this, this.#spellbook);
@@ -131,6 +127,11 @@ export default class DndStatblockPlugin extends Plugin {
 			this.dmScreenSidePanel,
 			this.arsenalSidePanel,
 		];
+
+		new BestiaryMdCodeBlockProcessor().register(this, this.#bestiary, this.#uiEventListener);
+		new SpellbookMdCodeBlockProcessor().register(this, this.#spellbook, this.#uiEventListener);
+		new DmScreenMdCodeBlockProcessor().register(this, this.#dmScreen, this.#uiEventListener);
+		new ArsenalMdCodeBlockProcessor().register(this, this.#arsenal, this.#uiEventListener);
 
 		callback();
 	}
