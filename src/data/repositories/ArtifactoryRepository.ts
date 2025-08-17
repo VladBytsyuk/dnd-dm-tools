@@ -36,15 +36,27 @@ export class ArtifactoryRepository
     }
 
     async groupItems(smallItems: SmallArtifact[]): Promise<Group<SmallArtifact>[]> {
+        const names = new Map<string, string>();
         const groups = smallItems.reduce((acc, artifact) => {
-            const type = this.capitalize(artifact.rarity.name);
+            names.set(artifact.rarity.short, this.capitalize(artifact.rarity.name));
+            const type = artifact.rarity.short;
             (acc[type] ||= []).push(artifact);
             return acc;
         }, {} as { [key: string]: SmallArtifact[] });
 
         return Object.entries(groups)
-            .map(([type, smallArtifacts]) => ({ sort: type, smallItems: smallArtifacts } as Group<SmallArtifact>))
-            .sort((a, b) => -a.sort.localeCompare(b.sort));
+            .sort(([typeA], [typeB]) => this.rarityOrderComparator(typeA, typeB))
+            .map(([type, smallArtifacts]) => ({ sort: names.get(type), smallItems: smallArtifacts } as Group<SmallArtifact>));
+    }
+
+    private rarityOrderComparator(a: string, b: string): number {
+        const order = ["O", "Н", "Р", "OР", "Л", "А", "~"];
+        const indexA = order.indexOf(a);
+        const indexB = order.indexOf(b);
+        if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+        if (indexA === -1) return 1;
+        if (indexB === -1) return -1;
+        return indexA - indexB;
     }
 
     private capitalize(text: string): string {

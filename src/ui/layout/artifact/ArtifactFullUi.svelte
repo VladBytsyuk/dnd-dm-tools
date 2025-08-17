@@ -63,7 +63,7 @@
                 <div class="subname">{currentItem.name.eng}</div>
             </div>
             <div class="info-container">
-                {#if currentItem.type}<div class="type">{currentItem.type.name}</div>{/if}
+                {#if currentItem.type}<div class="type">{currentItem.type.name}, {currentItem.rarity.name}</div>{/if}
                 {#if currentItem.source}<div class="source">Источник: {currentItem.source.shortName}</div>{/if}
             </div>
         </div>
