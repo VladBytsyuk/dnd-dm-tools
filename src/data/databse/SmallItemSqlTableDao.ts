@@ -94,18 +94,18 @@ export class SmallItemSqlTableDao extends Dao<SmallItem, EquipmentFilters> {
     async mapSqlValues(values: SqlValue[]): Promise<SmallItem> {
         return {
             name: {
-                rus: values[0] as string,
-                eng: values[1] as string,
+                rus: values[1] as string,
+                eng: values[2] as string,
             },
-            url: values[2] as string,
+            url: values[3] as string,
             source: {
-                shortName: values[3] as string,
-                name: values[4] as string,
+                shortName: values[4] as string,
+                name: values[5] as string,
                 group: {
-                    name: values[5] as string,
-                    shortName: values[6] as string,
+                    name: values[6] as string,
+                    shortName: values[7] as string,
                 },
-                homebrew: Boolean(values[7]),
+                homebrew: Boolean(values[8]),
             }
         };
     }
