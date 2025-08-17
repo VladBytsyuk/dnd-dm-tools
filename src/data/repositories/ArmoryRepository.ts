@@ -5,6 +5,7 @@ import type { FullArmor } from "src/domain/models/armor/FullArmor"
 import type { Armory } from "src/domain/repositories/Armory"
 import type DB from "../databse/DB"
 import { createFilters } from "src/domain/models/common/Filters"
+import type { Group } from "src/domain/repositories/Repository"
 
 export class ArmoryRepository
     extends BaseRepository<SmallArmor, FullArmor, ArmoryFilters>
@@ -29,5 +30,17 @@ export class ArmoryRepository
             types: Array.from(typesSet), 
             sources: Array.from(sourcesSet),
         });
+    }
+
+    async groupItems(smallItems: SmallArmor[]): Promise<Group<SmallArmor>[]> {
+        const groups = smallItems.reduce((acc, armor) => {
+            const type = armor.type.name;
+            (acc[type] ||= []).push(armor);
+            return acc;
+        }, {} as { [key: string]: SmallArmor[] });
+
+        return Object.entries(groups)
+            .map(([type, smallArmors]) => ({ sort: type, smallItems: smallArmors } as Group<SmallArmor>))
+            .sort((a, b) => a.sort.localeCompare(b.sort));
     }
 }

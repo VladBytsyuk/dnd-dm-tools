@@ -62,6 +62,7 @@ export abstract class BaseFeature<
                 editorCallback: command.editorCallback,
             });
         });
+        console.log(`Feature ${this.constructor.name} initialized`);
     }
 
     async dispose(): Promise<void> {
