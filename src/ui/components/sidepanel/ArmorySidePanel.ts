@@ -8,7 +8,7 @@ import ArmorySidePanelUi from "src/ui/layout/sidepanel/ArmorySidePanelUi.svelte"
 
 export class ArmorySidePanel extends BaseSidePanel<SmallArmor, FullArmor, ArmoryFilters> {
 
-    getKey() { return 'armor'; }
+    getKey() { return 'armory'; }
     getRibbonIconName() { return 'shield'; }
     getTitle() { return 'Броня'; }
 

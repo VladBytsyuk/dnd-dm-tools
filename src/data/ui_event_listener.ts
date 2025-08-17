@@ -8,6 +8,7 @@ import type { DmScreenFeature } from "src/ui/components/feature/DmScreenFeature"
 import type { BaseFeature } from "src/ui/components/feature/BaseFeature";
 import type { ArmoryFeature } from "src/ui/components/feature/ArmoryFeature";
 import type { EquipmentFeature } from "src/ui/components/feature/EquipmentFeature";
+import type { ArtifactoryFeature } from "src/ui/components/feature/ArtifactoryFeature";
 
 export class UiEventListener implements IUiEventListener {
 
@@ -19,6 +20,7 @@ export class UiEventListener implements IUiEventListener {
         private arsenalFeatureProvider: () => ArsenalFeature,
         private armoryFeatureProvider: () => ArmoryFeature,
         private equipmentFeatureProvider: () => EquipmentFeature,
+        private artifactoryFeatureProvider: () => ArtifactoryFeature,
         private dmScreenFeatureProvider: () => DmScreenFeature,
     ) {
         this.onBeastClick = this.onBeastClick.bind(this);
@@ -50,7 +52,7 @@ export class UiEventListener implements IUiEventListener {
     }
 
     async onArtifactClick(url: string): Promise<void> {
-        
+        this.onClick(this.artifactoryFeatureProvider, url);
     }
 
     async onScreenItemClick(url: string): Promise<void> {
