@@ -92,23 +92,23 @@ export class FullItemSqlTableDao extends Dao<FullItem, any> {
     async mapSqlValues(values: SqlValue[]): Promise<FullItem> {
         return {
             name: {
-                rus: values[0] as string,
-                eng: values[1] as string,
+                rus: values[1] as string,
+                eng: values[2] as string,
             },
-            url: values[2] as string,
+            url: values[3] as string,
             source: {
-                shortName: values[3] as string,
-                name: values[4] as string,
+                shortName: values[4] as string,
+                name: values[5] as string,
                 group: {
-                    name: values[5] as string,
-                    shortName: values[6] as string,
+                    name: values[6] as string,
+                    shortName: values[7] as string,
                 },
-                homebrew: !!values[7],
+                homebrew: !!values[8],
             },
-            price: values[8] ? values[8] as string : undefined,
-            weight: values[9] ? +(values[9] as string) : undefined,
-            description: values[10] as string,
-            categories: JSON.parse(values[11] as string),
+            price: values[9] ? values[9] as string : undefined,
+            weight: values[10] ? +(values[10] as string) : undefined,
+            description: values[11] as string,
+            categories: JSON.parse(values[12] as string),
         };
     }
 }

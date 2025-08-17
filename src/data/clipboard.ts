@@ -7,6 +7,7 @@ import type { FullMonster } from "src/domain/models/monster/FullMonster";
 import type { EncounterParticipant } from "src/domain/models/encounter/EncounterParticipant";
 import type { FullWeapon } from "src/domain/models/weapon/FullWeapon";
 import type { FullArmor } from "src/domain/models/armor/FullArmor";
+import type { FullItem } from "src/domain/models/items/FullItem";
 
 // ---- Copy to clipboard ----
 export function copyMonsterToClipboard(monster: FullMonster) {
@@ -31,6 +32,10 @@ export function copyWeaponToClipboard(weapon: FullWeapon) {
 
 export function copyArmorToClipboard(armor: FullArmor) {
     copyToClipboard(armor, armor.name.rus, "armor");
+}
+
+export function copyEquipmentToClipboard(equipment: FullItem) {
+    copyToClipboard(equipment, equipment.name.rus, "equip");
 }
 
 function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string, additionalContent: string | null = null) {
