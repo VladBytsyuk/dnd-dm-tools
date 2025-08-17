@@ -65,21 +65,21 @@ export default class DndStatblockPlugin extends Plugin {
 			() => this.dmScreenFeature,
 		);
 
+		this.bestiaryFeature = new BestiaryFeature(this, this.#database, this.#uiEventListener);
+		this.spellbookFeature = new SpellbookFeature(this, this.#database, this.#uiEventListener);
+		this.dmScreenFeature = new DmScreenFeature(this, this.#database, this.#uiEventListener);
 		this.arsenalFeature = new ArsenalFeature(this, this.#database, this.#uiEventListener);
 		this.armoryFeature = new ArmoryFeature(this, this.#database, this.#uiEventListener);
 		this.equipmentFeature = new EquipmentFeature(this, this.#database, this.#uiEventListener);
 		this.artifactoryFeature = new ArtifactoryFeature(this, this.#database, this.#uiEventListener);
-		this.bestiaryFeature = new BestiaryFeature(this, this.#database, this.#uiEventListener);
-		this.spellbookFeature = new SpellbookFeature(this, this.#database, this.#uiEventListener);
-		this.dmScreenFeature = new DmScreenFeature(this, this.#database, this.#uiEventListener);
 		this.features = [
+			this.bestiaryFeature,
+			this.spellbookFeature,
+			this.dmScreenFeature,
 			this.arsenalFeature,
 			this.armoryFeature,
 			this.equipmentFeature,
 			this.artifactoryFeature,
-			this.bestiaryFeature,
-			this.spellbookFeature,
-			this.dmScreenFeature,
 		];
 		this.features.forEach(feature => feature.initialize());
 		
