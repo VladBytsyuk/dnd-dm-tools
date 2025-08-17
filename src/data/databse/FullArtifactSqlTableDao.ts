@@ -164,40 +164,40 @@ export class FullArtifactSqlTableDao extends Dao<FullArtifact, any> {
     async mapSqlValues(values: SqlValue[]): Promise<FullArtifact> {
         return {
             name: {
-                rus: values[0] as string,
-                eng: values[1] as string,
+                rus: values[1] as string,
+                eng: values[2] as string,
             },
             type: {
-                name: values[2] as string,
-                order: values[3] ? values[3] as number : undefined,
+                name: values[3] as string,
+                order: values[4] ? values[4] as number : undefined,
             },
-            url: values[4] as string,
+            url: values[5] as string,
             price: {
-                dmg: values[5] as string | null,
-                xge: values[6] as string | null,
+                dmg: values[6] as string | null,
+                xge: values[7] as string | null,
             },
             rarity: {
-                type: values[7] as string,
-                name: values[8] as string,
-                short: values[9] as string,
+                type: values[8] as string,
+                name: values[9] as string,
+                short: values[10] as string,
             },
             source: {
-                shortName: values[10] as string,
-                name: values[11] as string,
+                shortName: values[11] as string,
+                name: values[12] as string,
                 group: {
-                    name: values[12] as string,
-                    shortName: values[13] as string,
+                    name: values[13] as string,
+                    shortName: values[14] as string,
                 },
-                homebrew: (values[14] as number) === 1,
+                homebrew: (values[15] as number) === 1,
             },
-            description: values[15] as string,
-            detailType: values[16] ? JSON.parse(values[16] as string) : undefined,
+            description: values[16] as string,
+            detailType: values[17] ? JSON.parse(values[17] as string) : undefined,
             cost: {
-                dmg: values[17] as string | null,
-                xge: values[18] as string | null,
+                dmg: values[18] as string | null,
+                xge: values[19] as string | null,
             },
-            images: values[19] ? JSON.parse(values[19] as string) : undefined,
-            detailCustamization: values[20] ? JSON.parse(values[20] as string) : undefined,
+            images: values[20] ? JSON.parse(values[20] as string) : undefined,
+            detailCustamization: values[21] ? JSON.parse(values[21] as string) : undefined,
         };
     }
 }

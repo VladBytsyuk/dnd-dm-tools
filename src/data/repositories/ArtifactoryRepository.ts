@@ -37,7 +37,7 @@ export class ArtifactoryRepository
 
     async groupItems(smallItems: SmallArtifact[]): Promise<Group<SmallArtifact>[]> {
         const groups = smallItems.reduce((acc, artifact) => {
-            const type = this.capitalize(artifact.rarity.short);
+            const type = this.capitalize(artifact.rarity.name);
             (acc[type] ||= []).push(artifact);
             return acc;
         }, {} as { [key: string]: SmallArtifact[] });

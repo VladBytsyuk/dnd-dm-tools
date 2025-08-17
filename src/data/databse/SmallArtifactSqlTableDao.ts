@@ -36,6 +36,7 @@ export class SmallArtifactSqlTableDao extends Dao<SmallArtifact, ArtifactoryFilt
                 rarity_type TEXT NOT NULL,
                 rarity_name TEXT NOT NULL,
                 rarity_short TEXT NOT NULL,
+                customization INTEGER DEFAULT 0,
                 source_short_name TEXT NOT NULL,
                 source_name TEXT NOT NULL,
                 group_name TEXT NOT NULL,
@@ -53,9 +54,9 @@ export class SmallArtifactSqlTableDao extends Dao<SmallArtifact, ArtifactoryFilt
             INSERT INTO ${this.getTableName()} (
                 rus_name, eng_name, type_name, type_order, url, 
                 price_dmg, price_xge, rarity_type, rarity_name, 
-                rarity_short, source_short_name, source_name, 
+                rarity_short, customization, source_short_name, source_name, 
                 group_name, group_short_name, homebrew
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         `, [
             item.name.rus,
             item.name.eng,
@@ -67,6 +68,7 @@ export class SmallArtifactSqlTableDao extends Dao<SmallArtifact, ArtifactoryFilt
             item.rarity.type,
             item.rarity.name,
             item.rarity.short,
+            item.customization ? 1 : 0,
             item.source.shortName,
             item.source.name,
             item.source.group.name,
@@ -100,7 +102,7 @@ export class SmallArtifactSqlTableDao extends Dao<SmallArtifact, ArtifactoryFilt
             UPDATE ${this.getTableName()} SET
                 rus_name = ?, eng_name = ?, type_name = ?, type_order = ?,
                 price_dmg = ?, price_xge = ?, rarity_type = ?, rarity_name = ?,
-                rarity_short = ?, source_short_name = ?, source_name = ?,
+                rarity_short = ?, customization = ?,source_short_name = ?, source_name = ?,
                 group_name = ?, group_short_name = ?, homebrew = ?
             WHERE url = ?;
         `, [
@@ -113,6 +115,7 @@ export class SmallArtifactSqlTableDao extends Dao<SmallArtifact, ArtifactoryFilt
             item.rarity.type,
             item.rarity.name,
             item.rarity.short,
+            item.customization ? 1 : 0,
             item.source.shortName,
             item.source.name,
             item.source.group.name,
@@ -126,31 +129,32 @@ export class SmallArtifactSqlTableDao extends Dao<SmallArtifact, ArtifactoryFilt
     async mapSqlValues(values: SqlValue[]): Promise<SmallArtifact> {
         return {
             name: {
-                rus: values[0] as string,
-                eng: values[1] as string,
+                rus: values[1] as string,
+                eng: values[2] as string,
             },
             type: {
-                name: values[2] as string,
-                order: values[3] ? values[3] as number : undefined,
+                name: values[3] as string,
+                order: values[4] ? values[4] as number : undefined,
             },
-            url: values[4] as string,
+            url: values[5] as string,
             price: {
-                dmg: values[5] as string | null,
-                xge: values[6] as string | null,
+                dmg: values[6] as string | null,
+                xge: values[7] as string | null,
             },
             rarity: {
-                type: values[7] as string,
-                name: values[8] as string,
-                short: values[9] as string,
+                type: values[8] as string,
+                name: values[9] as string,
+                short: values[10] as string,
             },
+            customization: Boolean(values[11]),
             source: {
-                shortName: values[10] as string,
-                name: values[11] as string,
+                shortName: values[12] as string,
+                name: values[13] as string,
                 group: {
-                    name: values[12] as string,
-                    shortName: values[13] as string,
+                    name: values[14] as string,
+                    shortName: values[15] as string,
                 },
-                homebrew: Boolean(values[14]),
+                homebrew: Boolean(values[16]),
             }
         };
     }
