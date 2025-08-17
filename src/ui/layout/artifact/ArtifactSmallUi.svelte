@@ -8,6 +8,35 @@
         onItemClick: () => void;
     }
     let { smallItem, onItemClick }: Props = $props();
+
+    let rarityThemeName: string;
+    if (smallItem) {
+        switch (smallItem.rarity.short) {
+            case "O":
+                rarityThemeName = "common";
+                break;
+            case "Н":
+                rarityThemeName = "uncommon";
+                break;
+            case "Р":
+                rarityThemeName = "rare";
+                break;
+            case "OР":
+                rarityThemeName = "very-rare";
+                break;
+            case "Л":
+                rarityThemeName = "legendary";
+                break;
+            case "А":
+                rarityThemeName = "artifact";
+                break;
+            default:
+                rarityThemeName = "default"
+        }
+    } else {
+        rarityThemeName = "default";
+    }
+    let rarityTheme = $state(rarityThemeName);
 </script>
 
 <div 
@@ -25,12 +54,34 @@
         <SourceLabel source={smallItem.source} />
     </div>
     <div class="row">
-        <div class="rarity">{smallItem.rarity.name}</div>
+        <div class="rarity {rarityTheme}">{smallItem.rarity.name}</div>
         <div class="customization">{smallItem.customization ? 'Н' : ''}</div>
     </div>
 </div>
 
 <style>
+    .common {
+        color: #FFFFFF;
+    }
+    .uncommon {
+        color: #8aff91;
+    }
+    .rare {
+        color: #a5f1ff;
+    }
+    .very-rare {
+        color: #e770ff;
+    }
+    .legendary {
+        color: #f6ff00;
+    }
+    .artifact {
+        color: #ff8900;
+    }
+    .default {
+        color: #888888FF;
+    }
+
     .body {
         overflow: hidden;
         display: flex;
@@ -78,7 +129,6 @@
     .rarity {
         font-size: 13px;
         line-height: normal;
-        color: var(--text-color);
         opacity: 0.5;
     }
     
