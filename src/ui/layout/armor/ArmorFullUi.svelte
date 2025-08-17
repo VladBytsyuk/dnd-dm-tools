@@ -3,7 +3,6 @@
 	import type { IUiEventListener } from 'src/domain/listeners/ui_event_listener.js';
 	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 	import { copyArmorToClipboard } from 'src/data/clipboard';
-	import { joinProperties } from 'src/domain/utils/utils';
 	import HtmlBlock from '../uikit/HtmlBlock.svelte';
 	import type { FullArmor } from 'src/domain/models/armor/FullArmor';
 

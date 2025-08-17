@@ -77,7 +77,7 @@ export class FullArtifactSqlTableDao extends Dao<FullArtifact, any> {
                 cost_xge,
                 images,
                 detail_customization
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
             item.name.rus,
             item.name.eng,
@@ -96,8 +96,8 @@ export class FullArtifactSqlTableDao extends Dao<FullArtifact, any> {
             item.source.homebrew ? 1 : 0,
             item.description,
             item.detailType ? JSON.stringify(item.detailType) : null,
-            item.cost.dmg ?? null,
-            item.cost.xge ?? null,
+            item.cost?.dmg ?? null,
+            item.cost?.xge ?? null,
             item.images ? JSON.stringify(item.images) : null,
             item.detailCustamization ? JSON.stringify(item.detailCustamization) : null,
         ]);
@@ -152,8 +152,8 @@ export class FullArtifactSqlTableDao extends Dao<FullArtifact, any> {
             item.source.homebrew ? 1 : 0,
             item.description,
             item.detailType ? JSON.stringify(item.detailType) : null,
-            item.cost.dmg ?? null,
-            item.cost.xge ?? null,
+            item.cost?.dmg ?? null,
+            item.cost?.xge ?? null,
             item.images ? JSON.stringify(item.images) : null,
             item.detailCustamization ? JSON.stringify(item.detailCustamization) : null,
             item.url

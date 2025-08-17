@@ -5,7 +5,7 @@ import type { SmallArtifact } from "./SmallArtifact";
 export interface FullArtifact extends SmallArtifact {
     description: string;
     detailType?: DetailType[];
-    cost: Price;
+    cost?: Price;
     images?: string[];
     detailCustamization?: string[];
 }
