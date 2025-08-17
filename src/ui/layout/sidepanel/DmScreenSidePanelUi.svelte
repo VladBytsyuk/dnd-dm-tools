@@ -87,7 +87,7 @@
     <div style="height:1em;"></div>
     {#if currentChildren.length === 0 && currentItem?.description}
         <DmScreenItemUi 
-            item={currentItem}
+            currentItem={currentItem}
             uiEventListener={uiEventListener}
         />
     {:else if !currentItem && searchBarValue.length > 0}

@@ -1,13 +1,15 @@
 import { App, Modal, Setting, SearchComponent } from "obsidian";
+import type { BestiaryFilters } from "src/domain/models/monster/BestiaryFilters";
 import type { FullMonster } from "src/domain/models/monster/FullMonster";
-import type { Bestiary } from "src/domain/repositories/Bestiary";
+import type { SmallMonster } from "src/domain/models/monster/SmallMonster";
+import type { Repository } from "src/domain/repositories/Repository";
 import { MonsterSuggester } from "src/ui/components/suggest/monster_suggester";
 
 export class CreatureChooser extends Modal {
     
     constructor(
         app: App,
-        bestiary: Bestiary,
+        bestiary: Repository<SmallMonster, FullMonster, BestiaryFilters>,
         onSubmit: (monster: FullMonster, isTwoColumns: boolean) => void,
     ) {
         super(app);
@@ -22,7 +24,7 @@ export class CreatureChooser extends Modal {
 
     addSearchElement(
         app: App,
-        bestiary: Bestiary,
+        bestiary: Repository<SmallMonster, FullMonster, BestiaryFilters>,
         onSelect: (fullMonster: FullMonster) => void,
     ) {
         const searchEl = new SearchComponent(this.contentEl)

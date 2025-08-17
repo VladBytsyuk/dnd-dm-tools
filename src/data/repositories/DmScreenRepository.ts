@@ -64,11 +64,13 @@ export class DmScreenRepository
             console.log(`Loaded ${cachedFullItem.name.rus} from local storage.`);
             return cachedFullItem;
         }
+        console.log(`Item ${url} doesn't have a description in local storage.`);
         const fullItem = await this.fetchFromAPI(url);
         if (fullItem) {
             this.database.transaction(async () => {
                 await this.#dmScreenDao.updateItem(fullItem);
             });
+            console.log(`Updated ${url} in local storage.`)
         }
         return fullItem;
     }

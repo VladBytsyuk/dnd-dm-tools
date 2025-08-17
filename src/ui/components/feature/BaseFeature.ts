@@ -15,38 +15,46 @@ export abstract class BaseFeature<
     F extends Filters,
 > implements Initializable {
 
-    public repository: Repository<ST, FT, F>;
-    public sidePanel: BaseSidePanel<ST, FT, F>;
-    public codeBlockProcessor: BaseMdCodeBlockProcessor<ST, FT, F>;
+    public repository: Repository<ST, FT, F> | null = null;
+    public sidePanel: BaseSidePanel<ST, FT, F> | null = null;
+    public codeBlockProcessor: BaseMdCodeBlockProcessor<ST, FT, F> | null = null;
 
     constructor(
-        private plugin: DndStatblockPlugin,
-        private database: DB,
+        public plugin: DndStatblockPlugin,
+        database: DB,
         private uiEventListener: IUiEventListener,
     ) {
         this.repository = this.createRepository(database);
-        this.sidePanel = this.createSidePanel(plugin, this.repository, uiEventListener);
+        if (this.repository) {
+            this.sidePanel = this.createSidePanel(plugin, this.repository, uiEventListener);
+        }
         this.codeBlockProcessor = this.createCodeBlockProcessor();
     }
 
-    abstract createRepository(
+    createRepository(
         database: DB,
-    ): Repository<ST, FT, F>;
+    ): Repository<ST, FT, F> | null {
+        return null;
+    }
 
-    abstract createSidePanel(
+    createSidePanel(
         plugin: DndStatblockPlugin,
         repository: Repository<ST, FT, F>,
         uiEventListener: IUiEventListener,
-    ): BaseSidePanel<ST, FT, F>;
+    ): BaseSidePanel<ST, FT, F> | null {
+        return null;
+    }
 
-    abstract createCodeBlockProcessor(): BaseMdCodeBlockProcessor<ST, FT, F>;
+    createCodeBlockProcessor(): BaseMdCodeBlockProcessor<ST, FT, F> | null {
+        return null;
+    }
 
     getCommands(): FeatureCommand[] { return []; }
 
     async initialize(): Promise<void> {
-        this.repository.initialize();
-        this.sidePanel.register();
-        this.codeBlockProcessor.register(this.plugin, this.repository, this.uiEventListener);
+        this.repository?.initialize();
+        this.sidePanel?.register();
+        if (this.repository) this.codeBlockProcessor?.register(this.plugin, this.repository, this.uiEventListener);
         this.getCommands().forEach(command => {
             this.plugin.addCommand({
                 id: command.id,
@@ -57,10 +65,11 @@ export abstract class BaseFeature<
     }
 
     async dispose(): Promise<void> {
-        this.repository.dispose();
+        this.repository?.dispose();
     }
 
     async onItemClick(url: string): Promise<void> {
+        if (!this.repository || !this.sidePanel) return;
         const fullItem = await this.repository.getFullItemByUrl(url);
         if (fullItem) await this.sidePanel.open(fullItem);
     }
