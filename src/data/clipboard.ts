@@ -6,6 +6,7 @@ import type { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import type { FullMonster } from "src/domain/models/monster/FullMonster";
 import type { EncounterParticipant } from "src/domain/models/encounter/EncounterParticipant";
 import type { FullWeapon } from "src/domain/models/weapon/FullWeapon";
+import type { FullArmor } from "src/domain/models/armor/FullArmor";
 
 // ---- Copy to clipboard ----
 export function copyMonsterToClipboard(monster: FullMonster) {
@@ -26,6 +27,10 @@ export function copyDmScreenItem(dmScreenItem: DmScreenItem) {
 
 export function copyWeaponToClipboard(weapon: FullWeapon) {
     copyToClipboard(weapon, weapon.name.rus, "weapon");
+}
+
+export function copyArmorToClipboard(armor: FullArmor) {
+    copyToClipboard(armor, armor.name.rus, "armor");
 }
 
 function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string, additionalContent: string | null = null) {
