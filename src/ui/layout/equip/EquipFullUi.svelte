@@ -161,9 +161,4 @@
         margin-top: 0.5em;
         margin-bottom: 0.5em;
     }
-
-    .special {
-        font-weight: 600;
-        font-size: 14px;
-    }
 </style>

@@ -10,7 +10,6 @@
     let { smallItem, onItemClick }: Props = $props();
 </script>
 
-
 <div 
     class="body"
     role="button"
