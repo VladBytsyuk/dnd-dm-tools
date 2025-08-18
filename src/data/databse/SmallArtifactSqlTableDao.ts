@@ -48,8 +48,8 @@ export class SmallArtifactSqlTableDao extends Dao<SmallArtifact, ArtifactoryFilt
 
     // CRUD operations
     async createItem(item: SmallArtifact): Promise<void> {
-        const existing = this.checkItemExists(item);
-        if (!existing) return;
+        const existing = await this.checkItemExists(item);
+        if (existing) return;
         this.database.exec(`
             INSERT INTO ${this.getTableName()} (
                 rus_name, eng_name, type_name, type_order, url, 

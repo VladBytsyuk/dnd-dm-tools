@@ -48,8 +48,8 @@ export class SmallSpellSqlTableDao extends Dao<SmallSpell, SpellbookFilters> {
 
     // CRUD operations
     async createItem(item: SmallSpell): Promise<void> {
-        const existing = this.checkItemExists(item);
-        if (!existing) return;
+        const existing = await this.checkItemExists(item);
+        if (existing) return;
         this.database.exec(`
             INSERT INTO ${this.getTableName()} (
                 rus_name, 

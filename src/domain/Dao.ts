@@ -100,7 +100,7 @@ export abstract class Dao<T extends WithUrl, F> implements Initializable {
     abstract createItem(item: T): Promise<void>;
 
     async checkItemExists(item: T): Promise<boolean> {
-        const existing = this.database.exec(
+        const existing = await this.database.exec(
             `SELECT 1 FROM ${this.getTableName()} WHERE url = ? LIMIT 1;`,
             [item.url]
         );

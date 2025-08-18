@@ -40,8 +40,8 @@ export class SmallItemSqlTableDao extends Dao<SmallItem, EquipmentFilters> {
 
     // CRUD operations
     async createItem(item: SmallItem): Promise<void> {
-        const existing = this.checkItemExists(item);
-        if (!existing) return;
+        const existing = await this.checkItemExists(item);
+        if (existing) return;
         this.database.exec(`
             INSERT INTO ${this.getTableName()} (
                 rus_name, eng_name, url, source_short_name, source_name,

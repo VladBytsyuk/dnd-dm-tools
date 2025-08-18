@@ -28,6 +28,10 @@ export class Plugin {
   async onunload() {}
 }
 
+export class PluginManifest {
+  constructor() {}
+}
+
 export class Notice {
   constructor(public message: string, public timeout?: number) {}
 }
