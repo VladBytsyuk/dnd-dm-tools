@@ -24,3 +24,4 @@ data.json
 .DS_Store
 
 database.db
+coverage/

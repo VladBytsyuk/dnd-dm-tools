@@ -12,7 +12,18 @@ export default defineConfig({
       enabled: true,
       provider: 'v8',
       reportsDirectory: 'coverage',
-      reporter: ['text', 'html', 'lcov'],
+      reporter: ['text', 'html'],
+      exclude: [
+        'node_modules/**',
+        'dist/**',
+        'coverage/**',
+        '**/*.d.ts',
+        '**/__mocks__/**',
+        '**/.vite/**',
+        '**/virtual:*',
+        '**/*.css',
+        '**/*.wasm',
+      ],
     },
   },
   resolve: {
@@ -22,4 +33,5 @@ export default defineConfig({
       'obsidian': path.resolve(__dirname, 'test/__mocks__/obsidian.ts'), 
     },
   },
+  esbuild: { sourcemap: true },
 });
