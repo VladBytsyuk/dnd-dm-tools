@@ -10,7 +10,7 @@ export default defineConfig({
     setupFiles: ['test/setup.ts'],
     coverage: {
       enabled: true,
-      provider: 'v8',
+      provider: 'istanbul',
       reportsDirectory: 'coverage',
       reporter: ['text', 'html'],
       exclude: [
@@ -23,6 +23,8 @@ export default defineConfig({
         '**/virtual:*',
         '**/*.css',
         '**/*.wasm',
+        'src/**/*.svelte',
+        'src/ui/**',
       ],
     },
   },
