@@ -1,7 +1,7 @@
 import { expect } from 'vitest';
-import { SmallArmorSqlTableDao } from '../../src/data/databse/SmallArmorSqlTableDao';
-import type { SmallArmor } from './../../src/domain/models/armor/SmallArmor';
-import type { ArmoryFilters } from './../../src/domain/models/armor/ArmoryFilters';
+import { SmallArmorSqlTableDao } from '../../../src/data/databse/SmallArmorSqlTableDao';
+import type { SmallArmor } from '../../../src/domain/models/armor/SmallArmor';
+import type { ArmoryFilters } from '../../../src/domain/models/armor/ArmoryFilters';
 import { runSqlDaoBaseTests } from './Dao';
 
 const sampleArmor: SmallArmor = {

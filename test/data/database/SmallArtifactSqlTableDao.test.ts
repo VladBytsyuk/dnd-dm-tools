@@ -1,7 +1,7 @@
 import { expect } from 'vitest';
-import { SmallArtifactSqlTableDao } from '../../src/data/databse/SmallArtifactSqlTableDao';
-import type { SmallArtifact } from './../../src/domain/models/artifact/SmallArtifact';
-import type { ArtifactoryFilters } from './../../src/domain/models/artifact/ArtifactoryFilters';
+import { SmallArtifactSqlTableDao } from '../../../src/data/databse/SmallArtifactSqlTableDao';
+import type { SmallArtifact } from '../../../src/domain/models/artifact/SmallArtifact';
+import type { ArtifactoryFilters } from '../../../src/domain/models/artifact/ArtifactoryFilters';
 import { runSqlDaoBaseTests } from './Dao';
 
 const sampleArtifact: SmallArtifact = {

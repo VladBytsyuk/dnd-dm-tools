@@ -1,7 +1,7 @@
 import { expect } from 'vitest';
-import { SmallSpellSqlTableDao } from '../../src/data/databse/SmallSpellSqlTableDao';
-import type { SmallSpell } from '../../src/domain/models/spell/SmallSpell';
-import type { SpellbookFilters } from '../../src/domain/models/spell/SpellbookFilters';
+import { SmallSpellSqlTableDao } from '../../../src/data/databse/SmallSpellSqlTableDao';
+import type { SmallSpell } from '../../../src/domain/models/spell/SmallSpell';
+import type { SpellbookFilters } from '../../../src/domain/models/spell/SpellbookFilters';
 import { runSqlDaoBaseTests } from './Dao';
 
 const sampleSpell: SmallSpell = {

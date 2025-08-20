@@ -1,7 +1,7 @@
 import { expect } from 'vitest';
-import { SmallItemSqlTableDao } from '../../src/data/databse/SmallItemSqlTableDao';
-import type { SmallItem } from '../../src/domain/models/items/SmallItem';
-import type { EquipmentFilters } from '../../src/domain/models/items/EquipmentFilters';
+import { SmallItemSqlTableDao } from '../../../src/data/databse/SmallItemSqlTableDao';
+import type { SmallItem } from '../../../src/domain/models/items/SmallItem';
+import type { EquipmentFilters } from '../../../src/domain/models/items/EquipmentFilters';
 import { runSqlDaoBaseTests } from './Dao';
 
 const sampleItem: SmallItem = {

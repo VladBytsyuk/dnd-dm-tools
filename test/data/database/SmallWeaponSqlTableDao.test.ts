@@ -1,7 +1,7 @@
 import { expect } from 'vitest';
-import { SmallWeaponSqlTableDao } from '../../src/data/databse/SmallWeaponSqlTableDao';
-import { SmallWeapon } from '../../src/domain/models/weapon/SmallWeapon';
-import type { ArsenalFilters } from './../../src/domain/models/weapon/ArsenalFilters';
+import { SmallWeaponSqlTableDao } from '../../../src/data/databse/SmallWeaponSqlTableDao';
+import { SmallWeapon } from '../../../src/domain/models/weapon/SmallWeapon';
+import type { ArsenalFilters } from '../../../src/domain/models/weapon/ArsenalFilters';
 import { runSqlDaoBaseTests } from './Dao';
 
 const sampleWeapon: SmallWeapon = {

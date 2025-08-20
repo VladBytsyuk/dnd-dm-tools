@@ -1,7 +1,7 @@
 import { expect } from 'vitest';
-import { SmallMosterSqlTableDao } from '../../src/data/databse/SmallMosterSqlTableDao';
-import type { SmallMonster } from '../../src/domain/models/monster/SmallMonster';
-import type { BestiaryFilters } from '../../src/domain/models/monster/BestiaryFilters';
+import { SmallMosterSqlTableDao } from '../../../src/data/databse/SmallMosterSqlTableDao';
+import type { SmallMonster } from '../../../src/domain/models/monster/SmallMonster';
+import type { BestiaryFilters } from '../../../src/domain/models/monster/BestiaryFilters';
 import { runSqlDaoBaseTests } from './Dao';
 
 const sampleMonster: SmallMonster = {

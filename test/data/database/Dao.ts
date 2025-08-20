@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { mockApp, mockDatabase, mockManifest } from '../__mocks__/data';
-import { Dao } from '../../src/domain/Dao';
+import { mockApp, mockDatabase, mockManifest } from '../../__mocks__/data';
+import { Dao } from '../../../src/domain/Dao';
 
 type Deps = { app: any; db: any; manifest: any };
 
