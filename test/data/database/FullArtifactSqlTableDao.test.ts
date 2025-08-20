@@ -47,6 +47,7 @@ runSqlDaoBaseTests<FullArtifact, any>({
     filters: filters,
     expected: {
         table: 'full_artifactory',
+        fill: false,
         whereClausesCount: 0,
         filterParams: [],
     },

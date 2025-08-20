@@ -52,12 +52,6 @@ export class FullItemSqlTableDao extends Dao<FullItem, any> {
         ]);
     }
 
-    async readAllItemsNames(): Promise<string[]> {
-        const result = this.database.exec(`SELECT DISTINCT rus_name FROM ${this.getTableName()};`);
-        if (result.length === 0 || result[0].values.length === 0) return [];
-        return result[0].values.map(it => it[0] as string);
-    }
-
     async updateItem(item: FullItem): Promise<void> {
         this.database.exec(`
             UPDATE ${this.getTableName()} SET

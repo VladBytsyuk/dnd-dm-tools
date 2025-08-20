@@ -12,6 +12,7 @@ export interface DaoTestConfig<TItem, TFilters> {
     filters: TFilters;
     expected: {
         table: string;
+        fill: boolean;
         whereClausesCount: number;
         filterParams: any[];
     };
@@ -29,6 +30,38 @@ export function runSqlDaoBaseTests<TItem extends WithUrl, TFilters>(cfg: DaoTest
         beforeEach(() => {
             vi.clearAllMocks();
             dao = cfg.daoFactory({ app: mockApp, db: mockDatabase, manifest: mockManifest });
+        });
+
+        it('should initialize DAO without errors', async () => {
+            vi.spyOn(dao, 'isTableExists').mockResolvedValue(false);
+            const createTableSpy = vi.spyOn(dao, 'createTable');
+            await dao.initialize();
+            expect(mockDatabase.exec).toHaveBeenCalledTimes(1);
+            expect(createTableSpy).toHaveBeenCalled();
+        });
+
+        it('should dispooose DAO without errors', async () => {
+            await dao.dispose();
+        });
+
+        it ('should fill table with data', async () => {
+            if (cfg.expected.fill) {
+                vi.spyOn(dao, 'isTableExists').mockResolvedValue(true);
+                vi.spyOn(dao, 'isTableEmpty').mockResolvedValue(true);
+                const loadDataFromLocalStorageSpy = vi.spyOn(dao, 'loadDataFromLocalStorage');
+                await dao.fillTableWithData();
+                expect(loadDataFromLocalStorageSpy).toHaveBeenCalled();
+            }
+        });
+
+        it('should make sql query when table existance check', async () => {
+            await dao.isTableExists();
+            expect(mockDatabase.exec).toHaveBeenCalled();
+        });
+
+        it('should make sql query when table empty check', async () => {
+            await dao.isTableEmpty();
+            expect(mockDatabase.exec).toHaveBeenCalled();
         });
 
         it('should return correct table name', () => {
@@ -51,6 +84,16 @@ export function runSqlDaoBaseTests<TItem extends WithUrl, TFilters>(cfg: DaoTest
             expect(sql).toContain(`INSERT INTO ${cfg.expected.table}`);
         });
 
+        it('should make sql query when request all items', async () => {
+            await dao.readAllItems('name', cfg.filters);
+            expect(mockDatabase.exec).toHaveBeenCalled();
+        });
+
+        it('should make sql query when reading all items names', async () => {
+            await dao.readAllItemsNames();
+            expect(mockDatabase.exec).toHaveBeenCalled();
+        });
+
         it('should build correct where clause for filters', async () => {
             const result = await dao.filterByFilters(cfg.filters);
             expect(result.whereClauses.length).toBe(cfg.expected.whereClausesCount);
@@ -65,9 +108,40 @@ export function runSqlDaoBaseTests<TItem extends WithUrl, TFilters>(cfg: DaoTest
             expect(sql).toContain(`UPDATE ${cfg.expected.table} SET`);
         });
 
+        it('should check item existence before creating', async () => {
+            const checkItemExistsSpy = vi.spyOn(dao, 'checkItemExists').mockResolvedValue(false);
+            await dao.createItem(cfg.sample);
+            expect(checkItemExistsSpy).toHaveBeenCalledWith(cfg.sample);
+        });
+
+        it('should call exec when read item by name', async () => {
+            await dao.readItemByName('test');
+            expect(mockDatabase.exec).toHaveBeenCalled();
+        });
+
+        it('should call exec when read item by url', async () => {
+            await dao.readItemByUrl('test');
+            expect(mockDatabase.exec).toHaveBeenCalled();
+        });
+
+        it('should call exec when delete item by name', async () => {
+            await dao.deleteItemByName('test');
+            expect(mockDatabase.exec).toHaveBeenCalled();
+        });
+
+        it('should call exec when delete item by url', async () => {
+            await dao.deleteItemByUrl('test');
+            expect(mockDatabase.exec).toHaveBeenCalled();
+        });
+
         it('should map SQL values to domain object', async () => {
             const mapped = await dao.mapSqlValues(cfg.mapCase.sqlValues);
             await cfg.mapCase.assert(mapped);
+        });
+
+        it('should drop table without errors', async () => {
+            await dao.dropTable();
+            expect(mockDatabase.exec).toHaveBeenCalledTimes(1);
         });
     });
 }

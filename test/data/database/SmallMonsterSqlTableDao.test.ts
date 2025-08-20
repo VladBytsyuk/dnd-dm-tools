@@ -24,12 +24,13 @@ const filters: BestiaryFilters = {
 };
 
 runSqlDaoBaseTests<SmallMonster, BestiaryFilters>({
-    title: 'SmallMosterSqlTableDao',
+    title: 'SmallMonsterSqlTableDao',
     daoFactory: ({ app, db, manifest }) => new SmallMonsterSqlTableDao(db, app, manifest),
     sample: sampleMonster,
     filters: filters,
     expected: {
         table: 'small_bestiary',
+        fill: true,
         whereClausesCount: 3,
         filterParams: ['Гуманоид', '1/4', 'MM'],
     },

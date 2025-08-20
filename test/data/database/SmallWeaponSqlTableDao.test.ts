@@ -32,6 +32,7 @@ runSqlDaoBaseTests<SmallWeapon, ArsenalFilters>({
     filters: filters,
     expected: {
         table: 'small_arsenal',
+        fill: true,
         whereClausesCount: 4,
         filterParams: ['1d8', 'slashing', 'Melee', 'PHB'],
     },

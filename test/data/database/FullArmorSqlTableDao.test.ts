@@ -35,6 +35,7 @@ runSqlDaoBaseTests<FullArmor, any>({
     filters: filters,
     expected: {
         table: 'full_armory',
+        fill: false,
         whereClausesCount: 0,
         filterParams: [],
     },

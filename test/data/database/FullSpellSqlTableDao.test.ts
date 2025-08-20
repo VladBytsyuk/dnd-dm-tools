@@ -44,6 +44,7 @@ runSqlDaoBaseTests<FullSpell, SpellbookFilters>({
     filters: filters,
     expected: {
         table: 'full_spellbook',
+        fill: false,
         whereClausesCount: 0,
         filterParams: [],
     },

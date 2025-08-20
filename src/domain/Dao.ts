@@ -86,6 +86,7 @@ export abstract class Dao<T extends WithUrl, F> implements Initializable {
         const result = this.database.exec(`
             SELECT name FROM sqlite_master WHERE type='table' AND name='${this.getTableName()}';
         `);
+        if (!result) return false;
         return result.length > 0 && result[0].values.length > 0;
     }
 
@@ -93,6 +94,7 @@ export abstract class Dao<T extends WithUrl, F> implements Initializable {
         const result = this.database.exec(`
             SELECT COUNT(*) FROM ${this.getTableName()};
         `);
+        if (!result) return true;
         return result.length === 0 || result[0].values[0][0] === 0;
     }
 
@@ -128,20 +130,20 @@ export abstract class Dao<T extends WithUrl, F> implements Initializable {
         }
 
         let query = `SELECT * FROM ${this.getTableName()}`
-        if (whereClauses.length > 0) {
+        if (whereClauses && whereClauses.length > 0) {
             query += ` WHERE ${whereClauses.join(' AND ')}`;
         }
         query += ';';
         const result = this.database.exec(query, params);
 
-        if (result.length === 0 || result[0].values.length === 0) return [];
+        if (!result || result.length === 0 || result[0].values.length === 0) return [];
 
         return Promise.all(result[0].values.map(it => this.mapSqlValues(it)));
     }
 
     async readAllItemsNames(): Promise<string[]> {
         const result = this.database.exec(`SELECT DISTINCT rus_name FROM ${this.getTableName()};`);
-        if (result.length === 0 || result[0].values.length === 0) return [];
+        if (!result || result.length === 0 || result[0].values.length === 0) return [];
         return result[0].values.map(it => it[0] as string);
     }
 
@@ -168,7 +170,7 @@ export abstract class Dao<T extends WithUrl, F> implements Initializable {
         const result = this.database.exec(`
             SELECT * FROM ${this.getTableName()} WHERE ${clause};
         `, params);
-        if (result.length === 0 || result[0].values.length === 0) return null;
+        if (!result || result.length === 0 || result[0].values.length === 0) return null;
 
         const row = result[0].values[0];
         

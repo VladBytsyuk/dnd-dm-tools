@@ -64,6 +64,7 @@ runSqlDaoBaseTests<FullMonster, BestiaryFilters>({
     filters: filters,
     expected: {
         table: 'full_bestiary',
+        fill: false,
         whereClausesCount: 0,
         filterParams: [],
     },

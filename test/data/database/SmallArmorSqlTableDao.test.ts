@@ -30,6 +30,7 @@ runSqlDaoBaseTests<SmallArmor, ArmoryFilters>({
     filters: filters,
     expected: {
         table: 'small_armory',
+        fill: true,
         whereClausesCount: 2,
         filterParams: ['Medium', 'Heavy', 'PHB'],
     },

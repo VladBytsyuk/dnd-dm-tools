@@ -26,6 +26,7 @@ runSqlDaoBaseTests<SmallItem, EquipmentFilters>({
     filters: filters,
     expected: {
         table: 'small_equipment',
+        fill: true,
         whereClausesCount: 1,
         filterParams: ['PHB'],
     },

@@ -38,6 +38,7 @@ runSqlDaoBaseTests<FullWeapon, ArsenalFilters>({
     filters: filters,
     expected: {
         table: 'full_arsenal',
+        fill: false,
         whereClausesCount: 0,
         filterParams: [],
     },

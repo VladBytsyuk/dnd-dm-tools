@@ -39,6 +39,7 @@ runSqlDaoBaseTests<SmallArtifact, ArtifactoryFilters>({
     filters: filters,
     expected: {
         table: 'small_artifactory',
+        fill: true,
         whereClausesCount: 3,
         filterParams: ['Wondrous Item', 'PHB', 'common'],
     },

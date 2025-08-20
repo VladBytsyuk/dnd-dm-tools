@@ -35,6 +35,7 @@ runSqlDaoBaseTests<SmallSpell, SpellbookFilters>({
     filters: filters,
     expected: {
         table: 'small_spellbook',
+        fill: true,
         whereClausesCount: 3,
         filterParams: [3, 'Evocation', 'PHB'],
     },
