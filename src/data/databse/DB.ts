@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer';
 import type { Dao } from '../../domain/Dao';
-import { SmallMosterSqlTableDao } from './SmallMosterSqlTableDao';
+import { SmallMonsterSqlTableDao } from './SmallMonsterSqlTableDao';
 import { FileSystemAdapter, type App, type PluginManifest } from 'obsidian';
 import initSqlJs, { type Database } from 'sql.js';
 import { FullMonsterSqlTableDao } from './FullMonsterSqlTableDao';
@@ -21,7 +21,7 @@ export default class DB implements Initializable {
 
     private database: Database | null = null;
     private databasePath: string;
-    public smallMonsterDao: SmallMosterSqlTableDao;
+    public smallMonsterDao: SmallMonsterSqlTableDao;
     public fullMonsterDao: FullMonsterSqlTableDao;
     public smallSpellDao: SmallSpellSqlTableDao;
     public fullSpellDao: FullSpellSqlTableDao;
@@ -128,7 +128,7 @@ export default class DB implements Initializable {
     }
 
     private initDaos(database: Database): Dao<any, any>[] {
-        this.smallMonsterDao = new SmallMosterSqlTableDao(database, this.app, this.manifest);
+        this.smallMonsterDao = new SmallMonsterSqlTableDao(database, this.app, this.manifest);
         this.fullMonsterDao = new FullMonsterSqlTableDao(database);
         this.smallSpellDao = new SmallSpellSqlTableDao(database, this.app, this.manifest);
         this.fullSpellDao = new FullSpellSqlTableDao(database);

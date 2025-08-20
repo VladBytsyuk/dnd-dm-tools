@@ -1,4 +1,4 @@
 export interface NamedValue {
     name: string;
-    value: number;
+    value: number | string;
 }

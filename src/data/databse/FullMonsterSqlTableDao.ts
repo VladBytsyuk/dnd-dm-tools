@@ -71,15 +71,9 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
 
     // CRUD operations
     async createItem(item: FullMonster): Promise<void> {
-        const existing = this.database.exec(
-            `SELECT 1 FROM ${this.getTableName()} WHERE url = ? LIMIT 1;`,
-            [item.url]
-        );
-        if (existing.length > 0 && existing[0].values.length > 0) {
-            console.warn(`Item with url ${item.url} already exists in ${this.getTableName()}. Skipping creation.`);
-            return;
-        }
-        this.database.run(
+        const existing = await this.checkItemExists(item);
+        if (existing) return;
+        this.database.exec(
             `INSERT INTO ${this.getTableName()} (
                 rus_name, eng_name, type, challenge_rating, url, source_short_name, source_name, group_name, group_short_name, homebrew,
                 size_rus, size_eng, size_cell, experience, proficiency_bonus, alignment, armor_class, armors,
@@ -137,12 +131,6 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
                 JSON.stringify(item.images ?? [])
             ]
         );
-    }
-
-    async readAllItemsNames(): Promise<string[]> {
-        const result = this.database.exec(`SELECT DISTINCT rus_name FROM ${this.getTableName()};`);
-        if (result.length === 0 || result[0].values.length === 0) return [];
-        return result[0].values.map(it => it[0] as string);
     }
 
     async updateItem(item: FullMonster): Promise<void> {
@@ -263,7 +251,7 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
                     name: sqlValues[8] as string,
                     shortName: sqlValues[9] as string,
                 },
-                homebrew: Boolean(sqlValues[10]),
+                homebrew: sqlValues[10] ? Boolean(sqlValues[10]) : undefined,
             },
             size: {
                 rus: sqlValues[11] as string,

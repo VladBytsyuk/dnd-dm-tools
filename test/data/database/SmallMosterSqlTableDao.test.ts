@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { SmallMosterSqlTableDao } from '../../../src/data/databse/SmallMosterSqlTableDao';
+import { SmallMonsterSqlTableDao } from '../../../src/data/databse/SmallMonsterSqlTableDao';
 import type { SmallMonster } from '../../../src/domain/models/monster/SmallMonster';
 import type { BestiaryFilters } from '../../../src/domain/models/monster/BestiaryFilters';
 import { runSqlDaoBaseTests } from './Dao';
@@ -25,7 +25,7 @@ const filters: BestiaryFilters = {
 
 runSqlDaoBaseTests<SmallMonster, BestiaryFilters>({
     title: 'SmallMosterSqlTableDao',
-    daoFactory: ({ app, db, manifest }) => new SmallMosterSqlTableDao(db, app, manifest),
+    daoFactory: ({ app, db, manifest }) => new SmallMonsterSqlTableDao(db, app, manifest),
     sample: sampleMonster,
     filters: filters,
     expected: {

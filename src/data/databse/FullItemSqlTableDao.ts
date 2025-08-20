@@ -37,15 +37,8 @@ export class FullItemSqlTableDao extends Dao<FullItem, any> {
 
     // CRUD operations
     async createItem(item: FullItem): Promise<void> {
-        const existing = this.database.exec(
-            `SELECT 1 FROM ${this.getTableName()} WHERE url = ? LIMIT 1;`,
-            [item.url]
-        );
-        if (existing.length > 0 && existing[0].values.length > 0) {
-            console.warn(`Item with url ${item.url} already exists in ${this.getTableName()}. Skipping creation.`);
-            return;
-        }
-
+        const existing = await this.checkItemExists(item);
+        if (existing) return;
         this.database.exec(`
             INSERT INTO ${this.getTableName()} (
                 rus_name, eng_name, url, source_short_name, source_name,
@@ -103,7 +96,7 @@ export class FullItemSqlTableDao extends Dao<FullItem, any> {
                     name: values[6] as string,
                     shortName: values[7] as string,
                 },
-                homebrew: !!values[8],
+                homebrew: Boolean(values[8]),
             },
             price: values[9] ? values[9] as string : undefined,
             weight: values[10] ? +(values[10] as string) : undefined,

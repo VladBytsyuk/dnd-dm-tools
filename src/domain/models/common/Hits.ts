@@ -1,6 +1,6 @@
 export interface Hits {
     average: number;
     formula: string;
-    sign: string;
-    bonus: number;
+    sign?: string;
+    bonus?: number;
 }

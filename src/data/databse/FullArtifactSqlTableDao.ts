@@ -1,6 +1,7 @@
 import type { Database, SqlValue } from "sql.js";
 import { Dao } from "src/domain/Dao";
 import type { FullArtifact } from "src/domain/models/artifact/FullArtifact";
+import type { DetailType } from "../../domain/models/common/DetailType";
 
 export class FullArtifactSqlTableDao extends Dao<FullArtifact, any> {
 
@@ -29,6 +30,7 @@ export class FullArtifactSqlTableDao extends Dao<FullArtifact, any> {
                 rarity_type TEXT NOT NULL,
                 rarity_name TEXT NOT NULL,
                 rarity_short TEXT NOT NULL,
+                customization INTEGER DEFAULT 0,
                 source_short_name TEXT NOT NULL,
                 source_name TEXT NOT NULL,
                 group_name TEXT NOT NULL,
@@ -46,14 +48,8 @@ export class FullArtifactSqlTableDao extends Dao<FullArtifact, any> {
 
     // CRUD operations
     async createItem(item: FullArtifact): Promise<void> {
-        const existing = this.database.exec(
-            `SELECT 1 FROM ${this.getTableName()} WHERE url = ? LIMIT 1;`,
-            [item.url]
-        );
-        if (existing.length > 0 && existing[0].values.length > 0) {
-            console.warn(`Item with url ${item.url} already exists in ${this.getTableName()}. Skipping creation.`);
-            return;
-        }
+        const existing = await this.checkItemExists(item);
+        if (existing) return;
         this.database.exec(`
             INSERT INTO ${this.getTableName()} (
                 rus_name,
@@ -66,6 +62,7 @@ export class FullArtifactSqlTableDao extends Dao<FullArtifact, any> {
                 rarity_type,
                 rarity_name,
                 rarity_short,
+                cusstomization,
                 source_short_name,
                 source_name,
                 group_name,
@@ -77,7 +74,7 @@ export class FullArtifactSqlTableDao extends Dao<FullArtifact, any> {
                 cost_xge,
                 images,
                 detail_customization
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
             item.name.rus,
             item.name.eng,
@@ -89,6 +86,7 @@ export class FullArtifactSqlTableDao extends Dao<FullArtifact, any> {
             item.rarity.type,
             item.rarity.name,
             item.rarity.short,
+            item.customization ? 1 : 0,
             item.source.shortName,
             item.source.name,
             item.source.group.name,
@@ -99,14 +97,8 @@ export class FullArtifactSqlTableDao extends Dao<FullArtifact, any> {
             item.cost?.dmg ?? null,
             item.cost?.xge ?? null,
             item.images ? JSON.stringify(item.images) : null,
-            item.detailCustamization ? JSON.stringify(item.detailCustamization) : null,
+            item.detailCustomization ? JSON.stringify(item.detailCustomization) : null,
         ]);
-    }
-
-    async readAllItemsNames(): Promise<string[]> {
-        const result = this.database.exec(`SELECT DISTINCT rus_name FROM ${this.getTableName()};`);
-        if (result.length === 0 || result[0].values.length === 0) return [];
-        return result[0].values.map(it => it[0] as string);
     }
 
     async updateItem(item: FullArtifact): Promise<void> {
@@ -122,6 +114,7 @@ export class FullArtifactSqlTableDao extends Dao<FullArtifact, any> {
                 rarity_type = ?,
                 rarity_name = ?,
                 rarity_short = ?,
+                customization = ?,
                 source_short_name = ?,
                 source_name = ?,
                 group_name = ?,
@@ -145,6 +138,7 @@ export class FullArtifactSqlTableDao extends Dao<FullArtifact, any> {
             item.rarity.type,
             item.rarity.name,
             item.rarity.short,
+            item.customization ? 1 : 0,
             item.source.shortName,
             item.source.name,
             item.source.group.name,
@@ -155,7 +149,7 @@ export class FullArtifactSqlTableDao extends Dao<FullArtifact, any> {
             item.cost?.dmg ?? null,
             item.cost?.xge ?? null,
             item.images ? JSON.stringify(item.images) : null,
-            item.detailCustamization ? JSON.stringify(item.detailCustamization) : null,
+            item.detailCustomization ? JSON.stringify(item.detailCustomization) : null,
             item.url
         ]);
     }
@@ -181,23 +175,24 @@ export class FullArtifactSqlTableDao extends Dao<FullArtifact, any> {
                 name: values[9] as string,
                 short: values[10] as string,
             },
+            customization: Boolean(values[11]),
             source: {
-                shortName: values[11] as string,
-                name: values[12] as string,
+                shortName: values[12] as string,
+                name: values[13] as string,
                 group: {
-                    name: values[13] as string,
-                    shortName: values[14] as string,
+                    name: values[14] as string,
+                    shortName: values[15] as string,
                 },
-                homebrew: (values[15] as number) === 1,
+                homebrew: (values[16] as number) === 1,
             },
-            description: values[16] as string,
-            detailType: values[17] ? JSON.parse(values[17] as string) : undefined,
+            description: values[17] as string,
+            detailType: values[18] ? JSON.parse(values[18] as string) as DetailType[] : undefined,
             cost: {
-                dmg: values[18] as string | null,
-                xge: values[19] as string | null,
+                dmg: values[19] as string | null,
+                xge: values[20] as string | null,
             },
-            images: values[20] ? JSON.parse(values[20] as string) : undefined,
-            detailCustamization: values[21] ? JSON.parse(values[21] as string) : undefined,
+            images: values[21] ? JSON.parse(values[21] as string) : undefined,
+            detailCustomization: values[22] ? JSON.parse(values[22] as string) : undefined,
         };
     }
 }

@@ -42,14 +42,8 @@ export class FullArmorSqlTableDao extends Dao<FullArmor, any> {
 
     // CRUD operations
     async createItem(item: FullArmor): Promise<void> {
-        const existing = this.database.exec(
-            `SELECT 1 FROM ${this.getTableName()} WHERE url = ? LIMIT 1;`,
-            [item.url]
-        );
-        if (existing.length > 0 && existing[0].values.length > 0) {
-            console.warn(`Item with url ${item.url} already exists in ${this.getTableName()}. Skipping creation.`);
-            return;
-        }
+        const existing = await this.checkItemExists(item);
+        if (existing) return;
         this.database.exec(`
             INSERT INTO ${this.getTableName()} (
                 rus_name,
@@ -89,12 +83,6 @@ export class FullArmorSqlTableDao extends Dao<FullArmor, any> {
             item.requirement ?? 0,
             item.duration,
         ]);
-    }
-
-    async readAllItemsNames(): Promise<string[]> {
-        const result = this.database.exec(`SELECT DISTINCT rus_name FROM ${this.getTableName()};`);
-        if (result.length === 0 || result[0].values.length === 0) return [];
-        return result[0].values.map(it => it[0] as string);
     }
 
     async updateItem(item: FullArmor): Promise<void> {

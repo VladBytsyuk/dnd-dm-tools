@@ -4,7 +4,7 @@ import { Dao, WhereClauseData } from '../../domain/Dao';
 import type { App, PluginManifest } from 'obsidian';
 import type { BestiaryFilters } from 'src/domain/models/monster/BestiaryFilters';
 
-export class SmallMosterSqlTableDao extends Dao<SmallMonster, BestiaryFilters> {
+export class SmallMonsterSqlTableDao extends Dao<SmallMonster, BestiaryFilters> {
 
     constructor(
         database: Database,
