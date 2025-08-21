@@ -15,6 +15,8 @@ export function mockDatabase<
         transaction: vi.fn(),
         smallArmorDao: mockItemDao<SmallItem, Filter>(smallItems),
         fullArmorDao: mockItemDao<FullItem, Filter>(fullItems),
+        smallWeaponDao: mockItemDao<SmallItem, Filter>(smallItems),
+        fullWeaponDao: mockItemDao<FullItem, Filter>(fullItems),
     } as any
 }
 

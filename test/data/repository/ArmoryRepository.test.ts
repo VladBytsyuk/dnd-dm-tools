@@ -8,7 +8,7 @@ import { fullArmorLeather, fullArmorRingMail, fullArmorScaleMail } from "../../_
 import { mockDatabase } from "../../__mocks__/dao/mock_item_dao";
 
 runBaseRepositoryTests<SmallArmor, FullArmor, ArmoryFilters>({
-    title: 'Armory Repository Tests',
+    title: 'Repository: Armory',
     repoFactory: () => new ArmoryRepository(
         mockDatabase(
             [smallArmorLeather, smallArmorScaleMail, smallArmorRingMail],
