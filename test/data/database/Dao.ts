@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mockApp, mockDatabase, mockManifest } from '../../__mocks__/data';
 import { Dao } from '../../../src/domain/Dao';
-import { WithUrl } from '../../../src/domain/models/common/WithUrl';
+import { BaseItem } from '../../../src/domain/models/common/BaseItem';
 
 type Deps = { app: any; db: any; manifest: any };
 
@@ -23,7 +23,7 @@ export interface DaoTestConfig<TItem, TFilters> {
     mutate?: (item: TItem) => TItem;
 }
 
-export function runSqlDaoBaseTests<TItem extends WithUrl, TFilters>(cfg: DaoTestConfig<TItem, TFilters>) {
+export function runSqlDaoBaseTests<TItem extends BaseItem, TFilters>(cfg: DaoTestConfig<TItem, TFilters>) {
     describe(cfg.title, () => {
         let dao: Dao<TItem, TFilters>;
 

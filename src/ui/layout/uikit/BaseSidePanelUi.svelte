@@ -2,15 +2,15 @@
 	import SidePanelHeader from "./SidePanelHeader.svelte";
 	import { onMount } from "svelte";
 	import GroupBlockUi from "./GroupBlockUi.svelte";
-	import type { WithUrl } from "src/domain/models/common/WithUrl";
-	import type { Group, Repository } from "src/domain/repositories/Repository";
+	import type { WithUrl } from "src/domain/models/common/BaseItem";
+	imBaseItempe { Group, Repository } from "src/domain/repositories/Repository";
 	import { isFiltersEmpty, type Filters } from "src/domain/models/common/Filters";
 	import type { IUiEventListener } from 'src/domain/listeners/ui_event_listener.js';
 
     // ---- Props ----
     interface Props<Small extends WithUrl, Full extends Small, F extends Filters> {
         initialFullItem?: Full;
-        initialFilters: F;
+        initialFilters: FBaseItem
         uiEventListener: IUiEventListener;
         repository: Repository<Small, Full, F>;
         openFiltersModal: (fullFilters: F, filters: F, onApply: (newFilters: F) => Promise<void>) => void;
@@ -43,9 +43,9 @@
     // ---- Event Handlers ----
     function onSearchBarBackClick() {
         if (itemsStack.length >= 1) {
-            itemsStack.pop();
-            currentItem = itemsStack.last() || undefined;
-        }
+            itemsStaBaseItem);
+            currentItem = itemsStack.last() || undefinedBaseItem
+        }BaseItem
     }
 
     function onSearchBarValueChanged(value: string) { 
@@ -77,7 +77,7 @@
     async function updateGroups() {
         const searchValueNormalized = searchBarValue.toLowerCase();
         const smallItems: WithUrl[] = await repository.getFilteredSmallItems(searchValueNormalized, filters);
-        groups = await repository.groupItems(smallItems);
+BaseItem groups = await repository.groupItems(smallItems);
     }
 </script>
 
@@ -86,7 +86,7 @@
         onbackclick={currentItem ? onSearchBarBackClick : undefined}    
         onvaluechange={onSearchBarValueChanged}
         isvaluechangable={() => !currentItem}
-        onclearclick={undefined}
+        onclearclick={undefined}BaseItem
         onfiltersclick={currentItem ? undefined : onSearchBarFiltersClick}
         isfiltersapplied={() => !isFiltersEmpty(filters)}
     />

@@ -1,6 +1,6 @@
 import type { Initializable } from "src/domain/Initializable";
 import type { Filters } from "src/domain/models/common/Filters";
-import type { WithUrl } from "src/domain/models/common/WithUrl";
+import type { BaseItem } from "src/domain/models/common/BaseItem";
 import type { Repository } from "src/domain/repositories/Repository";
 import type DndStatblockPlugin from "src/main";
 import type { BaseSidePanel } from "../sidepanel/BaseSidePanel";
@@ -10,7 +10,7 @@ import type { BaseMdCodeBlockProcessor } from "../processor/BaseMdCodeBlockProce
 import type { Editor } from "obsidian";
 
 export abstract class BaseFeature<
-    ST extends WithUrl,
+    ST extends BaseItem,
     FT extends ST,
     F extends Filters,
 > implements Initializable {

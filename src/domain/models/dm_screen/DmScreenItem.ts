@@ -1,9 +1,8 @@
 import type { Name } from "../common/Name";
 import type { Source } from "../common/Source";
-import type { WithUrl } from "../common/WithUrl";
+import type { BaseItem } from "../common/BaseItem";
 
-export interface DmScreenItem extends WithUrl {
-    name: Name;
+export interface DmScreenItem extends BaseItem {
     order: number;
     source: Source;
     description?: string;

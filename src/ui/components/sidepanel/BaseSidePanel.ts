@@ -1,11 +1,11 @@
 import { ItemView, type WorkspaceLeaf } from "obsidian";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type { Filters } from "src/domain/models/common/Filters";
-import type { WithUrl } from "src/domain/models/common/WithUrl";
+import type { BaseItem } from "src/domain/models/common/BaseItem";
 import type { Repository } from "src/domain/repositories/Repository";
 import type DndStatblockPlugin from "src/main";
 
-export abstract class BaseSidePanel<ST extends WithUrl, FT extends ST, F extends Filters> {
+export abstract class BaseSidePanel<ST extends BaseItem, FT extends ST, F extends Filters> {
 
     abstract getKey(): string;
     abstract getRibbonIconName(): string;
@@ -64,7 +64,7 @@ export abstract class BaseSidePanel<ST extends WithUrl, FT extends ST, F extends
     }
 }
 
-class SidePanelItemView<ST extends WithUrl, FT extends ST, F extends Filters> extends ItemView {
+class SidePanelItemView<ST extends BaseItem, FT extends ST, F extends Filters> extends ItemView {
 
     constructor(
         leaf: WorkspaceLeaf,

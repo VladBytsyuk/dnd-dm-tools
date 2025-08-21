@@ -2,11 +2,11 @@ import type { Group, Repository } from "src/domain/repositories/Repository";
 import type DB from "../databse/DB";
 import type { Dao } from "src/domain/Dao";
 import { requestUrl } from "obsidian";
-import type { WithUrl } from "src/domain/models/common/WithUrl";
+import type { BaseItem } from "src/domain/models/common/BaseItem";
 
 export abstract class BaseRepository<
-    SmallItem extends WithUrl, 
-    FullItem extends WithUrl, 
+    SmallItem extends BaseItem, 
+    FullItem extends SmallItem, 
     Filter
 > implements Repository<SmallItem, FullItem, Filter> {
 
@@ -39,14 +39,15 @@ export abstract class BaseRepository<
 
     async getAllFilters(): Promise<Filter | null> {
         if (this.#filters) return this.#filters;
-        this.initialize();
-        return await this.getAllFilters();
+        const allSmallItems = this.#smallItems ? this.#smallItems :await this.smallItemDao.readAllItems(null, null);
+        this.#filters = await this.collectFiltersFromAllItems(allSmallItems) ?? undefined;
+        return this.#filters ?? null;
     }
 
     async getAllSmallItems(): Promise<SmallItem[]> {
         if (this.#smallItems) return this.#smallItems;
-        await this.initialize();
-        return await this.getAllSmallItems();
+        this.#smallItems = await this.smallItemDao.readAllItems(null, null) ?? [];
+        return this.#smallItems;
     }
 
     async getFilteredSmallItems(

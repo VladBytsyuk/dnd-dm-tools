@@ -1,6 +1,6 @@
 import type { App, PluginManifest } from "obsidian";
 import type { Database, SqlValue } from "sql.js";
-import type { WithUrl } from "./models/common/WithUrl";
+import type { BaseItem } from "./models/common/BaseItem";
 import type { Initializable } from "./Initializable";
 
 export interface WhereClauseData {
@@ -12,7 +12,7 @@ export function WhereClauseData(whereClauses: string[], params: SqlValue[]): Whe
     return { whereClauses, params };
 }
 
-export abstract class Dao<T extends WithUrl, F> implements Initializable {
+export abstract class Dao<T extends BaseItem, F> implements Initializable {
 
     app: App | null = null;
     manifest: PluginManifest | null = null;
