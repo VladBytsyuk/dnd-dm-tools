@@ -5,7 +5,8 @@
 	import { formatModifier } from "src/domain/modifier";
 	import { copyEncounterToClipboard, getEncounterFromClipboard, getEncounterParticipantFromClipboard } from "src/data/clipboard";
 	import { getImageSource } from "src/domain/utils/image_utils";
-	import type { Encounter, EncounterParticipant } from "src/domain/models/encounter/EncounterParticipant";
+	import type { EncounterParticipant } from "src/domain/models/encounter/EncounterParticipant";
+	import type { Encounter } from "src/domain/models/encounter/Encounter";
 
     let { app, encounter, isEditable, onPortraitClick } = $props();
     let stateEncounter: Encounter = $state(encounter);
@@ -17,7 +18,7 @@
 
     onMount(async () => {
         const newParticipants = await Promise.all(
-            stateEncounter.participants.map(async (it) => 
+            stateEncounter.participants.map(async (it: EncounterParticipant) => 
                 it.imageUrl ? ({...it, imageUrl: await getImageSource(app, it.imageUrl)}) : it
             )
         )
@@ -54,16 +55,19 @@
     };
 
     const rollInitiative = () => {
-        updateParticipants(stateEncounter.participants.map((it) => it.initiative !== 0 ? it : ({...it, initiative: roll(d20()(it.initiativeModifier))})));
+        updateParticipants(
+            stateEncounter.participants
+                .map((it: EncounterParticipant) => it.initiative !== 0 ? it : ({...it, initiative: roll(d20()(it.initiativeModifier))}))
+        );
     };
 
     const sortByInitiative = () => {
-        updateParticipants(stateEncounter.participants.sort((a, b) => b.initiative - a.initiative));
+        updateParticipants(stateEncounter.participants.sort((a: EncounterParticipant, b: EncounterParticipant) => b.initiative - a.initiative));
     }
 
     const removeParticipant = (id: number) => {
         if (!isEditable) return;
-        updateParticipants(stateEncounter.participants.filter(it => it.id !== id));
+        updateParticipants(stateEncounter.participants.filter((it: EncounterParticipant) => it.id !== id));
     }
 
     const addParticipant = () => {
@@ -108,7 +112,9 @@
         if (e.key === 'Enter') {
             const result = evaluateExpression(e.target.value, min, max);
             if (!isNaN(result)) {
-                updateParticipants(stateEncounter.participants.map(it => it.id === participant.id ? { ...it, [field]: Number(result) } : it));
+                updateParticipants(
+                    stateEncounter.participants.map((it: EncounterParticipant) => it.id === participant.id ? { ...it, [field]: Number(result) } : it)
+                );
                 calcTempValues.delete(id);
             }
             e.target.blur();
@@ -128,7 +134,9 @@
         const id = `${participant.id}-${field}`
         const result = evaluateExpression(e.target.value, min, max);
         if (!isNaN(result)) {
-            updateParticipants(stateEncounter.participants.map(it => it.id === participant.id ? { ...it, [field]: Number(result) } : it));
+            updateParticipants(
+                stateEncounter.participants.map((it: EncounterParticipant) => it.id === participant.id ? { ...it, [field]: Number(result) } : it)
+            );
             calcTempValues.delete(id);
         }
         removeEditingState(id);
@@ -234,7 +242,11 @@
                     {#if participant.imageUrl}
                         <img class="participants-list-cell-value-portrait" 
                             src={participant.imageUrl} alt={participant.name}
-                            onerror={(e) => e.target.src = "https://ttg.club/img/no-img.webp"} />
+                            onerror={(e: Event) => {
+                                if (e.target instanceof HTMLImageElement) {
+                                    e.target.src = "https://ttg.club/img/no-img.webp";
+                                }
+                            }} />
                     {/if}
                 </button>
                 {#if editingId === `${participant.id}-initiative`}
