@@ -42,122 +42,137 @@ export class FullWeaponSqlTableDao extends Dao<FullWeapon, any> {
 
     // CRUD operations
     async createItem(item: FullWeapon): Promise<void> {
-        const existing = await this.checkItemExists(item);
-        if (existing) return;
-        this.database.exec(`
-            INSERT INTO ${this.getTableName()} (
-                rus_name,
-                eng_name,
-                type_name,
-                type_order,
-                url,
-                damage_dice,
-                damage_type,
-                price,
-                source_short_name,
-                source_name,
-                group_name,
-                group_short_name,
-                homebrew,
-                weight,
-                special,
-                description,
-                properties
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `, [
-            item.name.rus,
-            item.name.eng,
-            item.type.name,
-            item.type.order ?? null,
-            item.url,
-            item.damage.dice ?? null,
-            item.damage.type,
-            item.price,
-            item.source.shortName,
-            item.source.name,
-            item.source.group.name,
-            item.source.group.shortName,
-            item.source.homebrew ? 1 : 0,
-            "" + item.weight,
-            item.special ?? null,
-            item.description ?? null,
-            JSON.stringify(item.properties ?? []),
-        ]);
+        try {
+            const existing = await this.checkItemExists(item);
+            if (existing) return;
+            this.database.exec(`
+                INSERT INTO ${this.getTableName()} (
+                    rus_name,
+                    eng_name,
+                    type_name,
+                    type_order,
+                    url,
+                    damage_dice,
+                    damage_type,
+                    price,
+                    source_short_name,
+                    source_name,
+                    group_name,
+                    group_short_name,
+                    homebrew,
+                    weight,
+                    special,
+                    description,
+                    properties
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `, [
+                item.name.rus,
+                item.name.eng,
+                item.type.name,
+                item.type.order ?? null,
+                item.url,
+                item.damage.dice ?? null,
+                item.damage.type,
+                item.price,
+                item.source.shortName,
+                item.source.name,
+                item.source.group.name,
+                item.source.group.shortName,
+                item.source.homebrew ? 1 : 0,
+                "" + item.weight,
+                item.special ?? null,
+                item.description ?? null,
+                JSON.stringify(item.properties ?? []),
+            ]);
+        } catch (error) {
+            console.error(`Error creating FullWeapon item ${item.name.rus}:`, error);
+            throw error;
+        }
     }
 
     async updateItem(item: FullWeapon): Promise<void> {
-        this.database.exec(`
-            UPDATE ${this.getTableName()} SET
-                rus_name = ?,
-                eng_name = ?,
-                type_name = ?,
-                type_order = ?,
-                url = ?,
-                damage_dice = ?,
-                damage_type = ?,
-                price = ?,
-                source_short_name = ?,
-                source_name = ?,
-                group_name = ?,
-                group_short_name = ?,
-                homebrew = ?,
-                weight = ?,
-                special = ?,
-                description = ?,
-                properties = ?
-            WHERE url = ?;
-        `, [
-            item.name.rus,
-            item.name.eng,
-            item.type.name,
-            item.type.order ?? null,
-            item.url,
-            item.damage.dice ?? null,
-            item.damage.type,
-            item.price,
-            item.source.shortName,
-            item.source.name,
-            item.source.group.name,
-            item.source.group.shortName,
-            item.source.homebrew ? 1 : 0,
-            "" + item.weight,
-            item.special ?? null,
-            item.description ?? null,
-            JSON.stringify(item.properties ?? []),
-            item.url,
-        ]);
+        try {
+            this.database.exec(`
+                UPDATE ${this.getTableName()} SET
+                    rus_name = ?,
+                    eng_name = ?,
+                    type_name = ?,
+                    type_order = ?,
+                    url = ?,
+                    damage_dice = ?,
+                    damage_type = ?,
+                    price = ?,
+                    source_short_name = ?,
+                    source_name = ?,
+                    group_name = ?,
+                    group_short_name = ?,
+                    homebrew = ?,
+                    weight = ?,
+                    special = ?,
+                    description = ?,
+                    properties = ?
+                WHERE url = ?;
+            `, [
+                item.name.rus,
+                item.name.eng,
+                item.type.name,
+                item.type.order ?? null,
+                item.url,
+                item.damage.dice ?? null,
+                item.damage.type,
+                item.price,
+                item.source.shortName,
+                item.source.name,
+                item.source.group.name,
+                item.source.group.shortName,
+                item.source.homebrew ? 1 : 0,
+                "" + item.weight,
+                item.special ?? null,
+                item.description ?? null,
+                JSON.stringify(item.properties ?? []),
+                item.url,
+            ]);
+        } catch (error) {
+            console.error(`Error updating FullWeapon item ${item.name.rus}:`, error);
+            throw error;
+        }
     }
 
     // Mapper
     async mapSqlValues(sqlValues: SqlValue[]): Promise<FullWeapon> {
-        return {
-            name: {
-                rus: sqlValues[1] as string,
-                eng: sqlValues[2] as string
-            },
-            type: {
-                name: sqlValues[3] as string,
-                order: sqlValues[4] as number,
-            },
-            url: sqlValues[5] as string,
-            damage: {
-                dice: sqlValues[6] ? sqlValues[6] as string : undefined,
-                type: sqlValues[7] as string,
-            },
-            price: sqlValues[8] as string,
-            source: {
-                shortName: sqlValues[9] as string,
-                name: sqlValues[10] as string,
-                group: {
-                    name: sqlValues[11] as string,
-                    shortName: sqlValues[12] as string
+        try {
+            return {
+                name: {
+                    rus: sqlValues[1] as string,
+                    eng: sqlValues[2] as string
                 },
-                homebrew: Boolean(sqlValues[13]),
-            },
-            weight: +(sqlValues[14] as string),
-            special: sqlValues[15] ? sqlValues[15] as string : undefined,
-            description: sqlValues[16] ? sqlValues[16] as string : undefined,
-            properties: JSON.parse(sqlValues[17] as string) || [],
+                type: {
+                    name: sqlValues[3] as string,
+                    order: sqlValues[4] as number,
+                },
+                url: sqlValues[5] as string,
+                damage: {
+                    dice: sqlValues[6] ? sqlValues[6] as string : undefined,
+                    type: sqlValues[7] as string,
+                },
+                price: sqlValues[8] as string,
+                source: {
+                    shortName: sqlValues[9] as string,
+                    name: sqlValues[10] as string,
+                    group: {
+                        name: sqlValues[11] as string,
+                        shortName: sqlValues[12] as string
+                    },
+                    homebrew: Boolean(sqlValues[13]),
+                },
+                weight: +(sqlValues[14] as string),
+                special: sqlValues[15] ? sqlValues[15] as string : undefined,
+                description: sqlValues[16] ? sqlValues[16] as string : undefined,
+                properties: JSON.parse(sqlValues[17] as string) || [],
+            }
+        } catch (error) {
+            console.error('Error mapping SQL values to FullWeapon:', error);
+            throw error;
         }
     }
 }

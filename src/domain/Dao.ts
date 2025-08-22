@@ -85,68 +85,93 @@ export abstract class Dao<T extends BaseItem, F> implements Initializable {
     }
 
     async isTableExists(): Promise<boolean> {
-        const result = this.database.exec(`
-            SELECT name FROM sqlite_master WHERE type='table' AND name='${this.getTableName()}';
-        `);
-        if (!result) return false;
-        return result.length > 0 && result[0].values.length > 0;
+        try {
+            const result = this.database.exec(`
+                SELECT name FROM sqlite_master WHERE type='table' AND name='${this.getTableName()}';
+            `);
+            if (!result) return false;
+            return result.length > 0 && result[0].values.length > 0;
+        } catch (error) {
+            console.error(`Error checking if table ${this.getTableName()} exists:`, error);
+            throw error;
+        }
     }
 
     async isTableEmpty(): Promise<boolean> {
-        const result = this.database.exec(`
-            SELECT COUNT(*) FROM ${this.getTableName()};
-        `);
-        if (!result) return true;
-        return result.length === 0 || result[0].values[0][0] === 0;
+        try {
+            const result = this.database.exec(`
+                SELECT COUNT(*) FROM ${this.getTableName()};
+            `);
+            if (!result) return true;
+            return result.length === 0 || result[0].values[0][0] === 0;
+        } catch (error) {
+            console.error(`Error checking if table ${this.getTableName()} is empty:`, error);
+            throw error;
+        }
     }
 
     // CRUD operations
     abstract createItem(item: T): Promise<void>;
 
     async checkItemExists(item: T): Promise<boolean> {
-        const existing = await this.database.exec(
-            `SELECT 1 FROM ${this.getTableName()} WHERE url = ? LIMIT 1;`,
-            [item.url]
-        );
-        if (existing.length > 0 && existing[0].values.length > 0) {
-            console.warn(`Item with url ${item.url} already exists in ${this.getTableName()}. Skipping creation.`);
-            return true;
+        try {
+            const existing = await this.database.exec(
+                `SELECT 1 FROM ${this.getTableName()} WHERE url = ? LIMIT 1;`,
+                [item.url]
+            );
+            if (existing.length > 0 && existing[0].values.length > 0) {
+                console.warn(`Item with url ${item.url} already exists in ${this.getTableName()}. Skipping creation.`);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error(`Error checking if item exists in ${this.getTableName()}:`, error);
+            throw error;
         }
-        return false;
     }
 
     async readAllItems(name: string | null, filters: F | null): Promise<T[]> {
-        let whereClauses: string[] = [];
-        let params: SqlValue[] = [];
+        try {
+            let whereClauses: string[] = [];
+            let params: SqlValue[] = [];
 
-        if (name) {
-            const filterByNameResult = await this.filterByName(name);
-            whereClauses.push(...filterByNameResult.whereClauses);
-            params.push(...filterByNameResult.params);
+            if (name) {
+                const filterByNameResult = await this.filterByName(name);
+                whereClauses.push(...filterByNameResult.whereClauses);
+                params.push(...filterByNameResult.params);
+            }
+
+            if (filters) {
+                const filterByFiltersResult = await this.filterByFilters(filters);
+                whereClauses.push(...filterByFiltersResult.whereClauses);
+                params.push(...filterByFiltersResult.params);
+            }
+
+            let query = `SELECT * FROM ${this.getTableName()}`
+            if (whereClauses && whereClauses.length > 0) {
+                query += ` WHERE ${whereClauses.join(' AND ')}`;
+            }
+            query += ';';
+            const result = this.database.exec(query, params);
+
+            if (!result || result.length === 0 || result[0].values.length === 0) return [];
+
+            return Promise.all(result[0].values.map(it => this.mapSqlValues(it)));
+        } catch (error) {
+            console.error(`Error reading items from ${this.getTableName()}:`, error);
+            throw error;
         }
-
-        if (filters) {
-            const filterByFiltersResult = await this.filterByFilters(filters);
-            whereClauses.push(...filterByFiltersResult.whereClauses);
-            params.push(...filterByFiltersResult.params);
-        }
-
-        let query = `SELECT * FROM ${this.getTableName()}`
-        if (whereClauses && whereClauses.length > 0) {
-            query += ` WHERE ${whereClauses.join(' AND ')}`;
-        }
-        query += ';';
-        const result = this.database.exec(query, params);
-
-        if (!result || result.length === 0 || result[0].values.length === 0) return [];
-
-        return Promise.all(result[0].values.map(it => this.mapSqlValues(it)));
     }
 
     async readAllItemsNames(): Promise<string[]> {
-        const result = this.database.exec(`SELECT DISTINCT rus_name FROM ${this.getTableName()};`);
-        if (!result || result.length === 0 || result[0].values.length === 0) return [];
-        return result[0].values.map(it => it[0] as string);
+        try {
+            const result = this.database.exec(`SELECT DISTINCT rus_name FROM ${this.getTableName()};`);
+            if (!result || result.length === 0 || result[0].values.length === 0) return [];
+            return result[0].values.map(it => it[0] as string);
+        } catch (error) {
+            console.error(`Error reading item names from ${this.getTableName()}:`, error);
+            throw error;
+        }
     }
 
     async filterByName(name: string): Promise<WhereClauseData> {
@@ -169,30 +194,50 @@ export abstract class Dao<T extends BaseItem, F> implements Initializable {
     }
 
     async readItem(clause: string, params: SqlValue[]): Promise<T | null> {
-        const result = this.database.exec(`
-            SELECT * FROM ${this.getTableName()} WHERE ${clause};
-        `, params);
-        if (!result || result.length === 0 || result[0].values.length === 0) return null;
+        try {
+            const result = this.database.exec(`
+                SELECT * FROM ${this.getTableName()} WHERE ${clause};
+            `, params);
+            if (!result || result.length === 0 || result[0].values.length === 0) return null;
 
-        const row = result[0].values[0];
-        
-        return this.mapSqlValues(row);
+            const row = result[0].values[0];
+            
+            return this.mapSqlValues(row);
+        } catch (error) {
+            console.error(`Error reading item from ${this.getTableName()}:`, error);
+            throw error;
+        }
     }
 
     abstract updateItem(item: T): Promise<void>;
 
     async deleteItemByName(name: string): Promise<void> {
-        this.deleteItem(`rus_name = ? OR eng_name = ?`, [name, name]);
+        try {
+            this.deleteItem(`rus_name = ? OR eng_name = ?`, [name, name]);
+        } catch (error) {
+            console.error(`Error deleting item by name from ${this.getTableName()}:`, error);
+            throw error;
+        }
     }
 
     async deleteItemByUrl(url: string): Promise<void> {
-        this.deleteItem(`url = ?`, [url]);
+        try {
+            this.deleteItem(`url = ?`, [url]);
+        } catch (error) {
+            console.error(`Error deleting item by url from ${this.getTableName()}:`, error);
+            throw error;
+        }
     }
 
     async deleteItem(clause: string, params: SqlValue[]) {
-        this.database.exec(`
-            DELETE FROM ${this.getTableName()} WHERE ${clause};
-        `, params);
+        try {
+            this.database.exec(`
+                DELETE FROM ${this.getTableName()} WHERE ${clause};
+            `, params);
+        } catch (error) {
+            console.error(`Error deleting item from ${this.getTableName()}:`, error);
+            throw error;
+        }
     }
 
     // Mapper

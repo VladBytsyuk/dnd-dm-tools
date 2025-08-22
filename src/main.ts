@@ -20,13 +20,13 @@ export default class DndStatblockPlugin extends Plugin {
 	// ---- fields ----
 	#database: DB;
 
-	private arsenalFeature: ArsenalFeature;
-	private armoryFeature: ArmoryFeature;
-	private equipmentFeature: EquipmentFeature;
-	private artifactoryFeature: ArtifactoryFeature;
-	private bestiaryFeature: BestiaryFeature;
-	private spellbookFeature: SpellbookFeature;
-	private dmScreenFeature: DmScreenFeature;
+	arsenalFeature: ArsenalFeature;
+	armoryFeature: ArmoryFeature;
+	equipmentFeature: EquipmentFeature;
+	artifactoryFeature: ArtifactoryFeature;
+	bestiaryFeature: BestiaryFeature;
+	spellbookFeature: SpellbookFeature;
+	dmScreenFeature: DmScreenFeature;
 	private features: BaseFeature<any, any, any>[];
 
 	#uiEventListener: IUiEventListener;

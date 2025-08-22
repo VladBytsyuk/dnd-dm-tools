@@ -4,7 +4,7 @@ import type { IDiceRollListener } from "src/domain/listeners/dice_roll_listener"
 
 export class DiceRollersManager {
     
-    #diceRollers: DiceRoller[];
+    #diceRollers: any[];
     #onRoll: (label: string, value: number) => void;
 
     constructor(

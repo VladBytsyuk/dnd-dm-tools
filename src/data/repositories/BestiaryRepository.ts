@@ -25,7 +25,7 @@ export class BestiaryRepository
         let challengeRatingsSet: Set<string> = new Set();
         let sourcesSet: Set<string> = new Set();
         for (const monster of allSmallItems) {
-            typesSet.add(monster.type);
+            typesSet.add(typeof monster.type === 'string' ? monster.type : JSON.stringify(monster.type));
             challengeRatingsSet.add(monster.challengeRating);
             sourcesSet.add(monster.source.shortName + (monster.source.group.shortName != "Basic" ? "*" : ""));
         }

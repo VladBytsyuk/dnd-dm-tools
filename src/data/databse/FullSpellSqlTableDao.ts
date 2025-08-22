@@ -48,133 +48,148 @@ export class FullSpellSqlTableDao extends Dao<FullSpell, any> {
 
     // CRUD operations
     async createItem(item: FullSpell): Promise<void> {
-        const existing = await this.checkItemExists(item);
-        if (existing) return;
-        this.database.exec(`
-            INSERT INTO ${this.getTableName()} (
-                rus_name, eng_name, level, school, additional_type,
-                components_v, components_s, components_m, url,
-                source_short_name, source_name, group_name, group_short_name,
-                concentration, ritual, homebrew, range, duration, time,
-                classes, subclasses, description, upper
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        `, [
-            item.name.rus,
-            item.name.eng,
-            item.level,
-            item.school,
-            item.additionalType || null,
-            item.components.v ? 1 : 0,
-            item.components.s ? 1 : 0,
-            item.components.m || null,
-            item.url,
-            item.source?.shortName || null,
-            item.source?.name || null,
-            item.source?.group.name || null,
-            item.source?.group.shortName || null,
-            item.concentration ? 1 : 0,
-            item.ritual ? 1 : 0,
-            item.source.homebrew ? 1 : 0,
-            item.range,
-            item.duration,
-            item.time,
-            JSON.stringify(item.classes ?? []),
-            JSON.stringify(item.subclasses ?? []),
-            item.description,
-            item.upper ?? null,
-        ]);
+        try {
+            const existing = await this.checkItemExists(item);
+            if (existing) return;
+            this.database.exec(`
+                INSERT INTO ${this.getTableName()} (
+                    rus_name, eng_name, level, school, additional_type,
+                    components_v, components_s, components_m, url,
+                    source_short_name, source_name, group_name, group_short_name,
+                    concentration, ritual, homebrew, range, duration, time,
+                    classes, subclasses, description, upper
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            `, [
+                item.name.rus,
+                item.name.eng,
+                item.level,
+                item.school,
+                item.additionalType || null,
+                item.components.v ? 1 : 0,
+                item.components.s ? 1 : 0,
+                item.components.m || null,
+                item.url,
+                item.source?.shortName || null,
+                item.source?.name || null,
+                item.source?.group.name || null,
+                item.source?.group.shortName || null,
+                item.concentration ? 1 : 0,
+                item.ritual ? 1 : 0,
+                item.source.homebrew ? 1 : 0,
+                item.range,
+                item.duration,
+                item.time,
+                JSON.stringify(item.classes ?? []),
+                JSON.stringify(item.subclasses ?? []),
+                item.description,
+                item.upper ?? null,
+            ]);
+        } catch (error) {
+            console.error(`Error creating FullSpell item ${item.name.rus}:`, error);
+            throw error;
+        }
     }
 
     async updateItem(item: FullSpell): Promise<void> {
-        this.database.exec(`
-            UPDATE ${this.getTableName()} SET
-                rus_name = ?,
-                eng_name = ?,
-                level = ?,
-                school = ?,
-                additional_type = ?,
-                components_v = ?,
-                components_s = ?,
-                components_m = ?,
-                url = ?,
-                source_short_name = ?,
-                source_name = ?,
-                group_name = ?,
-                group_short_name = ?,
-                concentration = ?,
-                ritual = ?,
-                homebrew = ?,
-                range = ?,
-                duration = ?,
-                time = ?,
-                classes = ?,
-                subclasses = ?,
-                description = ?,
-                upper = ?
-            WHERE url = ?;
-        `, [
-            item.name.rus,
-            item.name.eng,
-            item.level,
-            item.school,
-            item.additionalType || null,
-            item.components.v ? 1 : 0,
-            item.components.s ? 1 : 0,
-            item.components.m || null,
-            item.url,
-            item.source?.shortName || null,
-            item.source?.name || null,
-            item.source?.group.name || null,
-            item.source?.group.shortName || null,
-            item.concentration ? 1 : 0,
-            item.ritual ? 1 : 0,
-            item.source.homebrew ? 1 : 0,
-            item.range,
-            item.duration,
-            item.time,
-            JSON.stringify(item.classes ?? []),
-            JSON.stringify(item.subclasses ?? []),
-            item.description,
-            item.upper ?? null,
-            item.url,
-        ]);
-        console.log(`Updated ${item.url} in ${this.getTableName()}`);
+        try {
+            this.database.exec(`
+                UPDATE ${this.getTableName()} SET
+                    rus_name = ?,
+                    eng_name = ?,
+                    level = ?,
+                    school = ?,
+                    additional_type = ?,
+                    components_v = ?,
+                    components_s = ?,
+                    components_m = ?,
+                    url = ?,
+                    source_short_name = ?,
+                    source_name = ?,
+                    group_name = ?,
+                    group_short_name = ?,
+                    concentration = ?,
+                    ritual = ?,
+                    homebrew = ?,
+                    range = ?,
+                    duration = ?,
+                    time = ?,
+                    classes = ?,
+                    subclasses = ?,
+                    description = ?,
+                    upper = ?
+                WHERE url = ?;
+            `, [
+                item.name.rus,
+                item.name.eng,
+                item.level,
+                item.school,
+                item.additionalType || null,
+                item.components.v ? 1 : 0,
+                item.components.s ? 1 : 0,
+                item.components.m || null,
+                item.url,
+                item.source?.shortName || null,
+                item.source?.name || null,
+                item.source?.group.name || null,
+                item.source?.group.shortName || null,
+                item.concentration ? 1 : 0,
+                item.ritual ? 1 : 0,
+                item.source.homebrew ? 1 : 0,
+                item.range,
+                item.duration,
+                item.time,
+                JSON.stringify(item.classes ?? []),
+                JSON.stringify(item.subclasses ?? []),
+                item.description,
+                item.upper ?? null,
+                item.url,
+            ]);
+            console.log(`Updated ${item.url} in ${this.getTableName()}`);
+        } catch (error) {
+            console.error(`Error updating FullSpell item ${item.name.rus}:`, error);
+            throw error;
+        }
     }
 
     // Mapper
     async mapSqlValues(sqlValues: SqlValue[]): Promise<FullSpell> {
-        return {
-            name: {
-                rus: sqlValues[1] as string,
-                eng: sqlValues[2] as string,
-            },
-            level: sqlValues[3] as number,
-            school: sqlValues[4] as string,
-            additionalType: sqlValues[5] ? (sqlValues[5] as string) : undefined,
-            components: {
-                v: Boolean(sqlValues[6]),
-                s: Boolean(sqlValues[7]),
-                m: sqlValues[8] ? (sqlValues[8] as string) : undefined,
-            },
-            url: sqlValues[9] as string,
-            source: {
-                shortName: sqlValues[10] as string,
-                name: sqlValues[11] as string,
-                group: {
-                    name: sqlValues[12] as string,
-                    shortName: sqlValues[13] as string,
+        try {
+            return {
+                name: {
+                    rus: sqlValues[1] as string,
+                    eng: sqlValues[2] as string,
                 },
-                homebrew: Boolean(sqlValues[16]),
-            },
-            concentration: Boolean(sqlValues[14]),
-            ritual: Boolean(sqlValues[15]),
-            range: sqlValues[17] as string,
-            duration: sqlValues[18] as string,
-            time: sqlValues[19] as string,
-            classes: JSON.parse(sqlValues[20] as string) || [],
-            subclasses: JSON.parse(sqlValues[21] as string) || [],
-            description: sqlValues[22] as string,
-            upper: sqlValues[23] ? (sqlValues[23] as string) : undefined,
-        };
+                level: sqlValues[3] as number,
+                school: sqlValues[4] as string,
+                additionalType: sqlValues[5] ? (sqlValues[5] as string) : undefined,
+                components: {
+                    v: Boolean(sqlValues[6]),
+                    s: Boolean(sqlValues[7]),
+                    m: sqlValues[8] ? (sqlValues[8] as string) : undefined,
+                },
+                url: sqlValues[9] as string,
+                source: {
+                    shortName: sqlValues[10] as string,
+                    name: sqlValues[11] as string,
+                    group: {
+                        name: sqlValues[12] as string,
+                        shortName: sqlValues[13] as string,
+                    },
+                    homebrew: Boolean(sqlValues[16]),
+                },
+                concentration: Boolean(sqlValues[14]),
+                ritual: Boolean(sqlValues[15]),
+                range: sqlValues[17] as string,
+                duration: sqlValues[18] as string,
+                time: sqlValues[19] as string,
+                classes: JSON.parse(sqlValues[20] as string) || [],
+                subclasses: JSON.parse(sqlValues[21] as string) || [],
+                description: sqlValues[22] as string,
+                upper: sqlValues[23] ? (sqlValues[23] as string) : undefined,
+            };
+        } catch (error) {
+            console.error('Error mapping SQL values for FullSpell:', error);
+            throw error;
+        }
     }
 }

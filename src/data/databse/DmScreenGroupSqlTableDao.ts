@@ -54,43 +54,48 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
 
     // CRUD operations
     async createItem(item: DmScreenItem): Promise<void> {
-        const existing = this.database.exec(
-            `SELECT 1 FROM ${this.getTableName()} WHERE url = ? LIMIT 1;`,
-            [item.url]
-        );
-        if (existing.length > 0 && existing[0].values.length > 0) {
-            console.warn(`Item with url ${item.url} already exists in ${this.getTableName()}. Skipping creation.`);
-            return;
+        try {
+            const existing = this.database.exec(
+                `SELECT 1 FROM ${this.getTableName()} WHERE url = ? LIMIT 1;`,
+                [item.url]
+            );
+            if (existing.length > 0 && existing[0].values.length > 0) {
+                console.warn(`Item with url ${item.url} already exists in ${this.getTableName()}. Skipping creation.`);
+                return;
+            }
+            this.database.exec(`
+                INSERT INTO ${this.getTableName()} (
+                    rus_name, 
+                    eng_name,
+                    url,
+                    order_item,
+                    source_short_name,
+                    source_name,
+                    group_name,
+                    group_short_name,
+                    group_item,
+                    icon,
+                    description,
+                    parent_url
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            `, [
+                item.name.rus,
+                item.name.eng,
+                item.url,
+                item.order,
+                item.source.shortName,
+                item.source.name,
+                item.source.group.name || null,
+                item.source.group.shortName || null,
+                item.group || null,
+                item.icon || null,
+                item.description || null,
+                item.parentUrl || null,
+            ]);
+        } catch (error) {
+            console.error(`Error creating DmScreenItem ${item.name.rus}:`, error);
+            throw error;
         }
-        this.database.exec(`
-            INSERT INTO ${this.getTableName()} (
-                rus_name, 
-                eng_name,
-                url,
-                order_item,
-                source_short_name,
-                source_name,
-                group_name,
-                group_short_name,
-                group_item,
-                icon,
-                description,
-                parent_url
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        `, [
-            item.name.rus,
-            item.name.eng,
-            item.url,
-            item.order,
-            item.source.shortName,
-            item.source.name,
-            item.source.group.name || null,
-            item.source.group.shortName || null,
-            item.group || null,
-            item.icon || null,
-            item.description || null,
-            item.parentUrl || null,
-        ]);
     }
 
     async readAllItemsNames(): Promise<string[]> {
@@ -100,72 +105,92 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
     }
 
     async updateItem(item: DmScreenItem): Promise<void> {
-        this.database.exec(`
-            UPDATE ${this.getTableName()} SET
-                rus_name = ?,
-                eng_name = ?,
-                order_item = ?,
-                source_short_name = ?,
-                source_name = ?,
-                group_name = ?,
-                group_short_name = ?,
-                group_item = ?,
-                description = ?
-            WHERE url = ?;
-        `, [
-            item.name.rus,
-            item.name.eng,
-            item.order,
-            item.source.shortName,
-            item.source.name,
-            item.source.group.name || null,
-            item.source.group.shortName || null,
-            item.group || null,
-            item.description || null,
-            item.url
-        ]);
+        try {
+            this.database.exec(`
+                UPDATE ${this.getTableName()} SET
+                    rus_name = ?,
+                    eng_name = ?,
+                    order_item = ?,
+                    source_short_name = ?,
+                    source_name = ?,
+                    group_name = ?,
+                    group_short_name = ?,
+                    group_item = ?,
+                    description = ?
+                WHERE url = ?;
+            `, [
+                item.name.rus,
+                item.name.eng,
+                item.order,
+                item.source.shortName,
+                item.source.name,
+                item.source.group.name || null,
+                item.source.group.shortName || null,
+                item.group || null,
+                item.description || null,
+                item.url
+            ]);
+        } catch (error) {
+            console.error(`Error updating DmScreenItem ${item.name.rus}:`, error);
+            throw error;
+        }
     }
 
     async mapSqlValues(values: SqlValue[]): Promise<DmScreenItem> {
-        return DmScreenItem(
-            { rus: values[1] as string, eng: values[2] as string },
-            values[3] as string,
-            values[4] as number,
-            {
-                shortName: values[5] as string,
-                name: values[6] as string,
-                group: {
-                    name: values[7] as string,
-                    shortName: values[8] as string
-                }
-            },
-            values[9] as string | undefined,
-            values[10] as string | undefined,
-            values[11] as string | undefined,
-            values[12] as string | undefined,
-        );
+        try {
+            return DmScreenItem(
+                { rus: values[1] as string, eng: values[2] as string },
+                values[3] as string,
+                values[4] as number,
+                {
+                    shortName: values[5] as string,
+                    name: values[6] as string,
+                    group: {
+                        name: values[7] as string,
+                        shortName: values[8] as string
+                    }
+                },
+                values[9] as string | undefined,
+                values[10] as string | undefined,
+                values[11] as string | undefined,
+                values[12] as string | undefined,
+            );
+        } catch (error) {
+            console.error('Error mapping SQL values for DmScreenItem:', error);
+            throw error;
+        }
     }
 
     async readChildrenCount(url: string): Promise<number> {
-        const result = this.database.exec(`
-            SELECT COUNT(*) FROM ${this.getTableName()} WHERE parent_url = ?;
-        `, [url]);
-        return result.length;
+        try {
+            const result = this.database.exec(`
+                SELECT COUNT(*) FROM ${this.getTableName()} WHERE parent_url = ?;
+            `, [url]);
+            return result.length;
+        } catch (error) {
+            console.error(`Error reading children count for ${url}:`, error);
+            throw error;
+        }
     }
 
     async readChildren(url: string | undefined = undefined): Promise<DmScreenItem[]> {
-        let result = [];
-        if (url) {
-            result = this.database.exec(`
-                SELECT * FROM ${this.getTableName()} WHERE parent_url = ?;
-            `, [url]);
-        } else {
-            result = this.database.exec(`
-                SELECT * FROM ${this.getTableName()} WHERE parent_url IS NULL;
-            `);
+        try {
+            let result = [];
+            if (url) {
+                result = this.database.exec(`
+                    SELECT * FROM ${this.getTableName()} WHERE parent_url = ?;
+                `, [url]);
+            } else {
+                result = this.database.exec(`
+                    SELECT * FROM ${this.getTableName()} WHERE parent_url IS NULL;
+                `);
+            }
+            if (result.length === 0 || result[0].values.length === 0) return [];
+            return await Promise.all(result[0].values.map(it => this.mapSqlValues(it)));
+        } catch (error) {
+            console.error(`Error reading children for ${url}:`, error);
+            throw error;
         }
-        if (result.length === 0 || result[0].values.length === 0) return [];
-        return await Promise.all(result[0].values.map(it => this.mapSqlValues(it)));
     }
 
     // Private methods

@@ -11,6 +11,8 @@ import type { BaseMdCodeBlockProcessor } from "../processor/BaseMdCodeBlockProce
 import { SpellbookMdCodeBlockProcessor } from "../processor/SpellbookMdCodeBlockProcessor";
 import { stringifyYaml, type Editor } from "obsidian";
 import { SpellChooser } from "../modals/spell_chooser";
+import type { IUiEventListener } from "../../../domain/listeners/ui_event_listener";
+import type { BaseSidePanel } from "../sidepanel/BaseSidePanel";
 
 export class SpellbookFeature extends BaseFeature<SmallSpell, FullSpell, SpellbookFilters> {
 
@@ -18,7 +20,7 @@ export class SpellbookFeature extends BaseFeature<SmallSpell, FullSpell, Spellbo
         return new SpellbookRepository(database);
     }
 
-    createSidePanel(plugin: DndStatblockPlugin, repository: Repository<SmallSpell, FullSpell, SpellbookFilters>, uiEventListener: IUiEventListener): BaseSidePanel<Spell, Spell, SpellFilters> {
+    createSidePanel(plugin: DndStatblockPlugin, repository: Repository<SmallSpell, FullSpell, SpellbookFilters>, uiEventListener: IUiEventListener): BaseSidePanel<SmallSpell, FullSpell, SpellbookFilters> {
         return new SpellBookSidePanel(plugin, repository, uiEventListener);
     }
 

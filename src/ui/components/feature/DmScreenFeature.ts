@@ -7,6 +7,8 @@ import type DndStatblockPlugin from "src/main";
 import { DmScreenSidePanel } from "../sidepanel/DmScreenSidePanel";
 import type { BaseMdCodeBlockProcessor } from "../processor/BaseMdCodeBlockProcessor";
 import { DmScreenMdCodeBlockProcessor } from "../processor/DmScreenMdCodeBlockProcessor";
+import type { IUiEventListener } from "../../../domain/listeners/ui_event_listener";
+import type { BaseSidePanel } from "../sidepanel/BaseSidePanel";
 
 export class DmScreenFeature extends BaseFeature<DmScreenItem, DmScreenItem, any> {
 

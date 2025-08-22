@@ -37,65 +37,80 @@ export class FullItemSqlTableDao extends Dao<FullItem, any> {
 
     // CRUD operations
     async createItem(item: FullItem): Promise<void> {
-        const existing = await this.checkItemExists(item);
-        if (existing) return;
-        this.database.exec(`
-            INSERT INTO ${this.getTableName()} (
-                rus_name, eng_name, url, source_short_name, source_name,
-                group_name, group_short_name, homebrew, price, weight, description, categories
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        `, [
-            item.name.rus, item.name.eng, item.url, item.source.shortName,
-            item.source.name, item.source.group.name, item.source.group.shortName,
-            item.source.homebrew ? 1 : 0, item.price ?? null, item.weight ? "" + item.weight : null,
-            item.description, JSON.stringify(item.categories),
-        ]);
+        try {
+            const existing = await this.checkItemExists(item);
+            if (existing) return;
+            this.database.exec(`
+                INSERT INTO ${this.getTableName()} (
+                    rus_name, eng_name, url, source_short_name, source_name,
+                    group_name, group_short_name, homebrew, price, weight, description, categories
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            `, [
+                item.name.rus, item.name.eng, item.url, item.source.shortName,
+                item.source.name, item.source.group.name, item.source.group.shortName,
+                item.source.homebrew ? 1 : 0, item.price ?? null, item.weight ? "" + item.weight : null,
+                item.description, JSON.stringify(item.categories),
+            ]);
+        } catch (error) {
+            console.error(`Error creating FullItem item ${item.name.rus}:`, error);
+            throw error;
+        }
     }
 
     async updateItem(item: FullItem): Promise<void> {
-        this.database.exec(`
-            UPDATE ${this.getTableName()} SET
-                rus_name = ?,
-                eng_name = ?,
-                source_short_name = ?,
-                source_name = ?,
-                group_name = ?,
-                group_short_name = ?,
-                homebrew = ?,
-                price = ?,
-                weight = ?,
-                description = ?,
-                categories = ?
-            WHERE url = ?;
-        `, [
-            item.name.rus, item.name.eng, item.source.shortName, item.source.name,
-            item.source.group.name, item.source.group.shortName, item.source.homebrew ? 1 : 0,
-            item.price ?? null, item.weight ? "" + item.weight : null, item.description, 
-            JSON.stringify(item.categories), item.url
-        ]);
+        try {
+            this.database.exec(`
+                UPDATE ${this.getTableName()} SET
+                    rus_name = ?,
+                    eng_name = ?,
+                    source_short_name = ?,
+                    source_name = ?,
+                    group_name = ?,
+                    group_short_name = ?,
+                    homebrew = ?,
+                    price = ?,
+                    weight = ?,
+                    description = ?,
+                    categories = ?
+                WHERE url = ?;
+            `, [
+                item.name.rus, item.name.eng, item.source.shortName, item.source.name,
+                item.source.group.name, item.source.group.shortName, item.source.homebrew ? 1 : 0,
+                item.price ?? null, item.weight ? "" + item.weight : null, item.description, 
+                JSON.stringify(item.categories), item.url
+            ]);
+        } catch (error) {
+            console.error(`Error updating FullItem item ${item.name.rus}:`, error);
+            throw error;
+        }
     }
 
     // Mapper
     async mapSqlValues(values: SqlValue[]): Promise<FullItem> {
-        return {
-            name: {
-                rus: values[1] as string,
-                eng: values[2] as string,
-            },
-            url: values[3] as string,
-            source: {
-                shortName: values[4] as string,
-                name: values[5] as string,
-                group: {
-                    name: values[6] as string,
-                    shortName: values[7] as string,
+        try {
+            return {
+                name: {
+                    rus: values[1] as string,
+                    eng: values[2] as string,
                 },
-                homebrew: Boolean(values[8]),
-            },
-            price: values[9] ? values[9] as string : undefined,
-            weight: values[10] ? +(values[10] as string) : undefined,
-            description: values[11] as string,
-            categories: JSON.parse(values[12] as string),
-        };
+                url: values[3] as string,
+                source: {
+                    shortName: values[4] as string,
+                    name: values[5] as string,
+                    group: {
+                        name: values[6] as string,
+                        shortName: values[7] as string,
+                    },
+                    homebrew: Boolean(values[8]),
+                },
+                price: values[9] ? values[9] as string : undefined,
+                weight: values[10] ? +(values[10] as string) : undefined,
+                description: values[11] as string,
+                categories: JSON.parse(values[12] as string),
+            };
+        } catch (error) {
+            console.error('Error mapping SQL values to FullItem:', error);
+            throw error;
+        }
     }
 }

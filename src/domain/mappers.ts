@@ -7,13 +7,13 @@ import type { EncounterParticipant } from "./models/encounter/EncounterParticipa
 export const mapMonsterToEncounterParticipant = (monster: FullMonster): EncounterParticipant => {
     const speciality = randomSpeciality()
     const newName = speciality ? `${monster.name.rus} (${speciality})` : monster.name.rus
-    const rolledHp = rollRaw(`${monster.hits.formula}${monster.hits.sign}${monster.hits.bonus}`)
+    const rolledHp = rollRaw(`${monster?.hits?.formula}${monster?.hits?.sign}${monster?.hits?.bonus}`)
     return {
         id: Date.now(),
         url: monster.url,
         imageUrl: monster.images?.first(),
         initiative: 0,
-        initiativeModifier: calculateModifier(monster.ability.dex),
+        initiativeModifier: calculateModifier(monster?.ability?.dex ?? 0),
         name: newName,
         hpCurrent: rolledHp,
         hpTemporary: 0,
