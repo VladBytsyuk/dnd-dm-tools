@@ -2,6 +2,7 @@ import type { App, PluginManifest } from "obsidian";
 import type { Database, SqlValue } from "sql.js";
 import type { BaseItem } from "./models/common/BaseItem";
 import type { Initializable } from "./Initializable";
+import { console } from "inspector";
 
 export interface WhereClauseData {
     whereClauses: string[];
@@ -47,6 +48,7 @@ export abstract class Dao<T extends BaseItem, F> implements Initializable {
                 for (const item of data) {
                     await this.createItem(item);
                 }
+                console.log(`Table ${this.getTableName()} filled with data from ${this.preloadFileName}`);
             }
         } else {
             console.warn(`Table ${this.getTableName()} does not exist. Cannot fill with data.`);
@@ -108,9 +110,9 @@ export abstract class Dao<T extends BaseItem, F> implements Initializable {
         );
         if (existing.length > 0 && existing[0].values.length > 0) {
             console.warn(`Item with url ${item.url} already exists in ${this.getTableName()}. Skipping creation.`);
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     async readAllItems(name: string | null, filters: F | null): Promise<T[]> {
