@@ -73,6 +73,7 @@ export const smallSpellWish = {
     "group": {
       "name": "Официальные источники",
       "shortName": "Basic"
-    }
+    },
+    "homebrew": false
   }
 } as SmallSpell;
