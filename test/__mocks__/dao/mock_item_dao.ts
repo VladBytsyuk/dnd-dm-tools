@@ -23,6 +23,8 @@ export function mockDatabase<
         fullItemDao: mockItemDao<FullItem, Filter>(fullItems),
         smallSpellDao: mockItemDao<SmallItem, Filter>(smallItems),
         fullSpellDao: mockItemDao<FullItem, Filter>(fullItems),
+        smallMonsterDao: mockItemDao<SmallItem, Filter>(smallItems),
+        fullMonsterDao: mockItemDao<FullItem, Filter>(fullItems),
     } as any
 }
 

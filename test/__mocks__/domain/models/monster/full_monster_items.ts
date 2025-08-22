@@ -10,9 +10,7 @@ export const fullMonsterSpirit = {
     "eng": "medium",
     "cell": "1 клетка"
   },
-  "type": {
-    "name": "нежить"
-  },
+  "type": "нежить",
   "challengeRating": "—",
   "url": "/bestiary/warrior_spirit",
   "source": {
@@ -109,9 +107,7 @@ export const fullMonsterElemental = {
     "eng": "large",
     "cell": "2x2 клетки"
   },
-  "type": {
-    "name": "элементаль"
-  },
+  "type": "элементаль",
   "challengeRating": "5",
   "url": "/bestiary/fire_elemental",
   "source": {
@@ -236,9 +232,7 @@ export const fullMonsterTiamat = {
     "eng": "gargantuan",
     "cell": "4х4 клетки или больше"
   },
-  "type": {
-    "name": "исчадие"
-  },
+  "type": "исчадие",
   "challengeRating": "30",
   "url": "/bestiary/tiamat",
   "source": {
