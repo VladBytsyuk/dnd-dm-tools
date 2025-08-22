@@ -1,0 +1,44 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - name: Checkout код
+      uses: actions/checkout@v4
+      
+    - name: Настройка Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Установка зависимостей
+      run: npm ci
+      
+    - name: Запуск линтера
+      run: npm run svelte-check
+      
+    - name: Запуск тестов
+      run: npm test
+      
+    - name: Запуск тестов с покрытием
+      run: npm run test:cov
+      
+    - name: Загрузка покрытия в Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage/lcov.info
+        fail_ci_if_error: false

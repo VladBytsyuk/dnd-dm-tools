@@ -1,4 +1,7 @@
 # dnd-dm-helper
+
+[![Tests](https://github.com/VladBytsyuk/obsidian-dnd-statblock/actions/workflows/test.yml/badge.svg)](https://github.com/VladBytsyuk/obsidian-dnd-statblock/actions/workflows/test.yml)
+
 A plugin for Obsidian.md with DnD 5e DM tools in russian.
 
 ## Бестиарий
