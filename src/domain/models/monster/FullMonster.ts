@@ -10,10 +10,12 @@ import type { Legendary } from "../common/Legendary";
 import type { Lair } from "../common/Lair";
 import type { SmallMonster } from "./SmallMonster";
 import type { Tag } from "../common/Tag";
+import type { Type } from "../common/Type";
 
 export interface FullMonster extends SmallMonster {
     size?: Size;
     id: number;
+    type: Type;
     experience?: number;
     proficiencyBonus?: string;
     alignment?: string;

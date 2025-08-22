@@ -1,6 +1,6 @@
 export interface Senses {
     passivePerception: string;
-    senses: {
+    senses?: {
         name: string;
         value: number;
     }[];
