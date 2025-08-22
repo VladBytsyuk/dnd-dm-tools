@@ -4,7 +4,7 @@ import { SmallMonster } from "../../../../../src/domain/models/monster/SmallMons
 export const bestiaryFilters = { 
     types: ['нежить', 'элементаль', 'исчадие'], 
     sources: ['UA22WotM*', 'MM', 'RoT'],
-    challangeRatings: ['—', '5', '30']
+    challengeRatings: ['—', '5', '30']
 } as BestiaryFilters;
 
 export const smallMonsterSpirit = {

@@ -21,9 +21,9 @@ export class BestiaryRepository
     }
 
     async collectFiltersFromAllItems(allSmallItems: SmallMonster[]): Promise<BestiaryFilters | null> {
-        let typesSet: Set<string> = new Set();
-        let challengeRatingsSet: Set<string> = new Set();
-        let sourcesSet: Set<string> = new Set();
+        const typesSet: Set<string> = new Set();
+        const challengeRatingsSet: Set<string> = new Set();
+        const sourcesSet: Set<string> = new Set();
         for (const monster of allSmallItems) {
             typesSet.add(typeof monster.type === 'string' ? monster.type : JSON.stringify(monster.type));
             challengeRatingsSet.add(monster.challengeRating);
@@ -31,7 +31,7 @@ export class BestiaryRepository
         }
         return createFilters<BestiaryFilters>({
             types: Array.from(typesSet),
-            challangeRatings: Array.from(challengeRatingsSet),
+            challengeRatings: Array.from(challengeRatingsSet),
             sources: Array.from(sourcesSet)
         });
     }

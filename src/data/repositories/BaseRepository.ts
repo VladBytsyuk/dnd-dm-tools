@@ -39,7 +39,7 @@ export abstract class BaseRepository<
 
     async getAllFilters(): Promise<Filter | null> {
         if (this.#filters) return this.#filters;
-        const allSmallItems = this.#smallItems ? this.#smallItems :await this.smallItemDao.readAllItems(null, null);
+        const allSmallItems = this.#smallItems ? this.#smallItems : await this.smallItemDao.readAllItems(null, null);
         this.#filters = await this.collectFiltersFromAllItems(allSmallItems) ?? undefined;
         return this.#filters ?? null;
     }
@@ -113,7 +113,7 @@ export abstract class BaseRepository<
             console.error("Failed to fetch item from API:", error);
             return null;
         }
-    };
+    }
 
     async groupItems(smallItems: SmallItem[]): Promise<Group<SmallItem>[]> {
         return [];

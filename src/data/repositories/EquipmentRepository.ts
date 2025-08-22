@@ -20,7 +20,7 @@ export class EquipmentRepository
     }
 
     async collectFiltersFromAllItems(allSmallItems: SmallItem[]): Promise<EquipmentFilters | null> {
-        let sourcesSet: Set<string> = new Set();
+        const sourcesSet: Set<string> = new Set();
         for (const item of allSmallItems) {
             sourcesSet.add(item.source.shortName + (item.source.group.shortName != "Basic" ? "*" : ""));
         }

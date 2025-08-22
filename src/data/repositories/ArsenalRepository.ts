@@ -20,15 +20,15 @@ export class ArsenalRepository
     }
 
     async collectFiltersFromAllItems(allSmallItems: SmallWeapon[]): Promise<ArsenalFilters | null> {
-        let dicesSet: Set<string> = new Set();        
-        let damageTypesSet: Set<string> = new Set();
-        let typesSet: Set<string> = new Set();
-        let sourcesSet: Set<string> = new Set();
+        const dicesSet: Set<string> = new Set();        
+        const damageTypesSet: Set<string> = new Set();
+        const typesSet: Set<string> = new Set();
+        const sourcesSet: Set<string> = new Set();
         for (const weapon of allSmallItems) {
             if (weapon.damage.dice) dicesSet.add(weapon.damage.dice);
             damageTypesSet.add(weapon.damage.type);
             typesSet.add(weapon.type.name);
-            sourcesSet.add(weapon.source.shortName + (weapon.source.group.shortName != "Basic" ? "*" : ""))
+            sourcesSet.add(weapon.source.shortName + (weapon.source.group.shortName != "Basic" ? "*" : ""));
         }
         return createFilters<ArsenalFilters>({
             dices: Array.from(dicesSet), 

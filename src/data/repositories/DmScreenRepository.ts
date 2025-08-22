@@ -17,7 +17,7 @@ export class DmScreenRepository
             database,
             database.dmScreenGroupDao,
             database.dmScreenGroupDao,
-        )
+        );
         this.#dmScreenDao = database.dmScreenGroupDao;
     }
 

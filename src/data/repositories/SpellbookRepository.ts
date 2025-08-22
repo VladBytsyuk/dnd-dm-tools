@@ -20,9 +20,9 @@ export class SpellbookRepository
     }
 
     async collectFiltersFromAllItems(allSmallItems: SmallSpell[]): Promise<SpellbookFilters | null> {
-        let levelsSet: Set<string> = new Set();
-        let schoolsSet: Set<string> = new Set();
-        let sourcesSet: Set<string> = new Set();
+        const levelsSet: Set<string> = new Set();
+        const schoolsSet: Set<string> = new Set();
+        const sourcesSet: Set<string> = new Set();
         for (const spell of allSmallItems) {
             levelsSet.add(spell.level.toString());
             schoolsSet.add(spell.school);
