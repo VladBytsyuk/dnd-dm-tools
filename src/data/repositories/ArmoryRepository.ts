@@ -16,15 +16,15 @@ export class ArmoryRepository
             database,
             database.smallArmorDao,
             database.fullArmorDao,
-        )
+        );
     }
 
     async collectFiltersFromAllItems(allSmallItems: SmallArmor[]): Promise<ArmoryFilters | null> {
-        let typesSet: Set<string> = new Set();
-        let sourcesSet: Set<string> = new Set();
+        const typesSet: Set<string> = new Set();
+        const sourcesSet: Set<string> = new Set();
         for (const armor of allSmallItems) {
             typesSet.add(armor.type.name);
-            sourcesSet.add(armor.source.shortName + (armor.source.group.shortName != "Basic" ? "*" : ""))
+            sourcesSet.add(armor.source.shortName + (armor.source.group.shortName != "Basic" ? "*" : ""));
         }
         return createFilters<ArmoryFilters>({
             types: Array.from(typesSet), 

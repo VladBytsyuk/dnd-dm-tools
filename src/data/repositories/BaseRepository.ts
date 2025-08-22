@@ -17,7 +17,7 @@ export abstract class BaseRepository<
     constructor(
         protected database: DB,
         private smallItemDao: Dao<SmallItem, Filter>,
-        private fullItemDao: Dao<FullItem, any>,
+        private fullItemDao: Dao<FullItem, Filter>,
     ) {}
 
     // ---- abstract functions ----
@@ -39,7 +39,7 @@ export abstract class BaseRepository<
 
     async getAllFilters(): Promise<Filter | null> {
         if (this.#filters) return this.#filters;
-        const allSmallItems = this.#smallItems ? this.#smallItems :await this.smallItemDao.readAllItems(null, null);
+        const allSmallItems = this.#smallItems ? this.#smallItems : await this.smallItemDao.readAllItems(null, null);
         this.#filters = await this.collectFiltersFromAllItems(allSmallItems) ?? undefined;
         return this.#filters ?? null;
     }
@@ -113,7 +113,7 @@ export abstract class BaseRepository<
             console.error("Failed to fetch item from API:", error);
             return null;
         }
-    };
+    }
 
     async groupItems(smallItems: SmallItem[]): Promise<Group<SmallItem>[]> {
         return [];

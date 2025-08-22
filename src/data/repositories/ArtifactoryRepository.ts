@@ -20,9 +20,9 @@ export class ArtifactoryRepository
     }
 
     async collectFiltersFromAllItems(allSmallItems: SmallArtifact[]): Promise<ArtifactoryFilters | null> {
-        let typesSet: Set<string> = new Set();
-        let sourcesSet: Set<string> = new Set();
-        let raritiesSet: Set<string> = new Set();
+        const typesSet: Set<string> = new Set();
+        const sourcesSet: Set<string> = new Set();
+        const raritiesSet: Set<string> = new Set();
         for (const artifact of allSmallItems) {
             typesSet.add(artifact.type.name);
             raritiesSet.add(artifact.rarity.short);
