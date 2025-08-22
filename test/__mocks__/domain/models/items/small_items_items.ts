@@ -1,7 +1,7 @@
 import { EquipmentFilters } from "../../../../../src/domain/models/items/EquipmentFilters"
 import { SmallItem } from "../../../../../src/domain/models/items/SmallItem"
 
-export const armoryFilters = {
+export const equipmentFilters = {
   sources: ['PHB'],
 } as EquipmentFilters;
 

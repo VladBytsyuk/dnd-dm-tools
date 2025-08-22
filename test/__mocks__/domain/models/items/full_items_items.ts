@@ -5,6 +5,7 @@ export const fullItemAbacus = {
     "rus": "Абак (счеты)",
     "eng": "Abacus"
   },
+  "url": "/items/abacus",
   "price": "2.0 зм",
   "source": {
     "shortName": "PHB",
@@ -26,6 +27,7 @@ export const fullItemLyre = {
     "rus": "Лира",
     "eng": "Lyre"
   },
+  "url": "/items/lyre",
   "price": "30.0 зм",
   "source": {
     "shortName": "PHB",
@@ -42,11 +44,12 @@ export const fullItemLyre = {
   ]
 } as FullItem;
 
-export const fullItemPoisson = {
+export const fullItemPoison = {
   "name": {
     "rus": "Яд, простой (флакон)",
     "eng": "Poison, Basic"
   },
+  "url": "/items/poison,_basic",
   "price": "100.0 зм",
   "source": {
     "shortName": "PHB",
