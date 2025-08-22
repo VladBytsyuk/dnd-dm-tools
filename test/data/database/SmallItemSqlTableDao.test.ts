@@ -3,27 +3,13 @@ import { SmallItemSqlTableDao } from '../../../src/data/databse/SmallItemSqlTabl
 import type { SmallItem } from '../../../src/domain/models/items/SmallItem';
 import type { EquipmentFilters } from '../../../src/domain/models/items/EquipmentFilters';
 import { runSqlDaoBaseTests } from './Dao';
-
-const sampleItem: SmallItem = {
-    name: { rus: 'Верёвка', eng: 'Rope' },
-    url: 'https://example.com/rope',
-    source: {
-        shortName: 'PHB',
-        name: 'Player Handbook',
-        group: { name: 'Core', shortName: 'C' },
-        homebrew: false,
-    },
-};
-
-const filters: EquipmentFilters = {
-    sources: ['PHB'],
-};
+import { equipmentFilters, smallItemAbacus, smallItemPoison } from '../../__mocks__/domain/models/items/small_items_items';
 
 runSqlDaoBaseTests<SmallItem, EquipmentFilters>({
-    title: 'SmallItemSqlTableDao',
+    title: 'Dao: Equipment small',
     daoFactory: ({ app, db, manifest }) => new SmallItemSqlTableDao(db, app, manifest),
-    sample: sampleItem,
-    filters: filters,
+    sample: smallItemPoison,
+    filters: equipmentFilters,
     expected: {
         table: 'small_equipment',
         fill: true,
@@ -37,24 +23,24 @@ runSqlDaoBaseTests<SmallItem, EquipmentFilters>({
     mapCase: {
         sqlValues: [
             1,
-            sampleItem.name.rus,
-            sampleItem.name.eng,
-            sampleItem.url,
-            sampleItem.source.shortName,
-            sampleItem.source.name,
-            sampleItem.source.group.name,
-            sampleItem.source.group.shortName,
-            sampleItem.source.homebrew,
+            smallItemPoison.name.rus,
+            smallItemPoison.name.eng,
+            smallItemPoison.url,
+            smallItemPoison.source.shortName,
+            smallItemPoison.source.name,
+            smallItemPoison.source.group.name,
+            smallItemPoison.source.group.shortName,
+            smallItemPoison.source.homebrew,
         ],
         assert: (item) => {
-            expect(item.name.rus).toBe(sampleItem.name.rus);
-            expect(item.name.eng).toBe(sampleItem.name.eng);
-            expect(item.url).toBe(sampleItem.url);
-            expect(item.source.shortName).toBe(sampleItem.source.shortName);
-            expect(item.source.name).toBe(sampleItem.source.name);
-            expect(item.source.group.name).toBe(sampleItem.source.group.name);
-            expect(item.source.group.shortName).toBe(sampleItem.source.group.shortName);
-            expect(item.source.homebrew).toBe(sampleItem.source.homebrew);
+            expect(item.name.rus).toStrictEqual(smallItemPoison.name.rus);
+            expect(item.name.eng).toStrictEqual(smallItemPoison.name.eng);
+            expect(item.url).toStrictEqual(smallItemPoison.url);
+            expect(item.source.shortName).toStrictEqual(smallItemPoison.source.shortName);
+            expect(item.source.name).toStrictEqual(smallItemPoison.source.name);
+            expect(item.source.group.name).toStrictEqual(smallItemPoison.source.group.name);
+            expect(item.source.group.shortName).toStrictEqual(smallItemPoison.source.group.shortName);
+            expect(item.source.homebrew).toStrictEqual(smallItemPoison.source.homebrew);
         },
     },
 });

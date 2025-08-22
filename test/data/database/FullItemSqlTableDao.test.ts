@@ -1,33 +1,15 @@
 import { expect } from 'vitest';
 import { FullItemSqlTableDao } from '../../../src/data/databse/FullItemSqlTableDao';
 import type { FullItem } from '../../../src/domain/models/items/FullItem';
-import type { EquipmentFilters } from '../../../src/domain/models/items/EquipmentFilters';
 import { runSqlDaoBaseTests } from './Dao';
-
-const sampleItem: FullItem = {
-    name: { rus: 'Верёвка', eng: 'Rope' },
-    url: 'https://example.com/rope',
-    source: {
-        shortName: 'PHB',
-        name: 'Player Handbook',
-        group: { name: 'Core', shortName: 'C' },
-        homebrew: false,
-    },
-    price: '10gp',
-    weight: 5,
-    description: 'Длинная пеньковая веревка.',
-    categories: ['Equipment', 'Tools'],
-};
-
-const filters: EquipmentFilters = {
-    sources: ['PHB'],
-};
+import { fullItemPoison } from '../../__mocks__/domain/models/items/full_items_items';
+import { equipmentFilters } from '../../__mocks__/domain/models/items/small_items_items';
 
 runSqlDaoBaseTests<FullItem, any>({
     title: 'FullItemSqlTableDao',
     daoFactory: ({ app, db, manifest }) => new FullItemSqlTableDao(db),
-    sample: sampleItem,
-    filters: filters,
+    sample: fullItemPoison,
+    filters: equipmentFilters,
     expected: {
         table: 'full_equipment',
         fill: false,
@@ -41,32 +23,32 @@ runSqlDaoBaseTests<FullItem, any>({
     mapCase: {
         sqlValues: [
             1,
-            sampleItem.name.rus,
-            sampleItem.name.eng,
-            sampleItem.url,
-            sampleItem.source.shortName,
-            sampleItem.source.name,
-            sampleItem.source.group.name,
-            sampleItem.source.group.shortName,
-            sampleItem.source.homebrew,
-            sampleItem.price,
-            sampleItem.weight,
-            sampleItem.description,
-            JSON.stringify(sampleItem.categories),
+            fullItemPoison.name.rus,
+            fullItemPoison.name.eng,
+            fullItemPoison.url,
+            fullItemPoison.source.shortName,
+            fullItemPoison.source.name,
+            fullItemPoison.source.group.name,
+            fullItemPoison.source.group.shortName,
+            fullItemPoison.source.homebrew,
+            fullItemPoison.price,
+            fullItemPoison.weight,
+            fullItemPoison.description,
+            JSON.stringify(fullItemPoison.categories),
         ],
         assert: (item) => {
-            expect(item.name.rus).toStrictEqual(sampleItem.name.rus);
-            expect(item.name.eng).toStrictEqual(sampleItem.name.eng);
-            expect(item.url).toStrictEqual(sampleItem.url);
-            expect(item.source.shortName).toStrictEqual(sampleItem.source.shortName);
-            expect(item.source.name).toStrictEqual(sampleItem.source.name);
-            expect(item.source.group.name).toStrictEqual(sampleItem.source.group.name);
-            expect(item.source.group.shortName).toStrictEqual(sampleItem.source.group.shortName);
-            expect(item.source.homebrew).toStrictEqual(sampleItem.source.homebrew);
-            expect(item.price).toStrictEqual(sampleItem.price);
-            expect(item.weight).toStrictEqual(sampleItem.weight);
-            expect(item.description).toStrictEqual(sampleItem.description);
-            expect(item.categories).toStrictEqual(sampleItem.categories);
+            expect(item.name.rus).toStrictEqual(fullItemPoison.name.rus);
+            expect(item.name.eng).toStrictEqual(fullItemPoison.name.eng);
+            expect(item.url).toStrictEqual(fullItemPoison.url);
+            expect(item.source.shortName).toStrictEqual(fullItemPoison.source.shortName);
+            expect(item.source.name).toStrictEqual(fullItemPoison.source.name);
+            expect(item.source.group.name).toStrictEqual(fullItemPoison.source.group.name);
+            expect(item.source.group.shortName).toStrictEqual(fullItemPoison.source.group.shortName);
+            expect(item.source.homebrew).toStrictEqual(fullItemPoison.source.homebrew);
+            expect(item.price).toStrictEqual(fullItemPoison.price);
+            expect(item.weight).toStrictEqual(fullItemPoison.weight);
+            expect(item.description).toStrictEqual(fullItemPoison.description);
+            expect(item.categories).toStrictEqual(fullItemPoison.categories);
         },
     },
 });
