@@ -1,4 +1,11 @@
+import { ArtifactoryFilters } from "../../../../../src/domain/models/artifact/ArtifactoryFilters";
 import { SmallArtifact } from "../../../../../src/domain/models/artifact/SmallArtifact"
+
+export const artifactoryFilters = {
+    types: ['чудесный предмет', 'волшебная палочка'],
+    sources: ['XGE', 'BMT', 'DMG'],
+    rarities: ['O', 'Р', 'А']
+} as ArtifactoryFilters;
 
 export const smallArtifactAmulet = {
     "name": {
@@ -80,7 +87,8 @@ export const smallArtifactWand = {
       "group": {
         "name": "Официальные источники",
         "shortName": "Basic"
-      }
+      },
+      homebrew: false,
     },
     "rarity": {
       "type": "artifact",

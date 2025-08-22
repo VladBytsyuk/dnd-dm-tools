@@ -96,7 +96,8 @@ export const fullArtifactWand = {
     "group": {
       "name": "Официальные источники",
       "shortName": "Basic"
-    }
+    },
+    homebrew: false
   },
   "rarity": {
     "type": "artifact",

@@ -93,7 +93,8 @@ export const fullWeaponBlowgun = {
     "group": {
       "name": "Официальные источники",
       "shortName": "Basic"
-    }
+    },
+    homebrew: false
   },
   "weight": 1,
   "description": "<p>Может стрелять <detail-tooltip type=\"screen\"><a href=\"/items/blowgun_needles\">иглами для трубки</a></detail-tooltip>.</p>",

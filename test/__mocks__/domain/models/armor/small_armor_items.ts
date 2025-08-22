@@ -1,4 +1,10 @@
+import { ArmoryFilters } from "../../../../../src/domain/models/armor/ArmoryFilters"
 import { SmallArmor } from "../../../../../src/domain/models/armor/SmallArmor"
+
+export const armoryFilters = { 
+    types: ['Легкий доспех', 'Средний доспех', 'Тяжелый доспех'], 
+    sources: ['PHB'], 
+} as ArmoryFilters;
 
 export const smallArmorLeather = {
     "name": {
@@ -20,7 +26,7 @@ export const smallArmorLeather = {
         "shortName": "Basic"
       }
     }
-} as SmallArmor
+} as SmallArmor;
 
 export const smallArmorScaleMail = {
     "name": {
@@ -42,7 +48,7 @@ export const smallArmorScaleMail = {
         "shortName": "Basic"
       }
     }
-} as SmallArmor
+} as SmallArmor;
 
 export const smallArmorRingMail = {
     "name": {
@@ -62,6 +68,7 @@ export const smallArmorRingMail = {
       "group": {
         "name": "Официальные источники",
         "shortName": "Basic"
-      }
+      },
+      homebrew: false
     }
-} as SmallArmor
+} as SmallArmor;

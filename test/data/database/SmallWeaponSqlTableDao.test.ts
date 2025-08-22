@@ -3,70 +3,50 @@ import { SmallWeaponSqlTableDao } from '../../../src/data/databse/SmallWeaponSql
 import { SmallWeapon } from '../../../src/domain/models/weapon/SmallWeapon';
 import type { ArsenalFilters } from '../../../src/domain/models/weapon/ArsenalFilters';
 import { runSqlDaoBaseTests } from './Dao';
-
-const sampleWeapon: SmallWeapon = {
-    name: { rus: 'Меч', eng: 'Sword' },
-    url: 'https://example.com/sword',
-    type: { name: 'Melee', order: 1 },
-    damage: { dice: '1d8', type: 'slashing' },
-    price: '10gp',
-    source: {
-        shortName: 'PHB',
-        name: 'Player Handbook',
-        group: { name: 'Core', shortName: 'C' },
-        homebrew: false,
-    },
-};
-
-const filters: ArsenalFilters = {
-    dices: ['1d8'],
-    damageTypes: ['slashing'],
-    types: ['Melee'],
-    sources: ['PHB'],
-};
+import { arsenalFilters, smallWeaponBlowgun } from '../../__mocks__/domain/models/weapon/small_weapon_items';
 
 runSqlDaoBaseTests<SmallWeapon, ArsenalFilters>({
-    title: 'SmallWeaponSqlTableDao',
+    title: 'Dao: Arsenal small',
     daoFactory: ({ app, db, manifest }) => new SmallWeaponSqlTableDao(db, app, manifest),
-    sample: sampleWeapon,
-    filters: filters,
+    sample: smallWeaponBlowgun,
+    filters: arsenalFilters,
     expected: {
         table: 'small_arsenal',
         fill: true,
         whereClausesCount: 4,
-        filterParams: ['1d8', 'slashing', 'Melee', 'PHB'],
+        filterParams: ['1к10', '1к6', '1', 'рубящий', 'дробящий', 'колющий', 'Воинское рукопашное', 'Простое рукопашное', 'Воинское дальнобойное', 'PHB'],
     },
     mutate: (w) => ({ ...w, price: '11gp' }),
     mapCase: {
         sqlValues: [
             1,
-            sampleWeapon.name.rus,
-            sampleWeapon.name.eng,
-            sampleWeapon.type.name,
-            sampleWeapon.type.order,
-            sampleWeapon.url,
-            sampleWeapon.damage.dice,
-            sampleWeapon.damage.type,
-            sampleWeapon.price,
-            sampleWeapon.source.shortName,
-            sampleWeapon.source.name,
-            sampleWeapon.source.group.name,
-            sampleWeapon.source.group.shortName,
-            sampleWeapon.source.homebrew,
+            smallWeaponBlowgun.name.rus,
+            smallWeaponBlowgun.name.eng,
+            smallWeaponBlowgun.type.name,
+            smallWeaponBlowgun.type.order,
+            smallWeaponBlowgun.url,
+            smallWeaponBlowgun.damage.dice,
+            smallWeaponBlowgun.damage.type,
+            smallWeaponBlowgun.price,
+            smallWeaponBlowgun.source.shortName,
+            smallWeaponBlowgun.source.name,
+            smallWeaponBlowgun.source.group.name,
+            smallWeaponBlowgun.source.group.shortName,
+            smallWeaponBlowgun.source.homebrew,
         ],
         assert: (weapon) => {
-            expect(weapon.name.rus).toBe(sampleWeapon.name.rus);
-            expect(weapon.name.eng).toBe(sampleWeapon.name.eng);
-            expect(weapon.type.name).toBe(sampleWeapon.type.name);
-            expect(weapon.type.order).toBe(sampleWeapon.type.order);
-            expect(weapon.damage.dice).toBe(sampleWeapon.damage.dice);
-            expect(weapon.damage.type).toBe(sampleWeapon.damage.type);
-            expect(weapon.price).toBe(sampleWeapon.price);
-            expect(weapon.source.shortName).toBe(sampleWeapon.source.shortName);
-            expect(weapon.source.name).toBe(sampleWeapon.source.name);
-            expect(weapon.source.group.name).toBe(sampleWeapon.source.group.name);
-            expect(weapon.source.group.shortName).toBe(sampleWeapon.source.group.shortName);
-            expect(weapon.source.homebrew).toBe(sampleWeapon.source.homebrew);
+            expect(weapon.name.rus).toStrictEqual(smallWeaponBlowgun.name.rus);
+            expect(weapon.name.eng).toStrictEqual(smallWeaponBlowgun.name.eng);
+            expect(weapon.type.name).toStrictEqual(smallWeaponBlowgun.type.name);
+            expect(weapon.type.order).toStrictEqual(smallWeaponBlowgun.type.order);
+            expect(weapon.damage.dice).toStrictEqual(smallWeaponBlowgun.damage.dice);
+            expect(weapon.damage.type).toStrictEqual(smallWeaponBlowgun.damage.type);
+            expect(weapon.price).toStrictEqual(smallWeaponBlowgun.price);
+            expect(weapon.source.shortName).toStrictEqual(smallWeaponBlowgun.source.shortName);
+            expect(weapon.source.name).toStrictEqual(smallWeaponBlowgun.source.name);
+            expect(weapon.source.group.name).toStrictEqual(smallWeaponBlowgun.source.group.name);
+            expect(weapon.source.group.shortName).toStrictEqual(smallWeaponBlowgun.source.group.shortName);
+            expect(weapon.source.homebrew).toStrictEqual(smallWeaponBlowgun.source.homebrew);
         },
     },
 });

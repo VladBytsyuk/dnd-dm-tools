@@ -1,4 +1,12 @@
+import { ArsenalFilters } from "../../../../../src/domain/models/weapon/ArsenalFilters";
 import { SmallWeapon } from "../../../../../src/domain/models/weapon/SmallWeapon"
+
+export const arsenalFilters = { 
+    types: ['Воинское рукопашное', 'Простое рукопашное', 'Воинское дальнобойное'], 
+    sources: ['PHB'], 
+    dices: ['1к10', '1к6', '1'],
+    damageTypes: ['рубящий', 'дробящий', 'колющий']
+} as ArsenalFilters;
 
 export const smallWeaponHalberd = {
     "name": {
@@ -71,6 +79,7 @@ export const smallWeaponBlowgun = {
       "group": {
         "name": "Официальные источники",
         "shortName": "Basic"
-      }
+      },
+      homebrew: false
     }
 } as SmallWeapon;

@@ -3,83 +3,57 @@ import { SmallArtifactSqlTableDao } from '../../../src/data/databse/SmallArtifac
 import type { SmallArtifact } from '../../../src/domain/models/artifact/SmallArtifact';
 import type { ArtifactoryFilters } from '../../../src/domain/models/artifact/ArtifactoryFilters';
 import { runSqlDaoBaseTests } from './Dao';
-
-const sampleArtifact: SmallArtifact = {
-    name: { rus: 'Маленький артефакт', eng: 'Small Artifact' },
-    type: { name: 'Wondrous Item', order: 1 },
-    url: 'https://example.com/small-artifact',
-    price: {
-        dmg: '100gp',
-        xge: '150gp',
-    },
-    rarity: {
-        type: 'common',
-        name: 'Common',
-        short: 'C',
-    },
-    customization: true,
-    source: {
-        shortName: 'PHB',
-        name: 'Player Handbook',
-        group: { name: 'Core', shortName: 'C' },
-        homebrew: false,
-    },
-};
-
-const filters: ArtifactoryFilters = {
-    types: ['Wondrous Item'],
-    sources: ['PHB'],
-    rarities: ['common'],
-};
+import { artifactoryFilters, smallArtifactWand } from '../../__mocks__/domain/models/artifact/small_artifact_items';
 
 runSqlDaoBaseTests<SmallArtifact, ArtifactoryFilters>({
-    title: 'SmallArtifactSqlTableDao',
+    title: 'Dao: Artifactory small',
     daoFactory: ({ app, db, manifest }) => new SmallArtifactSqlTableDao(db, app, manifest),
-    sample: sampleArtifact,
-    filters: filters,
+    sample: smallArtifactWand,
+    filters: artifactoryFilters,
     expected: {
         table: 'small_artifactory',
         fill: true,
         whereClausesCount: 3,
-        filterParams: ['Wondrous Item', 'PHB', 'common'],
+        filterParams: [ "чудесный предмет", "волшебная палочка", "XGE", "BMT", "DMG", "O", "Р", "А" ],
     },
     mutate: (a) => ({ ...a, customization: false }),
     mapCase: {
         sqlValues: [
             1,
-            sampleArtifact.name.rus,
-            sampleArtifact.name.eng,
-            sampleArtifact.type.name,
-            sampleArtifact.type.order,
-            sampleArtifact.url,
-            sampleArtifact.price.dmg,
-            sampleArtifact.price.xge,
-            sampleArtifact.rarity.type,
-            sampleArtifact.rarity.name,
-            sampleArtifact.rarity.short,
-            sampleArtifact.customization,
-            sampleArtifact.source.shortName,
-            sampleArtifact.source.name,
-            sampleArtifact.source.group.name,
-            sampleArtifact.source.group.shortName,
-            sampleArtifact.source.homebrew,
+            smallArtifactWand.name.rus,
+            smallArtifactWand.name.eng,
+            smallArtifactWand.type.name,
+            smallArtifactWand.type.order,
+            smallArtifactWand.url,
+            smallArtifactWand.price.dmg,
+            smallArtifactWand.price.xge,
+            smallArtifactWand.rarity.type,
+            smallArtifactWand.rarity.name,
+            smallArtifactWand.rarity.short,
+            smallArtifactWand.customization,
+            smallArtifactWand.source.shortName,
+            smallArtifactWand.source.name,
+            smallArtifactWand.source.group.name,
+            smallArtifactWand.source.group.shortName,
+            smallArtifactWand.source.homebrew,
         ],
         assert: (artifact) => {
-            expect(artifact.name.rus).toBe(sampleArtifact.name.rus);
-            expect(artifact.name.eng).toBe(sampleArtifact.name.eng);
-            expect(artifact.type.name).toBe(sampleArtifact.type.name);
-            expect(artifact.type.order).toBe(sampleArtifact.type.order);
-            expect(artifact.price.dmg).toBe(sampleArtifact.price.dmg);
-            expect(artifact.price.xge).toBe(sampleArtifact.price.xge);
-            expect(artifact.rarity.type).toBe(sampleArtifact.rarity.type);
-            expect(artifact.rarity.name).toBe(sampleArtifact.rarity.name);
-            expect(artifact.rarity.short).toBe(sampleArtifact.rarity.short);
-            expect(artifact.customization).toBe(sampleArtifact.customization);
-            expect(artifact.source.shortName).toBe(sampleArtifact.source.shortName);
-            expect(artifact.source.name).toBe(sampleArtifact.source.name);
-            expect(artifact.source.group.name).toBe(sampleArtifact.source.group.name);
-            expect(artifact.source.group.shortName).toBe(sampleArtifact.source.group.shortName);
-            expect(artifact.source.homebrew).toBe(sampleArtifact.source.homebrew);
+            expect(artifact.name.rus).toStrictEqual(smallArtifactWand.name.rus);
+            expect(artifact.name.eng).toStrictEqual(smallArtifactWand.name.eng);
+            expect(artifact.type.name).toStrictEqual(smallArtifactWand.type.name);
+            expect(artifact.url).toStrictEqual(smallArtifactWand.url);
+            expect(artifact.type.order).toStrictEqual(smallArtifactWand.type.order);
+            expect(artifact.price.dmg).toStrictEqual(smallArtifactWand.price.dmg);
+            expect(artifact.price.xge).toStrictEqual(smallArtifactWand.price.xge);
+            expect(artifact.rarity.type).toStrictEqual(smallArtifactWand.rarity.type);
+            expect(artifact.rarity.name).toStrictEqual(smallArtifactWand.rarity.name);
+            expect(artifact.rarity.short).toStrictEqual(smallArtifactWand.rarity.short);
+            expect(artifact.customization).toStrictEqual(smallArtifactWand.customization);
+            expect(artifact.source.shortName).toStrictEqual(smallArtifactWand.source.shortName);
+            expect(artifact.source.name).toStrictEqual(smallArtifactWand.source.name);
+            expect(artifact.source.group.name).toStrictEqual(smallArtifactWand.source.group.name);
+            expect(artifact.source.group.shortName).toStrictEqual(smallArtifactWand.source.group.shortName);
+            expect(artifact.source.homebrew).toStrictEqual(smallArtifactWand.source.homebrew);
         },
     },
 });

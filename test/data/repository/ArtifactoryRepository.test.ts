@@ -3,7 +3,7 @@ import type { SmallArtifact } from "../../../src/domain/models/artifact/SmallArt
 import type { FullArtifact } from "../../../src/domain/models/artifact/FullArtifact";
 import type { ArtifactoryFilters } from "../../../src/domain/models/artifact/ArtifactoryFilters";
 import { runBaseRepositoryTests } from "./BaseRepository";
-import { smallArtifactAmulet, smallArtifactSphere, smallArtifactWand } from "../../__mocks__/domain/models/artifact/small_artifact_items";
+import { artifactoryFilters, smallArtifactAmulet, smallArtifactSphere, smallArtifactWand } from "../../__mocks__/domain/models/artifact/small_artifact_items";
 import { fullArtifactAmulet, fullArtifactSphere, fullArtifactWand } from "../../__mocks__/domain/models/artifact/full_artifact_items";
 import { mockDatabase } from "../../__mocks__/dao/mock_item_dao";
 
@@ -15,11 +15,7 @@ runBaseRepositoryTests<SmallArtifact, FullArtifact, ArtifactoryFilters>({
             [fullArtifactAmulet, fullArtifactSphere, fullArtifactWand],
         )
     ),
-    expectedAllFilters: {
-        types: ['чудесный предмет', 'волшебная палочка'],
-        sources: ['XGE', 'BMT', 'DMG'],
-        rarities: ['O', 'Р', 'А']
-    },
+    expectedAllFilters: artifactoryFilters,
     expectedAllSmallItems: [smallArtifactAmulet, smallArtifactSphere, smallArtifactWand],
     expectedFilteredByNameItems: {
         name: 'Амулет тёмного осколка',
