@@ -1,7 +1,7 @@
 {
 	"id": "dnd-dm-tools",
 	"name": "DnD 5e DM tools",
-	"version": "0.5.0",
+	"version": "0.6.0",
 	"minAppVersion": "0.15.0",
 	"description": "A plugin for Obsidian.md with DnD 5e DM tools in russian.",
 	"author": "VladBytsyuk",
