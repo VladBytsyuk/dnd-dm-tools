@@ -17,6 +17,8 @@ export function mockDatabase<
         fullArmorDao: mockItemDao<FullItem, Filter>(fullItems),
         smallWeaponDao: mockItemDao<SmallItem, Filter>(smallItems),
         fullWeaponDao: mockItemDao<FullItem, Filter>(fullItems),
+        smallArtifactDao: mockItemDao<SmallItem, Filter>(smallItems),
+        fullArtifactDao: mockItemDao<FullItem, Filter>(fullItems),
     } as any
 }
 
