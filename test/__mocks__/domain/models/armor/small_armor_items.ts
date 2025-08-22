@@ -1,4 +1,4 @@
-import { SmallArmor } from "../../../src/domain/models/armor/SmallArmor"
+import { SmallArmor } from "../../../../../src/domain/models/armor/SmallArmor"
 
 export const smallArmorLeather = {
     "name": {

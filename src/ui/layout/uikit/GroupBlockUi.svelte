@@ -1,12 +1,12 @@
 <script lang="ts">
-	import type { WithUrl } from "src/domain/models/common/BaseItem";
-BaseItem
+	import type { BaseItem } from "src/domain/models/common/BaseItem";
+
     interface Props {
         groupTitle: string;
-        items: WithUrl[];
-        onItemClick: (item: WithUrl) => void;
-BaseItem SmallItemSlot: any;
-    }BaseItem
+        items: BaseItem[];
+        onItemClick: (item: BaseItem) => void;
+        SmallItemSlot: any;
+    }
 
     let { groupTitle, items, onItemClick, SmallItemSlot }: Props = $props();
 </script>

@@ -3,8 +3,8 @@ import type { SmallArmor } from "../../../src/domain/models/armor/SmallArmor";
 import type { FullArmor } from "../../../src/domain/models/armor/FullArmor";
 import type { ArmoryFilters } from "../../../src/domain/models/armor/ArmoryFilters";
 import { runBaseRepositoryTests } from "./BaseRepository";
-import { smallArmorLeather, smallArmorRingMail, smallArmorScaleMail } from "../../__mocks__/armor/small_armor_items";
-import { fullArmorLeather, fullArmorRingMail, fullArmorScaleMail } from "../../__mocks__/armor/full_armor_items";
+import { smallArmorLeather, smallArmorRingMail, smallArmorScaleMail } from "../../__mocks__/domain/models/armor/small_armor_items.ts";
+import { fullArmorLeather, fullArmorRingMail, fullArmorScaleMail } from "../../__mocks__/domain/models/armor/full_armor_items.ts";
 import { mockDatabase } from "../../__mocks__/dao/mock_item_dao";
 
 runBaseRepositoryTests<SmallArmor, FullArmor, ArmoryFilters>({

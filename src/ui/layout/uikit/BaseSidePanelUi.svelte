@@ -2,15 +2,15 @@
 	import SidePanelHeader from "./SidePanelHeader.svelte";
 	import { onMount } from "svelte";
 	import GroupBlockUi from "./GroupBlockUi.svelte";
-	import type { WithUrl } from "src/domain/models/common/BaseItem";
-	imBaseItempe { Group, Repository } from "src/domain/repositories/Repository";
+	import type { BaseItem } from "src/domain/models/common/BaseItem";
+	import type { Group, Repository } from "src/domain/repositories/Repository";
 	import { isFiltersEmpty, type Filters } from "src/domain/models/common/Filters";
 	import type { IUiEventListener } from 'src/domain/listeners/ui_event_listener.js';
 
     // ---- Props ----
-    interface Props<Small extends WithUrl, Full extends Small, F extends Filters> {
+    interface Props<Small extends BaseItem, Full extends Small, F extends Filters> {
         initialFullItem?: Full;
-        initialFilters: FBaseItem
+        initialFilters: F;
         uiEventListener: IUiEventListener;
         repository: Repository<Small, Full, F>;
         openFiltersModal: (fullFilters: F, filters: F, onApply: (newFilters: F) => Promise<void>) => void;
@@ -33,9 +33,9 @@
     // ---- State ----
     let searchBarValue: string = $state('');
     let filters: any = $state(initialFilters);
-    let itemsStack: WithUrl[] = $state(initialFullItem ? [initialFullItem] : []);
-    let currentItem: WithUrl | undefined = $state(initialFullItem || undefined);
-    let groups: Group<WithUrl>[] = $state([]);
+    let itemsStack: BaseItem[] = $state(initialFullItem ? [initialFullItem] : []);
+    let currentItem: BaseItem | undefined = $state(initialFullItem || undefined);
+    let groups: Group<BaseItem>[] = $state([]);
 
     // ---- Lifecycle ----  
     onMount(() => updateGroups()); 
@@ -43,9 +43,9 @@
     // ---- Event Handlers ----
     function onSearchBarBackClick() {
         if (itemsStack.length >= 1) {
-            itemsStaBaseItem);
-            currentItem = itemsStack.last() || undefinedBaseItem
-        }BaseItem
+            itemsStack.pop();
+            currentItem = itemsStack.last() || undefined;
+        }
     }
 
     function onSearchBarValueChanged(value: string) { 
@@ -66,7 +66,7 @@
         )
     }
 
-    async function onSmallItemClick(smallItem: WithUrl) {
+    async function onSmallItemClick(smallItem: BaseItem) {
         currentItem = await repository.getFullItemBySmallItem(smallItem) ?? undefined;
         if (currentItem) {
             itemsStack.push(currentItem);
@@ -76,8 +76,8 @@
     // ---- private functions ----
     async function updateGroups() {
         const searchValueNormalized = searchBarValue.toLowerCase();
-        const smallItems: WithUrl[] = await repository.getFilteredSmallItems(searchValueNormalized, filters);
-BaseItem groups = await repository.groupItems(smallItems);
+        const smallItems: BaseItem[] = await repository.getFilteredSmallItems(searchValueNormalized, filters);
+        groups = await repository.groupItems(smallItems);
     }
 </script>
 
@@ -86,7 +86,7 @@ BaseItem groups = await repository.groupItems(smallItems);
         onbackclick={currentItem ? onSearchBarBackClick : undefined}    
         onvaluechange={onSearchBarValueChanged}
         isvaluechangable={() => !currentItem}
-        onclearclick={undefined}BaseItem
+        onclearclick={undefined}
         onfiltersclick={currentItem ? undefined : onSearchBarFiltersClick}
         isfiltersapplied={() => !isFiltersEmpty(filters)}
     />

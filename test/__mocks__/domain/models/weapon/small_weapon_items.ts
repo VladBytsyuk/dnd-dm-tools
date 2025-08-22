@@ -1,4 +1,4 @@
-import { SmallWeapon } from "../../../src/domain/models/weapon/SmallWeapon"
+import { SmallWeapon } from "../../../../../src/domain/models/weapon/SmallWeapon"
 
 export const smallWeaponHalberd = {
     "name": {

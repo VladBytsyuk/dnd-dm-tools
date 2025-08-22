@@ -1,4 +1,4 @@
-import { FullArmor } from "../../../src/domain/models/armor/FullArmor"
+import { FullArmor } from "../../../../../src/domain/models/armor/FullArmor"
 
 export const fullArmorLeather = {
   "name": {
