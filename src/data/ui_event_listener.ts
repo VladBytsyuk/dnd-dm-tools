@@ -9,6 +9,7 @@ import type { BaseFeature } from "src/ui/components/feature/BaseFeature";
 import type { ArmoryFeature } from "src/ui/components/feature/ArmoryFeature";
 import type { EquipmentFeature } from "src/ui/components/feature/EquipmentFeature";
 import type { ArtifactoryFeature } from "src/ui/components/feature/ArtifactoryFeature";
+import type { BackgroundFeature } from "src/ui/components/feature/BackgroundFeature";
 
 export class UiEventListener implements IUiEventListener {
 
@@ -21,6 +22,7 @@ export class UiEventListener implements IUiEventListener {
         private armoryFeatureProvider: () => ArmoryFeature,
         private equipmentFeatureProvider: () => EquipmentFeature,
         private artifactoryFeatureProvider: () => ArtifactoryFeature,
+        private backgroundFeatureProvider: () => BackgroundFeature,
         private dmScreenFeatureProvider: () => DmScreenFeature,
     ) {
         this.onBeastClick = this.onBeastClick.bind(this);
@@ -28,6 +30,7 @@ export class UiEventListener implements IUiEventListener {
         this.onWeaponClick = this.onWeaponClick.bind(this);
         this.onArmorClick = this.onArmorClick.bind(this);
         this.onScreenItemClick = this.onScreenItemClick.bind(this);
+        this.onBackgroundClick = this.onBackgroundClick.bind(this);
     }
 
     // ---- methods ----
@@ -57,6 +60,10 @@ export class UiEventListener implements IUiEventListener {
 
     async onScreenItemClick(url: string): Promise<void> {
         this.onClick(this.dmScreenFeatureProvider, url);
+    }
+
+    async onBackgroundClick(url: string): Promise<void> {
+        this.onClick(this.backgroundFeatureProvider, url);
     }
 
     onDiceRoll(label: string, value: number): void {
