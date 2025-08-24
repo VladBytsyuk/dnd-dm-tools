@@ -1,4 +1,6 @@
-export const fullBackgroundGolgariAgent = {
+import { FullBackground } from "../../../../../src/domain/models/background/FullBackground";
+
+export const fullBackgroundGolgariAgent: FullBackground = {
   "name": {
     "rus": "Агент Голгари",
     "eng": "Golgari Agent"
@@ -28,7 +30,7 @@ export const fullBackgroundGolgariAgent = {
   "personalization": "<p>Члены Роя Голгари, несомненно, являются выходцами из подземного города, которым не по себе среди удобств цивилизации. Такой же дискомфорт они вызывают у других, напоминая им о неизбежном приближении смерти.</p>"
 };
 
-export const fullBackgroundOccultist = {
+export const fullBackgroundOccultist: FullBackground = {
   "name": {
     "rus": "Оккультист",
     "eng": "Occultist"
@@ -62,13 +64,12 @@ export const fullBackgroundOccultist = {
   "personalization": "<p>Оккультисты не могут устоять перед соблазном древних руин, забытого подземелья или логова какого-нибудь таинственного культа. Они охотно следуют странным слухам, народным преданиям и неясным подсказкам, найденным в пыльных книгах. Одни отправляются в приключения в надежде сделать свои открытия славой и богатством, другие считают истинной наградой ответы, которые они открывают. Какими бы ни были их мотивы, оккультисты сочетают в себе элементы археолога, ученого и фанатика.</p>"
 };
 
-export const fullBackgroundHarborfolk = {
+export const fullBackgroundHarborfolk: FullBackground = {
   "name": {
     "rus": "Человек Из Гавани",
     "eng": "Harborfolk"
   },
   "url": "/backgrounds/fragment/30",
-  "homebrew": true,
   "source": {
     "shortName": "ADLA",
     "name": "Дополнительные предыстории из ресурсов Лиги Авантюристов",
