@@ -6,6 +6,10 @@ export const backgroundsFilters = {
     sources: ["GGR", "ToH", "ADLA"]
 } as BackgroundsFilters;
 
+export const backgroundsFiltersWithAsterisks = {
+    sources: ["GGR", "ToH*", "ADLA*"]
+} as BackgroundsFilters;
+
 export const smallBackgroundGolgariAgent = {
     "name": {
         "rus": "Агент Голгари",
