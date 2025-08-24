@@ -3,6 +3,10 @@ import { BackgroundsFilters } from "../../../../../src/domain/models/background/
 import { SmallBackground } from "../../../../../src/domain/models/background/SmallBackground"
 
 export const backgroundsFilters = {
+    sources: ["GGR", "ToH", "ADLA"]
+} as BackgroundsFilters;
+
+export const backgroundsFiltersWithAsterisks = {
     sources: ["GGR", "ToH*", "ADLA*"]
 } as BackgroundsFilters;
 
@@ -11,7 +15,7 @@ export const smallBackgroundGolgariAgent = {
         "rus": "Агент Голгари",
         "eng": "Golgari Agent"
     },
-    "url": "/backgrounds/fragment/99",
+    "url": "/backgrounds/golgari_agent",
     "source": {
         "shortName": "GGR",
         "name": "Справочник гильдмастера по Равнике",
@@ -27,7 +31,7 @@ export const smallBackgroundOccultist = {
         "rus": "Оккультист",
         "eng": "Occultist"
     },
-    "url": "/backgrounds/fragment/129",
+    "url": "/backgrounds/occultist",
     "source": {
         "shortName": "ToH",
         "name": "Фолиант героев",
@@ -43,7 +47,7 @@ export const smallBackgroundHarborfolk = {
         "rus": "Человек Из Гавани",
         "eng": "Harborfolk"
     },
-    "url": "/backgrounds/fragment/30",
+    "url": "/backgrounds/harborfolk",
     "homebrew": true,
     "source": {
         "shortName": "ADLA",

@@ -6,6 +6,7 @@ import { runBaseRepositoryTests } from "./BaseRepository";
 import { mockDatabase } from "../../__mocks__/dao/mock_item_dao";
 import {
     backgroundsFilters,
+    backgroundsFiltersWithAsterisks,
     smallBackgroundGolgariAgent,
     smallBackgroundOccultist,
     smallBackgroundHarborfolk
@@ -24,7 +25,7 @@ runBaseRepositoryTests<SmallBackground, FullBackground, BackgroundsFilters>({
             [fullBackgroundGolgariAgent, fullBackgroundOccultist, fullBackgroundHarborfolk],
         )
     ),
-    expectedAllFilters: backgroundsFilters,
+    expectedAllFilters: backgroundsFiltersWithAsterisks,
     expectedAllSmallItems: [smallBackgroundGolgariAgent, smallBackgroundOccultist, smallBackgroundHarborfolk],
     expectedFilteredByNameItems: {
         name: 'Агент Голгари',
@@ -36,7 +37,7 @@ runBaseRepositoryTests<SmallBackground, FullBackground, BackgroundsFilters>({
         item: fullBackgroundOccultist as FullBackground,
     },
     expectedFullItemByUrl: {
-        url: '/backgrounds/fragment/30',
+        url: '/backgrounds/harborfolk',
         item: fullBackgroundHarborfolk as FullBackground,
     },
     expectedFullItemBySmallItem: {
