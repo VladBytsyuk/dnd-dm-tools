@@ -9,7 +9,7 @@ import { BackgroundFiltersModal } from "../modals/BackgroundFiltersModal";
 export class BackgroundSidePanel extends BaseSidePanel<SmallBackground, FullBackground, BackgroundsFilters>{
 
     getKey() { return 'backgrounds'; }
-    getRibbonIconName() { return 'scroll-text'; }
+    getRibbonIconName() { return 'book-a'; }
     getTitle() { return 'Предыстории'; }
 
     async mountSvelteComponent(element: Element): Promise<void> {

@@ -1,24 +1,26 @@
 <script lang="ts">
-    import type { IUiEventListener } from 'src/domain/listeners/ui_event_listener.js';
+    import { onkeydown } from "src/domain/utils/utils";
     import type { SmallBackground } from 'src/domain/models/background/SmallBackground';
 
     interface Props {
-        currentItem: SmallBackground,
-        uiEventListener: IUiEventListener,
+        smallItem: SmallBackground,
+        onItemClick: () => void,
     }
-    let { currentItem, uiEventListener }: Props = $props();
-
-    const onBackgroundClick = () => {
-        uiEventListener.onItemClick(currentItem.url);
-    };
+    let { smallItem, onItemClick }: Props = $props();
 </script>
 
-<div class="background-small" onclick={onBackgroundClick}>
+<div 
+    class="background-small" 
+    role="button"
+    tabindex="0"
+    onclick={onItemClick}
+    onkeydown={onkeydown(onItemClick)}
+>
     <div class="background-small__content">
-        <h4 class="background-small__title">{currentItem.name.rus}</h4>
-        <p class="background-small__subtitle">{currentItem.name.eng}</p>
+        <h4 class="background-small__title">{smallItem.name.rus}</h4>
+        <p class="background-small__subtitle">{smallItem.name.eng}</p>
         <div class="background-small__source">
-            <small>{currentItem.source.shortName}</small>
+            <small>{smallItem.source.shortName}</small>
         </div>
     </div>
 </div>

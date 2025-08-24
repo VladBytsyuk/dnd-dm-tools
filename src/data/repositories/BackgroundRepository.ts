@@ -30,16 +30,14 @@ export class BackgroundRepository
     }
 
     async groupItems(smallItems: SmallBackground[]): Promise<Group<SmallBackground>[]> {
-        const names = new Map<string, string>();
         const groups = smallItems.reduce((acc, background) => {
-            names.set(background.source.shortName, background.source.name);
-            const source = background.source.shortName;
-            (acc[source] ||= []).push(background);
+            const type = background.name.rus[0] ?? '—';
+            (acc[type] ||= []).push(background);
             return acc;
         }, {} as { [key: string]: SmallBackground[] });
 
         return Object.entries(groups)
-            .sort(([sourceA], [sourceB]) => sourceA.localeCompare(sourceB))
-            .map(([source, smallBackgrounds]) => ({ sort: names.get(source), smallItems: smallBackgrounds } as Group<SmallBackground>));
+            .map(([type, smallBackgrounds]) => ({ sort: type, smallItems: smallBackgrounds } as Group<SmallBackground>))
+            .sort((a, b) => a.sort.localeCompare(b.sort));
     }
 }

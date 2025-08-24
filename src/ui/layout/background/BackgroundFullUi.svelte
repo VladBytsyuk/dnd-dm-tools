@@ -22,20 +22,20 @@
         diceRollersManager.onDestroy();
     });
 
-    const onArtifactCopy = () => {
+    const onBackgroundCopy = () => {
         copyBackgroundToClipboard(currentItem);
     };
 </script>
 
-<div class="artifact-details">
-    <div class="artifact-details__header">
-        <h2 class="artifact-details__title">{currentItem.name.rus}</h2>
-        <p class="artifact-details__subtitle">{currentItem.name.eng}</p>
+<div class="background-details">
+    <div class="background-details__header">
+        <h2 class="background-details__title">{currentItem.name.rus}</h2>
+        <p class="background-details__subtitle">{currentItem.name.eng}</p>
         
-        <div class="artifact-details__actions">
+        <div class="background-details__actions">
             <button 
-                class="artifact-details__copy" 
-                onclick={onArtifactCopy}
+                class="background-details__copy" 
+                onclick={onBackgroundCopy}
                 title="Копировать в буфер обмена"
             >
                 📋
@@ -43,10 +43,10 @@
         </div>
     </div>
 
-    <div class="artifact-details__content">
-        <div class="artifact-details__section">
+    <div class="background-details__content">
+        <div class="background-details__section">
             <h3>Навыки</h3>
-            <div class="artifact-details__skills">
+            <div class="background-details__skills">
                 {#each currentItem.skills as skill}
                     <span class="skill-tag">{skill}</span>
                 {/each}
@@ -54,39 +54,39 @@
         </div>
 
         {#if currentItem.toolOwnership}
-            <div class="artifact-details__section">
+            <div class="background-details__section">
                 <h3>Владение инструментами</h3>
                 <HtmlBlock content={currentItem.toolOwnership} />
             </div>
         {/if}
 
-        <div class="artifact-details__section">
+        <div class="background-details__section">
             <h3>Снаряжение</h3>
-            <ul class="artifact-details__equipment">
+            <ul class="background-details__equipment">
                 {#each currentItem.equipments as equipment}
                     <li><HtmlBlock content={equipment} /></li>
                 {/each}
             </ul>
         </div>
 
-        <div class="artifact-details__section">
+        <div class="background-details__section">
             <h3>Стартовые деньги</h3>
             <p>{currentItem.startGold} зм</p>
         </div>
 
-        <div class="artifact-details__section">
+        <div class="background-details__section">
             <h3>Описание</h3>
             <HtmlBlock content={currentItem.description} />
         </div>
 
         {#if currentItem.personalization}
-            <div class="artifact-details__section">
+            <div class="background-details__section">
                 <h3>Персонализация</h3>
                 <HtmlBlock content={currentItem.personalization} />
             </div>
         {/if}
 
-        <div class="artifact-details__source">
+        <div class="background-details__source">
             <small>
                 Источник: {currentItem.source.name} ({currentItem.source.shortName})
             </small>
@@ -95,38 +95,38 @@
 </div>
 
 <style>
-    .artifact-details {
+    .background-details {
         padding: 1rem;
         max-width: 800px;
         margin: 0 auto;
     }
 
-    .artifact-details__header {
+    .background-details__header {
         border-bottom: 2px solid var(--interactive-accent);
         padding-bottom: 1rem;
         margin-bottom: 1rem;
         position: relative;
     }
 
-    .artifact-details__title {
+    .background-details__title {
         margin: 0 0 0.5rem 0;
         font-size: 1.5rem;
         color: var(--text-accent);
     }
 
-    .artifact-details__subtitle {
+    .background-details__subtitle {
         margin: 0;
         font-style: italic;
         color: var(--text-muted);
     }
 
-    .artifact-details__actions {
+    .background-details__actions {
         position: absolute;
         top: 0;
         right: 0;
     }
 
-    .artifact-details__copy {
+    .background-details__copy {
         background: none;
         border: 1px solid var(--background-modifier-border);
         padding: 0.5rem;
@@ -135,22 +135,22 @@
         font-size: 1rem;
     }
 
-    .artifact-details__copy:hover {
+    .background-details__copy:hover {
         background: var(--background-modifier-hover);
     }
 
-    .artifact-details__section {
+    .background-details__section {
         margin-bottom: 1.5rem;
     }
 
-    .artifact-details__section h3 {
+    .background-details__section h3 {
         margin: 0 0 0.5rem 0;
         color: var(--text-accent);
         border-bottom: 1px solid var(--background-modifier-border);
         padding-bottom: 0.25rem;
     }
 
-    .artifact-details__skills {
+    .background-details__skills {
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem;
@@ -164,26 +164,26 @@
         font-size: 0.875rem;
     }
 
-    .artifact-details__equipment {
+    .background-details__equipment {
         list-style: none;
         padding: 0;
         margin: 0;
     }
 
-    .artifact-details__equipment li {
+    .background-details__equipment li {
         margin-bottom: 0.5rem;
         padding-left: 1rem;
         position: relative;
     }
 
-    .artifact-details__equipment li::before {
+    .background-details__equipment li::before {
         content: "•";
         position: absolute;
         left: 0;
         color: var(--interactive-accent);
     }
 
-    .artifact-details__source {
+    .background-details__source {
         margin-top: 2rem;
         padding-top: 1rem;
         border-top: 1px solid var(--background-modifier-border);

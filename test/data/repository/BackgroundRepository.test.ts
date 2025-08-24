@@ -50,7 +50,7 @@ describe('BackgroundRepository', () => {
         });
     });
 
-    it('should group items by source correctly', async () => {
+    it('should group items by first letter of name correctly', async () => {
         const backgrounds: SmallBackground[] = [
             {
                 name: { rus: "Агент Голгари", eng: "Golgari Agent" },
@@ -75,7 +75,7 @@ describe('BackgroundRepository', () => {
         const groups = await repository.groupItems(backgrounds);
         
         expect(groups).toHaveLength(1);
-        expect(groups[0].sort).toBe("Справочник гильдмастера по Равнике");
+        expect(groups[0].sort).toBe("А");
         expect(groups[0].smallItems).toHaveLength(2);
     });
 });
