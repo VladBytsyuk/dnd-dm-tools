@@ -18,7 +18,6 @@ describe('FullBackground mock objects', () => {
         expect(background.startGold).toBe(10);
         expect(background.description).toContain("Вы &mdash; член многочисленной орды");
         expect(background.personalization).toBeDefined();
-        expect(background.homebrew).toBeUndefined();
     });
 
     it('should properly type fullBackgroundOccultist as FullBackground', () => {
@@ -32,10 +31,9 @@ describe('FullBackground mock objects', () => {
         expect(background.startGold).toBe(5);
         expect(background.description).toContain("В глубине души вы верите");
         expect(background.personalization).toBeDefined();
-        expect(background.homebrew).toBeUndefined();
     });
 
-    it('should properly type fullBackgroundHarborfolk as FullBackground with homebrew flag', () => {
+    it('should properly type fullBackgroundHarborfolk as FullBackground', () => {
         const background: FullBackground = fullBackgroundHarborfolk;
         
         expect(background.name.rus).toBe("Человек Из Гавани");
@@ -45,7 +43,6 @@ describe('FullBackground mock objects', () => {
         expect(background.skills).toEqual(["Атлетика", "Лoвкость рук"]);
         expect(background.startGold).toBe(5);
         expect(background.description).toContain("Вы один из сотен незначительных");
-        expect(background.homebrew).toBe(true); // Top-level homebrew flag
         expect(background.source.homebrew).toBe(true); // Source-level homebrew flag
         expect(background.personalization).toBeUndefined(); // This one doesn't have personalization
     });
@@ -81,5 +78,23 @@ describe('FullBackground mock objects', () => {
             expect(background.startGold).toBeGreaterThanOrEqual(0);
             expect(background.description.length).toBeGreaterThan(0);
         });
+    });
+
+    it('should handle HTML content in toolOwnership, equipments, and description fields', () => {
+        // Test fullBackgroundGolgariAgent HTML content
+        expect(fullBackgroundGolgariAgent.toolOwnership).toContain('<detail-tooltip');
+        expect(fullBackgroundGolgariAgent.toolOwnership).toContain('<a href=');
+        expect(fullBackgroundGolgariAgent.description).toContain('<p>');
+        expect(fullBackgroundGolgariAgent.description).toContain('&mdash;');
+        expect(fullBackgroundGolgariAgent.equipments.some(item => item.includes('<detail-tooltip'))).toBe(true);
+        expect(fullBackgroundGolgariAgent.equipments.some(item => item.includes('<a href='))).toBe(true);
+
+        // Test fullBackgroundOccultist HTML content
+        expect(fullBackgroundOccultist.toolOwnership).toContain('<detail-tooltip');
+        expect(fullBackgroundOccultist.toolOwnership).toContain('<a href=');
+        expect(fullBackgroundOccultist.description).toContain('<p>');
+
+        // Test fullBackgroundHarborfolk HTML content
+        expect(fullBackgroundHarborfolk.description).toContain('<p>');
     });
 });

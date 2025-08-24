@@ -23,9 +23,6 @@ export interface FullBackground extends SmallBackground {
     /** Detailed description of the background (may contain HTML) */
     description: string;
     
-    /** Whether this is homebrew content (top-level flag) */
-    homebrew?: boolean;
-    
     /** Personalization or roleplaying guidance for the background */
     personalization?: string;
 }

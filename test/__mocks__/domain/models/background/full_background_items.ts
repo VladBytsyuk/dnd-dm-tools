@@ -70,7 +70,6 @@ export const fullBackgroundHarborfolk: FullBackground = {
     "eng": "Harborfolk"
   },
   "url": "/backgrounds/fragment/30",
-  "homebrew": true,
   "source": {
     "shortName": "ADLA",
     "name": "Дополнительные предыстории из ресурсов Лиги Авантюристов",
