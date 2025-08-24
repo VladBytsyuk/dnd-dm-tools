@@ -27,7 +27,6 @@ describe('SmallBackground interface', () => {
                 eng: "Mulmaster Aristocrat"
             },
             url: "/backgrounds/mulmaster_aristocrat",
-            homebrew: true,
             source: {
                 shortName: "ADLA",
                 name: "Дополнительные предыстории из ресурсов Лиги Авантюристов",
@@ -43,9 +42,7 @@ describe('SmallBackground interface', () => {
         expect(basicBackground.name.eng).toBe("Golgari Agent");
         expect(basicBackground.url).toBe("/backgrounds/golgari_agent");
         expect(basicBackground.source.shortName).toBe("GGR");
-        expect(basicBackground.homebrew).toBeUndefined();
 
-        expect(homebrewBackground.homebrew).toBe(true);
         expect(homebrewBackground.source.homebrew).toBe(true);
     });
 });
