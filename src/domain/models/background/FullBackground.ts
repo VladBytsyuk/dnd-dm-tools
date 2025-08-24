@@ -1,0 +1,31 @@
+import type { SmallBackground } from "./SmallBackground";
+
+/**
+ * Represents a complete background with all detailed information including skills,
+ * equipment, starting gold, and descriptive content.
+ * 
+ * @interface FullBackground
+ * @extends SmallBackground
+ */
+export interface FullBackground extends SmallBackground {
+    /** Array of skill names that this background provides */
+    skills: string[];
+    
+    /** Tool ownership or proficiency information (may contain HTML) */
+    toolOwnership: string;
+    
+    /** Array of equipment items provided by this background */
+    equipments: string[];
+    
+    /** Starting gold amount in gold pieces */
+    startGold: number;
+    
+    /** Detailed description of the background (may contain HTML) */
+    description: string;
+    
+    /** Whether this is homebrew content (top-level flag) */
+    homebrew?: boolean;
+    
+    /** Personalization or roleplaying guidance for the background */
+    personalization?: string;
+}
