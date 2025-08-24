@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BackgroundRepository } from '../../../src/data/repositories/BackgroundRepository';
-import type DB from '../../../src/data/databse/DB';
+import type DB from '../../../src/data/database/DB';
 import type { SmallBackground } from '../../../src/domain/models/background/SmallBackground';
 import type { BackgroundsFilters } from '../../../src/domain/models/background/BackgroundsFilters';
 
