@@ -56,7 +56,7 @@
         {#if currentItem.toolOwnership}
             <div class="background-details__section">
                 <h3>Владение инструментами</h3>
-                <HtmlBlock content={currentItem.toolOwnership} />
+                <HtmlBlock htmlContent={currentItem.toolOwnership} uiEventListener={uiEventListener} />
             </div>
         {/if}
 
@@ -64,7 +64,7 @@
             <h3>Снаряжение</h3>
             <ul class="background-details__equipment">
                 {#each currentItem.equipments as equipment}
-                    <li><HtmlBlock content={equipment} /></li>
+                    <li><HtmlBlock htmlContent={equipment} uiEventListener={uiEventListener} /></li>
                 {/each}
             </ul>
         </div>
@@ -76,13 +76,13 @@
 
         <div class="background-details__section">
             <h3>Описание</h3>
-            <HtmlBlock content={currentItem.description} />
+            <HtmlBlock htmlContent={currentItem.description} uiEventListener={uiEventListener} />
         </div>
 
         {#if currentItem.personalization}
             <div class="background-details__section">
                 <h3>Персонализация</h3>
-                <HtmlBlock content={currentItem.personalization} />
+                <HtmlBlock htmlContent={currentItem.personalization} uiEventListener={uiEventListener} />
             </div>
         {/if}
 
