@@ -66,8 +66,8 @@ export class SmallItemSqlTableDao extends Dao<SmallItem, EquipmentFilters> {
 
     async filterByFilters(filters: EquipmentFilters): Promise<WhereClauseData> {
         try {
-            let whereClauses: string[] = [];
-            let params: SqlValue[] = [];
+            const whereClauses: string[] = [];
+            const params: SqlValue[] = [];
 
             if (filters.sources.length > 0) {
                 whereClauses.push('(' + filters.sources.map(() => `source_short_name = ?`).join(' OR ') + ')');

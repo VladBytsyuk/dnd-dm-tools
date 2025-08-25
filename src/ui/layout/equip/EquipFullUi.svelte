@@ -6,6 +6,7 @@
 	import { copyEquipmentToClipboard } from 'src/data/clipboard';
 	import HtmlBlock from '../uikit/HtmlBlock.svelte';
 	import { separate } from 'src/domain/utils/utils';
+	import HeaderFullUi from '../uikit/HeaderFullUi.svelte';
 
     interface Props {
         currentItem: FullItem,
@@ -25,25 +26,12 @@
 </script>
 
 <div class="body">
-    <div class="header">
-        <div class="name-container">
-            <div
-                class="name"
-                role="button"
-                tabindex="0"
-                onclick={() => copyEquipmentToClipboard(currentItem)}
-                onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyEquipmentToClipboard(currentItem); } }}
-                aria-label="Скопировать в буфер обмена"
-            >
-                {currentItem.name.rus} 📋
-            </div>
-            <div class="subname">{currentItem.name.eng}</div>
-        </div>
-        <div class="info-container">
-            {#if currentItem.categories}<div class="type">{separate(currentItem.categories)}</div>{/if}
-            {#if currentItem.source}<div class="source">Источник: {currentItem.source.shortName}</div>{/if}
-        </div>
-    </div>
+    <HeaderFullUi
+        name={currentItem.name}
+        type={separate(currentItem.categories)}
+        source={currentItem.source}
+        onClick={() => copyEquipmentToClipboard(currentItem)}
+    />
     <div class="table">
         {#if currentItem.price}
             <div class="table-item">
@@ -84,46 +72,6 @@
         border-radius: 8px;
         border-color: #00000090;
         border-width: 2px;
-    }
-
-    .header {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1em;
-    }
-
-    .name {
-        font-size: 21px;
-        line-height: 1.2em;
-        margin: 0 0 2px;
-        letter-spacing: 1px;
-    }
-
-    .subname {
-        opacity: 0.75;
-        font-size: 12px;
-        margin: 0 0 2px;
-    }
-
-    .info-container {
-        display: flex;
-        gap: 12px;
-        justify-content: space-between;
-        padding: 12px;
-        background: #ffffff14;
-        border-radius: 8px;
-    }
-
-    .type {
-        flex: 1 1 100%;
-        margin-right: 8px;
-        font-style: italic;
-    }
-
-    .source {
-        flex-shrink: 0;
     }
     
     .table {

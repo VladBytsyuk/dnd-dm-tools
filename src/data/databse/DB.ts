@@ -1,4 +1,5 @@
 import { Buffer } from 'buffer';
+import * as fs from 'fs';
 import type { Dao } from '../../domain/Dao';
 import { SmallMonsterSqlTableDao } from './SmallMonsterSqlTableDao';
 import { FileSystemAdapter, type App, type PluginManifest } from 'obsidian';
@@ -54,8 +55,8 @@ export default class DB implements Initializable {
                 wasmBinary = await this.app.vault.adapter.readBinary(wasmFile);
             } catch (e) {
                 try {
-                    const fs = require('fs');
-                    wasmBinary = fs.readFileSync(wasmFile);
+                    const fileBuffer = fs.readFileSync(wasmFile);
+                    wasmBinary = fileBuffer.buffer.slice(fileBuffer.byteOffset, fileBuffer.byteOffset + fileBuffer.byteLength);
                 } catch (nodeError) {
                     console.error('Failed to load WASM file:', nodeError);
                 }
@@ -170,7 +171,7 @@ export default class DB implements Initializable {
         ];
     }
 
-    private pluginFile(filename: string, absolute: boolean = false) {
+    private pluginFile(filename: string, absolute = false) {
         const path = [
             this.app.vault.configDir,
             'plugins',
