@@ -29,20 +29,43 @@
     
     .group details {
         user-select: none;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        marker: none;
+    }
+
+    .group details:hover, .group details[open] {
+        border-color: var(--interactive-accent);
     }
 
     .group-title {
         font-size: 1.2rem;
         font-weight: bold;
         width: 100%;
-        padding-bottom: 8px;
-        margin-bottom: 0.5rem;
-        border-bottom: 2px solid var(--text-color);
+        padding: 4px 8px;
+        margin: 0;
+        background: var(--background-primary);
+        border-bottom: 2px solid var(--background-modifier-border);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .group-title:hover {
+        background: var(--interactive-accent);
+    }
+
+    .group details[open] .group-title {
+        background: var(--interactive-accent);
+        border-bottom-color: var(--interactive-accent);
     }
 
     .grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 4px;
+        padding: 8px 0px 0px;
+        background: var(--background-secondary);
     }
 </style>

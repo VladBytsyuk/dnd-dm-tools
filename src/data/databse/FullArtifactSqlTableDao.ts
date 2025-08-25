@@ -63,7 +63,7 @@ export class FullArtifactSqlTableDao extends Dao<FullArtifact, any> {
                     rarity_type,
                     rarity_name,
                     rarity_short,
-                    cusstomization,
+                    customization,
                     source_short_name,
                     source_name,
                     group_name,
