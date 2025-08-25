@@ -8,6 +8,13 @@ import type { SmallBackground } from "./SmallBackground";
  * @extends SmallBackground
  */
 export interface FullBackground extends SmallBackground {
+
+    /** Associated URL for the background */
+    associatedUrl?: string;
+
+    /** Associated HTML content for the background */
+    associatedHtml?: string;
+
     /** Array of skill names that this background provides */
     skills: string[];
     

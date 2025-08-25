@@ -20,7 +20,7 @@ export const registerHtmlLinkListener = (htmlLinkListener: HtmlLinkListener) => 
             LinkListener('/armors/', htmlLinkListener.onArmorClick),
             LinkListener('/backgrounds/', htmlLinkListener.onBackgroundClick),
             LinkListener('/items/magic/', htmlLinkListener.onArtifactClick),
-            LinkListener('/items/', htmlLinkListener.onArmorClick),
+            LinkListener('/items/', htmlLinkListener.onItemClick),
         ]
     )(node);
 }

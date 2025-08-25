@@ -7,67 +7,6 @@ If your plugin does not need CSS, delete this file.
 
 */
 
-.side-panel-bestiary-header {
-    display: flex;
-}
-
-.side-panel-spellbook-header {
-    display: flex;
-}
-
-.side-panel-dm-screen-header {
-    display: flex;
-}
-
-.search-input-container {
-    flex: 1;
-    margin: 0 0.5em 0 0
-}
-
-.side-panel-bestiary-statblock-container {
-    padding: 1em;
-}
-
-.side-panel-spellbook-statblock-container {
-    padding: 1em;
-}
-
-.creature-suggestions-container {
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 4px;
-    margin-top: 5px;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.spell-suggestions-container {
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 4px;
-    margin-top: 5px;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.suggestion-item {
-    padding: 8px 12px;
-    cursor: pointer;
-}
-
-.suggestion-item:hover {
-    background-color: var(--background-primary-alt);
-}
-
-.spell-card-tooltip-container {
-    position: absolute;
-    z-index: 9999;
-    visibility: visible;
-    width: 40%;
-}
-
-.side-panel-filter-item {
-    margin: 0px 2px 0px;
-}
-
 .filter-item {
     margin: 2px;
 }
@@ -75,4 +14,133 @@ If your plugin does not need CSS, delete this file.
 .submit-button {
     width: 100%;
     margin: 8px 0px 0px 0px;
+}
+
+/* Small Item styles */
+.small-item {
+    padding: 0.5rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--background-primary);
+}
+.small-item:hover {
+    border-color: var(--interactive-accent);
+    background: var(--background-modifier-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.small-item__body {
+    overflow: hidden;
+    display: flex;
+    flex: 1 1 100%;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.small-item__row {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.small-item__name-block {
+    overflow: hidden;
+    display: inline-block;
+    width: 100%;
+    text-overflow: ellipsis;
+}
+.small-item__rus-name {
+    display: inline;
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-accent);
+    font-weight: 600;
+}
+.small-item__eng-name {
+    display: inline;
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Full Item styles */
+.full-item {
+    text-align: left;
+    font-size: 12.5px;
+    line-height: 1.2em;
+    display: inline-block;
+    vertical-align: top;
+    width: 100%;
+    background-size: cover;
+    background-position: center;
+    padding: 1em;
+    box-sizing: border-box;
+    font-family: "Open Sans", sans-serif;
+    background: var(--bg-color);
+    color: var(--text-color);
+    background: #00000020;
+    border-radius: 8px;
+    border-color: #00000090;
+    border-width: 2px;
+}
+
+/* Other */
+.stat-list {
+    padding: 0;
+}
+.stat-list li {
+    margin-bottom: 6px;
+    list-style: none;
+}
+.stat-list ul {
+  margin: 0 0 12px;
+  padding-left: 24px;
+  line-height: var(--main-line-height);
+  color: var(--text-color);
+}
+
+.header_separator {
+    display: flex;
+    align-items: center;
+    margin-top: 32px;
+    padding: 6px 0;
+    border-color: var(--border);
+    border-bottom: 1px solid;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    background: #00000020;
+    border: 0.5px solid #ffffff40;
+}
+.table-responsive thead {
+    background: var(--interactive-accent);
+}
+.table-responsive th {
+    background: var(--interactive-accent);
+    padding: 6px;
+}
+.table-responsive tr {
+    padding: 4px;
+}
+.table-responsive td {
+    padding: 6px;
+}
+
+.dnd5_table {
+    overflow: scroll;
+    border-spacing: inherit;
+    width: 100% !important;
+    height: 100%;
+    margin-bottom: 12px;
+    color: var(--text-color);
+    border: 1px solid var(--border);
+    border-radius: 8px;
 }

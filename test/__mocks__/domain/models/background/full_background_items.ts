@@ -6,6 +6,7 @@ export const fullBackgroundGolgariAgent: FullBackground = {
     "eng": "Golgari Agent"
   },
   "url": "/backgrounds/golgari_agent",
+  "associatedUrl": "/backgrounds/fragment/99",
   "source": {
     "shortName": "GGR",
     "name": "Справочник гильдмастера по Равнике",
@@ -36,6 +37,7 @@ export const fullBackgroundOccultist: FullBackground = {
     "eng": "Occultist"
   },
   "url": "/backgrounds/occultist",
+  "associatedUrl": "/backgrounds/fragment/199",
   "source": {
     "shortName": "ToH",
     "name": "Фолиант героев",
@@ -70,6 +72,7 @@ export const fullBackgroundHarborfolk: FullBackground = {
     "eng": "Harborfolk"
   },
   "url": "/backgrounds/harborfolk",
+  "associatedUrl": "/backgrounds/fragment/299",
   "source": {
     "shortName": "ADLA",
     "name": "Дополнительные предыстории из ресурсов Лиги Авантюристов",

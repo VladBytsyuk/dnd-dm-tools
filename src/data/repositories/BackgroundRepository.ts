@@ -40,4 +40,26 @@ export class BackgroundRepository
             .map(([type, smallBackgrounds]) => ({ sort: type, smallItems: smallBackgrounds } as Group<SmallBackground>))
             .sort((a, b) => a.sort.localeCompare(b.sort));
     }
+
+    async getFullItemByUrl(url: string): Promise<FullBackground | null> {
+        const cachedFullItem = await this.database.fullBackgroundDao?.readItemByUrl(url) || null;
+        if (cachedFullItem) {
+            console.log(`Loaded ${url} from local storage.`);
+            return cachedFullItem;
+        }
+        const fullItem = await this.fetchFromAPI(url);
+        if (fullItem) {
+            const associatedUrl = fullItem.url;
+            fullItem.url = url;
+            fullItem.associatedUrl = associatedUrl;
+            fullItem.associatedHtml = await this.fetchHtmlFromAPI(associatedUrl) ?? undefined;
+        }
+        if (fullItem) {
+            this.database.transaction(async () => {
+                await this.database.fullBackgroundDao?.createItem(fullItem);
+            });
+            console.log(`Put ${url} into local storage.`)
+        }
+        return fullItem;
+    }
 }

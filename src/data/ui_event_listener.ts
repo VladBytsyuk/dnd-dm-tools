@@ -29,6 +29,8 @@ export class UiEventListener implements IUiEventListener {
         this.onSpellClick = this.onSpellClick.bind(this);
         this.onWeaponClick = this.onWeaponClick.bind(this);
         this.onArmorClick = this.onArmorClick.bind(this);
+        this.onItemClick = this.onItemClick.bind(this);
+        this.onArtifactClick = this.onArtifactClick.bind(this);
         this.onScreenItemClick = this.onScreenItemClick.bind(this);
         this.onBackgroundClick = this.onBackgroundClick.bind(this);
     }
