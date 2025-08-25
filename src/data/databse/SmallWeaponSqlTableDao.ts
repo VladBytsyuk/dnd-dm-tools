@@ -87,8 +87,8 @@ export class SmallWeaponSqlTableDao extends Dao<SmallWeapon, ArsenalFilters> {
 
     async filterByFilters(filters: ArsenalFilters): Promise<WhereClauseData> {
         try {
-            let whereClauses: string[] = [];
-            let params: SqlValue[] = [];
+            const whereClauses: string[] = [];
+            const params: SqlValue[] = [];
 
             if (filters.dices.length > 0) {
                 whereClauses.push('(' + filters.dices.map(() => `damage_dice = ?`).join(' OR ') + ')');

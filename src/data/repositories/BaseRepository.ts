@@ -102,8 +102,8 @@ export abstract class BaseRepository<
                 url: `https://ttg.club/api/v1/${url}`,
                 method: 'POST',
             });
-            if (response.status != 200) {
-                console.error(`http code: ${response.status}`)
+            if (response.status !== 200) {
+                console.error(`HTTP error ${response.status} for URL: ${url}`);
                 throw new Error(`HTTP error ${response.status}.`);
             }
             const data = await response.json;
@@ -121,8 +121,8 @@ export abstract class BaseRepository<
                 url: `https://ttg.club/${url}`,
                 method: 'GET',
             });
-            if (response.status != 200) {
-                console.error(`http code: ${response.status}`)
+            if (response.status !== 200) {
+                console.error(`HTTP error ${response.status} for URL: ${url}`);
                 throw new Error(`HTTP error ${response.status}.`);
             }
             const data = await response.text;

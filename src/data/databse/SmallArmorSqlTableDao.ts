@@ -84,8 +84,8 @@ export class SmallArmorSqlTableDao extends Dao<SmallArmor, ArmoryFilters> {
 
     async filterByFilters(filters: ArmoryFilters): Promise<WhereClauseData> {
         try {
-            let whereClauses: string[] = [];
-            let params: SqlValue[] = [];
+            const whereClauses: string[] = [];
+            const params: SqlValue[] = [];
 
             if (filters.types.length > 0) {
                 whereClauses.push('(' + filters.types.map(() => `type_name = ?`).join(' OR ') + ')');

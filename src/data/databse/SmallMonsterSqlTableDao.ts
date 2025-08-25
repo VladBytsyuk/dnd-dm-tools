@@ -78,8 +78,8 @@ export class SmallMonsterSqlTableDao extends Dao<SmallMonster, BestiaryFilters> 
 
     async filterByFilters(filters: BestiaryFilters): Promise<WhereClauseData> {
         try {
-            let whereClauses: string[] = [];
-            let params: SqlValue[] = [];
+            const whereClauses: string[] = [];
+            const params: SqlValue[] = [];
 
             if (filters.types.length > 0) {
                 whereClauses.push('(' + filters.types.map(() => `type = ?`).join(' OR ') + ')');

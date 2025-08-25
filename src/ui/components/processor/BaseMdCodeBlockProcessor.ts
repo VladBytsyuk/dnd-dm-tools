@@ -1,4 +1,3 @@
-import { get } from "http";
 import { parseYaml } from "obsidian";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type { Filters } from "src/domain/models/common/Filters";
@@ -36,25 +35,35 @@ export abstract class BaseMdCodeBlockProcessor<
         repository: Repository<ST, FT, F>,
         uiEventListener: IUiEventListener,
     ) {
-        const parameters = parseYaml(source);
-        if (!parameters.name.rus) return;
+        try {
+            const parameters = parseYaml(source);
+            if (!parameters?.name?.rus) {
+                console.warn('Code block missing required name.rus parameter');
+                return;
+            }
 
-        let item: FT;
-        if (!parameters.name.eng) {
-            const fullItem = await repository.getFullItemByUrl(parameters.name.rus);
-            if (fullItem == null) return;
+            let item: FT;
+            if (!parameters.name.eng) {
+                const fullItem = await repository.getFullItemByUrl(parameters.name.rus);
+                if (fullItem == null) {
+                    console.warn(`Failed to fetch item by URL: ${parameters.name.rus}`);
+                    return;
+                }
 
-            item = fullItem;
-        } else {
-            item = parameters as FT;
+                item = fullItem;
+            } else {
+                item = parameters as FT;
+            }
+
+            mount(this.getUi(), {
+                target: el,
+                props: {
+                    currentItem: item,
+                    uiEventListener: uiEventListener,
+                },
+            });
+        } catch (error) {
+            console.error('Error processing markdown code block:', error);
         }
-
-        mount(this.getUi(), {
-            target: el,
-            props: {
-                currentItem: item,
-                uiEventListener: uiEventListener,
-            },
-        });
     }
 }

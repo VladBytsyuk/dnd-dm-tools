@@ -96,8 +96,8 @@ export class SmallSpellSqlTableDao extends Dao<SmallSpell, SpellbookFilters> {
 
     async filterByFilters(filters: SpellbookFilters): Promise<WhereClauseData> {
         try {
-            let whereClauses: string[] = [];
-            let params: SqlValue[] = [];
+            const whereClauses: string[] = [];
+            const params: SqlValue[] = [];
 
             if (filters.levels.length > 0) {
                 whereClauses.push('(' + filters.levels.map(() => `level = ?`).join(' OR ') + ')');
