@@ -17,7 +17,7 @@ export abstract class BaseRepository<
     constructor(
         protected database: DB,
         private smallItemDao: Dao<SmallItem, Filter>,
-        private fullItemDao: Dao<FullItem, any>,
+        private fullItemDao: Dao<FullItem, unknown>,
     ) {}
 
     // ---- abstract functions ----
