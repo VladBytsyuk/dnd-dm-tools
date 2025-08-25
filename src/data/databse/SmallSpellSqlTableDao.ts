@@ -179,7 +179,7 @@ export class SmallSpellSqlTableDao extends Dao<SmallSpell, SpellbookFilters> {
                 components: {
                     v: Boolean(sqlValues[6]),
                     s: Boolean(sqlValues[7]),
-                    m: sqlValues[7] ? (sqlValues[8] as string) : undefined,
+                    m: sqlValues[8] ? (sqlValues[8] as string) : undefined,
                 },
                 url: sqlValues[9] as string,
                 source: {
