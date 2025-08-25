@@ -20,10 +20,9 @@ async function encounterMdCodeBlockProcessor(
     source: string,
     el: HTMLElement,
     bestiary: Bestiary,
-
 ) {
     const parameters = parseYaml(source);
-    let encounter: Encounter = parameters as Encounter;
+    const encounter: Encounter = parameters as Encounter;
 
     const openBestiary = async (url: string) => {
         const fullMonster = await bestiary.getFullItemByUrl(url);

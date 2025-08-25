@@ -40,7 +40,7 @@ export class SpellSuggester extends AbstractInputSuggest<FuzzyMatch<SmallSpell>>
 
     renderSuggestion(result: FuzzyMatch<SmallSpell>, el: HTMLElement): void {
         el.addClass("mod-complex");
-        let content = el.createDiv({
+        const content = el.createDiv({
             cls: "suggestion-content"
         });
         if (!result?.item) {

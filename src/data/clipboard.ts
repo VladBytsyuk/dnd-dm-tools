@@ -82,7 +82,7 @@ async function getFromClipboard<T>(blockName: string): Promise<T | undefined> {
         }
         const yaml = clipboard
             .split('\n')
-            .filter((value) => !value.contains("\`\`\`"))
+            .filter((value) => !value.contains("```"))
             .join('\n');
         const obj = parseYaml(yaml) as T;   
         return obj;
