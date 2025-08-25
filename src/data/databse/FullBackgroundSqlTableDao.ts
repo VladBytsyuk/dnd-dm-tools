@@ -156,7 +156,7 @@ export class FullBackgroundSqlTableDao extends Dao<FullBackground, any> {
                 equipments: JSON.parse(values[13] as string) as string[],
                 startGold: values[14] as number,
                 description: values[15] as string,
-                personalization: values[16] as string | null || undefined,
+                personalization: values[16] as string,
             };
         } catch (error) {
             console.error('Error mapping SQL values to FullBackground:', error);
