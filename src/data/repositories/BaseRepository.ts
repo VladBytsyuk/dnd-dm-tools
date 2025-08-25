@@ -114,6 +114,25 @@ export abstract class BaseRepository<
             return null;
         }
     }
+    
+    protected async fetchHtmlFromAPI(url: string): Promise<string | null> {
+        try {
+            const response = await requestUrl({
+                url: `https://ttg.club/${url}`,
+                method: 'GET',
+            });
+            if (response.status != 200) {
+                console.error(`http code: ${response.status}`)
+                throw new Error(`HTTP error ${response.status}.`);
+            }
+            const data = await response.text;
+            console.log(`Loaded ${url} from remote storage.`);
+            return data;
+        } catch (error) {
+            console.error("Failed to fetch item from API:", error);
+            return null;
+        }
+    }
 
     async groupItems(smallItems: SmallItem[]): Promise<Group<SmallItem>[]> {
         return [];

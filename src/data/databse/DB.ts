@@ -15,6 +15,8 @@ import { SmallItemSqlTableDao } from './SmallItemSqlTableDao';
 import { FullItemSqlTableDao } from './FullItemSqlTableDao';
 import { SmallArtifactSqlTableDao } from './SmallArtifactSqlTableDao';
 import { FullArtifactSqlTableDao } from './FullArtifactSqlTableDao';
+import { SmallBackgroundSqlTableDao } from './SmallBackgroundSqlTableDao';
+import { FullBackgroundSqlTableDao } from './FullBackgroundSqlTableDao';
 import type { Initializable } from 'src/domain/Initializable';
 
 export default class DB implements Initializable {
@@ -34,6 +36,8 @@ export default class DB implements Initializable {
     public fullItemDao: FullItemSqlTableDao;
     public smallArtifactDao: SmallArtifactSqlTableDao;
     public fullArtifactDao: FullArtifactSqlTableDao;
+    public smallBackgroundDao: SmallBackgroundSqlTableDao;
+    public fullBackgroundDao: FullBackgroundSqlTableDao;
 
     constructor(
         private app: App,
@@ -141,6 +145,8 @@ export default class DB implements Initializable {
         this.fullItemDao = new FullItemSqlTableDao(database);
         this.smallArtifactDao = new SmallArtifactSqlTableDao(database, this.app, this.manifest);
         this.fullArtifactDao = new FullArtifactSqlTableDao(database);
+        this.smallBackgroundDao = new SmallBackgroundSqlTableDao(database, this.app, this.manifest);
+        this.fullBackgroundDao = new FullBackgroundSqlTableDao(database);
         return this.getDaos();
     }
 
@@ -159,6 +165,8 @@ export default class DB implements Initializable {
             this.fullItemDao,
             this.smallArtifactDao,
             this.fullArtifactDao,
+            this.smallBackgroundDao,
+            this.fullBackgroundDao,
         ];
     }
 

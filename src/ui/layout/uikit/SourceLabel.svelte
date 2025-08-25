@@ -3,12 +3,13 @@
 
     interface Props {
         source: Source;
+        className?: string;
     }
 
-    let { source }: Props = $props();
+    let { source, className }: Props = $props();
 </script>
 
-<div class="source {source.homebrew ? 'homebrew' : 'official'}">
+<div class="source {source.homebrew ? 'homebrew' : 'official'} {className || ''}">
     {source.shortName}{source.group.shortName != "Basic" ? "*" : ""}
 </div>
 
