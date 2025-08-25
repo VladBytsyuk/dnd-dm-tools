@@ -24,6 +24,8 @@ runSqlDaoBaseTests<FullBackground, any>({
             fullBackgroundGolgariAgent.name.rus,
             fullBackgroundGolgariAgent.name.eng,
             fullBackgroundGolgariAgent.url,
+            fullBackgroundGolgariAgent.associatedUrl,
+            fullBackgroundGolgariAgent.associatedHtml,
             fullBackgroundGolgariAgent.source.shortName,
             fullBackgroundGolgariAgent.source.name,
             fullBackgroundGolgariAgent.source.group.name,
@@ -40,6 +42,8 @@ runSqlDaoBaseTests<FullBackground, any>({
             expect(background.name.rus).toStrictEqual(fullBackgroundGolgariAgent.name.rus);
             expect(background.name.eng).toStrictEqual(fullBackgroundGolgariAgent.name.eng);
             expect(background.url).toStrictEqual(fullBackgroundGolgariAgent.url);
+            expect(background.associatedUrl).toStrictEqual(fullBackgroundGolgariAgent.associatedUrl);
+            expect(background.associatedHtml).toStrictEqual(fullBackgroundGolgariAgent.associatedHtml);
             expect(background.source.shortName).toStrictEqual(fullBackgroundGolgariAgent.source.shortName);
             expect(background.source.name).toStrictEqual(fullBackgroundGolgariAgent.source.name);
             expect(background.source.group.name).toStrictEqual(fullBackgroundGolgariAgent.source.group.name);

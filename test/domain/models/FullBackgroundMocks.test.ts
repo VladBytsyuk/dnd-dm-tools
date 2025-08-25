@@ -12,7 +12,7 @@ describe('FullBackground mock objects', () => {
         
         expect(background.name.rus).toBe("Агент Голгари");
         expect(background.name.eng).toBe("Golgari Agent");
-        expect(background.url).toBe("/backgrounds/fragment/99");
+        expect(background.url).toBe("/backgrounds/golgari_agent");
         expect(background.source.shortName).toBe("GGR");
         expect(background.skills).toEqual(["Выживание", "Природа"]);
         expect(background.startGold).toBe(10);
@@ -25,7 +25,7 @@ describe('FullBackground mock objects', () => {
         
         expect(background.name.rus).toBe("Оккультист");
         expect(background.name.eng).toBe("Occultist");
-        expect(background.url).toBe("/backgrounds/fragment/129");
+        expect(background.url).toBe("/backgrounds/occultist");
         expect(background.source.shortName).toBe("ToH");
         expect(background.skills).toEqual(["Магия", "Религия"]);
         expect(background.startGold).toBe(5);
@@ -38,7 +38,7 @@ describe('FullBackground mock objects', () => {
         
         expect(background.name.rus).toBe("Человек Из Гавани");
         expect(background.name.eng).toBe("Harborfolk");
-        expect(background.url).toBe("/backgrounds/fragment/30");
+        expect(background.url).toBe("/backgrounds/harborfolk");
         expect(background.source.shortName).toBe("ADLA");
         expect(background.skills).toEqual(["Атлетика", "Лoвкость рук"]);
         expect(background.startGold).toBe(5);
