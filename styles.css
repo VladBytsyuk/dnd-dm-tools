@@ -17,7 +17,13 @@ If your plugin does not need CSS, delete this file.
 }
 
 /* Small Item styles */
-.small-item {
+.small-item__container {
+    display: flex;
+    flex-direction: row;
+    align-items: initial;
+    min-height: 38px;
+    background: #00000040;
+    border-radius: 12px;
     padding: 0.5rem;
     border: 1px solid var(--background-modifier-border);
     border-radius: 6px;
@@ -25,11 +31,23 @@ If your plugin does not need CSS, delete this file.
     transition: all 0.2s ease;
     background: var(--background-primary);
 }
-.small-item:hover {
+.small-item__container:hover {
     border-color: var(--interactive-accent);
     background: var(--background-modifier-hover);
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.small-item__group {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    margin-left: -8px;
+    text-align: center;
+    font-weight: 900;
+    color: var(--text-color);
 }
 
 .small-item__body {
@@ -37,7 +55,7 @@ If your plugin does not need CSS, delete this file.
     display: flex;
     flex: 1 1 100%;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: space-between;
 }
 
 .small-item__row {
@@ -66,6 +84,21 @@ If your plugin does not need CSS, delete this file.
     font-size: 0.75rem;
     color: var(--text-muted);
     font-style: italic;
+}
+
+.small-item__left {
+    font-size: 0.7rem;
+    line-height: normal;
+    color: var(--text-color);
+    opacity: 0.5;
+}
+.small-item__right {
+    font-size: 0.7rem;
+    line-height: normal;
+    color: var(--text-color);
+    opacity: 0.5;
+    white-space: nowrap; 
+    margin-left: auto; 
 }
 
 /* Full Item styles */
