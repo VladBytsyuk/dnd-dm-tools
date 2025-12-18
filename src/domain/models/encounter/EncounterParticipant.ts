@@ -9,4 +9,9 @@ export interface EncounterParticipant {
     hpTemporary: number;
     hpMax: number;
     armorClass: number;
+    passivePerception: number;
+    side: Side;
+    isDead: boolean;
 }
+
+export type Side = "pc" | "enemy" | "neutral";

@@ -12,8 +12,8 @@ import type { FullArtifact } from "src/domain/models/artifact/FullArtifact";
 import type { FullBackground } from "src/domain/models/background/FullBackground";
 
 // ---- Copy to clipboard ----
-export function copyMonsterToClipboard(monster: FullMonster) {
-    copyToClipboard(monster, monster.name.rus, "statblock", `creature: ${monster.name.rus}`);
+export function copyMonsterToClipboard(monster: FullMonster, ignoreNotice: boolean = false) {
+    copyToClipboard(monster, monster.name.rus, "statblock", null, ignoreNotice);
 }
 
 export function copyEncounterToClipboard(encounter: Encounter) {
@@ -48,24 +48,24 @@ export function copyBackgroundToClipboard(background: FullBackground) {
     copyToClipboard(background, background.name.rus, "background");
 }
 
-function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string, additionalContent: string | null = null) {
+function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string, additionalContent: string | null = null, ignoreNotice: boolean = false) {
     const yaml = stringifyYaml(obj);
     const content = `\`\`\`${codeBlockName}\n${additionalContent ? `${additionalContent}\n`: ''}${yaml}\n\`\`\``
     try {
         navigator.clipboard.writeText(content);
-        new Notice(`${objName} - успешно скопировано.`);
+        if (!ignoreNotice) new Notice(`${objName} - успешно скопировано.`);
     } catch(e) {
         console.error(`Failed to save ${codeBlockName} into clipboard: ${e}`);
     }
 }
 
 // ---- Get from clipboard ----
-export async function getEncounterParticipantFromClipboard(): Promise<EncounterParticipant | undefined> {
+export async function getEncounterParticipantFromClipboard(ignoreNotice: boolean = false): Promise<EncounterParticipant | undefined> {
     const monster = await getFromClipboard<FullMonster>("statblock");
     if (monster) {
         return mapMonsterToEncounterParticipant(monster);
     } else {
-        new Notice(`Не удалось прочитать статблок из буфера обмена`);   
+        if (!ignoreNotice) new Notice(`Не удалось прочитать статблок из буфера обмена`);   
         return undefined;
     }
 }

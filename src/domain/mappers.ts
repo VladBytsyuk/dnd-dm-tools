@@ -8,6 +8,9 @@ export const mapMonsterToEncounterParticipant = (monster: FullMonster): Encounte
     const speciality = randomSpeciality()
     const newName = speciality ? `${monster.name.rus} (${speciality})` : monster.name.rus
     const rolledHp = rollRaw(`${monster?.hits?.formula}${monster?.hits?.sign}${monster?.hits?.bonus}`)
+    const wisdomModifier = calculateModifier(monster?.ability?.wiz ?? 0);
+    const passivePerception = 10 + 
+        (monster?.skills?.find(s => s.name.toLowerCase() === 'восприятие')?.value as number || wisdomModifier);
     return {
         id: Date.now(),
         url: monster.url,
@@ -19,6 +22,9 @@ export const mapMonsterToEncounterParticipant = (monster: FullMonster): Encounte
         hpTemporary: 0,
         hpMax: rolledHp,
         armorClass: monster.armorClass,
+        passivePerception: passivePerception,
+        side: "enemy",
+        isDead: false,
     } as EncounterParticipant;
 };
 
