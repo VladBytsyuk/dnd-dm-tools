@@ -321,7 +321,6 @@
 				</div>
 			{/if}
 
-
 			{#if isEditable}
 				<div class="side" role="group" aria-label="Сторона">
 					<div
@@ -478,16 +477,19 @@
 				{/if}
 			</div>
 		</div>
-	</div>
 
-	<div class="right">
-		{#if isEditable}
+		<div class="line3">
 			<ParticipantConditionsGrid
 				active={participant.conditions ?? new Set()}
 				onChange={(next: Set<string>) => onSetValue(participant.id, "conditions", next)}
 				onOpen={(url: string) => onOpenConditionDetails(url)}
 				resolveIconSrc={resolveIconSrc}
 			/>
+		</div>
+	</div>
+
+	<div class="right">
+		{#if isEditable}
 			<div class="right-buttons">
 				<div 
 					class="btn ghost danger"
@@ -560,7 +562,6 @@
 	}
 
 	.statbtn {
-		height: 64px;
 		width: 64px;
 		overflow: hidden;
 		border: 1px solid var(--background-modifier-border);
@@ -573,7 +574,6 @@
 
 	.statbtn img {
 		width: 100%;
-		height: 100%;
 		object-fit: cover;
 		display: block;
 	}
@@ -662,6 +662,11 @@
 		gap: 4px;
 		align-items: center;
         align-content: center;
+	}
+
+	.line3 {
+		margin-top: 4px;
+		margin-bottom: 4px;
 	}
 
 	.field {

@@ -367,6 +367,7 @@
 		flex-direction: column;
 		gap: 8px;
 		padding: 8px;
+		min-width: 380px;
 	}
 
 	.topbar {

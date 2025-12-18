@@ -75,8 +75,8 @@
 		height: 100%;
 		width: 100%;
 		display: grid;
-		grid-template-columns: repeat(5, 1fr);
-		grid-template-rows: repeat(3, 1fr);
+		grid-template-columns: repeat(15, 1fr);
+		grid-template-rows: repeat(1, 1fr);
 		gap: 2px;
 		align-content: stretch;
 	}
@@ -86,8 +86,6 @@
 		display: grid;
 		place-items: center;
 		border-radius: 10px;
-		border: 1px solid var(--background-modifier-border);
-		background: var(--background-primary);
 		padding: 0;
 		cursor: pointer;
 		min-width: 0;
@@ -97,8 +95,8 @@
 	/* Иконки белые по умолчанию: предполагается, что svg монохромные.
 	   Если svg “чёрные”, то можно сделать их белыми через filter — оставил мягкий вариант. */
 	.icon {
-		width: 16px;
-		height: 16px;
+		width: 24px;
+		height: 24px;
 		opacity: 0.9;
 		filter: brightness(10) saturate(0); /* делает почти белой */
 		pointer-events: none;
