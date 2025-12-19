@@ -98,18 +98,15 @@ const formatRollForDisplay = (dice: Dice, value: number): string => {
 
 const formatSigned = (n: number): string => {
     if (n === 0) return "";
-    return n > 0 ? `+${n}` : `${n}`; // n уже с минусом
+    return n > 0 ? `+${n}` : `${n}`;
 };
 
 const stringifyEntry = (e: FormulaEntry): string => {
-    // поддержка “чистого бонуса” если dicesCount === 0
     if (e.dicesCount <= 0) return `${e.bonus}`;
     return `${e.dicesCount}d${e.dice}${formatSigned(e.bonus)}`;
 };
 
 const stringifyFormula = (formula: Formula): string => {
-    // Склеиваем через " + ", затем нормализуем "+ -X" -> "- X"
-    // (так проще поддержать отрицательные бонусы/слагаемые, не зная твоего парсера).
     return formula.entries
         .map(stringifyEntry)
         .join(" + ")
@@ -127,7 +124,6 @@ const entryRollTrace = (entry: FormulaEntry): EntryRollTrace => {
 
     const formulaPart = stringifyEntry(entry);
 
-    // Пример: 2d6(4+1)+3 или просто -2 (если dicesCount==0)
     const resolvedRolls = rolls.map((r) => formatRollForDisplay(entry.dice, r));
     const resolvedFormulaPart =
         entry.dicesCount > 0
@@ -137,7 +133,6 @@ const entryRollTrace = (entry: FormulaEntry): EntryRollTrace => {
     return { entry, rolls, subtotal, formulaPart, resolvedFormulaPart };
 };
 
-// ✅ Новый API: трассируемый бросок из entries
 export const rollTrace = (...entries: FormulaEntry[]): RollTraceResult => {
     const formula: Formula = { entries };
     const entryTraces = formula.entries.map(entryRollTrace);
@@ -158,12 +153,9 @@ export const rollTrace = (...entries: FormulaEntry[]): RollTraceResult => {
     };
 };
 
-// ✅ Новый API: трассируемый бросок из строки
 export const rollRawTrace = (input: string): RollTraceResult => {
     const normalizedInput = input.replace(/undefined/gi, "");
     const formula = mapDiceStringToFormula(normalizedInput);
-    // Если хочешь, чтобы formula строка была “как ввёл пользователь”, можешь вернуть normalizedInput,
-    // но тогда она не всегда будет соответствовать нормализованной структуре.
     const entryTraces = formula.entries.map(entryRollTrace);
 
     const total = entryTraces.reduce((acc, t) => acc + t.subtotal, 0);
