@@ -1,14 +1,16 @@
 import { calculateModifier } from "./modifier";
-import { randomSpeciality } from "src/data/text_utils";
 import { Dice, rollRaw, type Formula, type FormulaEntry } from "./dice";
 import type { FullMonster } from "./models/monster/FullMonster";
 import type { EncounterParticipant } from "./models/encounter/EncounterParticipant";
 
 export const mapMonsterToEncounterParticipant = (monster: FullMonster): EncounterParticipant => {
-    //const speciality = randomSpeciality()
-    const newName = //speciality ? `${monster.name.rus} (${speciality})` : 
-        monster.name.rus
-    const rolledHp = rollRaw(`${monster?.hits?.formula}${monster?.hits?.sign}${monster?.hits?.bonus}`)
+    const newName = monster.name.rus
+    let hp: number;
+    if (monster.hits?.formula) {
+        hp = rollRaw(`${monster?.hits?.formula}${monster?.hits?.sign}${monster?.hits?.bonus}`);
+    } else {
+        hp = monster.hits?.average ?? 0;
+    }
     const wisdomModifier = calculateModifier(monster?.ability?.wiz ?? 0);
     const passivePerception = 10 + 
         (monster?.skills?.find(s => s.name.toLowerCase() === 'восприятие')?.value as number || wisdomModifier);
@@ -19,9 +21,9 @@ export const mapMonsterToEncounterParticipant = (monster: FullMonster): Encounte
         initiative: 0,
         initiativeModifier: calculateModifier(monster?.ability?.dex ?? 0),
         name: newName,
-        hpCurrent: rolledHp,
+        hpCurrent: hp,
         hpTemporary: 0,
-        hpMax: rolledHp,
+        hpMax: hp,
         armorClass: monster.armorClass,
         passivePerception: passivePerception,
         side: "enemy",

@@ -127,8 +127,8 @@ const entryRollTrace = (entry: FormulaEntry): EntryRollTrace => {
     const resolvedRolls = rolls.map((r) => formatRollForDisplay(entry.dice, r));
     const resolvedFormulaPart =
         entry.dicesCount > 0
-        ? `${entry.dicesCount}к${entry.dice} (${resolvedRolls.join("+")}) ${formatSigned(entry.bonus)}`
-        : `${entry.bonus}`;
+        ? `${entry.dicesCount}к${entry.dice} (${resolvedRolls.join("+")}) ${formatSigned(entry.bonus)}\n`
+        : `${entry.bonus}\n`;
 
     return { entry, rolls, subtotal, formulaPart, resolvedFormulaPart };
 };

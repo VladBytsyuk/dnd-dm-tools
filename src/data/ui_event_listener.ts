@@ -70,7 +70,7 @@ export class UiEventListener implements IUiEventListener {
     }
 
     onDiceRoll(label: string, value: RollTraceResult): void {
-        new Notice(`${label ? label + ": " : ""}${value.total}\n${value.resolvedFormula}`);
+        new Notice(`${label ? label + ": " : ""}${value.total}\n\n${value.resolvedFormula}`);
     }
 
     async onImageRequested(imageUrl: string): Promise<string> {
