@@ -5,8 +5,14 @@
 	import { diceRoller, joinList, joinSpeed, separate } from 'src/domain/utils/utils';
 	import HtmlBlock from '../uikit/HtmlBlock.svelte';
 	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
+	import type { FullMonster } from '../../../domain/models/monster/FullMonster';
+	import type { IUiEventListener } from '../../../domain/listeners/ui_event_listener';
 
-    let { currentItem, uiEventListener, isTwoColumns = false } = $props()
+    let { currentItem, uiEventListener, isTwoColumns = false } = $props<{
+        currentItem: FullMonster, 
+        uiEventListener: IUiEventListener, 
+        isTwoColumns: boolean
+    }>();
 
     let currentImageIndex = $state(0);
     let imagesLength = $state(currentItem?.images?.length ?? 0);
@@ -39,6 +45,10 @@
         if (target?.classList?.contains('expanded')) {
             isImageExpanded = false;
         }
+    }
+
+    const notEmpty = (list: any[] | undefined): boolean => {
+        return list !== undefined && list.length > 0;
     }
 </script>
   
@@ -164,7 +174,7 @@
 
         <!-- Base Info 2 -->
         <div class="layout-ttg-statblock-base-info">
-            {#if currentItem.savingThrows}
+            {#if notEmpty(currentItem.savingThrows)}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Спасброски</span> 
                 <HtmlBlock class="layout-ttg-statblock-base-info-item-value"
@@ -178,7 +188,7 @@
             </div>
             {/if}
 
-            {#if currentItem.skills}
+            {#if notEmpty(currentItem.skills)}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Навыки</span> 
                 <HtmlBlock
@@ -193,35 +203,35 @@
             </div>
             {/if}
 
-            {#if currentItem.damageVulnerabilities}
+            {#if notEmpty(currentItem.damageVulnerabilities)}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Уязвимость к урону</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">{separate(currentItem.damageVulnerabilities)}</span>
             </div>
             {/if}
 
-            {#if currentItem.damageResistances}
+            {#if notEmpty(currentItem.damageResistances)}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Сопротивление к урону</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">{separate(currentItem.damageResistances)}</span>
             </div>
             {/if}
 
-            {#if currentItem.damageImmunities}
+            {#if notEmpty(currentItem.damageImmunities)}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Иммунитет к урону</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">{separate(currentItem.damageImmunities)}</span>
             </div>
             {/if}
 
-            {#if currentItem.conditionImmunities}
+            {#if notEmpty(currentItem.conditionImmunities)}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Иммунитет к состоянию</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">{separate(currentItem.conditionImmunities)}</span>
             </div>
             {/if}
 
-            {#if currentItem.senses}
+            {#if notEmpty(currentItem.senses)}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Чувства</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">
@@ -233,14 +243,14 @@
             </div>
             {/if}
 
-            {#if currentItem.languages}
+            {#if notEmpty(currentItem.languages)}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Языки</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">{separate(currentItem.languages)}</span>
             </div>
             {/if}
 
-            {#if currentItem.challengeRating}
+            {#if notEmpty(currentItem.challengeRating)}
             <div class="layout-ttg-statblock-base-info-item">
                 <span class="layout-ttg-statblock-base-info-item-title">Опасность</span> 
                 <span class="layout-ttg-statblock-base-info-item-value">
@@ -251,7 +261,7 @@
         </div>
 
         <!-- Abilities Block -->
-        {#if currentItem.feats}
+        {#if notEmpty(currentItem.feats)}
             <div class="layout-ttg-statblock-property-block">
             {#each currentItem.feats as feat}
                 <div class="layout-ttg-statblock-base-info-item">
@@ -283,7 +293,7 @@
             {/if}
         {/each}
 
-        {#if currentItem.legendary}
+        {#if currentItem.legendary && notEmpty(currentItem.legendary.list)}
         <div class="layout-ttg-statblock-property-block">
             <div class="layout-ttg-statblock-block-header">Легендарные действия</div>
             {#if currentItem.legendary?.description}
