@@ -240,6 +240,48 @@
 		}
 	};
 
+	const PRESET_COLORS = [
+		"#3B82F6", // насыщенный синий
+		"#F97316", // оранжевый
+		"#EF4444", // красный
+		"#FACC15", // жёлтый
+		"#FB923C", // тёплый оранжево-жёлтый
+		"#A855F7", // фиолетовый
+		"#84CC16", // салатовый
+		"#22C55E", // зелёный
+		"#EC4899", // розовый
+		"#22D3EE", // голубой
+		"#111827", // почти чёрный
+		"#F9FAFB"  // белый
+	];
+
+	let isColorPickerOpen = $state(false);
+
+	function getParticipantColor(): string {
+		return (participant as any).colorHex ?? "#94a3b8";
+	}
+
+	function toggleColorPicker(e: MouseEvent | KeyboardEvent) {
+		if (!isEditable) return;
+		e.stopPropagation();
+		isColorPickerOpen = !isColorPickerOpen;
+	}
+
+	function setColor(hex: string) {
+		if (!isEditable) return;
+		onSetValue(participant.id, "colorHex" as any, hex);
+		isColorPickerOpen = false;
+	}
+
+	$effect(() => {
+		if (!isColorPickerOpen) return;
+
+		const onDoc = () => (isColorPickerOpen = false);
+		document.addEventListener("click", onDoc, true);
+
+		return () => document.removeEventListener("click", onDoc, true);
+	});
+
 </script>
 
 <article
@@ -249,7 +291,40 @@
 	data-down={getIsDown(participant)}
 	data-dead={getIsDead(participant)}
 >
-	<div class="row-accent"></div>
+	<div
+		class="row-accent"
+		style="background: {getParticipantColor()};"
+		role="button"
+		tabindex="0"
+		aria-label="Цвет участника"
+		onclick={toggleColorPicker}
+		onkeydown={(e) => { if (e.key === "Enter" || e.key === " ") toggleColorPicker(e); }}
+	>
+		{#if isColorPickerOpen}
+			<div 
+				class="color-popover" 
+				role="button"
+				tabindex="0"
+				aria-label="Цвет участника"
+				onclick={(e) => e.stopPropagation()}
+				onkeydown={(e) => { if (e.key === "Enter" || e.key === " ") e.stopPropagation(); }}
+			>
+				<div class="color-grid">
+					{#each PRESET_COLORS as hex}
+						<div
+							class="color-swatch"
+							style="background:{hex};"
+							aria-label={"Выбрать цвет " + hex}
+							role="button"
+							tabindex="0"
+							onclick={() => setColor(hex)}
+							onkeydown={(e) => { if (e.key === "Enter" || e.key === " ") setColor(hex) }}
+						></div>
+					{/each}
+				</div>
+			</div>
+		{/if}
+	</div>
 
 	<div 
         class="statbtn" 
@@ -530,16 +605,6 @@
 		bottom: 0;
 		width: 4px;
 		background: var(--text-muted);
-	}
-
-	.row[data-side="pc"] .row-accent {
-		background: #22c55e;
-	}
-	.row[data-side="enemy"] .row-accent {
-		background: #ef4444;
-	}
-	.row[data-side="neutral"] .row-accent {
-		background: #3b82f6;
 	}
 
 	.row[data-active="true"] {
@@ -824,6 +889,43 @@
 		align-content: center;
 		justify-content: space-between;
 		gap: 4px;
+	}
+
+	.row-accent {
+		cursor: pointer;
+	}
+
+	.color-popover {
+		position: absolute;
+		left: 6px;
+		top: 6px;
+		z-index: 2000;
+
+		background: var(--background-primary);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 10px;
+		padding: 8px;
+		box-shadow: 0 6px 20px rgba(0,0,0,.25);
+	}
+
+	.color-grid {
+		display: grid;
+		grid-template-columns: repeat(6, 18px);
+		gap: 8px;
+	}
+
+	.color-swatch {
+		width: 18px;
+		height: 18px;
+		border-radius: 999px;
+		border: 1px solid var(--background-modifier-border);
+		padding: 0;
+		cursor: pointer;
+	}
+
+	.color-swatch:focus-visible {
+		outline: 2px solid var(--interactive-accent);
+		outline-offset: 2px;
 	}
 
 

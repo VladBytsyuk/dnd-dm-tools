@@ -13,6 +13,7 @@ export interface EncounterParticipant {
     side: Side;
     isDead: boolean;
     conditions: EncounterParticipantCondition[];
+    colorHex?: string;
 }
 
 export type EncounterParticipantCondition = { url: string; expiresOnRound: number | null };

@@ -27,6 +27,7 @@ export const mapMonsterToEncounterParticipant = (monster: FullMonster): Encounte
         side: "enemy",
         isDead: false,
         conditions: [],
+        colorHex: "#94a3b8",
     } as EncounterParticipant;
 };
 
