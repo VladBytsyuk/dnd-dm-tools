@@ -1,3 +1,5 @@
+import type { RollTraceResult } from "../dice";
+
 export interface IDiceRollListener {
-    onDiceRoll: (label: string, value: number) => void;
+    onDiceRoll: (label: string, value: RollTraceResult) => void;
 }

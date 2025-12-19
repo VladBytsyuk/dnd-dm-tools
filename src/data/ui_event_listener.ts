@@ -10,6 +10,7 @@ import type { ArmoryFeature } from "src/ui/components/feature/ArmoryFeature";
 import type { EquipmentFeature } from "src/ui/components/feature/EquipmentFeature";
 import type { ArtifactoryFeature } from "src/ui/components/feature/ArtifactoryFeature";
 import type { BackgroundFeature } from "src/ui/components/feature/BackgroundFeature";
+import type { RollTraceResult } from "../domain/dice";
 
 export class UiEventListener implements IUiEventListener {
 
@@ -68,8 +69,8 @@ export class UiEventListener implements IUiEventListener {
         this.onClick(this.backgroundFeatureProvider, url);
     }
 
-    onDiceRoll(label: string, value: number): void {
-        new Notice(`${label ? label + ": " : ""}${value}`);
+    onDiceRoll(label: string, value: RollTraceResult): void {
+        new Notice(`${label ? label + ": " : ""}${value.total}\n${value.resolvedFormula}`);
     }
 
     async onImageRequested(imageUrl: string): Promise<string> {

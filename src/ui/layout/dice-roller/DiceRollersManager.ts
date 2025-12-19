@@ -1,14 +1,15 @@
 import { mount } from "svelte";
 import DiceRoller from 'src/ui/layout/dice-roller/DiceRoller.svelte';
 import type { IDiceRollListener } from "src/domain/listeners/dice_roll_listener";
+import type { RollTraceResult } from "../../../domain/dice";
 
 export class DiceRollersManager {
     
     #diceRollers: any[];
-    #onRoll: (label: string, value: number) => void;
+    #onRoll: (label: string, value: RollTraceResult) => void;
 
     constructor(
-        onRoll: (label: string, value: number) => void,
+        onRoll: (label: string, value: RollTraceResult) => void,
     ) {
         this.#diceRollers = [];
         this.#onRoll = onRoll;

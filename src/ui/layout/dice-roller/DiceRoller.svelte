@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { rollRaw } from "src/domain/dice";
+	import { rollRawTrace } from "src/domain/dice";
 
     let { formula, label, content, onRoll } = $props()
 
     const roll = () => {
-        const rollValue = rollRaw(formula);
+        const rollValue = rollRawTrace(formula);
         onRoll(label, rollValue);
     }
 
