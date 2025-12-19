@@ -5,8 +5,9 @@ import type { FullMonster } from "./models/monster/FullMonster";
 import type { EncounterParticipant } from "./models/encounter/EncounterParticipant";
 
 export const mapMonsterToEncounterParticipant = (monster: FullMonster): EncounterParticipant => {
-    const speciality = randomSpeciality()
-    const newName = speciality ? `${monster.name.rus} (${speciality})` : monster.name.rus
+    //const speciality = randomSpeciality()
+    const newName = //speciality ? `${monster.name.rus} (${speciality})` : 
+        monster.name.rus
     const rolledHp = rollRaw(`${monster?.hits?.formula}${monster?.hits?.sign}${monster?.hits?.bonus}`)
     const wisdomModifier = calculateModifier(monster?.ability?.wiz ?? 0);
     const passivePerception = 10 + 

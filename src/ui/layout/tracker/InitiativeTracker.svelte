@@ -240,7 +240,6 @@
 	};
 
 	const onConditionChange = (participantId: number, condition: EncounterParticipantCondition) => {
-		console.log("onConditionChange called", { participantId, condition });
 		if (!isEditable) return;
 
 		const ps = stateEncounter.participants.map((p) => {
@@ -256,12 +255,10 @@
 			}
 			return p;
 		});
-		console.log("onConditionChange updated participants", ps);
 		updateParticipants(ps);
 	};
 
 	const onConditionDelete = (participantId: number, url: string) => {
-		console.log("onConditionDelete called", { participantId, url });
 		if (!isEditable) return;
 
 		const ps = stateEncounter.participants.map((p) => {
@@ -277,7 +274,6 @@
 			}
 			return p;
 		});
-		console.log("onConditionDelete updated participants", ps);
 		updateParticipants(ps);
 	};
 </script>

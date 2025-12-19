@@ -50,8 +50,35 @@
 	}>();
 
 	let openUrl: string | null = $state(null);
-
 	let roundsRemain = $state(0);
+	let layout: "l15" | "l8" | "l5" = $state("l15");
+	let popoverEl: HTMLDivElement | null = $state(null);
+	let popX = $state(0);
+	let popY = $state(0);
+
+	let gridEl: HTMLDivElement | null = null;
+	let resizeObserver: ResizeObserver | null = null;
+	let portalRoot: HTMLDivElement | null = null;
+
+	onMount(() => {
+		if (gridEl) {
+			resizeObserver = new ResizeObserver((entries) => {
+				const w = entries[0]?.contentRect?.width ?? 0;
+				recomputeLayout(w);
+			});
+			resizeObserver.observe(gridEl);
+			recomputeLayout(gridEl.getBoundingClientRect().width);
+		}
+
+		ensurePortalRoot();
+	});
+
+	onDestroy(() => {
+		resizeObserver?.disconnect();
+		resizeObserver = null;
+		portalRoot?.remove();
+		portalRoot = null;
+	});
 
 	function getCondition(url: string): EncounterParticipantCondition | undefined {
 		return getConditions().find((pc: EncounterParticipantCondition) => pc.url === url);
@@ -63,10 +90,8 @@
 			return false;
 		}
 
-		console.log(`isActive called for url: ${url}, condition:`, c);
 		const currentRound = getRound();
 		const expiresOnRound = c?.expiresOnRound ?? 1000;
-		console.log(`currentRound: ${currentRound}, expiresOnRound: ${expiresOnRound}, result: ${expiresOnRound <= currentRound}`);
 		return expiresOnRound > currentRound;
 	}
 
@@ -111,81 +136,38 @@
 		roundsRemain = 0;
 	}
 
-	let gridEl: HTMLDivElement | null = null;
-	let layout: "l15" | "l8" | "l5" = $state("l15");
-	let ro: ResizeObserver | null = null;
-	let portalRoot: HTMLDivElement | null = null;
-
 	function recomputeLayout(width: number) {
 		if (width <= 480) layout = "l8";
 		else layout = "l15";
 	}
 
-	onMount(() => {
-		if (gridEl) {
-			ro = new ResizeObserver((entries) => {
-				const w = entries[0]?.contentRect?.width ?? 0;
-				recomputeLayout(w);
-			});
-			ro.observe(gridEl);
-			recomputeLayout(gridEl.getBoundingClientRect().width);
-		}
-
-		ensurePortalRoot();
-	});
-
-	onDestroy(() => {
-		ro?.disconnect();
-		ro = null;
-		portalRoot?.remove();
-		portalRoot = null;
-	});
-
-	let popoverEl: HTMLDivElement | null = null;
-
-	let popX = $state(0);
-	let popY = $state(0);
-
 	async function positionPopover(anchor: HTMLElement) {
 		const r = anchor.getBoundingClientRect();
-		console.log("positionPopover called, anchor rect:", r);
 
-		// базово: под кнопкой слева
 		popX = r.left;
 		popY = r.bottom + 6;
-		console.log("initial popX:", popX, "popY:", popY);
 
-		// дождёмся рендера поповера, чтобы знать его размеры
 		await tick();
 
 		if (!popoverEl) {
-			console.log("popoverEl is null, returning");
 			return;
 		}
 
 		const pr = popoverEl.getBoundingClientRect();
-		console.log("popover rect:", pr);
 		const pad = 8;
 
-		// если справа не помещается — сдвигаем влево
 		if (popX + pr.width > window.innerWidth - pad) {
 			popX = Math.max(pad, window.innerWidth - pad - pr.width);
-			console.log("adjusted popX for right overflow:", popX);
 		}
 
-		// если снизу не помещается — показываем над кнопкой
 		if (popY + pr.height > window.innerHeight - pad) {
 			popY = r.top - pr.height - 6;
-			console.log("adjusted popY for bottom overflow:", popY);
 		}
 
-		// на всякий случай не уходим за верх
 		if (popY < pad) {
 			popY = pad;
-			console.log("adjusted popY for top overflow:", popY);
 		}
-		
-		console.log("final popX:", popX, "popY:", popY);
+
 	}
 
 	function ensurePortalRoot() {
@@ -426,11 +408,11 @@
 	.dnd-dm-conditions-popover-root {
 		position: fixed;
 		inset: 0;
-		z-index: 100000;       /* выше любых панелей */
-		pointer-events: none;  /* чтобы не блокировать UI */
+		z-index: 100000;
+		pointer-events: none;
 	}
 
 	.dnd-dm-conditions-popover-root .popover {
-		pointer-events: auto;  /* но сам поповер кликабельный */
+		pointer-events: auto;
 	}
 </style>
