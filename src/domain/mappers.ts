@@ -12,8 +12,8 @@ export const mapMonsterToEncounterParticipant = (monster: FullMonster): Encounte
         hp = monster.hits?.average ?? 0;
     }
     const wisdomModifier = calculateModifier(monster?.ability?.wiz ?? 0);
-    const passivePerception = 10 + 
-        (monster?.skills?.find(s => s.name.toLowerCase() === 'восприятие')?.value as number || wisdomModifier);
+    const passivePerception: number = +(monster?.senses?.passivePerception 
+        ?? `${(10 + (monster?.skills?.find(s => s.name.toLowerCase() === 'восприятие')?.value as number || wisdomModifier))}`);
     return {
         id: Date.now(),
         url: monster.url,
