@@ -80,6 +80,25 @@
 		portalRoot = null;
 	});
 
+	import { untrack } from "svelte";
+
+	$effect(() => {
+		const round: number = getRound();
+		const current: EncounterParticipantCondition[] = getConditions();
+
+		const expiredUrls = current
+			.filter((c) => c.expiresOnRound != null && c.expiresOnRound <= round)
+			.map((c) => c.url);
+
+		if (expiredUrls.length === 0) return;
+
+		queueMicrotask(() => {
+			untrack(() => {
+			for (const url of expiredUrls) onDelete(url);
+			});
+		});
+	});
+
 	function getCondition(url: string): EncounterParticipantCondition | undefined {
 		return getConditions().find((pc: EncounterParticipantCondition) => pc.url === url);
 	}
@@ -92,7 +111,9 @@
 
 		const currentRound = getRound();
 		const expiresOnRound = c?.expiresOnRound ?? 1000;
-		return expiresOnRound > currentRound;
+		const isActiveNow = expiresOnRound > currentRound;
+		
+		return isActiveNow;
 	}
 
 	function remainingRounds(url: string) {
