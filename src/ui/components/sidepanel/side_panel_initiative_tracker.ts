@@ -1,7 +1,7 @@
 import { ItemView, Workspace, type WorkspaceLeaf } from "obsidian";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import DndStatblockPlugin from "src/main";
-import InitiativeTracker from 'src/ui/layout/tracker/InitiativeTracker2.svelte';
+import InitiativeTracker from 'src/ui/layout/tracker/InitiativeTracker.svelte';
 import { mount, unmount } from 'svelte';
 
 export function registerSidePanelInitiativeTracker(
@@ -66,8 +66,8 @@ class SidePanelInitiativeTrackerView extends ItemView {
                 app: this.plugin.app,
                 encounter: emptyEncounter,
                 isEditable: true,
-                onPortraitClick: (url: string) => this.uiEventListener.onBeastClick(url),//.bind(this.uiEventListener),
-                onConditionClick: (url: string) => this.uiEventListener.onScreenItemClick(url),//.bind(this.uiEventListener),
+                onPortraitClick: this.uiEventListener.onBeastClick,
+                onConditionClick: this.uiEventListener.onScreenItemClick,
             }
         });
     }

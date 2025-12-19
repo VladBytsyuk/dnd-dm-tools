@@ -37,7 +37,11 @@ export default class DndStatblockPlugin extends Plugin {
 	async onload() {
 		this.#initialize(() => {
 			registerSidePanelInitiativeTracker(this, this.#uiEventListener);
-			registerEncounterMdCodeBlockProcessor(this, this.bestiaryFeature.repository!);
+			registerEncounterMdCodeBlockProcessor(
+				this, 
+				this.bestiaryFeature.repository!,
+				this.dmScreenFeature.repository!,
+			);
 			registerAddEncounterCommand(this);
 			registerThemeChangeListener();
 			console.log("dnd-dm-tools has been loaded.");

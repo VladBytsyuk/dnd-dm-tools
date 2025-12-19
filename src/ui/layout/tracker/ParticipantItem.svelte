@@ -3,7 +3,7 @@
 	import { d20, roll } from "src/domain/dice";
 	import { formatModifier } from "src/domain/modifier";
 	import type { EncounterParticipant, EncounterParticipantCondition } from "../../../domain/models/encounter/EncounterParticipant";
-	import ParticipantConditionsGrid2 from "./ParticipantConditionsGrid2.svelte";
+	import ParticipantConditionsGrid from "./ParticipantConditionsGrid.svelte";
 
 	let {
 		participant,
@@ -387,105 +387,91 @@
 
 		<div class="line2">
 			<div class="field">
-				{#if isEditable}
-                    <div class="field-icon" aria-label="Инициатива"><Dices size={16} /></div>
-					<input
-						class="num inputlike input-centered"
-						value={String(participant.initiative ?? 0)}
-						inputmode="numeric"
-                        placeholder={formatModifier(participant.initiativeModifier)}
-						onkeydown={(e) => { if (e.key === "Enter") applyNumericExpression("initiative", (e.target as HTMLInputElement).value) }}
-						onblur={(e) => applyNumericExpression("initiative", (e.target as HTMLInputElement).value)}
-					/>
-				{:else}
-					<span class="value">{participant.initiative ?? 0}</span>
-				{/if}
+				<div class="field-icon" aria-label="Инициатива"><Dices size={16} /></div>
+				<input
+					class="num inputlike input-centered"
+					value={String(participant.initiative ?? 0)}
+					inputmode="numeric"
+					placeholder={formatModifier(participant.initiativeModifier)}
+					onkeydown={(e) => { if (e.key === "Enter") applyNumericExpression("initiative", (e.target as HTMLInputElement).value) }}
+					onblur={(e) => applyNumericExpression("initiative", (e.target as HTMLInputElement).value)}
+					readonly={!isEditable}
+				/>
 			</div>
 
 			<div class="field hp">
                 <div class="field-icon" aria-label="Хиты"><Heart size={16} /></div>
-				{#if isEditable}
-					<div class="hpwrap">
-						<input
-							class="num inputlike input-centered"
-							value={String(participant.hpCurrent ?? 0)}
-							inputmode="numeric"
-							aria-label="Текущие Хиты"
-							onkeydown={(e) => {
-								if (e.key === "Enter") applyHpCurrentExpression(e.target as HTMLInputElement);
-							}}
-							onblur={(e) => applyHpCurrentExpression(e.target as HTMLInputElement)}
-						/>
-						<span class="slash">/</span>
-						<input
-							class="num inputlike input-centered"
-							value={String(participant.hpMax ?? 0)}
-							inputmode="numeric"
-							aria-label="Максимальные Хиты"
-							onkeydown={(e) => {
-								if (e.key === "Enter") applyNumericExpression("hpMax", (e.target as HTMLInputElement).value);
-							}}
-							onblur={(e) => applyNumericExpression("hpMax", (e.target as HTMLInputElement).value)}
-						/>
-						<span class="slash">+</span>
-						<input
-							class="num inputlike input-centered temp"
-							value={String(participant.hpTemporary ?? 0)}
-							inputmode="numeric"
-							aria-label="Временные Хиты"
-							onkeydown={(e) => {
-								if (e.key === "Enter") applyNumericExpression("hpTemporary", (e.target as HTMLInputElement).value);
-							}}
-							onblur={(e) => applyNumericExpression("hpTemporary", (e.target as HTMLInputElement).value)}
-						/>
-					</div>
-				{:else}
-					<span class="value">
-						{participant.hpCurrent ?? 0}/{participant.hpMax ?? 0}
-						{#if (participant.hpTemporary ?? 0) > 0}
-							<span class="chip">temp {participant.hpTemporary}</span>
-						{/if}
-					</span>
-				{/if}
+				<div class="hpwrap">
+					<input
+						class="num inputlike input-centered"
+						value={String(participant.hpCurrent ?? 0)}
+						inputmode="numeric"
+						aria-label="Текущие Хиты"
+						onkeydown={(e) => {
+							if (e.key === "Enter") applyHpCurrentExpression(e.target as HTMLInputElement);
+						}}
+						onblur={(e) => applyHpCurrentExpression(e.target as HTMLInputElement)}
+						readonly={!isEditable}
+					/>
+					<span class="slash">/</span>
+					<input
+						class="num inputlike input-centered"
+						value={String(participant.hpMax ?? 0)}
+						inputmode="numeric"
+						aria-label="Максимальные Хиты"
+						onkeydown={(e) => {
+							if (e.key === "Enter") applyNumericExpression("hpMax", (e.target as HTMLInputElement).value);
+						}}
+						onblur={(e) => applyNumericExpression("hpMax", (e.target as HTMLInputElement).value)}
+						readonly={!isEditable}
+					/>
+					<span class="slash">+</span>
+					<input
+						class="num inputlike input-centered temp"
+						value={String(participant.hpTemporary ?? 0)}
+						inputmode="numeric"
+						aria-label="Временные Хиты"
+						onkeydown={(e) => {
+							if (e.key === "Enter") applyNumericExpression("hpTemporary", (e.target as HTMLInputElement).value);
+						}}
+						onblur={(e) => applyNumericExpression("hpTemporary", (e.target as HTMLInputElement).value)}
+						readonly={!isEditable}
+					/>
+				</div>
 			</div>
 
 			<div class="field">
 				<div class="field-icon" aria-label="КД"><Shield size={16} /></div>
-				{#if isEditable}
-					<input
-						class="num inputlike input-centered"
-						value={String(participant.armorClass ?? 10)}
-						inputmode="numeric"
-						onkeydown={(e) => {
-							if (e.key === "Enter") applyNumericExpression("armorClass", (e.target as HTMLInputElement).value);
-						}}
-						onblur={(e) => applyNumericExpression("armorClass", (e.target as HTMLInputElement).value)}
-					/>
-				{:else}
-					<span class="value">{participant.armorClass ?? 10}</span>
-				{/if}
+				<input
+					class="num inputlike input-centered"
+					value={String(participant.armorClass ?? 10)}
+					inputmode="numeric"
+					onkeydown={(e) => {
+						if (e.key === "Enter") applyNumericExpression("armorClass", (e.target as HTMLInputElement).value);
+					}}
+					onblur={(e) => applyNumericExpression("armorClass", (e.target as HTMLInputElement).value)}
+					readonly={!isEditable}
+				/>
 			</div>
 
 			<div class="field">
 				<div class="field-icon" aria-label="Пассивное Восприятие"><Eye size={16} /></div>
-				{#if isEditable}
-					<input
-						class="num inputlike input-centered"
-						value={String(participant.passivePerception ?? 10)}
-						inputmode="numeric"
-						onkeydown={(e) => {
-							if (e.key === "Enter") applyNumericExpression("passivePerception", (e.target as HTMLInputElement).value);
-						}}
-						onblur={(e) => applyNumericExpression("passivePerception", (e.target as HTMLInputElement).value)}
-					/>
-				{:else}
-					<span class="value">{participant.passivePerception ?? 10}</span>
-				{/if}
+				<input
+					class="num inputlike input-centered"
+					value={String(participant.passivePerception ?? 10)}
+					inputmode="numeric"
+					onkeydown={(e) => {
+						if (e.key === "Enter") applyNumericExpression("passivePerception", (e.target as HTMLInputElement).value);
+					}}
+					onblur={(e) => applyNumericExpression("passivePerception", (e.target as HTMLInputElement).value)}
+					readonly={!isEditable}
+				/>
 			</div>
 		</div>
 
 		<div class="line3">
-			<ParticipantConditionsGrid2
+			<ParticipantConditionsGrid
+				isEditable={isEditable}
 				onOpenConditionDetails={(url: string) => onOpenConditionDetails(url)}
 				onChange={(condition: EncounterParticipantCondition) => onConditionChange(participant.id, condition)}
 				onDelete={(url: string) => onConditionDelete(participant.id, url)}
@@ -693,11 +679,6 @@
         align-content: center;
     }
 
-	.value {
-		font-weight: 800;
-		font-variant-numeric: tabular-nums;
-	}
-
 	.hpwrap {
 		display: inline-flex;
 		align-items: center;
@@ -707,15 +688,6 @@
 	.slash {
 		opacity: 0.6;
 		font-weight: 700;
-	}
-
-	.chip {
-		font-size: 12px;
-		margin-left: 6px;
-		padding: 2px 8px;
-		border-radius: 999px;
-		border: 1px solid var(--background-modifier-border);
-		background: var(--background-secondary);
 	}
 
 	.inputlike {

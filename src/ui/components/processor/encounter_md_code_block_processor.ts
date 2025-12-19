@@ -2,16 +2,19 @@ import { parseYaml } from "obsidian";
 import type { Encounter } from "src/domain/models/encounter/Encounter";
 import DndStatblockPlugin from "src/main";
 import { mount } from "svelte";
-import InitiativeTracker from "./../../layout/tracker/InitiativeTracker.svelte";
+import InitiativeTracker from "../../layout/tracker/InitiativeTracker.svelte";
 import type { Bestiary } from "src/domain/repositories/Bestiary";
+import type { Repository } from "../../../domain/repositories/Repository";
+import type { DmScreenItem } from "../../../domain/models/dm_screen/DmScreenItem";
 
 export function registerEncounterMdCodeBlockProcessor(
     plugin: DndStatblockPlugin,
     bestiary: Bestiary,
+    dmScreen: Repository<DmScreenItem, DmScreenItem, any>,
 ) {
     plugin.registerMarkdownCodeBlockProcessor(
         'encounter', 
-        (source, el) => encounterMdCodeBlockProcessor(plugin, source, el, bestiary),
+        (source, el) => encounterMdCodeBlockProcessor(plugin, source, el, bestiary, dmScreen),
     );
 }
 
@@ -20,6 +23,7 @@ async function encounterMdCodeBlockProcessor(
     source: string,
     el: HTMLElement,
     bestiary: Bestiary,
+    dmScreen: Repository<DmScreenItem, DmScreenItem, any>,
 ) {
     const parameters = parseYaml(source);
     const encounter: Encounter = parameters as Encounter;
@@ -27,6 +31,11 @@ async function encounterMdCodeBlockProcessor(
     const openBestiary = async (url: string) => {
         const fullMonster = await bestiary.getFullItemByUrl(url);
         if (fullMonster) plugin.bestiaryFeature.sidePanel?.open(fullMonster);
+    }
+
+    const openCondition = async (url: string) => {
+        const condition = await dmScreen.getFullItemByUrl(url);
+        if (condition) plugin.dmScreenFeature.sidePanel?.open(condition);
     }
 
     el.empty();
@@ -38,6 +47,7 @@ async function encounterMdCodeBlockProcessor(
             encounter: encounter,
             isEditable: false,
             onPortraitClick: openBestiary,
+            onConditionClick: openCondition,
         },
     });
 }

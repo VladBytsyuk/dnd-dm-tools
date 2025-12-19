@@ -1,497 +1,555 @@
 <script lang="ts">
+	import { onMount } from "svelte";
+	import {
+		Play,
+		StepForward,
+		ClipboardCopy,
+		ClipboardPaste,
+		ArrowUpDown,
+		Skull,
+		Plus,
+		Square,
+	} from "lucide-svelte";
 	import { d20, roll } from "src/domain/dice";
-    import { ClipboardCopy, ClipboardPaste, Play, StepForward, Ban, Dices, Sword, Heart, Shield, Eraser, Plus } from 'lucide-svelte';
-    import { onMount } from 'svelte';
-	import { formatModifier } from "src/domain/modifier";
-	import { copyEncounterToClipboard, getEncounterFromClipboard, getEncounterParticipantFromClipboard } from "src/data/clipboard";
-	import { getImageSource } from "src/domain/utils/image_utils";
-	import type { EncounterParticipant } from "src/domain/models/encounter/EncounterParticipant";
+	import {
+		copyEncounterToClipboard,
+		getEncounterFromClipboard,
+		getEncounterParticipantFromClipboard,
+	} from "src/data/clipboard";
 	import type { Encounter } from "src/domain/models/encounter/Encounter";
+	import type { EncounterParticipant, EncounterParticipantCondition } from "src/domain/models/encounter/EncounterParticipant";
+	import ParticipantItem from "./ParticipantItem.svelte";
 
-    let { app, encounter, isEditable, onPortraitClick } = $props();
-    let stateEncounter: Encounter = $state(encounter);
-    let idCounter: number = encounter.participants.length;
-    let calcTempValues = new Map();
-    let editingId = $state<string | null>(null);
+	let { app, encounter, isEditable, onPortraitClick, onConditionClick } =
+		$props<{
+			app: any;
+			encounter: Encounter;
+			isEditable: boolean;
+			onPortraitClick: (url: string) => void;
+			onConditionClick: (url: string) => void;
+		}>();
 
-    let activeParticipantIndex: number | null = $state(null);
+	let stateEncounter: Encounter = $state(encounter);
+	let activeParticipantIndex: number | null = $state(null);
 
-    onMount(async () => {
-        const newParticipants = await Promise.all(
-            stateEncounter.participants.map(async (it: EncounterParticipant) => 
-                it.imageUrl ? ({...it, imageUrl: await getImageSource(app, it.imageUrl)}) : it
-            )
-        )
-        updateParticipants(newParticipants);
-    });
+	let round: number = $state(1);
+	let idCounter: number = $state(encounter.participants.length);
 
-    const saveEncounterToClipboard = () => copyEncounterToClipboard(stateEncounter);
+	const updateParticipants = (newParticipants: EncounterParticipant[]) => {
+		stateEncounter = {
+			...stateEncounter,
+			participants: newParticipants as any,
+		};
+	};
 
-    const fillEncounterFromClipboard = async () => {
-        if (!isEditable) return;
-        const clipboard = await getEncounterFromClipboard();
-        if (clipboard) {
-            stateEncounter = clipboard;
-            idCounter = clipboard.participants.length;
-        }
-    };
+	onMount(() => {
+		updateParticipants(stateEncounter.participants);
+	});
 
-    const startEncounter = () => {
-        rollInitiative();
-        sortByInitiative();
-        activeParticipantIndex = 0;
-    };
+	const setEncounterName = (name: string) => {
+		if (!isEditable) return;
+		stateEncounter = { ...(stateEncounter as any), name } as any;
+	};
 
-    const nextStepEncounter = () => {
-        if (activeParticipantIndex != null) {
-            activeParticipantIndex = (activeParticipantIndex + 1) % stateEncounter.participants.length;
-        } else {
-            startEncounter();
-        }
-    };
+	const setValue = (
+		id: number,
+		field: keyof EncounterParticipant,
+		value: any,
+	) => {
+		if (!isEditable) return;
+		const ps = stateEncounter.participants.map((p) =>
+			p.id === id
+				? ({ ...p, [field]: value } as EncounterParticipant)
+				: p,
+		);
+		updateParticipants(ps);
+	};
 
-    const stopEncounter = () => {
-        activeParticipantIndex = null;
-    };
+	const sortByInitiative = () => {
+		const ps = stateEncounter.participants.slice();
+		ps.sort(
+			(a, b) => Number(b.initiative ?? 0) - Number(a.initiative ?? 0),
+		);
+		updateParticipants(ps);
+	};
 
-    const rollInitiative = () => {
-        updateParticipants(
-            stateEncounter.participants
-                .map((it: EncounterParticipant) => it.initiative !== 0 ? it : ({...it, initiative: roll(d20()(it.initiativeModifier))}))
-        );
-    };
+	const rollInitiative = () => {
+		const ps = stateEncounter.participants.map((p) => {
+			const init = Number(p.initiative ?? 0);
+			if (init !== 0) return p;
 
-    const sortByInitiative = () => {
-        updateParticipants(stateEncounter.participants.sort((a: EncounterParticipant, b: EncounterParticipant) => b.initiative - a.initiative));
-    }
+			const mod = Number(p.initiativeModifier ?? 0);
+			const res = roll(d20()(mod));
+			return { ...p, initiative: res };
+		});
+		updateParticipants(ps);
+	};
 
-    const removeParticipant = (id: number) => {
-        if (!isEditable) return;
-        updateParticipants(stateEncounter.participants.filter((it: EncounterParticipant) => it.id !== id));
-    }
+	const startEncounter = () => {
+		rollInitiative();
+		sortByInitiative();
 
-    const addParticipant = () => {
-        if (!isEditable) return;
-        const newParticipants = [
-            ...stateEncounter.participants,
-            {
-				id: idCounter++,
-				isEditing: true,
-				initiative: 0,
-				initiativeModifier: 0,
-				name: "",
-				hpCurrent: 0,
-				hpTemporary: 0,
-				hpMax: 0,
-				armorClass: 0,
-			} as unknown as EncounterParticipant,
-        ];
-        updateParticipants(newParticipants);
-    }
+		const ps = stateEncounter.participants;
+		const firstAliveParticipantIndex = ps.findIndex((p) => !p.isDead);
+		activeParticipantIndex = firstAliveParticipantIndex !== -1 ? firstAliveParticipantIndex : null;
+		round = 1;
+	};
 
-    const addMonsterFromClipboard = async () => {
-        if (!isEditable) return;
-        const clipboard = await getEncounterParticipantFromClipboard();
-        if (clipboard) {
-            const newParticipants = [
-                ...stateEncounter.participants,
-                clipboard,
-            ];
-            updateParticipants(newParticipants);
-        }
-    };
+	const nextStepEncounter = () => {
+		const ps = stateEncounter.participants;
+		const total = ps.length;
 
-    const handleKeyPress = (
-        e: any, 
-        participant: EncounterParticipant, 
-        field: string, 
-        min: number = -Infinity, 
-        max: number = Infinity,
-    ) => {
-        const id = `${participant.id}-${field}`;
-        if (e.key === 'Enter') {
-            const result = evaluateExpression(e.target.value, min, max);
-            if (!isNaN(result)) {
-                updateParticipants(
-                    stateEncounter.participants.map((it: EncounterParticipant) => it.id === participant.id ? { ...it, [field]: Number(result) } : it)
-                );
-                calcTempValues.delete(id);
-            }
-            e.target.blur();
-            removeEditingState(id);
-        } else {
-            calcTempValues.set(id, e.target.value);
-        }
-    };
+		if (total === 0 || activeParticipantIndex == null) {
+			stopEncounter();
+			return;
+		}
 
-    const handleBlur = (
-        e: any, 
-        participant: EncounterParticipant, 
-        field: string, 
-        min: number = -Infinity, 
-        max: number = Infinity,
-    ) => {
-        const id = `${participant.id}-${field}`
-        const result = evaluateExpression(e.target.value, min, max);
-        if (!isNaN(result)) {
-            updateParticipants(
-                stateEncounter.participants.map((it: EncounterParticipant) => it.id === participant.id ? { ...it, [field]: Number(result) } : it)
-            );
-            calcTempValues.delete(id);
-        }
-        removeEditingState(id);
-    };
+		const start = activeParticipantIndex;
 
-    const evaluateExpression = (
-        input: string,
-        min: number = -Infinity,
-        max: number = Infinity
-    ): number => {
-        try {
-            const sanitized = input
-                .replace(/,/g, '.')
-                .replace(/[^0-9\+\-\*\/\.\(\)]/g, '');
+		for (let step = 1; step <= total; step++) {
+			const nextIdx = (start + step) % total;
 
-            const result = new Function(`return ${sanitized}`)();
-        
-            if (typeof result === 'number' && !isNaN(result)) {
-                return Math.min(max, Math.max(min, result));
-            }
-            return NaN;
-        } catch (e) {
-            return NaN;
-        }
-    };
+			if (!ps[nextIdx].isDead) {
+				if (nextIdx <= start) {
+					round += 1;
+				}
+				activeParticipantIndex = nextIdx;
+				return;
+			}
+		}
+		stopEncounter();
+	};
 
-    const updateParticipants = (newParticipants: EncounterParticipant[]) => {
-        stateEncounter = { ...stateEncounter, participants: newParticipants };
-    };
+	const stopEncounter = () => {
+		activeParticipantIndex = null;
+		round = 1;
+	};
 
-    const handleEditingKeyPress = (e: any, id: string) => {
-        if (e.key === 'Enter') {
-            removeEditingState(id);
-            e.target.blur();
-        }
-    };
+	const onPlayNext = () => {
+		if (activeParticipantIndex == null) startEncounter();
+		else nextStepEncounter();
+	};
 
-    const addEditingState = (id: string): void => {
-        if (!isEditable) return;
-        editingId = id;
-    }
+	const addParticipant = () => {
+		if (!isEditable) return;
 
-    const removeEditingState = (id: string): void => {
-        editingId = null;
-    }
+		const p: EncounterParticipant = {
+			id: Math.random(),
+			name: "-",
+			initiative: 0,
+			initiativeModifier: 0,
+			hpCurrent: 0,
+			hpTemporary: 0,
+			hpMax: 0,
+			armorClass: 10,
+			imageUrl: "",
+			passivePerception: 10,
+			side: "neutral",
+			isDead: false,
+			conditions: [],
+		};
 
-    const onParticipantPortraitClick = (participant: EncounterParticipant) => {
-        if (participant.url) {
-            onPortraitClick(participant.url);
-        }
-    }
+		const ps = stateEncounter.participants.slice();
+		ps.push(p);
+		updateParticipants(ps);
+	};
+
+	const removeParticipant = (id: number) => {
+		if (!isEditable) return;
+
+		const ps = stateEncounter.participants.filter((p) => p.id !== id);
+		updateParticipants(ps);
+
+		if (activeParticipantIndex != null) {
+			if (ps.length === 0) activeParticipantIndex = null;
+			else
+				activeParticipantIndex = Math.min(
+					activeParticipantIndex,
+					ps.length - 1,
+				);
+		}
+	};
+
+	const toggleDead = (id: number) => {
+		if (!isEditable) return;
+
+		const ps = stateEncounter.participants.map((p) =>
+			p.id === id
+				? ({ ...p, isDead: !Boolean(p.isDead) } as EncounterParticipant)
+				: p,
+		);
+		updateParticipants(ps);
+
+		// если текущий стал мёртвым — сразу скип
+		const idx = ps.findIndex((p) => p.id === id);
+		if (idx !== -1 && activeParticipantIndex === idx && ps.length > 0)
+			nextStepEncounter();
+	};
+
+	const onOpenStatblock = (p: EncounterParticipant) => {
+		if (p.url) onPortraitClick(p.url);
+	};
+
+	const onOpenConditionDetails = (url: string) => {
+		if (url) onConditionClick(url);
+	};
+
+	const copyEncounter = async () => {
+		await copyEncounterToClipboard(stateEncounter);
+	};
+
+	const pasteEncounter = async () => {
+		if (!isEditable) return;
+
+		const clipboard = await getEncounterFromClipboard();
+		if (!clipboard) return;
+
+		stateEncounter = clipboard;
+		idCounter = clipboard.participants.length;
+		stopEncounter();
+	};
+
+	const pasteParticipant = async () => {
+		if (!isEditable) return;
+
+		const p = (await getEncounterParticipantFromClipboard(
+			true,
+		)) as EncounterParticipant | null;
+		if (!p) {
+			const e = (await getEncounterFromClipboard()) as Encounter | null;
+
+			if (e && e.participants.length > 0) {
+				const ps = stateEncounter.participants.slice();
+				e.participants.forEach((participant) => {
+					ps.push({ ...participant, id: Math.random() });
+				});
+				updateParticipants(ps);
+			} else {
+				return;
+			}
+		} else {
+			const ps = stateEncounter.participants.slice();
+			ps.push(p);
+			updateParticipants(ps);
+		}
+	};
+
+	const resolvePluginAsset = (relativePath: string) => {
+		const base = `${app.vault.configDir}/plugins/dnd-dm-tools/`;
+		return app.vault.adapter.getResourcePath(base + relativePath);
+	};
+
+	const onConditionChange = (participantId: number, condition: EncounterParticipantCondition) => {
+		console.log("onConditionChange called", { participantId, condition });
+		if (!isEditable) return;
+
+		const ps = stateEncounter.participants.map((p) => {
+			if (p.id === participantId) {
+				const existingConditions = p.conditions ?? [];
+				const otherConditions = existingConditions.filter(
+					(c) => c.url !== condition.url,
+				);
+				return {
+					...p,
+					conditions: [...otherConditions, condition],
+				} as EncounterParticipant;
+			}
+			return p;
+		});
+		console.log("onConditionChange updated participants", ps);
+		updateParticipants(ps);
+	};
+
+	const onConditionDelete = (participantId: number, url: string) => {
+		console.log("onConditionDelete called", { participantId, url });
+		if (!isEditable) return;
+
+		const ps = stateEncounter.participants.map((p) => {
+			if (p.id === participantId) {
+				const existingConditions = p.conditions ?? [];
+				const otherConditions = existingConditions.filter(
+					(c) => c.url !== url,
+				);
+				return {
+					...p,
+					conditions: otherConditions,
+				} as EncounterParticipant;
+			}
+			return p;
+		});
+		console.log("onConditionDelete updated participants", ps);
+		updateParticipants(ps);
+	};
 </script>
 
-<div class="initiative-tracker">
-    <div class="initiative-tracker-header">
-        {#if editingId === "encounter-name"}
-            <input class="participants-list-cell-name" 
-                bind:value={stateEncounter.name} 
-                placeholder={stateEncounter.name}
-                onkeypress={(e) => handleEditingKeyPress(e, "encounter-name")}
-                onblur={(e) => removeEditingState("encounter-name")}
-                />
-        {:else}
-            <button class="participants-list-cell-name" onclick={() => addEditingState("encounter-name")}>{stateEncounter.name}</button>
-        {/if}
-        <button class="initiative-tracker-header-button" 
-            onclick={saveEncounterToClipboard}
-            title="Копировать"
-        ><ClipboardCopy/></button>
-        <button class="initiative-tracker-header-button"
-            onclick={fillEncounterFromClipboard}
-            title="Вставить"
-        ><ClipboardPaste/></button>
-        <button class="initiative-tracker-header-button" 
-            onclick={nextStepEncounter}
-            title="Следующий ход"
-        >
-            {#if activeParticipantIndex !== null}<StepForward/>{:else}<Play/>{/if}
-        </button>
-        <button class="initiative-tracker-header-button" 
-            onclick={() => stopEncounter()}
-            title="Остановить"
-        ><Ban/></button>
-    </div>
-    <div class="participants-list">
-        <div class="participants-list-row">
-            <button class="participants-list-cell-header-value" 
-                onclick={() => rollInitiative()}
-                title="Бросить инициативу"
-            ><Dices/></button>
-            <button class="participants-list-cell-header-value" 
-                onclick={() => sortByInitiative()}
-                title="Сортировать по инициативе"
-            ><Sword/></button>
-            <div class="participants-list-cell-name">Имя</div>
-            <div class="participants-list-cell-header-value" title="Хиты"><Heart/></div>
-            <div class="participants-list-cell-header-value" title="Класс Доспеха"><Shield/></div>
-            <div class="participants-list-cell-header-value"></div>
-        </div>
-        {#each stateEncounter.participants as participant, index (participant.id)}
-            <div class="participants-list-row">
-                <button class="participants-list-cell-value" class:active-row={activeParticipantIndex === index} onclick={() => onParticipantPortraitClick(participant)}>
-                    {#if participant.imageUrl}
-                        <img class="participants-list-cell-value-portrait" 
-                            src={participant.imageUrl} alt={participant.name}
-                            onerror={(e: Event) => {
-                                if (e.target instanceof HTMLImageElement) {
-                                    e.target.src = "https://ttg.club/img/no-img.webp";
-                                }
-                            }} />
-                    {/if}
-                </button>
-                {#if editingId === `${participant.id}-initiative`}
-                    <input class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}
-                        placeholder={formatModifier(participant.initiativeModifier)}
-                        value={calcTempValues.get(`${participant.id}-initiative`) ?? participant.initiative}
-                        onkeydown={(e) => handleKeyPress(e, participant, 'initiative')}
-                        onblur={(e) => handleBlur(e, participant, 'initiative')}
-                        title="Инициатива"
-                    />
-                {:else}
-                    <button class="participants-list-cell-value" class:active-row={activeParticipantIndex === index} 
-                        onclick={() => addEditingState(`${participant.id}-initiative`)}
-                        title="Инициатива"
-                    >
-                        {participant.initiative}
-                    </button>
-                {/if}
-                {#if editingId === `${participant.id}-name`}
-                    <input class="participants-list-cell-name" class:active-row={activeParticipantIndex === index} 
-                        bind:value={participant.name} 
-                        placeholder={participant.name}
-                        onkeypress={(e) => handleEditingKeyPress(e, `${participant.id}-name`)}
-                        onblur={(e) => removeEditingState(`${participant.id}-name`)}
-                    />
-                {:else}
-                    <button class="participants-list-cell-name" class:active-row={activeParticipantIndex === index}
-                        onclick={() => addEditingState(`${participant.id}-name`)}
-                    >
-                        {participant.name}
-                    </button>
-                {/if}
-                {#if editingId === `${participant.id}-hp`}
-                    <div class="participants-list-cell-hp" class:active-row={activeParticipantIndex === index}>
-                        <input class="participants-list-cell-hp-item" id="hp-current"
-                            placeholder={formatModifier(participant.hpMax)}
-                            value={calcTempValues.get(`${participant.id}-hpCurrent`) ?? participant.hpCurrent}
-                            onkeydown={(e) => handleKeyPress(e, participant, 'hpCurrent', 0, participant.hpMax)}
-                            onblur={(e) => handleBlur(e, participant, 'hpCurrent', 0, participant.hpMax)}
-                            title="Текущие"
-                        />
-                        <input class="participants-list-cell-hp-item" id="hp-temporary" 
-                            placeholder={formatModifier(participant.hpTemporary)}
-                            value={calcTempValues.get(`${participant.id}-hpTemporary`) ?? participant.hpTemporary}
-                            onkeydown={(e) => handleKeyPress(e, participant, 'hpTemporary', 0)}
-                            onblur={(e) => handleBlur(e, participant, 'hpTemporary', 0)}
-                            title="Временные"
-                        />
-                        <input class="participants-list-cell-hp-item" id="hp-max" 
-                            placeholder={formatModifier(participant.hpMax)}
-                            value={calcTempValues.get(`${participant.id}-hpMax`) ?? participant.hpMax}
-                            onkeydown={(e) => handleKeyPress(e, participant, 'hpMax', 0)}
-                            onblur={(e) => handleBlur(e, participant, 'hpMax', 0)}
-                            title="Максимум"
-                        />
-                    </div>
-                {:else}
-                    <button class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}
-                        onclick={() => addEditingState(`${participant.id}-hp`)}
-                    >
-                        {participant.hpCurrent}{participant.hpTemporary == 0 ? '' : '+' + participant.hpTemporary}/{participant.hpMax}
-                    </button>
-                {/if}
-                {#if editingId === `${participant.id}-armorClass`}
-                    <input class="participants-list-cell-value" class:active-row={activeParticipantIndex === index} 
-                        placeholder={formatModifier(participant.armorClass)}
-                        value={calcTempValues.get(`${participant.id}-armorClass`) ?? participant.armorClass}
-                        onkeydown={(e) => handleKeyPress(e, participant, 'armorClass')}
-                        onblur={(e) => handleBlur(e, participant, 'armorClass')}
-                    />
-                {:else}
-                    <button class="participants-list-cell-value" class:active-row={activeParticipantIndex === index}
-                        onclick={() => addEditingState(`${participant.id}-armorClass`)}
-                    >
-                        {participant.armorClass}
-                    </button>
-                {/if}
-                <button class="participants-list-cell-header-value" class:active-row={activeParticipantIndex === index} 
-                    onclick={() => removeParticipant(participant.id)}
-                    title="Убрать"
-                ><Eraser/></button>
-            </div>
-        {/each}
-        <div class="participants-list-cell-footer">
-            <button class="participants-list-cell-add" 
-                onclick={(e) => addParticipant()}
-                title="Добавить"
-            ><Plus/></button>
-            <button class="participants-list-cell-header-value"
-                onclick={(e) => addMonsterFromClipboard()}
-                title="Вставить"
-            ><ClipboardPaste/></button>
-        </div>
-    </div>
+<div class="tracker">
+	<header class="topbar">
+		<div class="left">
+			<div class="roundCompact" aria-label="Раунд">{round}</div>
+
+			{#if isEditable}
+				<input
+					class="titleInput inputlike"
+					value={(stateEncounter as any).name ?? "Encounter"}
+					oninput={(e) =>
+						setEncounterName((e.target as HTMLInputElement).value)}
+				/>
+			{:else}
+				<div class="titleText">
+					{(stateEncounter as any).name ?? "Encounter"}
+				</div>
+			{/if}
+		</div>
+
+		<div class="actions">
+			<div class="actions-row">
+				<button
+					class="btn"
+					onclick={onPlayNext}
+					aria-label={activeParticipantIndex == null
+						? "Начать столкновение"
+						: "Следующий ход"}
+				>
+					{#if activeParticipantIndex == null}
+						<Play size={16} />
+						<span>Старт</span>
+					{:else}
+						<StepForward size={16} />
+						<span>Дальше</span>
+					{/if}
+				</button>
+
+				<button
+					class="btn"
+					onclick={stopEncounter}
+					aria-label="Остановить столкновение"
+				>
+					<Square size={16} />
+				</button>
+			</div>
+
+			<div class="actions-row">
+				<button
+					class="btn ghost"
+					onclick={sortByInitiative}
+					aria-label="Сортировать участников по инициативе"
+				>
+					<ArrowUpDown size={16} />
+				</button>
+
+				<button
+					class="btn ghost"
+					onclick={copyEncounter}
+					aria-label="Копировать столкновение"
+				>
+					<ClipboardCopy size={16} />
+				</button>
+
+				{#if isEditable}
+					<button
+						class="btn ghost"
+						onclick={pasteEncounter}
+						aria-label="Вставить столкновение"
+					>
+						<ClipboardPaste size={16} />
+					</button>
+				{/if}
+			</div>
+		</div>
+	</header>
+
+	<div class="content">
+		{#if stateEncounter.participants.length === 0}
+			<div class="empty">
+				<Skull size={18} />
+				<span>No participants yet.</span>
+			</div>
+		{:else}
+			<div class="list">
+				{#each stateEncounter.participants as participant, index (participant.id)}
+					<ParticipantItem
+						participant={participant}
+						isEditable={isEditable}
+						isActive={activeParticipantIndex === index}
+						onOpenStatblock={onOpenStatblock}
+						onOpenConditionDetails={onOpenConditionDetails}
+						onSetValue={setValue}
+						onToggleDead={toggleDead}
+						onRemove={removeParticipant}
+						onConditionChange={onConditionChange}
+						onConditionDelete={onConditionDelete}
+						getRound={() => round}
+						resolveIconSrc={resolvePluginAsset}
+					/>
+				{/each}
+			</div>
+		{/if}
+
+		{#if isEditable}
+			<footer class="footer">
+				<button
+					class="btn footerPrimary"
+					onclick={addParticipant}
+					aria-label="Добавить участника"
+				>
+					<Plus size={16} />
+				</button>
+
+				<button
+					class="btn footerSecondary"
+					onclick={pasteParticipant}
+					aria-label="Вставить участника или столкновение из буфера обмена"
+				>
+					<ClipboardPaste size={16} />
+				</button>
+			</footer>
+		{/if}
+	</div>
 </div>
 
 <style>
-    .initiative-tracker {
-        padding: 10px;
-        min-width: 40em;
-    }
+	.tracker {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		padding: 8px;
+		min-width: 380px;
+	}
 
-    .initiative-tracker-header {
-        font-size: large;
-        font-weight: 600;
-        margin: 0 0 10px;
-        display: grid;
-        grid-template-columns: 4fr 0.5fr 0.5fr 0.5fr 0.5fr; 
-        column-gap: 2px;       
-        position: relative;
-        cursor: default;
-        width: 100%;
-        height: 40px;
-        line-height: 40px;
-    }
+	.topbar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+		border-radius: 12px;
+		background: var(--background-secondary);
+		border: 1px solid var(--background-modifier-border);
+	}
 
-    .initiative-tracker-header-button {
-        background-color: #00000022;
-        height: 40px;
-    }
+	.left {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		min-width: 220px;
+	}
 
-    .initiative-tracker-header-button:hover {
-        background-color: #00000044;
-    }
+	.roundCompact {
+		display: inline-grid;
+		place-items: center;
+		width: 48px;
+		font-size: 20px;
+		font-weight: 800;
+		font-variant-numeric: tabular-nums;
+	}
 
-    .active-row {
-        background-color: #bbbbbb44 !important;
-        font-weight: 800;
-    }
+	.titleText {
+		font-weight: 800;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		min-width: 0;
+	}
 
-    .participants-list-row {
-        display: grid;
-        grid-template-columns: 0.75fr 0.75fr 4fr 2fr 0.75fr 0.75fr;
-        column-gap: 2px;
-        position: relative;
-        cursor: default;
-        width: 100%;
-        margin: 2px 0;
-        height: 40px;
-    }
+	.titleInput {
+		font-weight: 800;
+		width: min(360px, 48vw);
+		min-width: 120px;
+	}
 
-    .participants-list-cell-header-value {
-        background-color: #00000022;
-        padding: 8px 0px;
-        text-align: center;
-        border-radius: 4px; 
-        min-width: 0;
-        height: 40px;
-    }
+	.actions {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 4px;
+		padding: 4px 2px 4px 2px;
+		flex-wrap: wrap;
+	}
 
-    .participants-list-cell-header-value:hover{
-        background-color: #00000044;
-    }
+	.actions-row {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+	}
 
-    .participants-list-cell-value {
-        background-color: #00000022;
-        padding: 0px 0px;
-        text-align: center;
-        border-radius: 4px; 
-        min-width: 0;
-        height: 40px;
-        line-height: 40px;
-    }
+	.btn {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 4px 8px;
+		border-radius: 10px;
+		border: 1px solid var(--background-modifier-border);
+		background: var(--interactive-normal);
+		color: var(--text-on-accent);
+		cursor: pointer;
+		user-select: none;
+	}
 
-    .participants-list-cell-value-portrait {
-        max-width:100%;
-        max-height:100%;
-    }
+	.btn:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
 
-    .participants-list-cell-value:hover{
-        background-color: #00000044;
-    }
+	.btn.ghost {
+		background: transparent;
+		color: var(--text-normal);
+	}
 
-    .participants-list-cell-hp {
-        background-color: #00000022;
-        margin-left: 2px;
-        margin-right: 2px;
-        text-align: center;
-        border-radius: 4px; 
-        min-width: 0;
-        display: grid;
-        grid-template-columns: 1fr 0.5fr;
-        grid-template-rows: auto auto;
-    }
+	/* inputlike — как в ParticipantItem */
+	.inputlike {
+		border: 1px solid transparent;
+		background: transparent;
+		color: var(--text-normal);
+		border-radius: 8px;
+		padding: 2px 6px;
+		line-height: 18px;
+	}
 
-    .participants-list-cell-hp-item {
-        background-color: #00000022;
-        border-radius: 4px; 
-        text-align: center;
-        min-width: 0;
-    }
+	.inputlike:focus {
+		outline: none;
+		border-color: var(--interactive-accent);
+		background: var(--background-secondary);
+	}
 
-    .participants-list-cell-hp-item:hover{
-        background-color: #00000044;
-    }
+	.content {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
 
-    #hp-current {
-        grid-column: 1;
-        grid-row: 1;
-    }
+	.empty {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 14px;
+		border-radius: 12px;
+		background: var(--background-secondary);
+		border: 1px solid var(--background-modifier-border);
+	}
 
-    #hp-temporary {
-        grid-column: 2;
-        grid-row: 1;
-    }
+	.list {
+		display: flex;
+		flex-direction: column;
+		border-radius: 14px;
+		background: var(--background-secondary);
+		border: 1px solid var(--background-modifier-border);
+		overflow: hidden;
+	}
 
-    #hp-max {
-        grid-column: 1 / span 2;
-        grid-row: 2;
-    }
+	.footer {
+		display: flex;
+		gap: 8px;
+		align-items: stretch;
+	}
 
-    .participants-list-cell-name {
-        display: block;
-        width: 100%;
-        background-color: #00000022;
-        padding: 0px 5px;
-        border-radius: 4px;
-        height: 40px;
-        line-height: 40px;
-        text-align: left;
-    }
+	.footerPrimary {
+		flex: 1;
+		justify-content: center;
+	}
 
-    .participants-list-cell-name:hover{
-        background-color: #00000044;
-    }
-
-    .participants-list-cell-footer {
-        display: grid;
-        margin-top: 10px;
-        column-gap: 2px;
-        grid-template-columns: 4fr 0.5fr; 
-    }
-
-    .participants-list-cell-add {
-        width: 100%;
-        margin-right: 2px;
-        padding: 8px 0px;
-        background-color: #00000022;
-        border-radius: 4px;
-        height: 40px;
-        align-items: center;
-        text-align:center;
-    }
-
-    .participants-list-cell-add:hover{
-        background-color: #00000044;
-    }
+	.footerSecondary {
+		flex: 0 0 auto;
+		justify-content: center;
+		padding-left: 12px;
+		padding-right: 12px;
+	}
 </style>
