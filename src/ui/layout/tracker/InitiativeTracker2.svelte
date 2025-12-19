@@ -17,7 +17,7 @@
 		getEncounterParticipantFromClipboard,
 	} from "src/data/clipboard";
 	import type { Encounter } from "src/domain/models/encounter/Encounter";
-	import type { EncounterParticipant } from "src/domain/models/encounter/EncounterParticipant";
+	import type { EncounterParticipant, EncounterParticipantCondition } from "src/domain/models/encounter/EncounterParticipant";
 	import ParticipantItem from "./ParticipantItem.svelte";
 
 	let { app, encounter, isEditable, onPortraitClick, onConditionClick } =
@@ -146,6 +146,7 @@
 			passivePerception: 10,
 			side: "neutral",
 			isDead: false,
+			conditions: [],
 		};
 
 		const ps = stateEncounter.participants.slice();
@@ -237,6 +238,48 @@
 		const base = `${app.vault.configDir}/plugins/dnd-dm-tools/`;
 		return app.vault.adapter.getResourcePath(base + relativePath);
 	};
+
+	const onConditionChange = (participantId: number, condition: EncounterParticipantCondition) => {
+		console.log("onConditionChange called", { participantId, condition });
+		if (!isEditable) return;
+
+		const ps = stateEncounter.participants.map((p) => {
+			if (p.id === participantId) {
+				const existingConditions = p.conditions ?? [];
+				const otherConditions = existingConditions.filter(
+					(c) => c.url !== condition.url,
+				);
+				return {
+					...p,
+					conditions: [...otherConditions, condition],
+				} as EncounterParticipant;
+			}
+			return p;
+		});
+		console.log("onConditionChange updated participants", ps);
+		updateParticipants(ps);
+	};
+
+	const onConditionDelete = (participantId: number, url: string) => {
+		console.log("onConditionDelete called", { participantId, url });
+		if (!isEditable) return;
+
+		const ps = stateEncounter.participants.map((p) => {
+			if (p.id === participantId) {
+				const existingConditions = p.conditions ?? [];
+				const otherConditions = existingConditions.filter(
+					(c) => c.url !== url,
+				);
+				return {
+					...p,
+					conditions: otherConditions,
+				} as EncounterParticipant;
+			}
+			return p;
+		});
+		console.log("onConditionDelete updated participants", ps);
+		updateParticipants(ps);
+	};
 </script>
 
 <div class="tracker">
@@ -325,14 +368,17 @@
 			<div class="list">
 				{#each stateEncounter.participants as participant, index (participant.id)}
 					<ParticipantItem
-						{participant}
-						{isEditable}
+						participant={participant}
+						isEditable={isEditable}
 						isActive={activeParticipantIndex === index}
-						{onOpenStatblock}
-						{onOpenConditionDetails}
+						onOpenStatblock={onOpenStatblock}
+						onOpenConditionDetails={onOpenConditionDetails}
 						onSetValue={setValue}
 						onToggleDead={toggleDead}
 						onRemove={removeParticipant}
+						onConditionChange={onConditionChange}
+						onConditionDelete={onConditionDelete}
+						getRound={() => round}
 						resolveIconSrc={resolvePluginAsset}
 					/>
 				{/each}

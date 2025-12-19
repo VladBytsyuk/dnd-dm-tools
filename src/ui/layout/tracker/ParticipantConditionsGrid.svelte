@@ -1,6 +1,5 @@
 <script lang="ts">
 
-
 	export type ConditionDef = {
 		url: string;
 		title: string; // название для tooltip

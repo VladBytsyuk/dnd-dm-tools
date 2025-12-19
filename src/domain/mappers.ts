@@ -25,6 +25,7 @@ export const mapMonsterToEncounterParticipant = (monster: FullMonster): Encounte
         passivePerception: passivePerception,
         side: "enemy",
         isDead: false,
+        conditions: [],
     } as EncounterParticipant;
 };
 

@@ -2,8 +2,8 @@
 	import { Trash2, Skull, Dices, Heart, Shield, Eye, Users, Meh } from "lucide-svelte";
 	import { d20, roll } from "src/domain/dice";
 	import { formatModifier } from "src/domain/modifier";
-	import ParticipantConditionsGrid from "./ParticipantConditionsGrid.svelte";
-	import type { EncounterParticipant } from "../../../domain/models/encounter/EncounterParticipant";
+	import type { EncounterParticipant, EncounterParticipantCondition } from "../../../domain/models/encounter/EncounterParticipant";
+	import ParticipantConditionsGrid2 from "./ParticipantConditionsGrid2.svelte";
 
 	let {
 		participant,
@@ -14,6 +14,9 @@
 		onSetValue,
 		onToggleDead,
 		onRemove,
+		onConditionChange,
+		onConditionDelete,
+		getRound,
 		resolveIconSrc
 	} = $props<{
 		participant: EncounterParticipant;
@@ -25,6 +28,9 @@
 		onSetValue: (id: number, field: keyof EncounterParticipant, value: any) => void;
 		onToggleDead: (id: number) => void;
 		onRemove: (id: number) => void;
+		onConditionChange: (participantId: number, condition: EncounterParticipantCondition) => void;
+		onConditionDelete: (participantId: number, url: string) => void;
+		getRound: () => number;
 		resolveIconSrc: (path: string) => string;
 	}>();
 	
@@ -479,12 +485,14 @@
 		</div>
 
 		<div class="line3">
-			<ParticipantConditionsGrid
-				active={participant.conditions ?? new Set()}
-				onChange={(next: Set<string>) => onSetValue(participant.id, "conditions", next)}
-				onOpen={(url: string) => onOpenConditionDetails(url)}
+			<ParticipantConditionsGrid2
+				onOpenConditionDetails={(url: string) => onOpenConditionDetails(url)}
+				onChange={(condition: EncounterParticipantCondition) => onConditionChange(participant.id, condition)}
+				onDelete={(url: string) => onConditionDelete(participant.id, url)}
+				getRound={getRound}
+				getConditions={() => participant.conditions ?? []}
 				resolveIconSrc={resolveIconSrc}
-			/>
+				/>
 		</div>
 	</div>
 

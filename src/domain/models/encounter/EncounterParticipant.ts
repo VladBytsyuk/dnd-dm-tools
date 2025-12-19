@@ -12,6 +12,9 @@ export interface EncounterParticipant {
     passivePerception: number;
     side: Side;
     isDead: boolean;
+    conditions: EncounterParticipantCondition[];
 }
+
+export type EncounterParticipantCondition = { url: string; expiresOnRound: number | null };
 
 export type Side = "pc" | "enemy" | "neutral";
