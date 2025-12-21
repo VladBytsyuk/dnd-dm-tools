@@ -31,6 +31,7 @@
         justify-content: space-between;
         padding: 8px;
         border-radius: 6px;
+        max-width: 240px;
     }
 
     .header-subtitle {

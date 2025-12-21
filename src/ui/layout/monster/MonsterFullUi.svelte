@@ -24,14 +24,8 @@
 	let isInEditMode = $state(false);
     
     const diceRollersManager = DiceRollersManager.create(uiEventListener);
-    
-    onMount(async () => {
-        diceRollersManager.onMount();
-    });
-
-    onDestroy(() => {
-        diceRollersManager.onDestroy();
-    });
+    onMount(async () => diceRollersManager.onMount());
+    onDestroy(() => diceRollersManager.onDestroy());
 
     const notEmpty = (list: any[] | undefined): boolean => {
         return list !== undefined && list.length > 0;
@@ -50,7 +44,7 @@
             <div class="section-horizontal-header">
                 <div class="header">
                     <div class="header-left">
-                        <MonsterName {currentItem} {uiEventListener} />
+                        <MonsterName {currentItem} {isInEditMode} {uiEventListener} />
                     </div>
 
                     <div class="header-right">
@@ -169,6 +163,7 @@
     .header-left {
         min-width: 0; 
         flex: 1 1 auto;
+        flex-grow: 1;
     }
 
     .header-left :global(*) {
@@ -195,4 +190,5 @@
     .section-horizontal-header {
         flex: 1;
     }
+
 </style>

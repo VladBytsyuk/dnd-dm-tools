@@ -6,10 +6,12 @@
 	import type { IUiEventListener } from '../../../../domain/listeners/ui_event_listener';
 
     let { 
-		currentItem, 
+		currentItem,
+        isInEditMode,
 		uiEventListener,
 	} = $props<{
         currentItem: FullMonster;
+        isInEditMode: boolean;
         uiEventListener: IUiEventListener;
     }>();
     
@@ -20,17 +22,31 @@
 </script>
 
 <div class="header-root">
-    <div
-        class="header-name"
-        role="button"
-        tabindex="0"
-        onclick={() => copyMonsterToClipboard(currentItem)}
-        onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyMonsterToClipboard(currentItem); } }}
-        aria-label="Скопировать статблок в буфер обмена"
-    >
-        {currentItem.name.rus} 📋
+    <div class="header-line">
+        <input class="header-name inputlike"
+            class:inputlike-editable={isInEditMode}
+            bind:value={currentItem.name.rus} 
+            readonly={!isInEditMode} />
+        <div
+            class="header-name"
+            role="button"
+            tabindex="0"
+            onclick={() => copyMonsterToClipboard(currentItem)}
+            onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyMonsterToClipboard(currentItem); } }}
+            aria-label="Скопировать статблок в буфер обмена"
+        >📋</div>
     </div>
-        <div class="header-subtext">{currentItem.name.eng}</div>
+    <div class="header-line">
+        <input class="header-subtext inputlike"
+            class:inputlike-editable={isInEditMode}
+            bind:value={currentItem.name.eng} 
+            readonly={!isInEditMode} />
+    </div>
+    <div class="header-line">
+        <input class="header-subtext inputlike"
+            class:inputlike-editable={isInEditMode}
+            bind:value={currentItem.url} 
+            readonly={!isInEditMode} />
         <div 
             class="header-subtext" 
             role="button"
@@ -38,9 +54,8 @@
             onclick={() => copyTextToClipboard(currentItem.url)}
             onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyTextToClipboard(currentItem.url); } }}
             aria-label="Скопировать ссылку в буфер обмена"
-        >
-            {currentItem.url} 📋
-        </div>
+        >📋</div>
+    </div>
 </div>
 
 <style>
@@ -59,11 +74,40 @@
         letter-spacing: 1px;
     }
 
+    .header-line {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+        width: 100%;  
+    }
+
     .header-subtext {
         font-family: "Open Sans", sans-serif;
         color: var(--text-color);
         opacity: 0.75;
         font-size: 12px;
         margin: 0 0 2px;
+    }
+
+	.inputlike {
+        flex: 1 1 auto;
+	    min-width: 0;
+		border: 1px solid transparent;
+		background: transparent;
+		color: var(--text-normal);
+		border-radius: 8px;
+	}
+
+	.inputlike-editable {
+		outline: none;
+		border-color: var(--interactive-accent);
+		background: var(--background-secondary);
+        text-overflow: ellipsis;
+	}
+
+    .header-line > div[role="button"] {
+        flex: 0 0 auto;
+        cursor: pointer;
     }
 </style>
