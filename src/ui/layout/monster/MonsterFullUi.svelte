@@ -11,6 +11,7 @@
 	import MonsterAbilities from './kit/MonsterAbilities.svelte';
 	import MonsterLair from './kit/MonsterLair.svelte';
 	import MonsterTag from './kit/MonsterTag.svelte';
+	import MonsterEditPanel from './kit/MonsterEditPanel.svelte';
 
     let { 
 		currentItem, 
@@ -20,7 +21,7 @@
         uiEventListener: IUiEventListener;
     }>();
 
-	let isEditable = $state(false);
+	let isInEditMode = $state(false);
     
     const diceRollersManager = DiceRollersManager.create(uiEventListener);
     
@@ -35,6 +36,11 @@
     const notEmpty = (list: any[] | undefined): boolean => {
         return list !== undefined && list.length > 0;
     }
+
+    const onEditModeChange = (newIsInEditMode: boolean, saveChanges: boolean) => {
+        isInEditMode = newIsInEditMode;
+        console.log(`Edit mode changed: ${isInEditMode}, saveChanges: ${saveChanges}`);
+    }
 </script>
   
 {#if currentItem}
@@ -43,8 +49,14 @@
         <div class="section-horizontal">
             <div class="section-horizontal-header">
                 <div class="header">
-                    <MonsterName {currentItem} {uiEventListener} />
-                    <MonsterSource {currentItem} />
+                    <div class="header-left">
+                        <MonsterName {currentItem} {uiEventListener} />
+                    </div>
+
+                    <div class="header-right">
+                        <MonsterEditPanel {isInEditMode} {onEditModeChange} />
+                        <MonsterSource {currentItem} />
+                    </div>
                 </div>
             </div>
 
@@ -149,8 +161,26 @@
     .header {
         margin: 0 0 0.5em;
 		display: flex;
-		justify-content: space-between;
 		align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .header-left {
+        min-width: 0; 
+        flex: 1 1 auto;
+    }
+
+    .header-left :global(*) {
+        min-width: 0;
+    }
+
+    .header-right {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        flex: 0 0 auto;
     }
 
 	.info-section {
