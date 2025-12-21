@@ -22,6 +22,7 @@
     }>();
 
 	let isInEditMode = $state(false);
+    var reservedItem = structuredClone(currentItem);
     
     const diceRollersManager = DiceRollersManager.create(uiEventListener);
     onMount(async () => diceRollersManager.onMount());
@@ -33,7 +34,15 @@
 
     const onEditModeChange = (newIsInEditMode: boolean, saveChanges: boolean) => {
         isInEditMode = newIsInEditMode;
-        console.log(`Edit mode changed: ${isInEditMode}, saveChanges: ${saveChanges}`);
+        if (newIsInEditMode)  {
+            reservedItem = structuredClone(currentItem);
+        } else {
+            if (saveChanges) {
+                console.log(`Changes should be saved.`);
+            } else {
+                currentItem = structuredClone(reservedItem);
+            }
+        }
     }
 </script>
   
@@ -49,7 +58,7 @@
 
                     <div class="header-right">
                         <MonsterEditPanel {isInEditMode} {onEditModeChange} />
-                        <MonsterSource {currentItem} />
+                        <MonsterSource {currentItem} {isInEditMode} />
                     </div>
                 </div>
             </div>
