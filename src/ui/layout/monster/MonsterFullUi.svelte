@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onDestroy, onMount } from 'svelte';
+    import { onDestroy, onMount, tick } from 'svelte';
 	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 	import type { FullMonster } from '../../../domain/models/monster/FullMonster';
 	import type { IUiEventListener } from '../../../domain/listeners/ui_event_listener';
@@ -32,17 +32,20 @@
         return list !== undefined && list.length > 0;
     }
 
-    const onEditModeChange = (newIsInEditMode: boolean, saveChanges: boolean) => {
+    const onEditModeChange = async (newIsInEditMode: boolean, saveChanges: boolean) => {
         isInEditMode = newIsInEditMode;
-        if (newIsInEditMode)  {
+
+        if (newIsInEditMode) {
             reservedItem = structuredClone(currentItem);
-        } else {
-            if (saveChanges) {
-                console.log(`Changes should be saved.`);
-            } else {
-                currentItem = structuredClone(reservedItem);
-            }
+            return;
         }
+
+        if (!saveChanges) {
+            currentItem = structuredClone(reservedItem);
+        }
+
+        await tick();
+        diceRollersManager.onMount();
     }
 </script>
   
@@ -67,7 +70,7 @@
 
 		<div class="info-section">
 			<div>
-				{#if currentItem.ability}<MonsterScoresTable {currentItem} />{/if}
+				{#if currentItem.ability}<MonsterScoresTable {currentItem} {isInEditMode} />{/if}
 				<MonsterBaseInfo {currentItem} {uiEventListener} />
 			</div>
 
