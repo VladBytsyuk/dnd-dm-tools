@@ -12,6 +12,15 @@ import type { FullArtifact } from "src/domain/models/artifact/FullArtifact";
 import type { FullBackground } from "src/domain/models/background/FullBackground";
 
 // ---- Copy to clipboard ----
+export function copyTextToClipboard(text: string, ignoreNotice: boolean = false) {
+    try {
+        navigator.clipboard.writeText(text);
+        if (!ignoreNotice) new Notice(`${text} - успешно скопировано.`);
+    } catch(e) {
+        console.error(`Failed to save text into clipboard: ${e}`);
+    }
+}
+
 export function copyMonsterToClipboard(monster: FullMonster, ignoreNotice: boolean = false) {
     copyToClipboard(monster, monster.name.rus, "statblock", null, ignoreNotice);
 }

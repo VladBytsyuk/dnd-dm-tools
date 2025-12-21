@@ -1,4 +1,4 @@
-import MonsterFullUi from "src/ui/layout/monster/MonsterFullUi.svelte";
+import MonsterFullUi from "src/ui/layout/monster/MonsterFullUi2.svelte";
 import type { FullMonster } from "src/domain/models/monster/FullMonster";
 import type { SmallMonster } from "src/domain/models/monster/SmallMonster";
 import type { BestiaryFilters } from "src/domain/models/monster/BestiaryFilters";
