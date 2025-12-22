@@ -1,12 +1,9 @@
 <script lang="ts">
-	import type { SavingThrow } from 'src/domain/models/common/SavingThrow';
 	import { formatModifier } from 'src/domain/modifier';
 	import { diceRoller, separate } from 'src/domain/utils/utils';
 	import HtmlBlock from '../../uikit/HtmlBlock.svelte';
 	import type { FullMonster } from '../../../../domain/models/monster/FullMonster';
 	import type { IUiEventListener } from '../../../../domain/listeners/ui_event_listener';
-	import { Footprints, Heart, Plus, Shield, X } from 'lucide-svelte';
-	import { EmptySavingThrow } from '../../../../domain/models/common/SavingThrow';
 	import Armor from './atoms/Armor.svelte';
 	import Hits from './atoms/Hits.svelte';
 	import Speed from './atoms/Speed.svelte';
@@ -24,14 +21,6 @@
 
     const notEmpty = (list: any[] | undefined): boolean => {
         return list !== undefined && list.length > 0;
-    }
-
-    const addSavingThrow = () => {
-        currentItem.savingThrows.push(EmptySavingThrow());
-    }
-
-    const removeSavingThrow = (index: number) => {
-        currentItem.savingThrows.splice(index, 1);
     }
 </script>
 

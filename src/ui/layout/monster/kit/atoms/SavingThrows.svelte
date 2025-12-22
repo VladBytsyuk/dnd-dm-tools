@@ -10,7 +10,7 @@
         isInEditMode: boolean,
     }>();
 
-    const addSavingThrow = () => currentItem.savingThrows.push(EmptySavingThrow());
+    const addSavingThrow = () => currentItem.savingThrows ? currentItem.savingThrows.push(EmptySavingThrow()) : currentItem.savingThrows = [EmptySavingThrow()];
     const removeSavingThrow = (index: number) => currentItem.savingThrows.splice(index, 1);
 </script>
 

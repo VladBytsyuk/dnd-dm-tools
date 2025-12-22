@@ -9,14 +9,12 @@
         isInEditMode: boolean,
     }>();
 
-    const addSpeed = () => currentItem.speed.push(EmptySpeed());
+    const addSpeed = () => currentItem.speed ? currentItem.speed.push(EmptySpeed()) : currentItem.speed = [EmptySpeed()];
     const removeSpeed = (index: number) => currentItem.speed.splice(index, 1);
 </script>
 
 <div class="item">
-    <div class="icon">
-        <Footprints size="12" />
-    </div>
+    <div class="icon"><Footprints size="12" /></div>
 
     {#if isInEditMode}
         {#each currentItem.speed as speed, index}
@@ -28,7 +26,7 @@
             <IconButton icon={X} hint={"Удалить " + speed.name} size={8} onClick={() => removeSpeed(index)} />
             {#if index !== (currentItem.speed.length - 1)},&nbsp;{/if}
         {/each}
-        <IconButton icon={Plus} hint="Добавить тип передвижения" size={12} onClick={() => addSpeed()} />
+        <IconButton icon={Plus} hint="Добавить тип передвижения" size={12} onClick={addSpeed} />
     {:else}
         {#each currentItem.speed as speed, index}
             {#if speed.name}{speed.name} {/if}

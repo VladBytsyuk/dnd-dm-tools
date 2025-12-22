@@ -12,7 +12,7 @@
         uiEventListener: IUiEventListener
     }>();
 
-    const addArmor = () => currentItem.armors.push(EmptyArmor());
+    const addArmor = () => currentItem.armors ? currentItem.armors.push(EmptyArmor()) : currentItem.armors = [EmptyArmor()];
     const removeArmor = (index: number) => currentItem.armors.splice(index, 1);
     const armorHtml = (armor: Armor) => armor.url
         ? `<a href="${armor.url}">${armor.name}</a>`
@@ -39,7 +39,7 @@
             <IconButton icon={X} hint={"Удалить " + armor.name} size={8} onClick={() => removeArmor(index)} />
             {#if index !== (currentItem.armors.length - 1)},&nbsp;{:else}){/if}
         {/each}
-        <IconButton icon={Plus} hint="Добавить броню" size={12} onClick={() => addArmor()} />
+        <IconButton icon={Plus} hint="Добавить броню" size={12} onClick={addArmor} />
     {:else}
         {#each currentItem.armors as armor, index}
             {#if index === 0}({/if}
