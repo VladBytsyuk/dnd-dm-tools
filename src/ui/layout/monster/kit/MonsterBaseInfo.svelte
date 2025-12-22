@@ -8,6 +8,7 @@
 	import Hits from './atoms/Hits.svelte';
 	import Speed from './atoms/Speed.svelte';
 	import SavingThrows from './atoms/SavingThrows.svelte';
+	import Skills from './atoms/Skills.svelte';
 
     let { 
 		currentItem,
@@ -50,18 +51,9 @@
             </div>
         {/if}
 
-        {#if notEmpty(currentItem.skills)}
+        {#if isInEditMode || notEmpty(currentItem.skills)}
             <div class="base-info-item">
-                <span class="base-info-item-title">Навыки</span> 
-                <HtmlBlock
-                    class="base-info-item-value"
-                    htmlContent={
-                        separate(currentItem.skills.map((it: { name: string; value: number }) => 
-                            diceRoller(`Навык. ${it.name}`, `к20${formatModifier(it.value)}`, `${it.name} ${formatModifier(it.value)}`)
-                        ))
-                    }
-                    uiEventListener={uiEventListener}
-                />
+                <Skills {currentItem} {isInEditMode} />
             </div>
         {/if}
 
