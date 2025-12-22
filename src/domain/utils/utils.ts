@@ -29,8 +29,8 @@ export const joinSpeed = (items: Array<Speed>) =>
     separate(items?.map(it => {
         let result = '';
         if (it.name) result += it.name + ' ';
-        if (it.value) result += it.value + ` фт. `;
-        if (it.additional) result += '(' + it.additional + ')';
+        if (it.value) result += (it.value ?? 0) + ` фт.`;
+        if (it.additional) result += ' (' + it.additional + ')';
         return result;
     })) || '';
 

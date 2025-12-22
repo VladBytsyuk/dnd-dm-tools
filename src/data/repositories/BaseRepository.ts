@@ -68,15 +68,15 @@ export abstract class BaseRepository<
             return cachedFullItem;
         }
         const fullItem = await this.fetchFromAPI(url);
-        if (fullItem && !fullItem.url) {
+        if (!fullItem) return fullItem;
+
+        if (!fullItem.url) {
             fullItem.url = url;
         }
-        if (fullItem) {
-            this.database.transaction(async () => {
-                await this.fullItemDao?.createItem(fullItem);
-            });
-            console.log(`Put ${url} into local storage.`)
-        }
+        this.database.transaction(async () => {
+            await this.fullItemDao?.createItem(fullItem);
+        });
+        console.log(`Put ${url} into local storage.`);
         return fullItem;
     }
 

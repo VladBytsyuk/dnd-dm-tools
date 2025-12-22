@@ -95,6 +95,7 @@
         <FullItemSlot
             currentItem={currentItem}
             uiEventListener={uiEventListener}
+            isEditable=true
         />
     {:else if searchBarValue.length > 0 && groups.length === 0}
         <h2>Результаты поиска</h2>

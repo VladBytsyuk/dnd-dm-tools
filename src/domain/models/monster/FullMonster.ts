@@ -5,12 +5,11 @@ import type { Speed } from "../common/Speed";
 import type { Armor } from "../common/Armor";
 import type { Hits } from "../common/Hits";
 import type { Ability } from "../common/Ability";
-import type { SavingThrow } from "../common/SavingThrow";
+import { type SavingThrow } from "../common/SavingThrow";
 import type { Legendary } from "../common/Legendary";
 import type { Lair } from "../common/Lair";
 import type { SmallMonster } from "./SmallMonster";
 import type { Tag } from "../common/Tag";
-import type { Type } from "../common/Type";
 
 export interface FullMonster extends SmallMonster {
     size?: Size;

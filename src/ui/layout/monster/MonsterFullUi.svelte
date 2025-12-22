@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onDestroy, onMount, tick } from 'svelte';
 	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
-	import type { FullMonster } from '../../../domain/models/monster/FullMonster';
+	import { type FullMonster } from '../../../domain/models/monster/FullMonster';
 	import type { IUiEventListener } from '../../../domain/listeners/ui_event_listener';
 	import MonsterBaseInfo from './kit/MonsterBaseInfo.svelte';
 	import MonsterName from './kit/MonsterName.svelte';
@@ -15,14 +15,16 @@
 
     let { 
 		currentItem, 
-		uiEventListener
+		uiEventListener,
+        isEditable = false
 	} = $props<{
         currentItem: FullMonster;
         uiEventListener: IUiEventListener;
+        isEditable: boolean;
     }>();
 
 	let isInEditMode = $state(false);
-    var reservedItem = structuredClone(currentItem);
+    var reservedItem = $state.snapshot(currentItem);
     
     const diceRollersManager = DiceRollersManager.create(uiEventListener);
     onMount(async () => diceRollersManager.onMount());
@@ -36,7 +38,7 @@
         isInEditMode = newIsInEditMode;
 
         if (newIsInEditMode) {
-            reservedItem = structuredClone(currentItem);
+            reservedItem = $state.snapshot(currentItem);
             return;
         }
 
@@ -60,7 +62,7 @@
                     </div>
 
                     <div class="header-right">
-                        <MonsterEditPanel {isInEditMode} {onEditModeChange} />
+                        {#if isEditable}<MonsterEditPanel {isInEditMode} {onEditModeChange} />{/if}
                         <MonsterSource {currentItem} {isInEditMode} />
                     </div>
                 </div>
@@ -69,9 +71,9 @@
         </div>
 
 		<div class="info-section">
-			<div>
+			<div class="info-left">
 				{#if currentItem.ability}<MonsterScoresTable {currentItem} {isInEditMode} />{/if}
-				<MonsterBaseInfo {currentItem} {uiEventListener} />
+				<MonsterBaseInfo {currentItem} {isInEditMode} {uiEventListener} />
 			</div>
 
 			{#if currentItem.images?.length}
@@ -193,6 +195,10 @@
 	.info-section {
         display: flex;
 		justify-content: space-between;
+    }
+
+    .info-left {
+        width: 70%;
     }
 
     .section-horizontal {
