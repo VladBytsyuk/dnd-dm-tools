@@ -1,7 +1,4 @@
 <script lang="ts">
-	import { formatModifier } from 'src/domain/modifier';
-	import { diceRoller, separate } from 'src/domain/utils/utils';
-	import HtmlBlock from '../../uikit/HtmlBlock.svelte';
 	import type { FullMonster } from '../../../../domain/models/monster/FullMonster';
 	import type { IUiEventListener } from '../../../../domain/listeners/ui_event_listener';
 	import Armor from './atoms/Armor.svelte';
@@ -11,6 +8,7 @@
 	import Skills from './atoms/Skills.svelte';
 	import StringField from './atoms/StringField.svelte';
 	import Senses from './atoms/Senses.svelte';
+	import ChallengeRating from './atoms/ChallengeRating.svelte';
 
     let { 
 		currentItem,
@@ -115,12 +113,9 @@
             </div>
         {/if}
 
-        {#if notEmpty(currentItem.challengeRating)}
+        {#if isInEditMode || notEmpty(currentItem.challengeRating)}
             <div class="base-info-item">
-                <span class="base-info-item-title">Опасность</span> 
-                <span class="base-info-item-value">
-                    {currentItem.challengeRating + (currentItem.experience ? ` (${currentItem.experience} XP)` : '')}
-                </span>
+                <ChallengeRating {currentItem} {isInEditMode} />
             </div>
         {/if}
     </div>
@@ -179,19 +174,5 @@
         color: var(--text-color);
         gap: 4px;
         margin: 1px 0px 1px;
-    }
-
-    .base-info-item-title {
-        color: var(--text-color);
-        font-size: 12.5px;
-        line-height: 1.2em;
-        font-weight: bold;
-    }
-
-    .base-info-item-value {
-        color: var(--text-color);
-        opacity: 0.75;
-        font-size: 12.5px;
-        line-height: 1.2em;
     }
 </style>

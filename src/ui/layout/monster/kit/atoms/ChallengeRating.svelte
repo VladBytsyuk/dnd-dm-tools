@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plus, Footprints, X } from 'lucide-svelte';
+	import { Plus, X } from 'lucide-svelte';
 	import type { FullMonster } from 'src/domain/models/monster/FullMonster.ts';
 	import IconButton from 'src/ui/layout/uikit/IconButton.svelte';
 	import { EmptySense, EmptySenses } from 'src/domain/models/common/Senses';
@@ -8,45 +8,23 @@
         currentItem: FullMonster, 
         isInEditMode: boolean,
     }>();
-
-    const addSense = () => {
-        if (!currentItem.senses) {
-            currentItem.senses = EmptySenses()
-        }
-
-        currentItem.senses.senses 
-            ? currentItem.senses.senses.push(EmptySense()) 
-            : currentItem.senses.senses = [EmptySense()];
-    }
-    const removeSense = (index: number) => currentItem.senses.senses.splice(index, 1);
 </script>
 
 <div class="item">
-    <div class="title">Чувства</div>
+    <div class="title">Опасность</div>
 
-    {#each currentItem.senses.senses as sense, index}
-        <input class="value inputlike" 
-            class:editable={isInEditMode}
-            bind:value={sense.name} 
-            readonly={!isInEditMode} 
-            />
-        <input class="value inputlike" 
-            class:editable={isInEditMode}
-            bind:value={sense.value} 
-            readonly={!isInEditMode} 
-            />
-        <span class="value inputlike">&nbsp;фт.,&nbsp;</span>
-        {#if isInEditMode}<IconButton icon={X} hint={"Удалить " + sense.name} size={8} onClick={() => removeSense(index)} />{/if}
-        {#if index !== (currentItem.speed.length - 1)},&nbsp;{/if}
-    {/each}
-    {#if isInEditMode}<IconButton icon={Plus} hint="Добавить чувство" size={12} onClick={addSense} />{/if}
-
-    <span class="value inputlike">пассивная внимательность&nbsp;</span>
-    <input class="value inputlike"
+    <input class="value inputlike" 
         class:editable={isInEditMode}
-        bind:value={currentItem.senses.passivePerception}
+        bind:value={currentItem.challengeRating} 
         readonly={!isInEditMode} 
         />
+    <span class="value">&nbsp; (</span>
+    <input class="value inputlike" 
+        class:editable={isInEditMode}
+        bind:value={currentItem.experience} 
+        readonly={!isInEditMode} 
+        />
+    <span class="value">&nbsp;XP)</span>
 </div>
 
 <style>
