@@ -12,6 +12,9 @@
 	import MonsterLair from './kit/MonsterLair.svelte';
 	import MonsterTag from './kit/MonsterTag.svelte';
 	import MonsterEditPanel from './kit/MonsterEditPanel.svelte';
+	import IconButton from '../uikit/IconButton.svelte';
+	import { Plus } from 'lucide-svelte';
+	import { EmptyTag } from '../../../domain/models/common/Tag';
 
     let { 
 		currentItem, 
@@ -116,14 +119,19 @@
         {/if}
 
         <!-- Description -->
-        {#if currentItem.description}
-            <MonsterTag name="Описание" description={currentItem.description} {uiEventListener} />
+        {#if isInEditMode || currentItem.description}
+            <MonsterTag name="Описание" description={currentItem.description} {isInEditMode} {uiEventListener} onDelete={() => { currentItem.description = undefined }} />
         {/if}
 
         <!-- Tags -->
-        {#each currentItem.tags as tag}
-            <MonsterTag name={tag.name} description={tag.description} {uiEventListener} />
+        {#each currentItem.tags as tag, index}
+            <MonsterTag name={tag.name} description={tag.description} {isInEditMode} {uiEventListener} onDelete={() => currentItem.tags.splice(index, 1)} />
         {/each}
+        {#if isInEditMode}
+            <div class="plus-button">
+                <IconButton icon={Plus} size={16} hint="Добавить тэг" onClick={() => currentItem.tags ? currentItem.tags.push(EmptyTag()) : currentItem.tags = [EmptyTag()]}/>
+            </div>
+        {/if}
     </div>
 </div>
 {/if}
@@ -211,4 +219,10 @@
         flex: 1;
     }
 
+    .plus-button {
+        display: flex;
+        flex-direction: column;
+        align-content: center;
+        width: 100%;
+    }
 </style>
