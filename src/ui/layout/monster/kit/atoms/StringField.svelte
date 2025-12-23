@@ -27,6 +27,7 @@
             bind:value={items[index]}
             readonly={!isInEditMode} 
             />
+        {#if index !== (items.length - 1)},{/if}
         {#if isInEditMode}<IconButton icon={X} size={8} hint="Удалить {item}" onClick={() => removeItem(index)}/>{/if}
     {/each}
     {#if isInEditMode}<IconButton icon={Plus} size={12} hint="Добавить" onClick={addItem}/>{/if}

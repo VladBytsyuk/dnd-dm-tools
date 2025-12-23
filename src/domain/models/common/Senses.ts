@@ -5,3 +5,17 @@ export interface Senses {
         value: number;
     }[];
 }
+
+export function EmptySenses(): Senses {
+    return {
+        passivePerception: '',
+        senses: []
+    } as Senses;
+}
+
+export function EmptySense() {
+    return {
+        name: '',
+        value: 0
+    };
+}

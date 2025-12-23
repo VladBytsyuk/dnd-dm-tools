@@ -10,6 +10,7 @@
 	import SavingThrows from './atoms/SavingThrows.svelte';
 	import Skills from './atoms/Skills.svelte';
 	import StringField from './atoms/StringField.svelte';
+	import Senses from './atoms/Senses.svelte';
 
     let { 
 		currentItem,
@@ -98,15 +99,9 @@
             </div>
         {/if}
 
-        {#if notEmpty(currentItem.senses)}
+        {#if isInEditMode || notEmpty(currentItem.senses.senses)}
             <div class="base-info-item">
-                <span class="base-info-item-title">Чувства</span> 
-                <span class="base-info-item-value">
-                    {currentItem.senses.senses ? 
-                        separate(currentItem.senses.senses.map((it: { name: string; value: number }) => `${it.name} ${it.value} фт.,`)) : 
-                        ''}
-                    пассивная внимательность {currentItem.senses.passivePerception}
-                </span>
+                <Senses {currentItem} {isInEditMode} />
             </div>
         {/if}
 
