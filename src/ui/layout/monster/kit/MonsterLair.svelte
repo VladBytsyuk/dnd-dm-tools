@@ -4,28 +4,54 @@
 	import type { Lair } from 'src/domain/models/common/Lair';
 
     let { 
-		lair, 
+		lair,
+        isInEditMode,
 		uiEventListener,
 	} = $props<{
         lair: Lair;
+        isInEditMode: boolean;
         uiEventListener: IUiEventListener;
     }>();
 </script>
-  
-{#each [
-    { action: lair.description, title: "Логово"},
-    { action: lair.action, title: "Действия логова"},
-    { action: lair.effect, title: "Региональные эффекты"},
-] as item}
-    {#if item.action != undefined} 
-    <div class="property-block">
-        <div class="block-header">{item.title}</div>
-        <div class="base-info-item">
-            <HtmlBlock class="base-info-item-value" htmlContent={item.action} uiEventListener={uiEventListener} /> 
+
+<div>
+    {#if isInEditMode || lair.description} 
+        <div class="property-block">
+            <div class="block-header">Логово</div>
+            <div class="base-info-item">
+                {#if isInEditMode}
+                    <textarea class="textarealike editable" bind:value={lair.description} rows="3"></textarea> 
+                {:else if lair.description}
+                    <HtmlBlock class="base-info-item-value" htmlContent={lair.description} uiEventListener={uiEventListener} />
+                {/if}
+            </div>
         </div>
-    </div>
     {/if}
-{/each}
+    {#if isInEditMode || lair.action} 
+        <div class="property-block">
+            <div class="block-header">Действия логова</div>
+            <div class="base-info-item">
+                {#if isInEditMode}
+                    <textarea class="textarealike editable" bind:value={lair.action} rows="3"></textarea> 
+                {:else if lair.action}
+                    <HtmlBlock class="base-info-item-value" htmlContent={lair.action} uiEventListener={uiEventListener} />
+                {/if}
+            </div>
+        </div>
+    {/if}
+    {#if isInEditMode || lair.effect} 
+        <div class="property-block">
+            <div class="block-header">Региональные эффекты</div>
+            <div class="base-info-item">
+                {#if isInEditMode}
+                    <textarea class="textarealike editable" bind:value={lair.effect} rows="3"></textarea> 
+                {:else if lair.effect}
+                    <HtmlBlock class="base-info-item-value" htmlContent={lair.effect} uiEventListener={uiEventListener} />
+                {/if}
+            </div>
+        </div>
+    {/if}
+</div>
 
 <style>
     :global(.base-info-item-value) {
@@ -47,5 +73,25 @@
         font-size: 16px;
         margin: 0.5em 0 0.5em;
         padding: 0 0 8px;
+    }
+
+	.textarealike {
+        flex: 1 1 auto;
+	    width: 100%;
+		border: 1px solid transparent;
+		background: transparent;
+		border-radius: 8px;
+        field-sizing: content;
+		outline: none;
+		background: var(--background-secondary);
+        text-overflow: ellipsis;
+        color: var(--text-color);
+    }
+
+    .editable {
+        opacity: 0.75;
+        font-size: 12.5px;
+        line-height: 1.2em;
+		border-color: var(--interactive-accent);
     }
 </style>

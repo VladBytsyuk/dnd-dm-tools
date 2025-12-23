@@ -111,8 +111,8 @@
             />
         {/if}
 
-        {#if currentItem.lair}
-            <MonsterLair lair={currentItem.lair} {uiEventListener} />
+        {#if isInEditMode || currentItem.lair}
+            <MonsterLair lair={currentItem.lair} {isInEditMode} {uiEventListener} />
         {/if}
 
         <!-- Description -->
