@@ -3,7 +3,7 @@
 	import type { FullMonster } from 'src/domain/models/monster/FullMonster.ts';
 	import { formatModifier } from 'src/domain/modifier';
 	import { EmptySkill } from 'src/domain/models/common/Skill';
-	import IconButton from '../../../uikit/IconButton.svelte';
+	import IconButton from 'src/ui/layout/uikit/IconButton.svelte';
 
     let { currentItem, isInEditMode } = $props<{ 
         currentItem: FullMonster, 

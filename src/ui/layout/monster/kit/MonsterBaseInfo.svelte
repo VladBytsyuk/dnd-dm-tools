@@ -9,6 +9,7 @@
 	import Speed from './atoms/Speed.svelte';
 	import SavingThrows from './atoms/SavingThrows.svelte';
 	import Skills from './atoms/Skills.svelte';
+	import StringField from './atoms/StringField.svelte';
 
     let { 
 		currentItem,
@@ -57,31 +58,43 @@
             </div>
         {/if}
 
-        {#if notEmpty(currentItem.damageVulnerabilities)}
+        {#if isInEditMode || notEmpty(currentItem.damageVulnerabilities)}
             <div class="base-info-item">
-                <span class="base-info-item-title">Уязвимость к урону</span> 
-                <span class="base-info-item-value">{separate(currentItem.damageVulnerabilities)}</span>
+                <StringField 
+                    title="Уязвимость к урону" 
+                    items={currentItem.damageVulnerabilities} 
+                    {isInEditMode} 
+                    onItemsChange={it => currentItem.damageVulnerabilities = it} />
             </div>
         {/if}
 
-        {#if notEmpty(currentItem.damageResistances)}
+        {#if isInEditMode || notEmpty(currentItem.damageResistances)}
             <div class="base-info-item">
-                <span class="base-info-item-title">Сопротивление к урону</span> 
-                <span class="base-info-item-value">{separate(currentItem.damageResistances)}</span>
+                <StringField 
+                    title="Сопротивление к урону" 
+                    items={currentItem.damageResistances} 
+                    {isInEditMode} 
+                    onItemsChange={it => currentItem.damageResistances = it} />
             </div>
         {/if}
 
-        {#if notEmpty(currentItem.damageImmunities)}
+        {#if isInEditMode || notEmpty(currentItem.damageImmunities)}
             <div class="base-info-item">
-                <span class="base-info-item-title">Иммунитет к урону</span> 
-                <span class="base-info-item-value">{separate(currentItem.damageImmunities)}</span>
+                <StringField 
+                    title="Иммунитет к урону" 
+                    items={currentItem.damageImmunities} 
+                    {isInEditMode} 
+                    onItemsChange={it => currentItem.damageImmunities = it} />
             </div>
         {/if}
 
-        {#if notEmpty(currentItem.conditionImmunities)}
+        {#if isInEditMode || notEmpty(currentItem.conditionImmunities)}
             <div class="base-info-item">
-                <span class="base-info-item-title">Иммунитет к состоянию</span> 
-                <span class="base-info-item-value">{separate(currentItem.conditionImmunities)}</span>
+                <StringField 
+                    title="Иммунитет к состоянию" 
+                    items={currentItem.conditionImmunities} 
+                    {isInEditMode} 
+                    onItemsChange={it => currentItem.conditionImmunities = it} />
             </div>
         {/if}
 
@@ -97,10 +110,13 @@
             </div>
         {/if}
 
-        {#if notEmpty(currentItem.languages)}
+        {#if isInEditMode || notEmpty(currentItem.languages)}
             <div class="base-info-item">
-                <span class="base-info-item-title">Языки</span> 
-                <span class="base-info-item-value">{separate(currentItem.languages)}</span>
+                <StringField 
+                    title="Языки" 
+                    items={currentItem.languages} 
+                    {isInEditMode} 
+                    onItemsChange={it => currentItem.languages = it} />
             </div>
         {/if}
 
@@ -156,18 +172,6 @@
         padding: 0 8px;
     }
 
-    .base-info-line-item-value {
-        color: var(--text-color);
-        opacity: 0.75;
-        font-size: 12px;
-        white-space: nowrap;
-        overflow: hidden;
-	    text-overflow: ellipsis;
-        line-height: 1;
-        display: inline-flex;
-        align-items: center;
-    }
-
     .base-info-block {
         margin: 0.5em 0 0.5em
     }
@@ -179,7 +183,7 @@
         align-content: start;
         color: var(--text-color);
         gap: 4px;
-        margin: 4px 0px 4px;
+        margin: 1px 0px 1px;
     }
 
     .base-info-item-title {
@@ -195,23 +199,4 @@
         font-size: 12.5px;
         line-height: 1.2em;
     }
-
-	.inputlike {
-        flex: 1 1 auto;
-	    min-width: 0;
-		border: 1px solid transparent;
-		background: transparent;
-		color: var(--text-normal);
-		border-radius: 8px;
-        text-align: center;
-        field-sizing: content;
-        max-width: 160px;
-	}
-
-	.inputlike-editable {
-		outline: none;
-		border-color: var(--interactive-accent);
-		background: var(--background-secondary);
-        text-overflow: ellipsis;
-	}
 </style>

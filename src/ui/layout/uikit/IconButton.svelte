@@ -30,6 +30,7 @@
 	onclick={onClick}
 	onkeydown={handleKeydown}
 >
+	<!-- svelte-ignore svelte_component_deprecated -->
 	<svelte:component this={icon} size={size} />
 </div>
 
