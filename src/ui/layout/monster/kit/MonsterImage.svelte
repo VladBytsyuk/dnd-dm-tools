@@ -1,13 +1,17 @@
 <script lang="ts">
+    import { Plus, X } from 'lucide-svelte';
     import { onMount } from 'svelte';
 	import type { FullMonster } from '../../../../domain/models/monster/FullMonster';
 	import type { IUiEventListener } from '../../../../domain/listeners/ui_event_listener';
+	import IconButton from '../../uikit/IconButton.svelte';
 
     let { 
-		currentItem, 
+		currentItem,
+        isInEditMode,
 		uiEventListener, 
 	} = $props<{
         currentItem: FullMonster;
+        isInEditMode: boolean;
         uiEventListener: IUiEventListener;
     }>();
 
@@ -36,23 +40,44 @@
             isImageExpanded = false;
         }
     }
+
+    const addImage = () =>  {
+        currentItem.images ? currentItem.images.push("") : currentItem.images = [""];
+        imagesLength = imagesLength + 1;
+    };
+    const removeImage = (index: number) => {
+        currentItem.images.splice(index, 1);
+        imagesLength = imagesLength - 1;
+    } 
 </script>
 
 <div class="images">
     <div class="slider-container">
-        <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-        <img 
-            class="images-item {isImageExpanded ? 'expanded' : ''}" 
-            src={images[currentImageIndex]} 
-            alt={currentItem.name.rus}
-            onclick={(e) => { isImageExpanded = !isImageExpanded; handleOverlayClick(e); }}
-            onerror={(e) => { if (e.target) (e.target as HTMLImageElement).src = "https://ttg.club/img/no-img.webp"; } }/>
-        {#if imagesLength > 1}
-        <div class="slider-controls">
-            <button class="arrow left" onclick={prevImage}>❮</button>
-            <button class="arrow right" onclick={nextImage}>❯</button>
-        </div>
+        {#if isInEditMode}
+            <div class="column">
+                {#each currentItem.images as _, index}
+                    <div>
+                        <input class="value inputlike" bind:value={images[index]} />
+                        <IconButton icon={X} size={8} hint="Удалить портрет" onClick={() => removeImage(index)}/>
+                    </div>
+                {/each}
+                <IconButton icon={Plus} size={12} hint="Добавить портрет" onClick={addImage}/>
+            </div>
+        {:else}
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+            <img 
+                class="images-item {isImageExpanded ? 'expanded' : ''}" 
+                src={images[currentImageIndex]} 
+                alt={currentItem.name.rus}
+                onclick={(e) => { isImageExpanded = !isImageExpanded; handleOverlayClick(e); }}
+                onerror={(e) => { if (e.target) (e.target as HTMLImageElement).src = "https://ttg.club/img/no-img.webp"; } }/>
+            {#if imagesLength > 1}
+                <div class="slider-controls">
+                    <button class="arrow left" onclick={prevImage}>❮</button>
+                    <button class="arrow right" onclick={nextImage}>❯</button>
+                </div>
+            {/if}
         {/if}
     </div>
 </div>
@@ -133,4 +158,33 @@
     .images-item.expanded + .slider-controls {
         z-index: 1001;
     }
+
+    .column {
+        display: flex;
+        flex-direction: column;
+        align-content: center;
+    }
+
+    .value {
+        color: var(--text-color);
+        opacity: 0.75;
+        font-size: 12.5px;
+        line-height: 1.2em;
+    }
+
+	.inputlike {
+        flex: 1 1 auto;
+	    min-width: 0;
+		border: 1px solid transparent;
+		background: transparent;
+		color: var(--text-normal);
+		border-radius: 8px;
+        text-align: center;
+        field-sizing: content;
+        max-width: 160px;
+		outline: none;
+		border-color: var(--interactive-accent);
+		background: var(--background-secondary);
+        text-overflow: ellipsis;
+	}
 </style>

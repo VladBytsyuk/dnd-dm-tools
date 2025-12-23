@@ -77,7 +77,7 @@
 			</div>
 
 			{#if currentItem.images?.length}
-                <MonsterImage {currentItem} {uiEventListener} />
+                <MonsterImage {currentItem} {isInEditMode} {uiEventListener} />
 			{/if}
 		</div>
 
