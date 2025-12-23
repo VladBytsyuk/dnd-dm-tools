@@ -82,30 +82,32 @@
 		</div>
 
         <!-- Abilities Block -->
-        {#if notEmpty(currentItem.feats)}
-            <MonsterAbilities items={currentItem.feats} {uiEventListener}/>
+        {#if isInEditMode || notEmpty(currentItem.feats)}
+            <MonsterAbilities items={currentItem.feats} {isInEditMode} {uiEventListener} onItemsChange={it => currentItem.feats = it} />
         {/if}
 
         <!-- Action Blocks -->
-        {#if notEmpty(currentItem.actions)}
-            <MonsterAbilities title="Действия" items={currentItem.actions} {uiEventListener}/>
+        {#if isInEditMode || notEmpty(currentItem.actions)}
+            <MonsterAbilities title="Действия" items={currentItem.actions} {isInEditMode} {uiEventListener} onItemsChange={it => currentItem.actions = it} />
         {/if}
 
-        {#if notEmpty(currentItem.bonusActions)}
-            <MonsterAbilities title="Бонусные действия" items={currentItem.bonusActions} {uiEventListener}/>
+        {#if isInEditMode || notEmpty(currentItem.bonusActions)}
+            <MonsterAbilities title="Бонусные действия" items={currentItem.bonusActions} {isInEditMode} {uiEventListener} onItemsChange={it => currentItem.bonusActions = it} />
         {/if}
 
-        {#if notEmpty(currentItem.reactions)}
-            <MonsterAbilities title="Реакции" items={currentItem.reactions} {uiEventListener}/>
+        {#if isInEditMode || notEmpty(currentItem.reactions)}
+            <MonsterAbilities title="Реакции" items={currentItem.reactions} {isInEditMode} {uiEventListener} onItemsChange={it => currentItem.reactions = it} />
         {/if}
 
 
-        {#if currentItem.legendary && notEmpty(currentItem.legendary.list)}
+        {#if isInEditMode || currentItem.legendary && notEmpty(currentItem.legendary.list)}
             <MonsterAbilities 
                 title="Легендарные действия"
                 description={currentItem.legendary.description}
-                items={currentItem.legendary.list}
-                {uiEventListener}
+                items={currentItem.legendary.list} 
+                {isInEditMode}
+                {uiEventListener} 
+                onItemsChange={it => currentItem.legendary.list = it} 
             />
         {/if}
 

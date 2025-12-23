@@ -9,3 +9,10 @@ export function EmptySkill(): NamedValue {
         value: 0
     } as NamedValue;
 }
+
+export function EmptyNamedValue(): NamedValue {
+    return {
+        name: '',
+        value: ''
+    } as NamedValue;
+}
