@@ -15,15 +15,22 @@
 	import IconButton from '../uikit/IconButton.svelte';
 	import { Plus } from 'lucide-svelte';
 	import { EmptyTag } from '../../../domain/models/common/Tag';
+	import { Notice } from 'obsidian';
 
     let { 
 		currentItem, 
 		uiEventListener,
-        isEditable = false
+        isEditable = false,
+        onClose = () => {},
+        onItemSave = (currentItem: FullMonster) => {true},
+        onItemDelete = (url: string) => {true}
 	} = $props<{
         currentItem: FullMonster;
         uiEventListener: IUiEventListener;
         isEditable: boolean;
+        onCloose: () => void;
+        onItemSave: (currentItem: FullMonster) => boolean;
+        onItemDelete: (url: string) => boolean;
     }>();
 
 	let isInEditMode = $state(false);
@@ -38,19 +45,41 @@
     }
 
     const onEditModeChange = async (newIsInEditMode: boolean, saveChanges: boolean) => {
-        isInEditMode = newIsInEditMode;
-
         if (newIsInEditMode) {
+            isInEditMode = newIsInEditMode;
             reservedItem = $state.snapshot(currentItem);
             return;
         }
 
-        if (!saveChanges) {
+        if (saveChanges) {
+            if (validateUrl(currentItem.url)) {
+                const saveSucceed = onItemSave(currentItem);
+                if (saveSucceed) {
+                    isInEditMode = newIsInEditMode;
+                } else {
+                    new Notice(`Ошибка сохранения`);
+                }
+            } else {
+                new Notice(`URL (${currentItem.url}) должен быть непустым и начинаться с /bestiary/`);
+            }
+        } else {
+            isInEditMode = newIsInEditMode;
             currentItem = structuredClone(reservedItem);
         }
 
         await tick();
         diceRollersManager.onMount();
+    }
+
+    const validateUrl = (url: string): boolean => url.length > 10 && url.startsWith('/bestiary/');
+
+    const onMonsterDelete = () => {
+        const deleteSuccess = onItemDelete(currentItem.url);
+        if (deleteSuccess) {
+            onClose();
+        } else {
+            new Notice(`Ошибка удаления`);
+        }
     }
 </script>
   
@@ -65,7 +94,7 @@
                     </div>
 
                     <div class="header-right">
-                        {#if isEditable}<MonsterEditPanel {isInEditMode} {onEditModeChange} />{/if}
+                        {#if isEditable}<MonsterEditPanel {isInEditMode} {onEditModeChange} onItemDelete={onMonsterDelete}/>{/if}
                         <MonsterSource {currentItem} {isInEditMode} />
                     </div>
                 </div>

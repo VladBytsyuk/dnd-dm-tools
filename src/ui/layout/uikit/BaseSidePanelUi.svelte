@@ -96,6 +96,9 @@
             currentItem={currentItem}
             uiEventListener={uiEventListener}
             isEditable=true
+            onClose={() => currentItem = undefined}
+            onItemSave={async (item: any) => await repository.putItem(item)}
+            onItemDelete={async (url: string) => await repository.deleteItem(url)}
         />
     {:else if searchBarValue.length > 0 && groups.length === 0}
         <h2>Результаты поиска</h2>

@@ -137,4 +137,74 @@ export abstract class BaseRepository<
     async groupItems(smallItems: SmallItem[]): Promise<Group<SmallItem>[]> {
         return [];
     }
+
+    async putItem(fullItem: FullItem): Promise<boolean> {
+        if (!fullItem.url) {
+            console.warn("Cannot put item without URL");
+            return false;
+        }
+
+        try {
+            const smallItem: SmallItem = {
+                ...fullItem,
+                type: this.toTypeString((fullItem as any).type),
+            } as SmallItem;
+            const existingSmallItem = await this.smallItemDao?.readItemByUrl(fullItem.url) || null;
+            if (existingSmallItem) {
+                await this.smallItemDao?.updateItem(smallItem);
+                console.log(`Updated ${fullItem.url} in small local storage.`);
+            } else {
+                await this.smallItemDao?.createItem(smallItem);
+                console.log(`Created ${fullItem.url} in small local storage.`);
+            }
+
+            const existingFullItem = await this.fullItemDao?.readItemByUrl(fullItem.url) || null;
+            if (existingFullItem) {
+                await this.fullItemDao?.updateItem(fullItem);
+                console.log(`Updated ${fullItem.url} in full local storage.`);
+            } else {
+                await this.fullItemDao?.createItem(fullItem);
+                console.log(`Created ${fullItem.url} in full local storage.`);
+            }
+
+            this.#smallItems = undefined;
+            this.#filters = undefined;
+
+            await this.initialize();
+            return true;
+        } catch (error) {
+            console.error("Failed to put item:", error);
+            return false;
+        }
+    }
+
+    async deleteItem(url: string): Promise<boolean> {
+        try {
+            const existingFullItem = await this.fullItemDao?.readItemByUrl(url) || null;
+            if (existingFullItem) {
+                await this.fullItemDao?.deleteItemByUrl(url);
+                console.log(`Deleted ${url} from full local storage.`);
+            }
+
+            const existingSmallItem = await this.smallItemDao?.readItemByUrl(url) || null;
+            if (existingSmallItem) {
+                await this.smallItemDao?.deleteItemByUrl(url);
+                console.log(`Deleted ${url} from small local storage.`);
+            }
+
+            // Invalidate cache
+            this.#smallItems = undefined;
+            this.#filters = undefined;
+
+            await this.initialize();
+            return true;
+        } catch (error) {
+            console.error("Failed to put item:", error);
+            return false;
+        }
+    }
+
+    private toTypeString(type: any): string {
+        return typeof type === "string" ? type : type?.name ?? "";
+    }
 }

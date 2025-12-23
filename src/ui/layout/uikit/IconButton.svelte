@@ -26,7 +26,6 @@
 	role="button"
 	tabindex="0"
 	aria-label={hint}
-	title={hint}
 	onclick={onClick}
 	onkeydown={handleKeydown}
 >

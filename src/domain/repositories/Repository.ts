@@ -18,6 +18,9 @@ export interface Repository<SmallItem extends BaseItem, FullItem extends SmallIt
     getFullItemBySmallItem(smallItem: SmallItem): Promise<FullItem | null>;
 
     groupItems(smallItems: SmallItem[]): Promise<Group<SmallItem>[]>;
+
+    putItem(fullItem: FullItem): Promise<boolean>;
+    deleteItem(url: string): Promise<boolean>;
 }
 
 export interface Group<SmallItem> {
