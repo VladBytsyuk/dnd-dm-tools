@@ -16,6 +16,7 @@
 	import { Plus } from 'lucide-svelte';
 	import { EmptyTag } from '../../../domain/models/common/Tag';
 	import { Notice } from 'obsidian';
+	import { getMonsterFromClipboard } from '../../../data/clipboard';
 
     let { 
 		currentItem, 
@@ -73,6 +74,11 @@
 
     const validateUrl = (url: string): boolean => url.length > 10 && url.startsWith('/bestiary/');
 
+    const onMonsterPaste = async () => {
+        const newItem = await getMonsterFromClipboard();
+        if (newItem) currentItem = newItem;
+    };
+
     const onMonsterDelete = () => {
         const deleteSuccess = onItemDelete(currentItem.url);
         if (deleteSuccess) {
@@ -80,7 +86,7 @@
         } else {
             new Notice(`Ошибка удаления`);
         }
-    }
+    };
 </script>
   
 {#if currentItem}
@@ -94,7 +100,7 @@
                     </div>
 
                     <div class="header-right">
-                        {#if isEditable}<MonsterEditPanel {isInEditMode} {onEditModeChange} onItemDelete={onMonsterDelete}/>{/if}
+                        {#if isEditable}<MonsterEditPanel {isInEditMode} {onEditModeChange} onItemPaste={onMonsterPaste} onItemDelete={onMonsterDelete}/>{/if}
                         <MonsterSource {currentItem} {isInEditMode} />
                     </div>
                 </div>

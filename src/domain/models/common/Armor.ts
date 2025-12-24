@@ -4,10 +4,10 @@ export interface Armor {
     url: string | null;
 }
 
-export function EmptyArmor() {
+export function EmptyArmor(): Armor {
     return {
         name: '',
         type: 'armor',
         url: '/armors/'
-    } as Armor
+    } as Armor;
 }

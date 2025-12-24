@@ -36,6 +36,7 @@
     let itemsStack: BaseItem[] = $state(initialFullItem ? [initialFullItem] : []);
     let currentItem: BaseItem | undefined = $state(initialFullItem || undefined);
     let groups: Group<BaseItem>[] = $state([]);
+    let emptyFullItem = repository.createEmptyFullItem();
 
     // ---- Lifecycle ----  
     onMount(() => updateGroups()); 
@@ -89,6 +90,7 @@
         onclearclick={undefined}
         onfiltersclick={currentItem ? undefined : onSearchBarFiltersClick}
         isfiltersapplied={() => !isFiltersEmpty(filters)}
+        onaddclick={emptyFullItem ? () => { currentItem = emptyFullItem; itemsStack.push(emptyFullItem); } : undefined}
     />
     <div style="height:1em;"></div>
     {#if currentItem}

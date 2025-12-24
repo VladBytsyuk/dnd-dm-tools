@@ -1,15 +1,17 @@
-import type { Senses } from "../common/Senses";
-import type { Size } from "../common/Size";
+import { EmptySenses, type Senses } from "../common/Senses";
+import { EmptySize, type Size } from "../common/Size";
 import type { NamedValue } from "../common/Skill";
 import type { Speed } from "../common/Speed";
-import type { Armor } from "../common/Armor";
-import type { Hits } from "../common/Hits";
-import type { Ability } from "../common/Ability";
+import { EmptyArmor, type Armor } from "../common/Armor";
+import { EmptyHits, type Hits } from "../common/Hits";
+import { EmptyAbility, type Ability } from "../common/Ability";
 import { type SavingThrow } from "../common/SavingThrow";
 import type { Legendary } from "../common/Legendary";
 import type { Lair } from "../common/Lair";
 import type { SmallMonster } from "./SmallMonster";
 import type { Tag } from "../common/Tag";
+import { EmptyName, type Name } from "../common/Name";
+import { EmptySource } from "../common/Source";
 
 export interface FullMonster extends SmallMonster {
     size?: Size;
@@ -41,4 +43,43 @@ export interface FullMonster extends SmallMonster {
     tags?: Tag[];
     environment?: string[]
     images: string[];
+}
+
+export function EmptyFullMonster(): FullMonster {
+    return  {
+        name: EmptyName(),
+        url: '',
+        type: '' as string,
+        challengeRating: '',
+        source: EmptySource(),
+        size: EmptySize(),
+        id: 0,
+        experience: 0,
+        proficiencyBonus: "0",
+        alignment: "",
+        armorClass: 10,
+        armors: undefined,
+        hits: EmptyHits(),
+        speed: undefined,
+        ability: EmptyAbility(),
+        savingThrows: undefined,
+        skills: undefined,
+        damageVulnerabilities: undefined,
+        damageResistances: undefined,
+        damageImmunities: undefined,
+        conditionImmunities: undefined,
+        senses: EmptySenses(),
+        languages: undefined,
+        feats: undefined,
+        actions: undefined,
+        bonusActions: undefined,
+        reactions: undefined,
+        legendary: undefined,
+        mythic: undefined,
+        lair: undefined,
+        description: '',
+        tags: undefined,
+        environment: undefined,
+        images: []
+    } as FullMonster;
 }

@@ -3,3 +3,11 @@ export interface Size {
     eng: string;
     cell: string;
 }
+
+export function EmptySize(): Size {
+    return {
+        rus: '',
+        eng: '',
+        cell: ''
+    } as Size;
+}

@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { ArrowLeft, Eraser, SlidersHorizontal } from "lucide-svelte";
+	import { ArrowLeft, Eraser, Plus, SlidersHorizontal } from "lucide-svelte";
 	import { Debouncer, DEFAULT_DEBOUNCER_DELAY } from "../../debouncer";
 	import { onDestroy } from "svelte";
 
     // ---- Props ----
-    let { onbackclick, onvaluechange, isvaluechangable, onclearclick, onfiltersclick, isfiltersapplied } = $props();
+    let { onbackclick, onvaluechange, isvaluechangable, onclearclick, onfiltersclick, isfiltersapplied, onaddclick } = $props();
 
     // ---- State ----
     let searchValue = $state('');
@@ -45,6 +45,11 @@
             {#if isfiltersapplied && isfiltersapplied()}
                 <span class="filters-indicator"></span>
             {/if}
+        </div>
+    {/if}
+    {#if onaddclick}
+        <div class="filters-btn-wrapper">
+            <button onclick={onaddclick}><Plus /></button>
         </div>
     {/if}
 </div>

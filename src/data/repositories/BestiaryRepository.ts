@@ -2,7 +2,7 @@ import type { SmallMonster } from "src/domain/models/monster/SmallMonster";
 import { type BestiaryFilters } from "src/domain/models/monster/BestiaryFilters";
 import type DB from "../databse/DB";
 import type { Bestiary } from 'src/domain/repositories/Bestiary';
-import { type FullMonster } from 'src/domain/models/monster/FullMonster';
+import { EmptyFullMonster, type FullMonster } from 'src/domain/models/monster/FullMonster';
 import { BaseRepository } from './BaseRepository';
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
@@ -55,5 +55,9 @@ export class BestiaryRepository
         return Object.entries(groups)
             .map(([cr, smallMonsters]) => ({ sort: cr, smallItems: smallMonsters } as Group<SmallMonster>))
             .sort((a, b) => parseCR(a.sort) - parseCR(b.sort));
+    }
+
+    createEmptyFullItem(): FullMonster | undefined {
+        return EmptyFullMonster();
     }
 }

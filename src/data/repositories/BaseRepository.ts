@@ -207,4 +207,8 @@ export abstract class BaseRepository<
     private toTypeString(type: any): string {
         return typeof type === "string" ? type : type?.name ?? "";
     }
+
+    createEmptyFullItem(): FullItem | undefined {
+        return undefined;
+    }
 }

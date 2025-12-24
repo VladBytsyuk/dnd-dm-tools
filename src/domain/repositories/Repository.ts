@@ -21,6 +21,8 @@ export interface Repository<SmallItem extends BaseItem, FullItem extends SmallIt
 
     putItem(fullItem: FullItem): Promise<boolean>;
     deleteItem(url: string): Promise<boolean>;
+
+    createEmptyFullItem(): FullItem | undefined
 }
 
 export interface Group<SmallItem> {

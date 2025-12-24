@@ -7,3 +7,14 @@ export interface Source {
     };
     homebrew?: boolean;
 }
+
+export function EmptySource(): Source {
+    return {
+        shortName: '',
+        name: '',
+        group: {
+            name: '',
+            shortName: ''
+        }
+    };
+}
