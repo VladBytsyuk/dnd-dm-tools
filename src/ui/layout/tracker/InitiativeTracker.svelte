@@ -10,6 +10,7 @@
 		Square,
 		Undo,
 		Redo,
+		Trash2,
 	} from "lucide-svelte";
 	import {
 		copyEncounterToClipboard,
@@ -159,6 +160,11 @@
 		if (!isEditable) return;
 		encounterManager.redo();
 	}
+
+	const clearEncounter = () => {
+		if (!isEditable) return;
+		encounterManager.clearEncounter();
+	}
 </script>
 
 <div class="tracker">
@@ -235,6 +241,7 @@
 				{/if}
 			</div>
 
+			{#if isEditable}
 			<div class="actions-row">
 				<button
 					class="btn ghost"
@@ -253,7 +260,15 @@
 				>
 					<Redo size={16} />
 				</button>
+				<button
+					class="btn ghost"
+					onclick={clearEncounter}
+					aria-label="Очистить"
+				>
+					<Trash2 size={16} />
+				</button>
 			</div>
+			{/if}
 		</div>
 	</header>
 

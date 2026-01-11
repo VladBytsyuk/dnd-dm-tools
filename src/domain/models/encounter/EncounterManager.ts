@@ -306,4 +306,13 @@ export class EncounterManager {
             });
         });
     }
+
+    clearEncounter() {
+        this.update(state => {
+            state.encounter.name = "";
+            state.encounter.participants = [];
+            state.activeParticipantIndex = null;
+            state.round = 1;
+        });
+    }
 }
