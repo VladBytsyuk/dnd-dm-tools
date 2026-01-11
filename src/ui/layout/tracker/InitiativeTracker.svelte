@@ -187,6 +187,7 @@
 		</div>
 
 		<div class="actions">
+			{#if isEditable}
 			<div class="actions-row">
 				<button
 					class="btn"
@@ -212,8 +213,10 @@
 					<Square size={16} />
 				</button>
 			</div>
+			{/if}
 
 			<div class="actions-row">
+				{#if isEditable}
 				<button
 					class="btn ghost"
 					onclick={sortByInitiative}
@@ -221,6 +224,7 @@
 				>
 					<ArrowUpDown size={16} />
 				</button>
+				{/if}
 
 				<button
 					class="btn ghost"
