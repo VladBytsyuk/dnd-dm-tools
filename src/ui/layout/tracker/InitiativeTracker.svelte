@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from "svelte";
 	import {
 		Play,
 		StepForward,
@@ -9,14 +8,16 @@
 		Skull,
 		Plus,
 		Square,
+		Undo,
+		Redo,
 	} from "lucide-svelte";
-	import { d20, roll } from "src/domain/dice";
 	import {
 		copyEncounterToClipboard,
 		getEncounterFromClipboard,
 		getEncounterParticipantFromClipboard,
 	} from "src/data/clipboard";
 	import type { Encounter } from "src/domain/models/encounter/Encounter";
+	import { EncounterManager } from "src/domain/models/encounter/EncounterManager";
 	import type { EncounterParticipant, EncounterParticipantCondition } from "src/domain/models/encounter/EncounterParticipant";
 	import ParticipantItem from "./ParticipantItem.svelte";
 
@@ -29,26 +30,23 @@
 			onConditionClick: (url: string) => void;
 		}>();
 
-	let stateEncounter: Encounter = $state(encounter);
-	let activeParticipantIndex: number | null = $state(null);
+	const encounterManager = new EncounterManager(encounter);
 
-	let round: number = $state(1);
-	let idCounter: number = $state(encounter.participants.length);
+	let state = $state({
+		current: encounterManager.current,
+		canUndo: encounterManager.canUndo,
+		canRedo: encounterManager.canRedo,
+	});
 
-	const updateParticipants = (newParticipants: EncounterParticipant[]) => {
-		stateEncounter = {
-			...stateEncounter,
-			participants: newParticipants as any,
-		};
-	};
-
-	onMount(() => {
-		updateParticipants(stateEncounter.participants);
+	encounterManager.setOnUpdate(() => {
+		state.current = encounterManager.current;
+		state.canUndo = encounterManager.canUndo;
+		state.canRedo = encounterManager.canRedo;
 	});
 
 	const setEncounterName = (name: string) => {
 		if (!isEditable) return;
-		stateEncounter = { ...(stateEncounter as any), name } as any;
+		encounterManager.setName(name);
 	};
 
 	const setValue = (
@@ -57,133 +55,43 @@
 		value: any,
 	) => {
 		if (!isEditable) return;
-		const ps = stateEncounter.participants.map((p) =>
-			p.id === id
-				? ({ ...p, [field]: value } as EncounterParticipant)
-				: p,
-		);
-		updateParticipants(ps);
+		encounterManager.setParticipantValue(id, field, value);
 	};
 
 	const sortByInitiative = () => {
-		const ps = stateEncounter.participants.slice();
-		ps.sort(
-			(a, b) => Number(b.initiative ?? 0) - Number(a.initiative ?? 0),
-		);
-		updateParticipants(ps);
-	};
-
-	const rollInitiative = () => {
-		const ps = stateEncounter.participants.map((p) => {
-			const init = Number(p.initiative ?? 0);
-			if (init !== 0) return p;
-
-			const mod = Number(p.initiativeModifier ?? 0);
-			const res = roll(d20()(mod));
-			return { ...p, initiative: res };
-		});
-		updateParticipants(ps);
+		encounterManager.sortByInitiative();
 	};
 
 	const startEncounter = () => {
-		rollInitiative();
-		sortByInitiative();
-
-		const ps = stateEncounter.participants;
-		const firstAliveParticipantIndex = ps.findIndex((p) => !p.isDead);
-		activeParticipantIndex = firstAliveParticipantIndex !== -1 ? firstAliveParticipantIndex : null;
-		round = 1;
+		encounterManager.startEncounter();
 	};
 
 	const nextStepEncounter = () => {
-		const ps = stateEncounter.participants;
-		const total = ps.length;
-
-		if (total === 0 || activeParticipantIndex == null) {
-			stopEncounter();
-			return;
-		}
-
-		const start = activeParticipantIndex;
-
-		for (let step = 1; step <= total; step++) {
-			const nextIdx = (start + step) % total;
-
-			if (!ps[nextIdx].isDead) {
-				if (nextIdx <= start) {
-					round += 1;
-				}
-				activeParticipantIndex = nextIdx;
-				return;
-			}
-		}
-		stopEncounter();
+		encounterManager.nextStepEncounter();
 	};
 
 	const stopEncounter = () => {
-		activeParticipantIndex = null;
-		round = 1;
+		encounterManager.stopEncounter();
 	};
 
 	const onPlayNext = () => {
-		if (activeParticipantIndex == null) startEncounter();
+		if (state.current.activeParticipantIndex == null) startEncounter();
 		else nextStepEncounter();
 	};
 
 	const addParticipant = () => {
 		if (!isEditable) return;
-
-		const p: EncounterParticipant = {
-			id: Math.random(),
-			name: "-",
-			initiative: 0,
-			initiativeModifier: 0,
-			hpCurrent: 0,
-			hpTemporary: 0,
-			hpMax: 0,
-			armorClass: 10,
-			imageUrl: "",
-			passivePerception: 10,
-			side: "neutral",
-			isDead: false,
-			conditions: [],
-		};
-
-		const ps = stateEncounter.participants.slice();
-		ps.push(p);
-		updateParticipants(ps);
+		encounterManager.addParticipant();
 	};
 
 	const removeParticipant = (id: number) => {
 		if (!isEditable) return;
-
-		const ps = stateEncounter.participants.filter((p) => p.id !== id);
-		updateParticipants(ps);
-
-		if (activeParticipantIndex != null) {
-			if (ps.length === 0) activeParticipantIndex = null;
-			else
-				activeParticipantIndex = Math.min(
-					activeParticipantIndex,
-					ps.length - 1,
-				);
-		}
+		encounterManager.removeParticipant(id);
 	};
 
 	const toggleDead = (id: number) => {
 		if (!isEditable) return;
-
-		const ps = stateEncounter.participants.map((p) =>
-			p.id === id
-				? ({ ...p, isDead: !Boolean(p.isDead) } as EncounterParticipant)
-				: p,
-		);
-		updateParticipants(ps);
-
-		// если текущий стал мёртвым — сразу скип
-		const idx = ps.findIndex((p) => p.id === id);
-		if (idx !== -1 && activeParticipantIndex === idx && ps.length > 0)
-			nextStepEncounter();
+		encounterManager.toggleDead(id);
 	};
 
 	const onOpenStatblock = (p: EncounterParticipant) => {
@@ -195,8 +103,9 @@
 	};
 
 	const copyEncounter = async () => {
-		await copyEncounterToClipboard(stateEncounter);
+		await copyEncounterToClipboard(state.current.encounter);
 	};
+
 
 	const pasteEncounter = async () => {
 		if (!isEditable) return;
@@ -204,9 +113,7 @@
 		const clipboard = await getEncounterFromClipboard();
 		if (!clipboard) return;
 
-		stateEncounter = clipboard;
-		idCounter = clipboard.participants.length;
-		stopEncounter();
+		encounterManager.pasteEncounter(clipboard);
 	};
 
 	const pasteParticipant = async () => {
@@ -219,18 +126,12 @@
 			const e = (await getEncounterFromClipboard()) as Encounter | null;
 
 			if (e && e.participants.length > 0) {
-				const ps = stateEncounter.participants.slice();
-				e.participants.forEach((participant) => {
-					ps.push({ ...participant, id: Math.random() });
-				});
-				updateParticipants(ps);
+				encounterManager.pasteParticipants(e.participants)
 			} else {
 				return;
 			}
 		} else {
-			const ps = stateEncounter.participants.slice();
-			ps.push(p);
-			updateParticipants(ps);
+			encounterManager.pasteParticipants([p])
 		}
 	};
 
@@ -241,58 +142,40 @@
 
 	const onConditionChange = (participantId: number, condition: EncounterParticipantCondition) => {
 		if (!isEditable) return;
-
-		const ps = stateEncounter.participants.map((p) => {
-			if (p.id === participantId) {
-				const existingConditions = p.conditions ?? [];
-				const otherConditions = existingConditions.filter(
-					(c) => c.url !== condition.url,
-				);
-				return {
-					...p,
-					conditions: [...otherConditions, condition],
-				} as EncounterParticipant;
-			}
-			return p;
-		});
-		updateParticipants(ps);
+		encounterManager.setCondition(participantId, condition);
 	};
 
 	const onConditionDelete = (participantId: number, url: string) => {
 		if (!isEditable) return;
-
-		const ps = stateEncounter.participants.map((p) => {
-			if (p.id === participantId) {
-				const existingConditions = p.conditions ?? [];
-				const otherConditions = existingConditions.filter(
-					(c) => c.url !== url,
-				);
-				return {
-					...p,
-					conditions: otherConditions,
-				} as EncounterParticipant;
-			}
-			return p;
-		});
-		updateParticipants(ps);
+		encounterManager.deleteCondition(participantId, url);
 	};
+
+	const undo = () => {
+		if (!isEditable) return;
+		encounterManager.undo();
+	}
+
+	const redo = () => {
+		if (!isEditable) return;
+		encounterManager.redo();
+	}
 </script>
 
 <div class="tracker">
 	<header class="topbar">
 		<div class="left">
-			<div class="roundCompact" aria-label="Раунд">{round}</div>
+			<div class="roundCompact" aria-label="Раунд">{state.current.round}</div>
 
 			{#if isEditable}
 				<input
 					class="titleInput inputlike"
-					value={(stateEncounter as any).name ?? "Encounter"}
+					value={state.current.encounter.name ?? "Encounter"}
 					oninput={(e) =>
 						setEncounterName((e.target as HTMLInputElement).value)}
 				/>
 			{:else}
 				<div class="titleText">
-					{(stateEncounter as any).name ?? "Encounter"}
+					{state.current.encounter.name ?? "Encounter"}
 				</div>
 			{/if}
 		</div>
@@ -302,11 +185,11 @@
 				<button
 					class="btn"
 					onclick={onPlayNext}
-					aria-label={activeParticipantIndex == null
+					aria-label={state.current.activeParticipantIndex == null
 						? "Начать столкновение"
 						: "Следующий ход"}
 				>
-					{#if activeParticipantIndex == null}
+					{#if state.current.activeParticipantIndex == null}
 						<Play size={16} />
 						<span>Старт</span>
 					{:else}
@@ -351,22 +234,42 @@
 					</button>
 				{/if}
 			</div>
+
+			<div class="actions-row">
+				<button
+					class="btn ghost"
+					onclick={undo}
+					disabled={!state.canUndo}
+					aria-label="Отменить"
+				>
+					<Undo size={16} />
+				</button>
+
+				<button
+					class="btn ghost"
+					onclick={redo}
+					disabled={!state.canRedo}
+					aria-label="Повторить"
+				>
+					<Redo size={16} />
+				</button>
+			</div>
 		</div>
 	</header>
 
 	<div class="content">
-		{#if stateEncounter.participants.length === 0}
+		{#if state.current.encounter.participants.length === 0}
 			<div class="empty">
 				<Skull size={18} />
 				<span>No participants yet.</span>
 			</div>
 		{:else}
 			<div class="list">
-				{#each stateEncounter.participants as participant, index (participant.id)}
+				{#each state.current.encounter.participants as participant, index (participant.id)}
 					<ParticipantItem
 						participant={participant}
 						isEditable={isEditable}
-						isActive={activeParticipantIndex === index}
+						isActive={state.current.activeParticipantIndex === index}
 						onOpenStatblock={onOpenStatblock}
 						onOpenConditionDetails={onOpenConditionDetails}
 						onSetValue={setValue}
@@ -374,7 +277,7 @@
 						onRemove={removeParticipant}
 						onConditionChange={onConditionChange}
 						onConditionDelete={onConditionDelete}
-						getRound={() => round}
+						getRound={() => state.current.round}
 						resolveIconSrc={resolvePluginAsset}
 					/>
 				{/each}
