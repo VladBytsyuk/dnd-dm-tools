@@ -83,6 +83,7 @@
         onclearclick={undefined}
         onfiltersclick={undefined}
         isfiltersapplied={undefined}
+        onaddclick={undefined}
     />
     <div style="height:1em;"></div>
     {#if currentChildren.length === 0 && currentItem?.description}
