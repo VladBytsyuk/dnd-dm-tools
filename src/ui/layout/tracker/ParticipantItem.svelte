@@ -586,6 +586,14 @@
 </article>
 
 <style>
+    :global(.theme-light) {
+        --active-participant-bg: #00000088;
+    }
+
+    :global(.theme-dark) {
+        --active-participant-bg: #ffffff88;
+    }
+
 	.row {
 		position: relative;
 		display: grid;
@@ -608,7 +616,7 @@
 	}
 
 	.row[data-active="true"] {
-		background: color-mix(in srgb, var(--interactive-accent) 10%, transparent);
+		background: color-mix(in srgb, var(--active-participant-bg) 10%, transparent);
 	}
 
 	.row[data-down="true"] {
