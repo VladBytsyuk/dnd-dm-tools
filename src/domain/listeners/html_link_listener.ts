@@ -39,7 +39,7 @@ const addHtmlLinkLiteners = (linkListeners: LinkListener[]) => (node: HTMLElemen
     const handleLinkClick = (e: MouseEvent) => {  
         const link = e.currentTarget as HTMLAnchorElement;
         const url = link.getAttribute('href')!;
-        const listener = linkListeners.find(it => url.contains(it.href));
+        const listener = linkListeners.find(it => url.includes(it.href));
         if (listener) {
             e.preventDefault();
             listener.onClick(url);

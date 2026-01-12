@@ -3,7 +3,7 @@ import { d20, roll } from "src/domain/dice";
 import type { Encounter } from "./Encounter";
 import type { EncounterParticipant, EncounterParticipantCondition } from "./EncounterParticipant";
 
-const MAX_HISTORY_SIZE = 50;
+export const MAX_HISTORY_SIZE = 50;
 
 export interface EncounterRuntimeState {
     encounter: Encounter;
@@ -34,9 +34,7 @@ export class EncounterManager {
             this.history = this.history.slice(0, this.currentIndex + 1);
         }
 
-        if (JSON.stringify(this.history[this.currentIndex]) === JSON.stringify(state)) {
-            return;
-        }
+
 
         this.history.push(state);
         this.currentIndex++;
@@ -49,7 +47,7 @@ export class EncounterManager {
     }
 
     public get current(): EncounterRuntimeState {
-        return this.history[this.currentIndex];
+        return deepCopy(this.history[this.currentIndex]);
     }
     
     private update(updater: (state: EncounterRuntimeState) => void) {
@@ -195,6 +193,7 @@ export class EncounterManager {
                 side: "neutral",
                 isDead: false,
                 conditions: [],
+                colorHex: "#94a3b8",
             };
     
             state.encounter.participants.push(p);
@@ -225,7 +224,9 @@ export class EncounterManager {
 
             state.encounter.participants[idx].isDead = !state.encounter.participants[idx].isDead;
 
-            if (state.activeParticipantIndex !== idx) return;
+            if (state.activeParticipantIndex !== idx) {
+                return;
+            }
             
             const ps = state.encounter.participants;
             const total = ps.length;

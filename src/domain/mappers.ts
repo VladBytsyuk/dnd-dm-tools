@@ -35,7 +35,7 @@ export const mapMonsterToEncounterParticipant = (monster: FullMonster): Encounte
 
 export const mapDiceStringToFormula = (input: string): Formula => {
     const entries: FormulaEntry[] = [];
-    const tokens = input.replace(/\s+/g, '').split(/\+/).filter(t => t !== '');
+    const tokens = input.replace(/\s+/g, '').replace(/-/g, '+-').split(/\+/).filter(t => t !== '');
     let currentEntry: FormulaEntry | null = null;
     let currentBonus = 0;
     const validDiceValues = Object.values(Dice).filter((v): v is number => typeof v === 'number');
