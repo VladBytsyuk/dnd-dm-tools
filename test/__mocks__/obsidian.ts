@@ -1,3 +1,5 @@
+import { parse, stringify } from 'yaml';
+
 export class TFile {
   constructor(
     public path: string,
@@ -39,4 +41,12 @@ export class Notice {
 export function normalizePath(p: string) { return p.replace(/\\/g, '/'); }
 export async function requestUrl(_opts: any) {
   return { status: 200, text: async () => '', json: async () => ({}) };
+}
+
+export function stringifyYaml(obj: any): string {
+  return stringify(obj);
+}
+
+export function parseYaml(yaml: string): any {
+  return parse(yaml);
 }
