@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import type { FullMonster } from "src/domain/models/monster/FullMonster";
 import type { Encounter } from "src/domain/models/encounter/Encounter";
 import type { FullSpell } from "src/domain/models/spell/FullSpell";
@@ -183,3 +184,10 @@ export const mockBackground: FullBackground = {
     },
     url: "/backgrounds/test-background"
 };
+
+export const mockDatabase = {
+    exec: vi.fn(),
+};
+
+export const mockApp = {};
+export const mockManifest = {};
