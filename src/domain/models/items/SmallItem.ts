@@ -4,4 +4,5 @@ import type { BaseItem } from "../common/BaseItem";
 
 export interface SmallItem extends BaseItem {
     source: Source;
+    homebrew?: boolean;
 }

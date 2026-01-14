@@ -1,0 +1,403 @@
+import type { SmallArmor } from "../../domain/models/armor/SmallArmor";
+
+export const baseArmory: SmallArmor[] = [
+	{
+		"name": {
+			"rus": "Маника",
+			"eng": "Manica"
+		},
+		"url": "/armors/manica",
+		"type": {
+			"name": "Щит",
+			"order": 3
+		},
+		"armorClass": "+1",
+		"price": "6 зм.",
+		"source": {
+			"shortName": "ToH",
+			"name": "Фолиант героев",
+			"group": {
+				"name": "Контент от третьих лиц",
+				"shortName": "3rd"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Каплевидный щит",
+			"eng": "Kite Shield"
+		},
+		"url": "/armors/kite_shield",
+		"type": {
+			"name": "Щит",
+			"order": 3
+		},
+		"armorClass": "+2",
+		"price": "15 зм.",
+		"source": {
+			"shortName": "ToH",
+			"name": "Фолиант героев",
+			"group": {
+				"name": "Контент от третьих лиц",
+				"shortName": "3rd"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Щит",
+			"eng": "Shield"
+		},
+		"url": "/armors/shield",
+		"type": {
+			"name": "Щит",
+			"order": 3
+		},
+		"armorClass": "+2",
+		"price": "10 зм.",
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Кожаный доспех",
+			"eng": "Leather Armor"
+		},
+		"url": "/armors/leather_armor",
+		"type": {
+			"name": "Легкий доспех",
+			"order": 0
+		},
+		"armorClass": "11 + модификатор Лов",
+		"price": "10 зм.",
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Стёганный доспех",
+			"eng": "Padded Armor"
+		},
+		"url": "/armors/padded_armor",
+		"type": {
+			"name": "Легкий доспех",
+			"order": 0
+		},
+		"armorClass": "11 + модификатор Лов",
+		"price": "5 зм.",
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Шкурный доспех",
+			"eng": "Hide Armor"
+		},
+		"url": "/armors/hide_armor",
+		"type": {
+			"name": "Средний доспех",
+			"order": 1
+		},
+		"armorClass": "12 + модификатор Лов (макс. 2)",
+		"price": "10 зм.",
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Проклёпанная кожа",
+			"eng": "Studded Leather Armor"
+		},
+		"url": "/armors/studded_leather_armor",
+		"type": {
+			"name": "Легкий доспех",
+			"order": 0
+		},
+		"armorClass": "12 + модификатор Лов",
+		"price": "45 зм.",
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Кольчужная рубаха",
+			"eng": "Chain Shirt"
+		},
+		"url": "/armors/chain_shirt",
+		"type": {
+			"name": "Средний доспех",
+			"order": 1
+		},
+		"armorClass": "13 + модификатор Лов (макс. 2)",
+		"price": "50 зм.",
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Бригантина",
+			"eng": "Brigandine"
+		},
+		"url": "/armors/brigandine",
+		"type": {
+			"name": "Легкий доспех",
+			"order": 0
+		},
+		"armorClass": "13 + модификатор Лов",
+		"price": "50 зм.",
+		"source": {
+			"shortName": "ToH",
+			"name": "Фолиант героев",
+			"group": {
+				"name": "Контент от третьих лиц",
+				"shortName": "3rd"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Чешуйчатый доспех",
+			"eng": "Scale Mail Armor"
+		},
+		"url": "/armors/scale_mail_armor",
+		"type": {
+			"name": "Средний доспех",
+			"order": 1
+		},
+		"armorClass": "14 + модификатор Лов (макс. 2)",
+		"price": "50 зм.",
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Кираса",
+			"eng": "Breastplate"
+		},
+		"url": "/armors/breastplate",
+		"type": {
+			"name": "Средний доспех",
+			"order": 1
+		},
+		"armorClass": "14 + модификатор Лов (макс. 2)",
+		"price": "400 зм.",
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Кольчатый доспех",
+			"eng": "Ring Mail Armor"
+		},
+		"url": "/armors/ring_mail_armor",
+		"type": {
+			"name": "Тяжелый доспех",
+			"order": 2
+		},
+		"armorClass": "14",
+		"price": "30 зм.",
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Шипованный доспех",
+			"eng": "Spiked Armor"
+		},
+		"url": "/armors/spiked_armor",
+		"type": {
+			"name": "Средний доспех",
+			"order": 1
+		},
+		"armorClass": "14 + модификатор Лов (макс. 2)",
+		"price": "75 зм.",
+		"source": {
+			"shortName": "SCAG",
+			"name": "Путеводитель приключенца по Побережью меча",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Кольчуга из монет",
+			"eng": "Silk-Backed Coin Mail"
+		},
+		"url": "/armors/silk-backed_coin_mail",
+		"type": {
+			"name": "Средний доспех",
+			"order": 1
+		},
+		"armorClass": "14 + модификатор Лов (макс. 2)",
+		"price": "2000 зм.",
+		"source": {
+			"shortName": "ToH",
+			"name": "Фолиант героев",
+			"group": {
+				"name": "Контент от третьих лиц",
+				"shortName": "3rd"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Полулаты",
+			"eng": "Half Plate Armor"
+		},
+		"url": "/armors/half_plate_armor",
+		"type": {
+			"name": "Средний доспех",
+			"order": 1
+		},
+		"armorClass": "15 + модификатор Лов (макс. 2)",
+		"price": "750 зм.",
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Кольчуга",
+			"eng": "Chain Mail"
+		},
+		"url": "/armors/chain_mail",
+		"type": {
+			"name": "Тяжелый доспех",
+			"order": 2
+		},
+		"armorClass": "16",
+		"price": "75 зм.",
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Наборный доспех",
+			"eng": "Splint Armor"
+		},
+		"url": "/armors/splint_armor",
+		"type": {
+			"name": "Тяжелый доспех",
+			"order": 2
+		},
+		"armorClass": "17",
+		"price": "200 зм.",
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Латы",
+			"eng": "Plate Armor"
+		},
+		"url": "/armors/plate_armor",
+		"type": {
+			"name": "Тяжелый доспех",
+			"order": 2
+		},
+		"armorClass": "18",
+		"price": "1500 зм.",
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		}
+	},
+	{
+		"name": {
+			"rus": "Стальной доспех",
+			"eng": "Stonesteel"
+		},
+		"url": "/armors/stonesteel",
+		"type": {
+			"name": "Тяжелый доспех",
+			"order": 2
+		},
+		"armorClass": "19",
+		"price": "3000 зм.",
+		"source": {
+			"shortName": "ToH",
+			"name": "Фолиант героев",
+			"group": {
+				"name": "Контент от третьих лиц",
+				"shortName": "3rd"
+			}
+		}
+	}
+];

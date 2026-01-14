@@ -11,4 +11,5 @@ export interface SmallArtifact extends BaseItem {
     source: Source;
     rarity: Rarity;
     customization?: boolean;
+    homebrew?: boolean;
 }

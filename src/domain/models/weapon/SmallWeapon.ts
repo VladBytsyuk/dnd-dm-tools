@@ -9,4 +9,5 @@ export interface SmallWeapon extends BaseItem {
     damage: Damage;
     price: string;
     source: Source;
+    homebrew?: boolean;
 }

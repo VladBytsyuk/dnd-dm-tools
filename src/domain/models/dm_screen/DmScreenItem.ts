@@ -9,6 +9,7 @@ export interface DmScreenItem extends BaseItem {
     group?: string;
     icon?: string;
     parentUrl?: string;
+    children?: DmScreenItem[];
 } 
 
 export function DmScreenItem(
