@@ -107,7 +107,6 @@ export class FullFeatSqlTableDao extends Dao<FullFeat, any> {
     async mapSqlValues(sqlValues: SqlValue[]): Promise<FullFeat> {
         try {
             return {
-                id: sqlValues[0] as number,
                 name: {
                     rus: sqlValues[1] as string,
                     eng: sqlValues[2] as string,

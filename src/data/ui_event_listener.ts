@@ -24,6 +24,7 @@ export class UiEventListener implements IUiEventListener {
         private equipmentFeatureProvider: () => EquipmentFeature,
         private artifactoryFeatureProvider: () => ArtifactoryFeature,
         private backgroundFeatureProvider: () => BackgroundFeature,
+        private featFeature: () => BaseFeature<any, any, any>,
         private dmScreenFeatureProvider: () => DmScreenFeature,
     ) {
         this.onBeastClick = this.onBeastClick.bind(this);
@@ -34,6 +35,7 @@ export class UiEventListener implements IUiEventListener {
         this.onArtifactClick = this.onArtifactClick.bind(this);
         this.onScreenItemClick = this.onScreenItemClick.bind(this);
         this.onBackgroundClick = this.onBackgroundClick.bind(this);
+        this.onFeatClick = this.onFeatClick.bind(this);
     }
 
     // ---- methods ----
@@ -67,6 +69,10 @@ export class UiEventListener implements IUiEventListener {
 
     async onBackgroundClick(url: string): Promise<void> {
         this.onClick(this.backgroundFeatureProvider, url);
+    }
+
+    async onFeatClick(url: string): Promise<void> {
+        this.onClick(this.featFeature, url);
     }
 
     onDiceRoll(label: string, value: RollTraceResult): void {

@@ -1,7 +1,6 @@
 <script lang="ts">
     import { Name } from "src/domain/models/common/Name";
     import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
-    import EditableText from "../../uikit/EditableText.svelte";
 
     let {
         currentItem,
@@ -15,13 +14,18 @@
 </script>
 
 <div class="name-container">
-    <EditableText bind:text={currentItem.name.rus} {isInEditMode} classes="h1" />
-    <EditableText bind:text={currentItem.name.eng} {isInEditMode} classes="p" />
+    <input class="h1 inputlike" bind:value={currentItem.name.rus} readonly={!isInEditMode} />
+    <input class="p inputlike" bind:value={currentItem.name.eng} readonly={!isInEditMode} />
 </div>
 
 <style>
     .name-container {
         display: flex;
         flex-direction: column;
+    }
+
+    .inputlike {
+        border: 1px solid transparent;
+        background: transparent;
     }
 </style>

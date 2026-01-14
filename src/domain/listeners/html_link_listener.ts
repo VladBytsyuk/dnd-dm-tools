@@ -7,6 +7,7 @@ export interface HtmlLinkListener {
     onItemClick: (url: string) => Promise<void>;
     onArtifactClick: (url: string) => Promise<void>;
     onBackgroundClick: (url: string) => Promise<void>;
+    onFeatClick: (url: string) => Promise<void>;
     onScreenItemClick: (url: string) => Promise<void>;
 }
 
@@ -19,6 +20,7 @@ export const registerHtmlLinkListener = (htmlLinkListener: HtmlLinkListener) => 
             LinkListener('/weapons/', htmlLinkListener.onWeaponClick),
             LinkListener('/armors/', htmlLinkListener.onArmorClick),
             LinkListener('/backgrounds/', htmlLinkListener.onBackgroundClick),
+            LinkListener('/feats/', htmlLinkListener.onFeatClick),
             LinkListener('/items/magic/', htmlLinkListener.onArtifactClick),
             LinkListener('/items/', htmlLinkListener.onItemClick),
         ]

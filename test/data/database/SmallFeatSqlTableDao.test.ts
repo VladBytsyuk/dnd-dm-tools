@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { SmallFeatSqlTableDao } from '../../../src/data/database/SmallFeatSqlTableDao';
+import { SmallFeatSqlTableDao } from '../../../src/data/databse/SmallFeatSqlTableDao';
 import type { SmallFeat } from '../../../src/domain/models/feat/SmallFeat';
 import type { FeatsFilters } from '../../../src/domain/models/feat/FeatsFilters';
 import { runSqlDaoBaseTests } from './Dao';

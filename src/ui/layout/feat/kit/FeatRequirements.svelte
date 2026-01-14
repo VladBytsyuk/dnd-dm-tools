@@ -1,6 +1,4 @@
 <script lang="ts">
-    import EditableText from "../../uikit/EditableText.svelte";
-
     let {
         currentItem,
         isInEditMode
@@ -12,11 +10,17 @@
 
 <div class="requirements">
     <b>Требования: </b>
-    <EditableText bind:text={currentItem.requirements} {isInEditMode} />
+    <input class="inputlike" bind:value={currentItem.requirements} readonly={!isInEditMode} />
 </div>
 
 <style>
     .requirements {
         margin-top: 5px;
+    }
+
+    .inputlike {
+        border: 1px solid transparent;
+        background: transparent;
+        width: 100%;
     }
 </style>

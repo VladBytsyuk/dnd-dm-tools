@@ -1,6 +1,4 @@
 <script lang="ts">
-    import EditableText from "../../uikit/EditableText.svelte";
-
     let {
         currentItem,
         isInEditMode
@@ -11,5 +9,18 @@
 </script>
 
 <div class="description">
-    <EditableText bind:text={currentItem.description} {isInEditMode} />
+    <textarea class="inputlike" bind:value={currentItem.description} readonly={!isInEditMode}></textarea>
 </div>
+
+<style>
+    .description {
+        margin-top: 5px;
+    }
+
+    .inputlike {
+        border: 1px solid transparent;
+        background: transparent;
+        width: 100%;
+        resize: vertical;
+    }
+</style>
