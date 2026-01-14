@@ -38,5 +38,5 @@ export const smallFeat3: SmallFeat = {
 };
 
 export const featsFilters: FeatsFilters = {
-    sources: ['PHB', 'XGE'],
+    sources: ['PHB*', 'XGE*'],
 };
