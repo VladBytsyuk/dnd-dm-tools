@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { Name } from "src/domain/models/common/Name";
     import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
+	import type { Name } from "../../../../domain/models/common/Name";
 
     let {
         currentItem,
