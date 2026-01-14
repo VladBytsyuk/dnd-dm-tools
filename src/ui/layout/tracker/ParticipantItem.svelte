@@ -552,7 +552,6 @@
 				onDelete={(url: string) => onConditionDelete(participant.id, url)}
 				getRound={getRound}
 				getConditions={() => participant.conditions ?? []}
-				resolveIconSrc={resolveIconSrc}
 				/>
 		</div>
 	</div>
