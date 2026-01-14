@@ -10,9 +10,9 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "прорицание",
 		"additionalType": "Механомагия",
 		"components": {
-			"v": true,
+			"v": true,git 
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/analyze_device",
 		"source": {
@@ -99,7 +99,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "иллюзия",
 		"components": {
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/calling_card",
 		"source": {
@@ -266,7 +266,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "вызов",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/thunderblade",
 		"source": {
@@ -287,7 +287,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "воплощение",
 		"components": {
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/booming_blade",
 		"source": {
@@ -350,7 +350,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "очарование",
 		"components": {
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/friends",
@@ -373,7 +373,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/shillelagh",
 		"source": {
@@ -609,7 +609,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/pummelstone",
 		"source": {
@@ -630,7 +630,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "вызов",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/green_flame_blade_scag",
 		"source": {
@@ -651,7 +651,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "воплощение",
 		"components": {
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/green_flame_blade",
 		"source": {
@@ -718,7 +718,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/grasping_sprout",
@@ -823,7 +823,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "иллюзия",
 		"components": {
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/minor_illusion",
 		"source": {
@@ -887,7 +887,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/infestation",
 		"source": {
@@ -972,7 +972,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/bonding_vine",
@@ -1101,7 +1101,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/dancing_lights",
@@ -1165,7 +1165,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "иллюзия",
 		"components": {
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/otherworldly_grasp",
@@ -1189,7 +1189,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/mending",
 		"source": {
@@ -1211,7 +1211,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/piercing_thorn",
@@ -1275,7 +1275,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "воплощение",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/light",
 		"source": {
@@ -1384,7 +1384,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/word_of_radiance",
 		"source": {
@@ -1406,7 +1406,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/message",
 		"source": {
@@ -1428,7 +1428,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/resistance",
@@ -1494,7 +1494,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/thorn_whip",
 		"source": {
@@ -1835,7 +1835,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/silent_image",
@@ -1903,7 +1903,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/bless",
@@ -1949,7 +1949,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/armored_shell",
@@ -1994,7 +1994,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/witch_bolt",
@@ -2038,7 +2038,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/wind_tunnel",
@@ -2083,7 +2083,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/tidal_barrier",
@@ -2148,7 +2148,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/jim's_magic_missile",
 		"source": {
@@ -2384,7 +2384,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/machine's_load",
@@ -2491,7 +2491,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/armor_of_agathys",
 		"source": {
@@ -2513,7 +2513,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/mage_armor",
 		"source": {
@@ -2557,7 +2557,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/bridge_of_branches",
@@ -2602,7 +2602,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/animal_friendship",
 		"source": {
@@ -2625,7 +2625,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/waft",
 		"source": {
@@ -2647,7 +2647,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/tasha's_caustic_brew",
@@ -2670,7 +2670,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/tasha's_hideous_laughter",
@@ -2737,7 +2737,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/memorize",
@@ -2760,7 +2760,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/protection_from_evil_and_good",
@@ -2783,7 +2783,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/protection_from_the_void",
@@ -2806,7 +2806,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/beast_bond",
@@ -2932,7 +2932,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/acid_stream",
@@ -3042,7 +3042,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/blood_print",
@@ -3064,7 +3064,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "вызов",
 		"components": {
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/ice_knife",
 		"source": {
@@ -3127,7 +3127,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/healing_elixir",
 		"source": {
@@ -3255,7 +3255,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/pendulum",
@@ -3299,7 +3299,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/arcane_lance",
 		"source": {
@@ -3323,7 +3323,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/infallible_relay",
@@ -3347,7 +3347,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/find_the_flaw",
 		"source": {
@@ -3369,7 +3369,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/find_kin",
@@ -3456,7 +3456,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "иллюзия",
 		"components": {
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/illusory_script",
@@ -3479,7 +3479,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/unseen_servant",
@@ -3523,7 +3523,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/neutralize_aura",
@@ -3545,7 +3545,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "преобразование",
 		"components": {
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/tireless",
 		"source": {
@@ -3568,7 +3568,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/goat's_hoof_charm",
 		"source": {
@@ -3590,7 +3590,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"concentration": true,
@@ -3702,7 +3702,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/animate_construct",
@@ -3725,7 +3725,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/identify",
@@ -3901,7 +3901,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "преобразование",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/feather_fall",
 		"source": {
@@ -3988,7 +3988,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/consumption",
@@ -4031,7 +4031,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/find_familiar",
@@ -4076,7 +4076,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/comprehend_languages",
@@ -4099,7 +4099,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/bane",
@@ -4144,7 +4144,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/torrent",
 		"source": {
@@ -4167,7 +4167,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"additionalType": "Высшая эльфийская магия",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/guest_of_honor",
@@ -4232,7 +4232,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/ghost_light",
 		"source": {
@@ -4316,7 +4316,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/spur_mount",
 		"source": {
@@ -4338,7 +4338,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/jump",
 		"source": {
@@ -4360,7 +4360,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/false_life",
 		"source": {
@@ -4514,7 +4514,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/color_spray",
 		"source": {
@@ -4558,7 +4558,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/land_bond",
 		"source": {
@@ -4580,7 +4580,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/hex",
@@ -4603,7 +4603,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/alarm",
@@ -4626,7 +4626,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/snare",
 		"source": {
@@ -4648,7 +4648,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/grease",
 		"source": {
@@ -4692,7 +4692,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/transient_bulwark",
@@ -4715,7 +4715,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/longstrider",
 		"source": {
@@ -4822,7 +4822,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"concentration": true,
@@ -4846,7 +4846,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/create_or_destroy_water",
 		"source": {
@@ -4868,7 +4868,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/rapport_spores",
 		"source": {
@@ -4892,7 +4892,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/armored_heart",
 		"source": {
@@ -4915,7 +4915,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/delerium_orb",
 		"source": {
@@ -4937,7 +4937,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/tenser's_floating_disk",
@@ -4982,7 +4982,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/sanctuary",
 		"source": {
@@ -5005,7 +5005,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/remote_access",
@@ -5049,7 +5049,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/ghastly_flight",
 		"source": {
@@ -5072,7 +5072,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/clue",
@@ -5095,7 +5095,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/sleep",
 		"source": {
@@ -5138,7 +5138,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/chromatic_orb",
 		"source": {
@@ -5160,7 +5160,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/ceremony",
@@ -5183,7 +5183,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/black_ribbons",
@@ -5206,7 +5206,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/goodberry",
 		"source": {
@@ -5228,7 +5228,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/whispering_wind",
 		"source": {
@@ -5271,7 +5271,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/shield_of_faith",
@@ -5295,7 +5295,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/gear_shield",
 		"source": {
@@ -5318,7 +5318,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/extract_foyson",
@@ -5342,7 +5342,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/kobold's_fury",
 		"source": {
@@ -5386,7 +5386,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/pass_without_trace",
@@ -5431,7 +5431,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/fortune's_favor",
 		"source": {
@@ -5498,7 +5498,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/black_swan_storm",
@@ -5521,7 +5521,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/continual_flame",
 		"source": {
@@ -5588,7 +5588,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/see_invisibility",
 		"source": {
@@ -5630,7 +5630,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "очарование",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/suggestion",
@@ -5673,7 +5673,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/magic_mouth",
@@ -5697,7 +5697,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/arcane_hacking",
@@ -5720,7 +5720,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/arcane_lock",
 		"source": {
@@ -5742,7 +5742,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/phantasmal_force",
@@ -5765,7 +5765,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/conjure_scarab_swarm",
@@ -5788,7 +5788,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/augury",
@@ -5831,7 +5831,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/flame_blade",
@@ -5875,7 +5875,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/gift_of_gab",
 		"source": {
@@ -5898,7 +5898,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/warp_bolt",
@@ -5921,7 +5921,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/arm_of_the_wild",
@@ -5946,7 +5946,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/vine_trestle",
@@ -5969,7 +5969,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/shatter",
 		"source": {
@@ -5991,7 +5991,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/barkskin",
@@ -6037,7 +6037,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/dragon's_breath",
@@ -6060,7 +6060,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/fiend_flesh",
@@ -6105,7 +6105,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/cordon_of_arrows",
 		"source": {
@@ -6127,7 +6127,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"additionalType": "Механомагия",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/winding_key",
@@ -6150,7 +6150,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/borrowed_knowledge",
 		"source": {
@@ -6173,7 +6173,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/lock_armor",
@@ -6283,7 +6283,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/maximilian's_earthen_grasp",
@@ -6350,7 +6350,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/spire_of_stone",
@@ -6396,7 +6396,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/boiling_oil",
@@ -6441,7 +6441,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/furious_hooves",
@@ -6575,7 +6575,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/levitate",
@@ -6598,7 +6598,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/moonbeam",
@@ -6708,7 +6708,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/melf's_acid_arrow",
 		"source": {
@@ -6791,7 +6791,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/jethro's_instant_reload",
@@ -6813,7 +6813,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "воплощение",
 		"components": {
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/icingdeath's_frost",
 		"source": {
@@ -6836,7 +6836,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/heartache",
 		"source": {
@@ -6925,7 +6925,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/invisibility",
@@ -6948,7 +6948,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/unseen_accountant",
@@ -6993,7 +6993,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/immovable_objec",
 		"source": {
@@ -7015,7 +7015,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/gentle_repose",
@@ -7038,7 +7038,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/nystul's_magic_aura",
 		"source": {
@@ -7083,7 +7083,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/wresting_wind",
 		"source": {
@@ -7105,7 +7105,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/cloud_of_daggers",
@@ -7172,7 +7172,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/warp_sense",
@@ -7195,7 +7195,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/detect_thoughts",
@@ -7238,7 +7238,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "иллюзия",
 		"components": {
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/nathair's_mischief",
@@ -7324,7 +7324,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/warding_bond",
 		"source": {
@@ -7389,7 +7389,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/spider_climb",
@@ -7412,7 +7412,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/web",
@@ -7435,7 +7435,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/aganazzar's_scorcher",
 		"source": {
@@ -7500,7 +7500,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/aid",
 		"source": {
@@ -7522,7 +7522,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/locate_animals_or_plants",
@@ -7566,7 +7566,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/locate_object",
@@ -7610,7 +7610,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/protect_threshold",
 		"source": {
@@ -7632,7 +7632,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/gust_of_wind",
@@ -7676,7 +7676,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/animal_messenger",
@@ -7719,7 +7719,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/summon_beast",
@@ -7804,7 +7804,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/flaming_sphere",
@@ -7827,7 +7827,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/dust_devil",
@@ -7850,7 +7850,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/spray_of_cards_ua",
 		"source": {
@@ -7872,7 +7872,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/spray_of_cards",
 		"source": {
@@ -7894,7 +7894,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/wrack",
@@ -7960,7 +7960,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/ley_disruption",
@@ -7983,7 +7983,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/heat_metal",
@@ -8006,7 +8006,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/treasure_chasm",
@@ -8050,7 +8050,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/elemental_horns",
@@ -8072,7 +8072,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "очарование",
 		"components": {
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/jim's_glowing_coin",
 		"source": {
@@ -8093,7 +8093,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "воплощение",
 		"components": {
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/rime's_binding_ice",
 		"source": {
@@ -8114,7 +8114,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "очарование",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/power_word_kneel",
 		"source": {
@@ -8158,7 +8158,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/negative_image",
 		"source": {
@@ -8180,7 +8180,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/snilloc's_snowball_swarm",
 		"source": {
@@ -8246,7 +8246,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/sleepy_tincture",
 		"source": {
@@ -8290,7 +8290,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/dark_path",
@@ -8313,7 +8313,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/darkvision",
 		"source": {
@@ -8357,7 +8357,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/shadow_puppets",
@@ -8449,7 +8449,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/totemic_cowl",
@@ -8494,7 +8494,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/rope_trick",
 		"source": {
@@ -8535,7 +8535,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "воплощение",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/darkness",
@@ -8579,7 +8579,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/enlarge_or_reduce",
@@ -8623,7 +8623,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/wither_and_bloom",
 		"source": {
@@ -8668,7 +8668,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/rolling_thunder",
 		"source": {
@@ -8711,7 +8711,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/hold_person",
@@ -8754,7 +8754,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "очарование",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/dragon_lord_bond",
 		"source": {
@@ -8776,7 +8776,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/enhance_ability",
@@ -8821,7 +8821,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"additionalType": "Иллюминация",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/slither",
@@ -8866,7 +8866,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/chromatic_blade",
@@ -8891,7 +8891,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/digital_phantom",
@@ -8958,7 +8958,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/lair_sense",
@@ -9003,7 +9003,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/spike_growth",
@@ -9089,7 +9089,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/galder's_tower",
 		"source": {
@@ -9201,7 +9201,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/wall_of_water",
@@ -9224,7 +9224,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/revivify",
 		"source": {
@@ -9246,7 +9246,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/animate_dead",
 		"source": {
@@ -9268,7 +9268,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/antagonize_ua",
 		"source": {
@@ -9290,7 +9290,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/antagonize",
 		"source": {
@@ -9357,7 +9357,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/conjure_barrage",
 		"source": {
@@ -9379,7 +9379,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/conjure_lesser_demon",
@@ -9402,7 +9402,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/gaseous_form",
@@ -9447,7 +9447,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "иллюзия",
 		"components": {
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/hypnotic_pattern",
@@ -9471,7 +9471,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/ire_of_the_mountain",
 		"source": {
@@ -9493,7 +9493,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/hunger_of_hadar",
@@ -9578,7 +9578,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "очарование",
 		"components": {
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/catnap",
 		"source": {
@@ -9600,7 +9600,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/spirit_guardians",
@@ -9644,7 +9644,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/slow",
@@ -9667,7 +9667,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/engulfing_thorns",
@@ -9692,7 +9692,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/frozen_razors",
@@ -9716,7 +9716,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/protection_from_ballistics",
@@ -9784,7 +9784,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/spiteful_weapon",
@@ -9807,7 +9807,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/stinking_cloud",
@@ -9851,7 +9851,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/erupting_earth",
 		"source": {
@@ -9917,7 +9917,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/house_of_cards",
@@ -9941,7 +9941,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/blade_of_wrath",
@@ -9965,7 +9965,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/gloomwrought_barrier",
@@ -10008,7 +10008,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/spray_of_thorn",
 		"source": {
@@ -10053,7 +10053,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/sanguine_poppet",
@@ -10077,7 +10077,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/blood_bond",
 		"source": {
@@ -10143,7 +10143,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/legion",
@@ -10189,7 +10189,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/leomund's_tiny_hut",
@@ -10212,7 +10212,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/magic_circle",
 		"source": {
@@ -10300,7 +10300,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/flash_fever",
@@ -10323,7 +10323,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/melf's_minute_meteors",
@@ -10367,7 +10367,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/sleet_storm",
@@ -10455,7 +10455,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/lightning_bolt",
 		"source": {
@@ -10520,7 +10520,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/shadow_trove",
@@ -10543,7 +10543,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/nondetection",
 		"source": {
@@ -10565,7 +10565,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/major_image",
@@ -10588,7 +10588,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/fireball",
 		"source": {
@@ -10610,7 +10610,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/jeweled_fissure",
 		"source": {
@@ -10653,7 +10653,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/after_image",
 		"source": {
@@ -10676,7 +10676,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/invisibility_to_cameras",
@@ -10699,7 +10699,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/glyph_of_warding",
 		"source": {
@@ -10721,7 +10721,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/purge_contamination",
 		"source": {
@@ -10766,7 +10766,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/fell",
 		"source": {
@@ -10790,7 +10790,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/overclock",
@@ -10835,7 +10835,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"concentration": true,
@@ -10859,7 +10859,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/wall_of_sand",
@@ -10903,7 +10903,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "некромантия",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/funeral_song_of_the_dragonlords",
 		"source": {
@@ -10925,7 +10925,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/water_breathing",
@@ -10948,7 +10948,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/clairvoyance",
@@ -11014,7 +11014,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/fly",
@@ -11059,7 +11059,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/sending",
 		"source": {
@@ -11126,7 +11126,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/phantom_dragon",
@@ -11171,7 +11171,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/summon_warrior_spirit",
@@ -11194,7 +11194,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/summon_undead",
@@ -11217,7 +11217,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/summon_shadowspawn",
@@ -11240,7 +11240,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/summon_fey",
@@ -11285,7 +11285,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/summon_lesser_demons",
@@ -11308,7 +11308,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/call_shadow_mastiff",
@@ -11353,7 +11353,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/tidal_wave",
 		"source": {
@@ -11375,7 +11375,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"additionalType": "Иллюминация",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/compelling_fate",
 		"source": {
@@ -11397,7 +11397,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/feign_death",
@@ -11420,7 +11420,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/incite_greed",
@@ -11595,7 +11595,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/speak_with_dead",
 		"source": {
@@ -11638,7 +11638,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/corrosive_bolt",
 		"source": {
@@ -11683,7 +11683,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/reanimate",
 		"source": {
@@ -11746,7 +11746,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/freedom_of_the_waves",
 		"source": {
@@ -11789,7 +11789,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/potency_of_the_pack",
 		"source": {
@@ -11833,7 +11833,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/ride_the_rifts",
 		"source": {
@@ -11877,7 +11877,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/confound_senses",
@@ -11942,7 +11942,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/spectral_passage",
@@ -11966,7 +11966,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/seance_vsos",
 		"source": {
@@ -12010,7 +12010,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/wind_wall",
@@ -12055,7 +12055,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/mire",
 		"source": {
@@ -12078,7 +12078,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/thousand_darts",
 		"source": {
@@ -12122,7 +12122,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/suffocate",
@@ -12145,7 +12145,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/fear",
@@ -12168,7 +12168,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/haste",
@@ -12192,7 +12192,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/calm_of_the_storm",
 		"source": {
@@ -12214,7 +12214,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/water_walk",
@@ -12238,7 +12238,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/gear_barrage",
 		"source": {
@@ -12282,7 +12282,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/shield_of_star_and_shadow",
 		"source": {
@@ -12305,7 +12305,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/ley_energy_bolt",
 		"source": {
@@ -12326,7 +12326,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "прорицание",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/tongues",
 		"source": {
@@ -12349,7 +12349,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/absolute_command",
@@ -12373,7 +12373,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/circle_of_scarlet",
 		"source": {
@@ -12459,7 +12459,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/galder's_speedy_courier",
 		"source": {
@@ -12525,7 +12525,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/mordenkainen's_faithful_hound",
 		"source": {
@@ -12547,7 +12547,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/control_water",
@@ -12570,7 +12570,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/watery_sphere",
@@ -12594,7 +12594,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/flame_wave",
 		"source": {
@@ -12639,7 +12639,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/spinning_axes",
 		"source": {
@@ -12682,7 +12682,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/conjure_woodland_beings",
@@ -12771,7 +12771,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/conjure_shadow_demon",
@@ -12839,7 +12839,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/moon_trap",
 		"source": {
@@ -12861,7 +12861,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/gravity_sinkhole",
 		"source": {
@@ -12883,7 +12883,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/ice_storm",
 		"source": {
@@ -12906,7 +12906,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/gremlins",
@@ -12930,7 +12930,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/delerium_blast",
 		"source": {
@@ -12952,7 +12952,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/tree_strike",
@@ -12977,7 +12977,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/grinding_gears",
@@ -13000,7 +13000,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/spirit_of_death_ua",
@@ -13023,7 +13023,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/spirit_of_death",
@@ -13046,7 +13046,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/vitriolic_sphere",
 		"source": {
@@ -13090,7 +13090,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/gate_seal",
 		"source": {
@@ -13113,7 +13113,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/write_memory",
 		"source": {
@@ -13156,7 +13156,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/banishment",
@@ -13200,7 +13200,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/stone_shape",
 		"source": {
@@ -13222,7 +13222,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"concentration": true,
@@ -13247,7 +13247,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/desiccating_breath",
 		"source": {
@@ -13269,7 +13269,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/mordenkainen's_private_sanctum",
 		"source": {
@@ -13291,7 +13291,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/stoneskin",
@@ -13315,7 +13315,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/blade_of_my_brother",
@@ -13362,7 +13362,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/deva's_wings",
@@ -13385,7 +13385,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/leomund's_secret_chest",
 		"source": {
@@ -13407,7 +13407,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/false_vision",
 		"source": {
@@ -13451,7 +13451,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/arcane_eye",
@@ -13475,7 +13475,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/instant_siege_weapon",
@@ -13498,7 +13498,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/hallucinatory_terrain",
 		"source": {
@@ -13541,7 +13541,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/night_terrors",
@@ -13565,7 +13565,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/raid_the_lair",
@@ -13588,7 +13588,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/cloud_of_spores",
@@ -13612,7 +13612,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/shadow_of_moil",
@@ -13656,7 +13656,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/wall_of_fire",
@@ -13679,7 +13679,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/torrent_of_fire",
 		"source": {
@@ -13701,7 +13701,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/fire_shield",
 		"source": {
@@ -13723,7 +13723,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/nether_weapon",
@@ -13746,7 +13746,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/ride_the_lightning",
@@ -13769,7 +13769,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/otiluke's_resilient_sphere",
@@ -13814,7 +13814,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/steam_blast",
 		"source": {
@@ -13876,7 +13876,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/consume_mind",
 		"source": {
@@ -13941,7 +13941,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/locate_creature",
@@ -13964,7 +13964,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/polymorph",
@@ -13987,7 +13987,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/divination",
@@ -14010,7 +14010,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/summon_greater_demon",
@@ -14033,7 +14033,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/summon_aberration",
@@ -14056,7 +14056,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/summon_construct",
@@ -14079,7 +14079,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/summon_elemental",
@@ -14145,7 +14145,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/accursed_touch",
@@ -14170,7 +14170,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/cursed_gift",
 		"source": {
@@ -14234,7 +14234,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/invisibility_purge",
 		"source": {
@@ -14256,7 +14256,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/freedom_of_movement",
 		"source": {
@@ -14324,7 +14324,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/system_backdoor",
@@ -14348,7 +14348,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/earthskimmer",
@@ -14391,7 +14391,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/confusion",
@@ -14415,7 +14415,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/snow_boulder",
@@ -14523,7 +14523,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/labyrinth_mastery",
@@ -14547,7 +14547,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/dark_sacrament",
 		"source": {
@@ -14570,7 +14570,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/shadowy_retribution",
@@ -14593,7 +14593,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/shadow_monsters",
@@ -14680,7 +14680,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/forced_evolution",
 		"source": {
@@ -14790,7 +14790,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/read_memory",
 		"source": {
@@ -14834,7 +14834,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/evard's_black_tentacles",
@@ -14900,7 +14900,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/swift_quiver",
@@ -14923,7 +14923,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/dream",
 		"source": {
@@ -14967,7 +14967,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"additionalType": "Механомагия",
 		"components": {
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/imbue_spell",
@@ -14990,7 +14990,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/maelstrom",
@@ -15014,7 +15014,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"concentration": true,
@@ -15082,7 +15082,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/conjure_vrock",
@@ -15105,7 +15105,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/conjure_volley",
 		"source": {
@@ -15127,7 +15127,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/conjure_elemental",
@@ -15173,7 +15173,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/greater_restoration",
 		"source": {
@@ -15217,7 +15217,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/vorpal_blade",
 		"source": {
@@ -15283,7 +15283,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/bigby's_hand",
@@ -15307,7 +15307,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/rain_of_blades",
 		"source": {
@@ -15418,7 +15418,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/labyrinthine_howl",
 		"source": {
@@ -15483,7 +15483,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/legend_lore",
 		"source": {
@@ -15569,7 +15569,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/infernal_calling",
@@ -15613,7 +15613,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/wall_of_stone",
@@ -15637,7 +15637,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/acid_rain",
@@ -15681,7 +15681,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/cone_of_cold",
 		"source": {
@@ -15704,7 +15704,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/ensanguinate",
@@ -15747,7 +15747,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "вызов",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/teleportation_circle",
 		"source": {
@@ -15770,7 +15770,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/biting_frost",
@@ -15793,7 +15793,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/magic_mirror",
 		"source": {
@@ -15814,7 +15814,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "некромантия",
 		"components": {
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/little_death",
 		"source": {
@@ -15860,7 +15860,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/instant_fortification",
@@ -15883,7 +15883,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/rary's_telepathic_bond",
@@ -15907,7 +15907,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/mechanical_union",
@@ -16016,7 +16016,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/scrying",
@@ -16039,7 +16039,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/insect_plague",
@@ -16084,7 +16084,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/flame_strike",
 		"source": {
@@ -16106,7 +16106,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/neutralizing_field",
@@ -16193,7 +16193,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/commune",
@@ -16261,7 +16261,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/raise_dead",
 		"source": {
@@ -16327,7 +16327,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/planar_binding",
 		"source": {
@@ -16439,7 +16439,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/incite_riot",
@@ -16462,7 +16462,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/negative_energy_flood",
 		"source": {
@@ -16506,7 +16506,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/transmute_rock",
 		"source": {
@@ -16529,7 +16529,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/conjure_the_deep_haze",
@@ -16552,7 +16552,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/summon_draconic_spirit",
@@ -16575,7 +16575,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/summon_celestial",
@@ -16619,7 +16619,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/awaken",
 		"source": {
@@ -16663,7 +16663,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/blazing_chariot",
 		"source": {
@@ -16727,7 +16727,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/dawn",
@@ -16750,7 +16750,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/dispel_evil_and_good",
@@ -16773,7 +16773,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/reincarnate",
 		"source": {
@@ -16817,7 +16817,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/freedom_of_the_winds",
@@ -16884,7 +16884,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/holy_ground",
 		"source": {
@@ -16906,7 +16906,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/hallow",
 		"source": {
@@ -16950,7 +16950,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/shifting_the_odds",
@@ -16973,7 +16973,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/wall_of_force",
@@ -17018,7 +17018,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/mortality",
@@ -17041,7 +17041,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/passwall",
 		"source": {
@@ -17063,7 +17063,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/creating_spelljamming_helm",
 		"source": {
@@ -17085,7 +17085,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/creation",
 		"source": {
@@ -17107,7 +17107,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/wall_of_light",
@@ -17152,7 +17152,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/dark_dementing",
 		"source": {
@@ -17174,7 +17174,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/steel_wind_strike",
 		"source": {
@@ -17196,7 +17196,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/hold_monster",
@@ -17285,7 +17285,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/grasp_of_the_tupilak",
 		"source": {
@@ -17307,7 +17307,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/chains_of_the_goddess",
@@ -17330,7 +17330,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"concentration": true,
@@ -17376,7 +17376,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/magic_jar",
 		"source": {
@@ -17399,7 +17399,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/encroaching_shadows",
@@ -17465,7 +17465,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/move_earth",
@@ -17488,7 +17488,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/drawmij's_instant_summons",
@@ -17511,7 +17511,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/programmed_illusion",
 		"source": {
@@ -17533,7 +17533,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/forbiddance",
@@ -17578,7 +17578,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/game_of_fate",
 		"source": {
@@ -17601,7 +17601,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/extract_knowledge",
@@ -17647,7 +17647,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/true_seeing",
 		"source": {
@@ -17669,7 +17669,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/soul_cage",
 		"source": {
@@ -17756,7 +17756,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/banshee_wail",
 		"source": {
@@ -17778,7 +17778,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/circle_of_death",
 		"source": {
@@ -17800,7 +17800,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/wall_of_ice",
@@ -17846,7 +17846,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/ray_of_contamination",
 		"source": {
@@ -17910,7 +17910,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "очарование",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/mass_suggestion",
 		"source": {
@@ -17933,7 +17933,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/powerful_throwing",
 		"source": {
@@ -17955,7 +17955,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/heavenly_crown",
@@ -18088,7 +18088,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/robe_of_shards",
 		"source": {
@@ -18110,7 +18110,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/flesh_to_stone",
@@ -18133,7 +18133,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/otiluke's_freezing_sphere",
 		"source": {
@@ -18177,7 +18177,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/siphon_contamination",
 		"source": {
@@ -18199,7 +18199,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/heroes'_feast",
 		"source": {
@@ -18242,7 +18242,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/fizban's_platinum_shield",
@@ -18265,7 +18265,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/chain_lightning",
 		"source": {
@@ -18288,7 +18288,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/entomb",
 		"source": {
@@ -18310,7 +18310,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/find_the_path",
@@ -18375,7 +18375,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/tasha's_otherworldly_guise",
@@ -18398,7 +18398,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/otherworldly_form",
@@ -18421,7 +18421,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/contingency",
 		"source": {
@@ -18443,7 +18443,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/summon_fiend",
@@ -18466,7 +18466,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/walk_the_twisted_path",
 		"source": {
@@ -18617,7 +18617,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/disintegrate",
 		"source": {
@@ -18639,7 +18639,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/druid_grove",
 		"source": {
@@ -18661,7 +18661,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/seeds_of_death",
@@ -18704,7 +18704,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/sunbeam",
@@ -18727,7 +18727,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/create_homunculus",
 		"source": {
@@ -18749,7 +18749,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/create_undead",
 		"source": {
@@ -18771,7 +18771,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/become_nightwing",
@@ -18816,7 +18816,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/guards_and_wards",
 		"source": {
@@ -18838,7 +18838,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/globe_of_invulnerability",
@@ -18861,7 +18861,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/wall_of_thorns",
@@ -18884,7 +18884,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/tenser's_transformation",
@@ -18907,7 +18907,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/icy_manipulation",
@@ -18931,7 +18931,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/drown",
@@ -18954,7 +18954,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"additionalType": "Магия хаоса",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/chaotic_world",
@@ -18999,7 +18999,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/wind_walk",
 		"source": {
@@ -19045,7 +19045,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/hellforging",
@@ -19069,7 +19069,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/aspect_of_the_dragon",
@@ -19157,7 +19157,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/mordenkainen's_magnificent_mansion",
 		"source": {
@@ -19179,7 +19179,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/resurrection",
 		"source": {
@@ -19245,7 +19245,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/conjure_hezrou",
@@ -19314,7 +19314,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/walking_wall",
@@ -19337,7 +19337,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/draconic_transformation",
@@ -19360,7 +19360,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/delayed_blast_fireball",
@@ -19383,7 +19383,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"additionalType": "Иллюминация",
 		"components": {
 			"v": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/starry_vision",
@@ -19406,7 +19406,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/symbol",
 		"source": {
@@ -19428,7 +19428,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/reverse_gravity",
@@ -19451,7 +19451,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/sequester",
 		"source": {
@@ -19473,7 +19473,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/contamination_immunity",
 		"source": {
@@ -19539,7 +19539,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/mordenkainen's_sword",
@@ -19563,7 +19563,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/uncontrollable_transformation",
@@ -19608,7 +19608,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/octarine_spray",
 		"source": {
@@ -19631,7 +19631,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/ringward",
@@ -19675,7 +19675,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/seal_of_sanctuary",
@@ -19698,7 +19698,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/simulacrum",
 		"source": {
@@ -19721,7 +19721,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/entropic_damage_field",
@@ -19766,7 +19766,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/project_image",
@@ -19789,7 +19789,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/arboreal_curse",
 		"source": {
@@ -19811,7 +19811,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/curse_of_dust",
 		"source": {
@@ -19854,7 +19854,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/regenerate",
 		"source": {
@@ -19876,7 +19876,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/tether_essence",
@@ -19899,7 +19899,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/symbol_of_sorcery",
@@ -19942,7 +19942,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/whirlwind",
@@ -19965,7 +19965,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/create_magen",
 		"source": {
@@ -19987,7 +19987,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/dream_of_the_blue_veil",
 		"source": {
@@ -20051,7 +20051,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/celebration",
@@ -20098,7 +20098,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/legend_killer",
@@ -20121,7 +20121,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/forcecage",
 		"source": {
@@ -20143,7 +20143,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/plane_shift",
 		"source": {
@@ -20165,7 +20165,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/temple_of_the_gods",
 		"source": {
@@ -20209,7 +20209,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/red_rain",
@@ -20232,7 +20232,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/antipathy_or_sympathy",
 		"source": {
@@ -20254,7 +20254,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/holy_aura",
@@ -20277,7 +20277,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/reality_break",
@@ -20300,7 +20300,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/control_weather",
@@ -20346,7 +20346,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/malevolent_waves",
@@ -20370,7 +20370,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/move_the_cosmic_wheel",
 		"source": {
@@ -20392,7 +20392,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/clone",
 		"source": {
@@ -20457,7 +20457,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/caustic_torrent",
 		"source": {
@@ -20479,7 +20479,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/earthquake",
@@ -20567,7 +20567,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/glacial_cascade",
 		"source": {
@@ -20590,7 +20590,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/arcane_sight",
 		"source": {
@@ -20612,7 +20612,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/mighty_fortress",
 		"source": {
@@ -20654,7 +20654,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/maddening_darkness",
@@ -20678,7 +20678,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/steam_whistle",
 		"source": {
@@ -20744,7 +20744,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/antimagic_field",
@@ -20791,7 +20791,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/machine_sacrifice",
@@ -20881,7 +20881,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/flense",
@@ -20905,7 +20905,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/contaminated_power",
 		"source": {
@@ -20927,7 +20927,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/feeblemind",
 		"source": {
@@ -20990,7 +20990,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/deadly_sting",
@@ -21057,7 +21057,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/sunburst",
 		"source": {
@@ -21079,7 +21079,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/wall_of_gloom",
 		"source": {
@@ -21101,7 +21101,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/telepathy",
 		"source": {
@@ -21123,7 +21123,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/dark_star",
@@ -21147,7 +21147,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/desolation",
@@ -21170,7 +21170,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/abi-dalzim's_horrid_wilting",
 		"source": {
@@ -21193,7 +21193,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/bloom",
@@ -21284,7 +21284,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/greater_seal_of_sanctuary",
@@ -21307,7 +21307,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/gate",
@@ -21375,7 +21375,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/mammon's_due",
@@ -21398,7 +21398,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/imprisonment",
 		"source": {
@@ -21440,7 +21440,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/true_resurrection",
 		"source": {
@@ -21462,7 +21462,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/true_polymorph",
@@ -21576,7 +21576,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/afflict_line",
 		"source": {
@@ -21599,7 +21599,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/form_of_the_gods",
@@ -21644,7 +21644,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"ritual": true,
 		"url": "/spells/cosmic_alignment",
@@ -21688,7 +21688,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/mass_polymorph",
@@ -21711,7 +21711,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/invulnerability",
@@ -21755,7 +21755,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/pyroclasm",
@@ -21799,7 +21799,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/shapechange",
@@ -21822,7 +21822,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/foresight",
 		"source": {
@@ -21844,7 +21844,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/astral_projection",
 		"source": {
@@ -21907,7 +21907,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"concentration": true,
 		"url": "/spells/ravenous_void",
@@ -21930,7 +21930,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/star's_heart",
 		"source": {
@@ -22015,7 +22015,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/sacrament_of_the_falling_fire",
 		"source": {
@@ -22059,7 +22059,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/theogenesis",
 		"source": {
@@ -22082,7 +22082,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/steal_immortality",
 		"source": {
@@ -22104,7 +22104,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"components": {
 			"v": true,
 			"s": true,
-			"m": true
+			"m": "exist"
 		},
 		"url": "/spells/time_ravage",
 		"source": {

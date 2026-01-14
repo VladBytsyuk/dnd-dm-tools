@@ -1,5 +1,5 @@
 export interface Components {
-    v: boolean;
-    s: boolean;
+    v?: boolean;
+    s?: boolean;
     m?: string;
 }
