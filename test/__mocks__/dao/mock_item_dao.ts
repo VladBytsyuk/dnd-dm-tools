@@ -27,6 +27,8 @@ export function mockDatabase<
         fullMonsterDao: mockItemDao<FullItem, Filter>(fullItems),
         smallBackgroundDao: mockItemDao<SmallItem, Filter>(smallItems),
         fullBackgroundDao: mockItemDao<FullItem, Filter>(fullItems),
+        smallFeatsDao: mockItemDao<SmallItem, Filter>(smallItems),
+        fullFeatsDao: mockItemDao<FullItem, Filter>(fullItems),
     } as any
 }
 

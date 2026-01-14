@@ -1,7 +1,8 @@
-import { UiEventListener } from "src/data/ui_event_listener";
+import { UiEventListener } from "../../src/data/ui_event_listener";
 import { describe, it, expect, vi } from 'vitest';
 import { App, Notice } from "obsidian";
-import * as imageUtils from 'src/domain/utils/image_utils';
+import * as imageUtils from '../../src/domain/utils/image_utils';
+import { RollTraceResult } from "../../src/domain/dice";
 
 vi.mock('obsidian', async () => {
     const actual = await vi.importActual("test/__mocks__/obsidian");
@@ -25,6 +26,7 @@ describe('UI Event Listener', () => {
         const listener = new UiEventListener(
             app,
             () => mockFeature,
+            () => null,
             () => null,
             () => null,
             () => null,
@@ -58,6 +60,7 @@ describe('UI Event Listener', () => {
             () => null,
             () => null,
             () => null,
+            () => null,
         );
         const url = '/spell/some-spell';
 
@@ -79,6 +82,7 @@ describe('UI Event Listener', () => {
             () => null,
             () => null,
             () => mockFeature,
+            () => null,
             () => null,
             () => null,
             () => null,
@@ -110,6 +114,7 @@ describe('UI Event Listener', () => {
             () => null,
             () => null,
             () => null,
+            () => null,
         );
         const url = '/armor/some-armor';
 
@@ -133,6 +138,7 @@ describe('UI Event Listener', () => {
             () => null,
             () => null,
             () => mockFeature,
+            () => null,
             () => null,
             () => null,
             () => null,
@@ -162,6 +168,7 @@ describe('UI Event Listener', () => {
             () => mockFeature,
             () => null,
             () => null,
+            () => null,
         );
         const url = '/artifact/some-artifact';
 
@@ -180,6 +187,7 @@ describe('UI Event Listener', () => {
         };
         const listener = new UiEventListener(
             app,
+            () => null,
             () => null,
             () => null,
             () => null,
@@ -214,6 +222,7 @@ describe('UI Event Listener', () => {
             () => null,
             () => mockFeature,
             () => null,
+            () => null,
         );
         const url = '/background/some-background';
 
@@ -227,12 +236,23 @@ describe('UI Event Listener', () => {
     it('should show notice on dice roll', () => {
         // Arrange
         const app = new App();
-        const listener = new UiEventListener(app, () => null, () => null, () => null, () => null, () => null, () => null, () => null, () => null);
+        const listener = new UiEventListener(
+            app, 
+            () => null, 
+            () => null, 
+            () => null, 
+            () => null, 
+            () => null, 
+            () => null, 
+            () => null, 
+            () => null,
+            () => null,
+        );
         const label = 'Damage';
         const value = {
             total: 10,
             resolvedFormula: '5 + 5'
-        };
+        } as RollTraceResult;
 
         // Act
         listener.onDiceRoll(label, value);
@@ -244,7 +264,18 @@ describe('UI Event Listener', () => {
     it('should get image source on image requested', async () => {
         // Arrange
         const app = new App();
-        const listener = new UiEventListener(app, () => null, () => null, () => null, () => null, () => null, () => null, () => null, () => null);
+        const listener = new UiEventListener(
+            app, 
+            () => null, 
+            () => null, 
+            () => null, 
+            () => null, 
+            () => null, 
+            () => null, 
+            () => null,
+            () => null,
+            () => null,
+        );
         const imageUrl = 'http://example.com/image.png';
         const expectedSource = 'data:image/png;base64,somesource';
         (imageUtils.getImageSource as vi.Mock).mockResolvedValue(expectedSource);
