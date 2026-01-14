@@ -83,9 +83,10 @@ export const roll = (...entries: FormulaEntry[]) => {
 }
 
 export const rollRaw = (input: string): number => {
-    const normalizedInput = input.replace(/undefined/gi, "");
+    const normalizedInput = input.replace(/undefined/gi, "").replace('к', 'd');
     const formula = mapDiceStringToFormula(normalizedInput);
-    return formula.entries.reduce((acc, value) => acc + entryRoll(value), 0);
+    const result = formula.entries.reduce((acc, value) => acc + entryRoll(value), 0);
+    return result;
 }
 
 const formatRollForDisplay = (dice: Dice, value: number): string => {

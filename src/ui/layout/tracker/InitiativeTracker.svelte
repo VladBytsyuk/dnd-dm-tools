@@ -121,7 +121,7 @@
 		if (!isEditable) return;
 
 		const p = (await getEncounterParticipantFromClipboard(
-			true,
+			false,
 		)) as EncounterParticipant | null;
 		if (!p) {
 			const e = (await getEncounterFromClipboard()) as Encounter | null;

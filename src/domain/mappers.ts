@@ -7,12 +7,20 @@ export const mapMonsterToEncounterParticipant = (monster: FullMonster): Encounte
     const newName = monster.name.rus
     let hp: number;
     if (monster.hits?.formula) {
-        hp = rollRaw(`${monster?.hits?.formula}${monster?.hits?.sign}${monster?.hits?.bonus}`);
+        if (monster?.hits?.sign && monster?.hits?.bonus) {
+            const diceFormula = `${monster?.hits?.formula}${monster?.hits?.sign}${monster?.hits?.bonus}`;
+            const rollResult = rollRaw(diceFormula);
+            hp = rollResult;
+        } else {
+            const rollResult = rollRaw(monster?.hits?.formula);
+            hp = rollResult;
+        }
     } else {
-        hp = monster.hits?.average ?? 0;
+        const averageHp = monster.hits?.average ?? 0;
+        hp = averageHp;
     }
     const wisdomModifier = calculateModifier(monster?.ability?.wiz ?? 0);
-    const passivePerception: number = +(monster?.senses?.passivePerception 
+    const passivePerception: number = +(monster?.senses?.passivePerception
         ?? `${(10 + (monster?.skills?.find(s => s.name.toLowerCase() === 'восприятие')?.value as number || wisdomModifier))}`);
     return {
         id: Date.now(),
@@ -41,7 +49,7 @@ export const mapDiceStringToFormula = (input: string): Formula => {
     const validDiceValues = Object.values(Dice).filter((v): v is number => typeof v === 'number');
 
     for (const token of tokens) {
-        const diceMatch = token.match(/^(\d*)к(\d+)$/i);
+        const diceMatch = token.match(/^(\d*)[кd](\d+)$/i);
         if (diceMatch) {
             if (currentEntry !== null) {
                 entries.push({ ...currentEntry, bonus: currentBonus });

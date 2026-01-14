@@ -2,33 +2,34 @@
 	import { onMount, onDestroy, tick } from "svelte";
 	import { Check, Info, X, Infinity, Minus, Plus } from "lucide-svelte";
 	import type { EncounterParticipantCondition } from "../../../domain/models/encounter/EncounterParticipant";
-  
+	import { Blinded, Charmed, Deafened, Exhaustion, Frightened, Grappled, Incapacitated, Invisible, Paralyzed, Petrified, Poisoned, Prone, Restrained, Stunned, Unconscious } from "../../components/icons";
+
 	type ConditionDef = {
 		url: string;
 		title: string;
-		iconSrc: string;
+		icon: any;
 	};
 
 	const conditions: ConditionDef[] = [
-		{ url: "/screens/unconscious", title: "Бессознательный / Unconscious", iconSrc: "src/assets/icons/conditions/unconscious.svg" },
-		{ url: "/screens/frightened", title: "Испуганный / Frightened", iconSrc: "src/assets/icons/conditions/frightened.svg" },
-		{ url: "/screens/exhaustion", title: "Истощенный / Exhaustion", iconSrc: "src/assets/icons/conditions/exhaustion.svg" },
+		{ url: "/screens/unconscious", title: "Бессознательный / Unconscious", icon: Unconscious },
+		{ url: "/screens/frightened", title: "Испуганный / Frightened", icon: Frightened },
+		{ url: "/screens/exhaustion", title: "Истощенный / Exhaustion", icon: Exhaustion },
 
-		{ url: "/screens/invisible", title: "Невидимый / Invisible", iconSrc: "src/assets/icons/conditions/invisible.svg" },
-		{ url: "/screens/incapacitated", title: "Недееспособный / Incapacitated", iconSrc: "src/assets/icons/conditions/incapacitated.svg" },
-		{ url: "/screens/deafened", title: "Оглохший / Deafened", iconSrc: "src/assets/icons/conditions/deafened.svg" },
+		{ url: "/screens/invisible", title: "Невидимый / Invisible", icon: Invisible },
+		{ url: "/screens/incapacitated", title: "Недееспособный / Incapacitated", icon: Incapacitated },
+		{ url: "/screens/deafened", title: "Оглохший / Deafened", icon: Deafened },
 
-		{ url: "/screens/petrified", title: "Окаменевший / Petrified", iconSrc: "src/assets/icons/conditions/petrified.svg" },
-		{ url: "/screens/restrained", title: "Опутанный / Restrained", iconSrc: "src/assets/icons/conditions/restrained.svg" },
-		{ url: "/screens/blinded", title: "Ослеплённый / Blinded", iconSrc: "src/assets/icons/conditions/blinded.svg" },
+		{ url: "/screens/petrified", title: "Окаменевший / Petrified", icon: Petrified },
+		{ url: "/screens/restrained", title: "Опутанный / Restrained", icon: Restrained },
+		{ url: "/screens/blinded", title: "Ослеплённый / Blinded", icon: Blinded },
 
-		{ url: "/screens/poisoned", title: "Отравленный / Poisoned", iconSrc: "src/assets/icons/conditions/poisoned.svg" },
-		{ url: "/screens/charmed", title: "Очарованный / Charmed", iconSrc: "src/assets/icons/conditions/charmed.svg" },
-		{ url: "/screens/stunned", title: "Ошеломлённый / Stunned", iconSrc: "src/assets/icons/conditions/stunned.svg" },
+		{ url: "/screens/poisoned", title: "Отравленный / Poisoned", icon: Poisoned },
+		{ url: "/screens/charmed", title: "Очарованный / Charmed", icon: Charmed },
+		{ url: "/screens/stunned", title: "Ошеломлённый / Stunned", icon: Stunned },
 
-		{ url: "/screens/paralyzed", title: "Парализованный / Paralyzed", iconSrc: "src/assets/icons/conditions/paralyzed.svg" },
-		{ url: "/screens/condition_prone", title: "Сбитый с ног / Prone", iconSrc: "src/assets/icons/conditions/prone.svg" },
-		{ url: "/screens/grappled", title: "Схваченный / Grappled", iconSrc: "src/assets/icons/conditions/grappled.svg" }
+		{ url: "/screens/paralyzed", title: "Парализованный / Paralyzed", icon: Paralyzed },
+		{ url: "/screens/condition_prone", title: "Сбитый с ног / Prone", icon: Prone },
+		{ url: "/screens/grappled", title: "Схваченный / Grappled", icon: Grappled }
 	];
 
 	let {
@@ -38,7 +39,6 @@
 		onDelete,
 		getRound,
 		getConditions,
-		resolveIconSrc	
 	} = $props<{
 		isEditable: boolean;
 		onOpenConditionDetails: (url: string) => void;
@@ -46,7 +46,6 @@
 		onDelete: (url: string) => void;
 		getRound: () => number;
 		getConditions: () => EncounterParticipantCondition[];
-		resolveIconSrc: (path: string) => string;
 	}>();
 
 	let openUrl: string | null = $state(null);
@@ -237,7 +236,7 @@
 				onclick={(e) => openPopover(e, c.url)}
 				onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { openPopover(e, c.url) } }}
 			>
-				<img class="icon" src={resolveIconSrc(c.iconSrc)} alt={c.title} />
+				<c.icon class="icon" alt={c.title} />
 
 				{#if isActive(c.url) && remainingRounds(c.url) !== null}
 					<span class="badge">{remainingRounds(c.url)}</span>
