@@ -55,7 +55,7 @@ export function runSqlDaoBaseTests<TItem extends BaseItem, TFilters>(cfg: DaoTes
         it ('should not fill table with data if it doesn\'t exists', async () => {
             if (cfg.expected.fill) {
                 vi.spyOn(dao, 'isTableExists').mockResolvedValue(false);
-                const loadDataFromLocalStorageSpy = vi.spyOn(dao, 'loadDataFromLocalStorage');
+                const loadDataFromLocalStorageSpy = vi.spyOn(dao, 'getLocalData');
                 await dao.fillTableWithData();
                 expect(loadDataFromLocalStorageSpy).toHaveBeenCalledTimes(0);
             }
@@ -65,7 +65,7 @@ export function runSqlDaoBaseTests<TItem extends BaseItem, TFilters>(cfg: DaoTes
             if (cfg.expected.fill) {
                 vi.spyOn(dao, 'isTableExists').mockResolvedValue(true);
                 vi.spyOn(dao, 'isTableEmpty').mockResolvedValue(false);
-                const loadDataFromLocalStorageSpy = vi.spyOn(dao, 'loadDataFromLocalStorage');
+                const loadDataFromLocalStorageSpy = vi.spyOn(dao, 'getLocalData');
                 await dao.fillTableWithData();
                 expect(loadDataFromLocalStorageSpy).toHaveBeenCalledTimes(0);
             }
@@ -75,7 +75,8 @@ export function runSqlDaoBaseTests<TItem extends BaseItem, TFilters>(cfg: DaoTes
             if (cfg.expected.fill) {
                 vi.spyOn(dao, 'isTableExists').mockResolvedValue(true);
                 vi.spyOn(dao, 'isTableEmpty').mockResolvedValue(true);
-                const loadDataFromLocalStorageSpy = vi.spyOn(dao, 'loadDataFromLocalStorage');
+                vi.spyOn(dao, 'createItem').mockResolvedValue();
+                const loadDataFromLocalStorageSpy = vi.spyOn(dao, 'getLocalData');
                 await dao.fillTableWithData();
                 expect(loadDataFromLocalStorageSpy).toHaveBeenCalled();
             }
