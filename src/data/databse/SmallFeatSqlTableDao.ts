@@ -3,6 +3,7 @@ import type { SmallFeat } from 'src/domain/models/feat/SmallFeat';
 import { Dao, WhereClauseData } from '../../domain/Dao';
 import type { App, PluginManifest } from 'obsidian';
 import type { FeatsFilters } from 'src/domain/models/feat/FeatsFilters';
+import { baseFeats } from '../../assets/data/feats';
 
 export class SmallFeatSqlTableDao extends Dao<SmallFeat, FeatsFilters> {
 
@@ -14,11 +15,14 @@ export class SmallFeatSqlTableDao extends Dao<SmallFeat, FeatsFilters> {
         super(database);
         this.app = app;
         this.manifest = manifest;
-        this.preloadFileName = 'feats.json';
     } 
     
     getTableName(): string {
         return 'small_feats';
+    }
+
+    getLocalData(): SmallFeat[] {
+        return baseFeats;
     }
 
     // Table management

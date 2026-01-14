@@ -3,6 +3,7 @@ import type { Database, SqlValue } from "sql.js";
 import { Dao, WhereClauseData } from "src/domain/Dao";
 import type { BackgroundsFilters } from "src/domain/models/background/BackgroundsFilters";
 import type { SmallBackground } from "src/domain/models/background/SmallBackground";
+import { baseBackgrounds } from "../../assets/data/backgrounds";
 
 export class SmallBackgroundSqlTableDao extends Dao<SmallBackground, BackgroundsFilters> {
     
@@ -14,11 +15,14 @@ export class SmallBackgroundSqlTableDao extends Dao<SmallBackground, Backgrounds
         super(database);
         this.app = app;
         this.manifest = manifest;
-        this.preloadFileName = 'backgrounds.json';
     }
 
     getTableName(): string {
         return 'small_backgrounds';
+    }
+
+    getLocalData(): SmallBackground[] {
+        return baseBackgrounds;
     }
 
     // Table management

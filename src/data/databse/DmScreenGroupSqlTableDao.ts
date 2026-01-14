@@ -2,6 +2,7 @@ import { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import { Dao } from "../../domain/Dao";
 import type { App, PluginManifest } from "obsidian";
 import type { Database, SqlValue } from "sql.js";
+import { baseDmScreenItems } from "../../assets/data/dm_screen";
 
 export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
 
@@ -13,12 +14,14 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
         super(database);
         this.app = app;
         this.manifest = manifest;
-        this.preloadFileName = 'dm_screen.json';
     }
-    
 
     getTableName(): string {
         return 'dm_screen_items';
+    }
+
+    getLocalData(): DmScreenItem[] {
+        return baseDmScreenItems;
     }
 
     // Table management
@@ -45,7 +48,7 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
     async fillTableWithData(): Promise<void> {
         const tableEmpty = await this.isTableEmpty();
         if (tableEmpty) {
-            const groups = await this.loadDmScreenGroups();
+            const groups = this.getLocalData();
             for (const group of groups || []) {
                 await this.createItem(group);
             }
@@ -191,55 +194,6 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
             console.error(`Error reading children for ${url}:`, error);
             throw error;
         }
-    }
-
-    // Private methods
-    private async loadDmScreenGroups(): Promise<DmScreenItem[]> {
-        const app = this.app;
-        const manifest = this.manifest;
-        const fileName = this.preloadFileName;
-        if (!app || !manifest || !fileName) {
-            console.warn("App, manifest or fileName is not defined. Cannot load data from local storage.");
-            return [];
-        }
-        try {
-            // Путь к файлу относительно корневой директории плагина
-            const filePath = `${manifest.dir}/data/${this.preloadFileName}`;
-            const data = await app.vault.adapter.read(filePath);
-            const groups = JSON.parse(data) as DmScreenGroup[];
-            const result = [];
-            for (const group of groups) {
-                result.push(this.mapGroupToItem(group))
-                result.push(...this.allChildrenOfGroup(group, group.url))
-            }
-            console.log(`${this.getTableName()} is preloaded with ${result.length} items from local storage.`);
-            return result;
-        } catch (error) {
-            console.error(`Failed to preload data for ${this.getTableName()}:`, error);
-            return [];  
-        }
-    }
-
-    private allChildrenOfGroup(group: DmScreenGroup, parentUrl: string): DmScreenItem[] {
-        const result = [];
-        for (const child of group.children || []) {
-            result.push(this.mapGroupToItem(child, parentUrl));
-            result.push(...this.allChildrenOfGroup(child, child.url))
-        }
-        return result;
-    }
-
-    private mapGroupToItem(group: DmScreenGroup, parentUrl: string | undefined = undefined): DmScreenItem {
-        return DmScreenItem(
-            group.name,
-            group.url,
-            group.order,
-            group.source,
-            group.group,
-            group.icon,
-            group.description,
-            parentUrl,
-        )
     }
 }
 

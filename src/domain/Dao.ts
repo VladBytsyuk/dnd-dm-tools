@@ -17,11 +17,14 @@ export abstract class Dao<T extends BaseItem, F> implements Initializable {
 
     app: App | null = null;
     manifest: PluginManifest | null = null;
-    preloadFileName: string | null = null;
 
     constructor(public database: Database) {}
 
     abstract getTableName(): string;
+
+    getLocalData(): T[] {
+        return [];
+    }
 
     async initialize() {
         const tableExists = await this.isTableExists();
@@ -43,38 +46,18 @@ export abstract class Dao<T extends BaseItem, F> implements Initializable {
         const tableExists = await this.isTableExists();
         if (tableExists) {
             const tableEmpty = await this.isTableEmpty();
-            if (tableEmpty && this.preloadFileName) {
-                const data = await this.loadDataFromLocalStorage();
+            if (tableEmpty) {
+                const data = this.getLocalData();
                 for (const item of data) {
                     await this.createItem(item);
                 }
-                console.log(`Table ${this.getTableName()} filled with data from ${this.preloadFileName}`);
+                if (data.length > 0) {
+                    console.log(`Table ${this.getTableName()} filled with local data.`);
+                }
             }
         } else {
             console.warn(`Table ${this.getTableName()} does not exist. Cannot fill with data.`);
         }
-    }
-
-    async loadDataFromLocalStorage(): Promise<T[]> {
-        const app = this.app;
-        const manifest = this.manifest;
-        const fileName = this.preloadFileName;
-        if (!app || !manifest || !fileName) {
-            console.warn("App, manifest or fileName is not defined. Cannot load data from local storage.");
-            return [];
-        }
-        try {
-            // Путь к файлу относительно корневой директории плагина
-            const filePath = `${manifest.dir}/data/${fileName}`;
-            const data = await app.vault.adapter.read(filePath);
-            const smallItems = JSON.parse(data) as T[];
-            console.log(`${this.getTableName()} is preloaded with ${smallItems.length} items from local storage.`);
-            return smallItems;
-        } catch (error) {
-            console.error(`Failed to preload data for ${this.getTableName()}:`, error);
-            return [];
-        }
-
     }
 
     async dropTable() {

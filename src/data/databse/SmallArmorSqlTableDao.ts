@@ -3,6 +3,7 @@ import type { App, PluginManifest } from "obsidian";
 import type { Database, SqlValue } from "sql.js";
 import type { ArmoryFilters } from "src/domain/models/armor/ArmoryFilters";
 import type { SmallArmor } from "src/domain/models/armor/SmallArmor";
+import { baseArmory } from "../../assets/data/armory";
 
 export class SmallArmorSqlTableDao extends Dao<SmallArmor, ArmoryFilters> {
 
@@ -14,11 +15,14 @@ export class SmallArmorSqlTableDao extends Dao<SmallArmor, ArmoryFilters> {
         super(database);
         this.app = app;
         this.manifest = manifest;
-        this.preloadFileName = 'armory.json';
     }
 
     getTableName(): string {
         return 'small_armory';
+    }
+
+    getLocalData(): SmallArmor[] {
+        return baseArmory;
     }
 
     // Table management

@@ -3,6 +3,7 @@ import { Dao, WhereClauseData } from '../../domain/Dao';
 import type { App, PluginManifest } from 'obsidian';
 import type { SpellbookFilters } from 'src/domain/models/spell/SpellbookFilters';
 import type { SmallSpell } from 'src/domain/models/spell/SmallSpell';
+import { baseSpellbook } from '../../assets/data/spellbook';
 
 export class SmallSpellSqlTableDao extends Dao<SmallSpell, SpellbookFilters> {
 
@@ -14,11 +15,14 @@ export class SmallSpellSqlTableDao extends Dao<SmallSpell, SpellbookFilters> {
         super(database);
         this.app = app;
         this.manifest = manifest;
-        this.preloadFileName = 'spellbook.json';
     } 
     
     getTableName(): string {
         return 'small_spellbook';
+    }
+
+    getLocalData(): SmallSpell[] {
+        return baseSpellbook;
     }
 
     // Table management

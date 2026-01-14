@@ -3,6 +3,7 @@ import { Dao, WhereClauseData } from "../../domain/Dao";
 import type { ArsenalFilters } from "src/domain/models/weapon/ArsenalFilters";
 import type { App, PluginManifest } from "obsidian";
 import type { Database, SqlValue } from "sql.js";
+import { baseArsenal } from "../../assets/data/arsenal";
 
 export class SmallWeaponSqlTableDao extends Dao<SmallWeapon, ArsenalFilters> {
 
@@ -14,11 +15,14 @@ export class SmallWeaponSqlTableDao extends Dao<SmallWeapon, ArsenalFilters> {
         super(database);
         this.app = app;
         this.manifest = manifest;
-        this.preloadFileName = 'arsenal.json';
     }
 
     getTableName(): string {
         return 'small_arsenal';
+    }
+
+    getLocalData(): SmallWeapon[] {
+        return baseArsenal;
     }
 
     // Table management
