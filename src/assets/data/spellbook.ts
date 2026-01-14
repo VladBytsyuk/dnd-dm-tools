@@ -10,7 +10,7 @@ export const baseSpellbook: SmallSpell[] = [
 		"school": "прорицание",
 		"additionalType": "Механомагия",
 		"components": {
-			"v": true,git 
+			"v": true,
 			"s": true,
 			"m": "exist"
 		},
