@@ -14,7 +14,7 @@
 
 
 <SmallItemUi
-    group={source.shortName}
+    group={undefined}
     name={name}
     source={source}
     left={requirements}

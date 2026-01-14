@@ -9,18 +9,12 @@
 </script>
 
 <div class="requirements">
-    <b>Требования: </b>
-    <input class="inputlike" bind:value={currentItem.requirements} readonly={!isInEditMode} />
+    <b>Требования: </b> {currentItem.requirements}
 </div>
 
 <style>
     .requirements {
-        margin-top: 5px;
-    }
-
-    .inputlike {
-        border: 1px solid transparent;
-        background: transparent;
-        width: 100%;
+        margin-top: 4px;
+        margin-bottom: 6px;
     }
 </style>
