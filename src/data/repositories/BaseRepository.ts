@@ -54,7 +54,18 @@ export abstract class BaseRepository<
         name: string | null = null, 
         filter: Filter | null = null,
     ): Promise<SmallItem[]> {
-        return await this.smallItemDao.readAllItems(name, filter) || [];
+        let allSmallItems = await this.smallItemDao.readAllItems(null, filter) || [];
+
+        if (name) {
+            const searchLower = name.toLocaleLowerCase('ru-RU');
+            allSmallItems = allSmallItems.filter(item => {
+                const rusNameLower = item.name.rus.toLocaleLowerCase('ru-RU');
+                const engNameLower = item.name.eng.toLocaleLowerCase('ru-RU');
+                
+                return rusNameLower.includes(searchLower) || engNameLower.includes(searchLower);
+            });
+        }
+        return allSmallItems;
     }
 
     async getAllSmallItemNames(): Promise<string[]> {

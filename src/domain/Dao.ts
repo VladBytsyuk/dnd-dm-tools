@@ -158,10 +158,7 @@ export abstract class Dao<T extends BaseItem, F> implements Initializable {
     }
 
     async filterByName(name: string): Promise<WhereClauseData> {
-        return WhereClauseData(
-            [`rus_name LIKE '%' || ? || '%' OR eng_name LIKE '%' || ? || '%'`],
-            [name, name]
-        );
+        return WhereClauseData([], []);
     }
 
     async filterByFilters(_: F): Promise<WhereClauseData> {
