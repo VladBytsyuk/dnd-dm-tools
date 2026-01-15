@@ -26,3 +26,5 @@ data.json
 database.db
 coverage/
 .env
+
+.release/
