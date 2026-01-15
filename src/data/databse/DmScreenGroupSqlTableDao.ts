@@ -49,7 +49,40 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
         const tableEmpty = await this.isTableEmpty();
         if (tableEmpty) {
             const groups = this.getLocalData();
-            for (const group of groups || []) {
+            const flattenGroups = (items: DmScreenItem[]): DmScreenItem[] => {
+                let result: DmScreenItem[] = [];
+                for (const item of items) {
+                    const dmScreenItem = DmScreenItem(
+                        item.name,
+                        item.url,
+                        item.order,
+                        item.source,
+                        item.group,
+                        item.icon,
+                        item.description,
+                        undefined
+                    );
+                    result.push(dmScreenItem);
+                    if (item.children && item.children.length > 0) {
+                        const childItems = flattenGroups(item.children).map(child => {
+                            return DmScreenItem(
+                                child.name,
+                                child.url,
+                                child.order,
+                                child.source,
+                                child.group,
+                                child.icon,
+                                child.description,
+                                item.url
+                            );
+                        });
+                        result = result.concat(childItems);
+                    }
+                }
+                return result;
+            };
+            const flattenedItems = flattenGroups(groups);
+            for (const group of flattenedItems || []) {
                 await this.createItem(group);
             }
         }
