@@ -22,13 +22,14 @@
 	import type { EncounterParticipant, EncounterParticipantCondition } from "src/domain/models/encounter/EncounterParticipant";
 	import ParticipantItem from "./ParticipantItem.svelte";
 
-	let { app, encounter, isEditable, onPortraitClick, onConditionClick } =
+	let { app, encounter, isEditable, onPortraitClick, onConditionClick, onImageRequested } =
 		$props<{
 			app: any;
 			encounter: Encounter;
 			isEditable: boolean;
 			onPortraitClick: (url: string) => void;
 			onConditionClick: (url: string) => void;
+			onImageRequested: (url: string) => Promise<string>;
 		}>();
 
 	const encounterManager = new EncounterManager(encounter);
@@ -297,7 +298,7 @@
 						onConditionChange={onConditionChange}
 						onConditionDelete={onConditionDelete}
 						getRound={() => state.current.round}
-						resolveIconSrc={resolvePluginAsset}
+						onImageRequested={onImageRequested}
 					/>
 				{/each}
 			</div>

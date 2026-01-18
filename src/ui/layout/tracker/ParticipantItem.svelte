@@ -4,6 +4,8 @@
 	import { formatModifier } from "src/domain/modifier";
 	import type { EncounterParticipant, EncounterParticipantCondition } from "../../../domain/models/encounter/EncounterParticipant";
 	import ParticipantConditionsGrid from "./ParticipantConditionsGrid.svelte";
+	import { onMount } from "svelte";
+	import type { IUiEventListener } from "../../../domain/listeners/ui_event_listener";
 
 	let {
 		participant,
@@ -17,7 +19,7 @@
 		onConditionChange,
 		onConditionDelete,
 		getRound,
-		resolveIconSrc
+        onImageRequested
 	} = $props<{
 		participant: EncounterParticipant;
 		isEditable: boolean;
@@ -31,8 +33,16 @@
 		onConditionChange: (participantId: number, condition: EncounterParticipantCondition) => void;
 		onConditionDelete: (participantId: number, url: string) => void;
 		getRound: () => number;
-		resolveIconSrc: (path: string) => string;
+        onImageRequested: (url: string) => Promise<string>;
 	}>();
+
+	let image: string | null = $state(null);
+
+	onMount(async () => {
+        if (participant.imageUrl) {
+            image = await onImageRequested(participant.imageUrl);
+        }
+    });
 	
 	let deathSavesSuccess = $state(0);
 	let deathSavesFail = $state(0);
@@ -173,13 +183,6 @@
 		const v = evalNumericExpression(raw);
 		if (v == null) return;
 		onSetValue(participant.id, field, roundToInt ? Math.trunc(v) : v);
-	};
-
-	const applyClamped = (field: keyof EncounterParticipant, raw: string, min: number, max: number) => {
-		if (!isEditable) return;
-		const v = evalNumericExpression(raw);
-		if (v == null) return;
-		onSetValue(participant.id, field, clamp(Math.trunc(v), min, max));
 	};
 
 	const applyHpCurrentExpression = (el: HTMLInputElement) => {
@@ -337,7 +340,7 @@
 		{#if participant.imageUrl}
 			<img
 				alt={participant.name}
-				src={participant.imageUrl}
+				src={image}
 				onerror={(e: Event) => { if (e.target instanceof HTMLImageElement) e.target.src = "https://ttg.club/img/no-img.webp" }}
 			/>
 		{:else}

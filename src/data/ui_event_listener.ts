@@ -80,7 +80,7 @@ export class UiEventListener implements IUiEventListener {
     }
 
     async onImageRequested(imageUrl: string): Promise<string> {
-        return await getImageSource(this.app, imageUrl)
+        return await getImageSource(this.app, imageUrl);
     }
 
     private async onClick(featureProvider: () => BaseFeature<any, any, any>, url: string): Promise<void> {

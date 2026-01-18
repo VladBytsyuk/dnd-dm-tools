@@ -68,6 +68,7 @@ class SidePanelInitiativeTrackerView extends ItemView {
                 isEditable: true,
                 onPortraitClick: this.uiEventListener.onBeastClick,
                 onConditionClick: this.uiEventListener.onScreenItemClick,
+                onImageRequested: this.uiEventListener.onImageRequested,
             }
         });
     }

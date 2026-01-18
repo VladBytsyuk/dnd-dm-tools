@@ -43,6 +43,7 @@ export default class DndStatblockPlugin extends Plugin {
 				this, 
 				this.bestiaryFeature.repository!,
 				this.dmScreenFeature.repository!,
+				this.#uiEventListener,
 			);
 			registerAddEncounterCommand(this);
 			registerThemeChangeListener();

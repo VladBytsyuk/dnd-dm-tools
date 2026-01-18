@@ -6,15 +6,17 @@ import InitiativeTracker from "../../layout/tracker/InitiativeTracker.svelte";
 import type { Bestiary } from "src/domain/repositories/Bestiary";
 import type { Repository } from "../../../domain/repositories/Repository";
 import type { DmScreenItem } from "../../../domain/models/dm_screen/DmScreenItem";
+import type { IUiEventListener } from "../../../domain/listeners/ui_event_listener";
 
 export function registerEncounterMdCodeBlockProcessor(
     plugin: DndStatblockPlugin,
     bestiary: Bestiary,
     dmScreen: Repository<DmScreenItem, DmScreenItem, any>,
+    uiEventListener: IUiEventListener,
 ) {
     plugin.registerMarkdownCodeBlockProcessor(
         'encounter', 
-        (source, el) => encounterMdCodeBlockProcessor(plugin, source, el, bestiary, dmScreen),
+        (source, el) => encounterMdCodeBlockProcessor(plugin, source, el, bestiary, dmScreen, uiEventListener),
     );
 }
 
@@ -24,6 +26,7 @@ async function encounterMdCodeBlockProcessor(
     el: HTMLElement,
     bestiary: Bestiary,
     dmScreen: Repository<DmScreenItem, DmScreenItem, any>,
+    uiEventListener: IUiEventListener,
 ) {
     const parameters = parseYaml(source);
     const encounter: Encounter = parameters as Encounter;
@@ -48,6 +51,7 @@ async function encounterMdCodeBlockProcessor(
             isEditable: false,
             onPortraitClick: openBestiary,
             onConditionClick: openCondition,
+            onImageRequested: async (it: string) => await uiEventListener.onImageRequested(it),
         },
     });
 }
