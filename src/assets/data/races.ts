@@ -1,0 +1,6997 @@
+import type { SmallRace } from '../../domain/models/race/SmallRace';
+
+export const baseRaces: SmallRace[] = [
+	{
+		"name": {
+			"rus": "Ааракокра",
+			"eng": "Aarakocra"
+		},
+		"url": "/races/aarakocra",
+		"abilities": [
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 2
+			},
+			{
+				"key": "WISDOM",
+				"name": "Мудрость",
+				"shortName": "Мдр",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Приключения",
+			"order": 1
+		},
+		"source": {
+			"shortName": "EV",
+			"name": "Элементальное зло",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-aarakocra.webp"
+	},
+	{
+		"name": {
+			"rus": "Ааракокра",
+			"eng": "Aarakocra MPMM"
+		},
+		"url": "/races/aarakocra_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-aarakocra-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Аасимар",
+			"eng": "Aasimar"
+		},
+		"url": "/races/aasimar",
+		"abilities": [
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 2
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "VGM",
+			"name": "Справочник Воло по монстрам",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Аасимар (защитник)",
+					"eng": "Protector"
+				},
+				"url": "/races/aasimar/protector",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "VGM",
+					"name": "Справочник Воло по монстрам",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-aasimar.webp"
+			},
+			{
+				"name": {
+					"rus": "Аасимар (каратель)",
+					"eng": "Scourge"
+				},
+				"url": "/races/aasimar/scourge",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "VGM",
+					"name": "Справочник Воло по монстрам",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-aasimar.webp"
+			},
+			{
+				"name": {
+					"rus": "Аасимар (павший)",
+					"eng": "Fallen"
+				},
+				"url": "/races/aasimar/fallen",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "VGM",
+					"name": "Справочник Воло по монстрам",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-aasimar.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-aasimar.webp"
+	},
+	{
+		"name": {
+			"rus": "Аасимар",
+			"eng": "Aasimar MPMM"
+		},
+		"url": "/races/aasimar_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-aasimar-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Авен",
+			"eng": "Aven"
+		},
+		"url": "/races/aven",
+		"abilities": [
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 2
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "PSA",
+			"name": "Plane Shift: Амонхет",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Ибисоголовый",
+					"eng": "Ibis-Headed"
+				},
+				"url": "/races/aven/ibis-headed",
+				"abilities": [
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 1
+					},
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "PSA",
+					"name": "Plane Shift: Амонхет",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-aven.webp"
+			},
+			{
+				"name": {
+					"rus": "Ястребоголовый",
+					"eng": "Hawk-Headed"
+				},
+				"url": "/races/aven/hawk-headed",
+				"abilities": [
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 2
+					},
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "PSA",
+					"name": "Plane Shift: Амонхет",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-aven.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-aven.webp"
+	},
+	{
+		"name": {
+			"rus": "Автогном",
+			"eng": "Autognome"
+		},
+		"url": "/races/autognome",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "AAG",
+			"name": "Руководство астрального приключенца",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-autognome.webp"
+	},
+	{
+		"name": {
+			"rus": "Багбир",
+			"eng": "Bugbear"
+		},
+		"url": "/races/bugbear",
+		"abilities": [
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": 2
+			},
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "VGM",
+			"name": "Справочник Воло по монстрам",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-bugbear.webp"
+	},
+	{
+		"name": {
+			"rus": "Багбир",
+			"eng": "Bugbear MPMM"
+		},
+		"url": "/races/bugbear_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-bugbear-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Бирфолк",
+			"eng": "Bearfolk"
+		},
+		"url": "/races/bearfolk",
+		"abilities": [
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": 2
+			}
+		],
+		"type": {
+			"name": "3rd party",
+			"order": 4
+		},
+		"group": {
+			"name": "Расы от третьих лиц",
+			"order": 3
+		},
+		"source": {
+			"shortName": "MHH",
+			"name": "Мидгард Справочник героя",
+			"group": {
+				"name": "Контент от третьих лиц",
+				"shortName": "3rd"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Бирфолк (гризлишкурый)",
+					"eng": "Grizzlyfur"
+				},
+				"url": "/races/bearfolk/grizzlyfur",
+				"abilities": [
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 2
+					},
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "MHH",
+					"name": "Мидгард Справочник героя",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-bearfolk.webp"
+			},
+			{
+				"name": {
+					"rus": "Бирфолк (очищенный)",
+					"eng": "Refined"
+				},
+				"url": "/races/bearfolk/refined",
+				"abilities": [
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "MHH",
+					"name": "Мидгард Справочник героя",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-bearfolk.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-bearfolk.webp"
+	},
+	{
+		"name": {
+			"rus": "Ведалкен",
+			"eng": "Vedalken"
+		},
+		"url": "/races/vedalken",
+		"abilities": [
+			{
+				"key": "INTELLIGENCE",
+				"name": "Интеллект",
+				"shortName": "Инт",
+				"value": 2
+			},
+			{
+				"key": "WISDOM",
+				"name": "Мудрость",
+				"shortName": "Мдр",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "GGR",
+			"name": "Справочник гильдмастера по Равнике",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-vedalken.webp"
+	},
+	{
+		"name": {
+			"rus": "Вердан",
+			"eng": "Verdan"
+		},
+		"url": "/races/verdan",
+		"abilities": [
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 2
+			},
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Приключения",
+			"order": 1
+		},
+		"source": {
+			"shortName": "AI",
+			"name": "Корпорация приобретений",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-verdan.webp"
+	},
+	{
+		"name": {
+			"rus": "Возрождённый",
+			"eng": "Reborn"
+		},
+		"url": "/races/reborn",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"group": {
+			"name": "Происхождения",
+			"order": 0
+		},
+		"source": {
+			"shortName": "VRGR",
+			"name": "Руководство ван Рихтена по Равенлофту",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-reborn.webp"
+	},
+	{
+		"name": {
+			"rus": "Гибрид Симиков",
+			"eng": "Simic Hybrid"
+		},
+		"url": "/races/simic_hybrid",
+		"abilities": [
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 2
+			},
+			{
+				"key": "CHOICE",
+				"name": "к другой",
+				"shortName": "к другой",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "GGR",
+			"name": "Справочник гильдмастера по Равнике",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-simic-hybrid.webp"
+	},
+	{
+		"name": {
+			"rus": "Гит",
+			"eng": "Gith"
+		},
+		"url": "/races/gith",
+		"abilities": [
+			{
+				"key": "INTELLIGENCE",
+				"name": "Интеллект",
+				"shortName": "Инт",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "MTF",
+			"name": "Том Морденкайнена о врагах",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Гитъянки",
+					"eng": "Githyanki"
+				},
+				"url": "/races/gith/githyanki",
+				"abilities": [
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 2
+					},
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "MTF",
+					"name": "Том Морденкайнена о врагах",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-gith.webp"
+			},
+			{
+				"name": {
+					"rus": "Гитцераи",
+					"eng": "Githzerai"
+				},
+				"url": "/races/gith/githzerai",
+				"abilities": [
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 2
+					},
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "MTF",
+					"name": "Том Морденкайнена о врагах",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-gith.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-gith.webp"
+	},
+	{
+		"name": {
+			"rus": "Гитцераи",
+			"eng": "Githzerai MPMM"
+		},
+		"url": "/races/githzerai_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-githzerai-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Гитъянки",
+			"eng": "Githyanki MPMM"
+		},
+		"url": "/races/githyanki_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-githyanki-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Гифф",
+			"eng": "Giff"
+		},
+		"url": "/races/giff",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "AAG",
+			"name": "Руководство астрального приключенца",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-giff.webp"
+	},
+	{
+		"name": {
+			"rus": "Глубинный гном",
+			"eng": "Deep Gnome MPMM"
+		},
+		"url": "/races/deep_gnome_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-deep-gnome-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Глючный",
+			"eng": "Glitchling"
+		},
+		"url": "/races/glitchling",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Unearthed Arcana",
+			"order": 3
+		},
+		"group": {
+			"name": "Расы Unearthed Arcana",
+			"order": 2
+		},
+		"source": {
+			"shortName": "UA22WotM",
+			"name": "Unearthed Arcana: Чудеса Мультивселенной",
+			"group": {
+				"name": "Тестовый материал",
+				"shortName": "UA"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-glitchling.webp"
+	},
+	{
+		"name": {
+			"rus": "Гнолл",
+			"eng": "Gnoll"
+		},
+		"url": "/races/gnoll",
+		"abilities": [
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": 2
+			}
+		],
+		"type": {
+			"name": "3rd party",
+			"order": 4
+		},
+		"group": {
+			"name": "Расы от третьих лиц",
+			"order": 3
+		},
+		"source": {
+			"shortName": "MHH",
+			"name": "Мидгард Справочник героя",
+			"group": {
+				"name": "Контент от третьих лиц",
+				"shortName": "3rd"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Гнолл (цивилизованный)",
+					"eng": "Civilized"
+				},
+				"url": "/races/gnoll/civilized",
+				"abilities": [
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 2
+					},
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "MHH",
+					"name": "Мидгард Справочник героя",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-gnoll.webp"
+			},
+			{
+				"name": {
+					"rus": "Гнолл (дикий)",
+					"eng": "Wild"
+				},
+				"url": "/races/gnoll/wild",
+				"abilities": [
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "MHH",
+					"name": "Мидгард Справочник героя",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-gnoll.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-gnoll.webp"
+	},
+	{
+		"name": {
+			"rus": "Гном",
+			"eng": "Gnome"
+		},
+		"url": "/races/gnome",
+		"abilities": [
+			{
+				"key": "INTELLIGENCE",
+				"name": "Интеллект",
+				"shortName": "Инт",
+				"value": 2
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Гном (лесной)",
+					"eng": "Forest"
+				},
+				"url": "/races/gnome/forest",
+				"abilities": [
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 2
+					},
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "PHB",
+					"name": "Книга игрока",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-gnome.webp"
+			},
+			{
+				"name": {
+					"rus": "Гном (скальный)",
+					"eng": "Rock"
+				},
+				"url": "/races/gnome/rock",
+				"abilities": [
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 2
+					},
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "PHB",
+					"name": "Книга игрока",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-gnome.webp"
+			},
+			{
+				"name": {
+					"rus": "Гном (глубинный)",
+					"eng": "Deep"
+				},
+				"url": "/races/gnome/deep",
+				"abilities": [
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 2
+					},
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Приключения",
+					"order": 1
+				},
+				"source": {
+					"shortName": "EV",
+					"name": "Элементальное зло",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-gnome.webp"
+			},
+			{
+				"name": {
+					"rus": "Гном (из Ниймхейма)",
+					"eng": "Nyheim"
+				},
+				"url": "/races/gnome/nyheim",
+				"abilities": [
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 2
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "MHH",
+					"name": "Мидгард Справочник героя",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-gnome.webp"
+			},
+			{
+				"name": {
+					"rus": "Гном (метка письма)",
+					"eng": "Mark of Scribing"
+				},
+				"url": "/races/gnome/mark_of_scribing",
+				"abilities": [
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 2
+					},
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "ERLW",
+					"name": "Эберрон. Из пепла Последней войны",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-gnome.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-gnome.webp"
+	},
+	{
+		"name": {
+			"rus": "Гоблин",
+			"eng": "Goblin"
+		},
+		"url": "/races/goblin",
+		"abilities": [
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 2
+			},
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "VGM",
+			"name": "Справочник Воло по монстрам",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+
+		],
+		"image": "https://img.ttg.club/races/background/race-goblin.webp"
+	},
+	{
+		"name": {
+			"rus": "Гоблин",
+			"eng": "Goblin MPMM"
+		},
+		"url": "/races/goblin_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-goblin-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Голиаф",
+			"eng": "Goliath"
+		},
+		"url": "/races/goliath",
+		"abilities": [
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": 2
+			},
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "VGM",
+			"name": "Справочник Воло по монстрам",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-goliath.webp"
+	},
+	{
+		"name": {
+			"rus": "Голиаф",
+			"eng": "Goliath MPMM"
+		},
+		"url": "/races/goliath_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-goliath-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Грибнит",
+			"eng": "Mushroom"
+		},
+		"url": "/races/mushroom",
+		"abilities": [
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 2
+			},
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Homebrew",
+			"order": 5
+		},
+		"group": {
+			"name": "Расы Homebrew",
+			"order": 4
+		},
+		"source": {
+			"shortName": "PG",
+			"name": "Путеводитель игрока: Прорастающий хаос",
+			"group": {
+				"name": "Хомбрю ",
+				"shortName": "HB"
+			},
+			"homebrew": true
+		},
+		"image": "https://img.ttg.club/races/background/race-mushroom.webp"
+	},
+	{
+		"name": {
+			"rus": "Грунг",
+			"eng": "Grung"
+		},
+		"url": "/races/grung",
+		"abilities": [
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 2
+			},
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "OGA",
+			"name": "Один грунг выше",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-grung.webp"
+	},
+	{
+		"name": {
+			"rus": "Дампир",
+			"eng": "Dhampir"
+		},
+		"url": "/races/dhampir",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"group": {
+			"name": "Происхождения",
+			"order": 0
+		},
+		"source": {
+			"shortName": "VRGR",
+			"name": "Руководство ван Рихтена по Равенлофту",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-dhampir.webp"
+	},
+	{
+		"name": {
+			"rus": "Дампир (из Мидгарда)",
+			"eng": "Dhampir Midgard"
+		},
+		"url": "/races/dhampir_midgard",
+		"abilities": [
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 2
+			},
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "3rd party",
+			"order": 4
+		},
+		"group": {
+			"name": "Расы от третьих лиц",
+			"order": 3
+		},
+		"source": {
+			"shortName": "MHH",
+			"name": "Мидгард Справочник героя",
+			"group": {
+				"name": "Контент от третьих лиц",
+				"shortName": "3rd"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-dhampir-midgard.webp"
+	},
+	{
+		"name": {
+			"rus": "Дварф",
+			"eng": "Dwarf"
+		},
+		"url": "/races/dwarf",
+		"abilities": [
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 2
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Дварф (горный)",
+					"eng": "Mountain"
+				},
+				"url": "/races/dwarf/mountain",
+				"abilities": [
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 2
+					},
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 2
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "PHB",
+					"name": "Книга игрока",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-dwarf.webp"
+			},
+			{
+				"name": {
+					"rus": "Дварф (холмовой)",
+					"eng": "Hil"
+				},
+				"url": "/races/dwarf/hil",
+				"abilities": [
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "PHB",
+					"name": "Книга игрока",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-dwarf.webp"
+			},
+			{
+				"name": {
+					"rus": "Дварф (дуэргар)",
+					"eng": "Duergar"
+				},
+				"url": "/races/dwarf/duergar",
+				"abilities": [
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 2
+					},
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "MTF",
+					"name": "Том Морденкайнена о врагах",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-dwarf.webp"
+			},
+			{
+				"name": {
+					"rus": "Дварф (метка опеки)",
+					"eng": "Mark of Warding"
+				},
+				"url": "/races/dwarf/mark_of_warding",
+				"abilities": [
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 2
+					},
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "ERLW",
+					"name": "Эберрон. Из пепла Последней войны",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-dwarf.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-dwarf.webp"
+	},
+	{
+		"name": {
+			"rus": "Дженази",
+			"eng": "Genasi"
+		},
+		"url": "/races/genasi",
+		"abilities": [
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 2
+			}
+		],
+		"type": {
+			"name": "Приключения",
+			"order": 1
+		},
+		"source": {
+			"shortName": "EV",
+			"name": "Элементальное зло",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Дженази (воздушный)",
+					"eng": "Air"
+				},
+				"url": "/races/genasi/air",
+				"abilities": [
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 2
+					},
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Приключения",
+					"order": 1
+				},
+				"source": {
+					"shortName": "EV",
+					"name": "Элементальное зло",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-genasi.webp"
+			},
+			{
+				"name": {
+					"rus": "Дженази (земляной)",
+					"eng": "Earth"
+				},
+				"url": "/races/genasi/earth",
+				"abilities": [
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 2
+					},
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Приключения",
+					"order": 1
+				},
+				"source": {
+					"shortName": "EV",
+					"name": "Элементальное зло",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-genasi.webp"
+			},
+			{
+				"name": {
+					"rus": "Дженази (огненный)",
+					"eng": "Fire"
+				},
+				"url": "/races/genasi/fire",
+				"abilities": [
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 2
+					},
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Приключения",
+					"order": 1
+				},
+				"source": {
+					"shortName": "EV",
+					"name": "Элементальное зло",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-genasi.webp"
+			},
+			{
+				"name": {
+					"rus": "Дженази (водный)",
+					"eng": "Water"
+				},
+				"url": "/races/genasi/water",
+				"abilities": [
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Приключения",
+					"order": 1
+				},
+				"source": {
+					"shortName": "EV",
+					"name": "Элементальное зло",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-genasi.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-genasi.webp"
+	},
+	{
+		"name": {
+			"rus": "Дженази воды",
+			"eng": "Genasi Water MPMM"
+		},
+		"url": "/races/genasi_water_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-genasi-water-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Дженази воздуха",
+			"eng": "Genasi Air MPMM"
+		},
+		"url": "/races/genasi_air_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-genasi-air-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Дженази земли",
+			"eng": "Genasi Earthr MPMM"
+		},
+		"url": "/races/genasi_earthr_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-genasi-earthr-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Дженази огня",
+			"eng": "Genasi Fair MPMM"
+		},
+		"url": "/races/genasi_fair_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-genasi-fair-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Драконорождённый",
+			"eng": "Dragonborn"
+		},
+		"url": "/races/dragonborn",
+		"abilities": [
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": 2
+			},
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Драконорождённый (цветной)",
+					"eng": "Chromatic"
+				},
+				"url": "/races/dragonborn/chromatic",
+				"abilities": [
+					{
+						"key": "CHOICE_DOUBLE",
+						"name": "+2 и +1 / +1 к трем",
+						"shortName": "+2 и +1 / +1 к трем",
+						"value": 0
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "FTD",
+					"name": "Сокровищница драконов Фицбана",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-dragonborn.webp"
+			},
+			{
+				"name": {
+					"rus": "Драконорождённый (драгоцветный)",
+					"eng": "Gem"
+				},
+				"url": "/races/dragonborn/gem",
+				"abilities": [
+					{
+						"key": "CHOICE_DOUBLE",
+						"name": "+2 и +1 / +1 к трем",
+						"shortName": "+2 и +1 / +1 к трем",
+						"value": 0
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "FTD",
+					"name": "Сокровищница драконов Фицбана",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-dragonborn.webp"
+			},
+			{
+				"name": {
+					"rus": "Драконорождённый (металлический)",
+					"eng": "Metallic"
+				},
+				"url": "/races/dragonborn/metallic",
+				"abilities": [
+					{
+						"key": "CHOICE_DOUBLE",
+						"name": "+2 и +1 / +1 к трем",
+						"shortName": "+2 и +1 / +1 к трем",
+						"value": 0
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "FTD",
+					"name": "Сокровищница драконов Фицбана",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-dragonborn.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-dragonborn.webp"
+	},
+	{
+		"name": {
+			"rus": "Дуэргар",
+			"eng": "Duergar MPMM"
+		},
+		"url": "/races/duergar_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-duergar-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Изменяющиеся",
+			"eng": "Changeling"
+		},
+		"url": "/races/changeling",
+		"abilities": [
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 2
+			},
+			{
+				"key": "CHOICE",
+				"name": "к другой",
+				"shortName": "к другой",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "ERLW",
+			"name": "Эберрон. Из пепла Последней войны",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-changeling.webp"
+	},
+	{
+		"name": {
+			"rus": "Изменяющийся",
+			"eng": "Changeling MPMM"
+		},
+		"url": "/races/changeling_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-changeling-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Калаштар",
+			"eng": "Kalashtar"
+		},
+		"url": "/races/kalashtar",
+		"abilities": [
+			{
+				"key": "WISDOM",
+				"name": "Мудрость",
+				"shortName": "Мдр",
+				"value": 2
+			},
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "ERLW",
+			"name": "Эберрон. Из пепла Последней войны",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-kalashtar.webp"
+	},
+	{
+		"name": {
+			"rus": "Кендер",
+			"eng": "Kender"
+		},
+		"url": "/races/kender",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Приключения",
+			"order": 1
+		},
+		"source": {
+			"shortName": "DSotDQ",
+			"name": "Драконье копье: Тень Королевы Драконов",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-kender.webp"
+	},
+	{
+		"name": {
+			"rus": "Кенку",
+			"eng": "Kenku"
+		},
+		"url": "/races/kenku",
+		"abilities": [
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 2
+			},
+			{
+				"key": "WISDOM",
+				"name": "Мудрость",
+				"shortName": "Мдр",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "VGM",
+			"name": "Справочник Воло по монстрам",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-kenku.webp"
+	},
+	{
+		"name": {
+			"rus": "Кенку",
+			"eng": "Kenku MPMM"
+		},
+		"url": "/races/kenku_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-kenku-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Кентавр",
+			"eng": "Centaur"
+		},
+		"url": "/races/centaur",
+		"abilities": [
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": 2
+			},
+			{
+				"key": "WISDOM",
+				"name": "Мудрость",
+				"shortName": "Мдр",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "GGR",
+			"name": "Справочник гильдмастера по Равнике",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Кентавр  (из Мидгарда)",
+					"eng": "Centaur HH"
+				},
+				"url": "/races/centaur/centaur_hh",
+				"abilities": [
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "MHH",
+					"name": "Мидгард Справочник героя",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-centaur.webp"
+			},
+			{
+				"name": {
+					"rus": "Кентавр  (из Одиссеи)",
+					"eng": "Centaur ODL"
+				},
+				"url": "/races/centaur/centaur_odl",
+				"abilities": [
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "ODL",
+					"name": "Одиссея Повелителей драконов",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-centaur.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-centaur.webp"
+	},
+	{
+		"name": {
+			"rus": "Кентавр",
+			"eng": "Centaur MPMM"
+		},
+		"url": "/races/centaur_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-centaur-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Кобольд",
+			"eng": "Kobold"
+		},
+		"url": "/races/kobold",
+		"abilities": [
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 2
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "VGM",
+			"name": "Справочник Воло по монстрам",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Кобольд (из Мидгарда)",
+					"eng": "Kobold Midgard"
+				},
+				"url": "/races/kobold/kobold_midgard",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "MHH",
+					"name": "Мидгард Справочник героя",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-kobold.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-kobold.webp"
+	},
+	{
+		"name": {
+			"rus": "Кобольд",
+			"eng": "Kobold MPMM"
+		},
+		"url": "/races/kobold_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-kobold-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Кованый",
+			"eng": "Warforged"
+		},
+		"url": "/races/warforged",
+		"abilities": [
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 2
+			},
+			{
+				"key": "CHOICE",
+				"name": "к другой",
+				"shortName": "к другой",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "ERLW",
+			"name": "Эберрон. Из пепла Последней войны",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Кованый  (из Мидгарда)",
+					"eng": "Warforged HH"
+				},
+				"url": "/races/warforged/warforged_hh",
+				"abilities": [
+					{
+						"key": "CHOICE_UNIQUE",
+						"name": "к 2 другим",
+						"shortName": "к 2 другим",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "MHH",
+					"name": "Мидгард Справочник героя",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-warforged.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-warforged.webp"
+	},
+	{
+		"name": {
+			"rus": "Леонин",
+			"eng": "Leonin"
+		},
+		"url": "/races/leonin",
+		"abilities": [
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 2
+			},
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "MOT",
+			"name": "Мифические одиссеи Тероса",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-leonin.webp"
+	},
+	{
+		"name": {
+			"rus": "Локата",
+			"eng": "Locathah"
+		},
+		"url": "/races/locathah",
+		"abilities": [
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": 2
+			},
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Приключения",
+			"order": 1
+		},
+		"source": {
+			"shortName": "LR",
+			"name": "Восстание Локат",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-locathah.webp"
+	},
+	{
+		"name": {
+			"rus": "Локсодон",
+			"eng": "Loxodon"
+		},
+		"url": "/races/loxodon",
+		"abilities": [
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 2
+			},
+			{
+				"key": "WISDOM",
+				"name": "Мудрость",
+				"shortName": "Мдр",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "GGR",
+			"name": "Справочник гильдмастера по Равнике",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-loxodon.webp"
+	},
+	{
+		"name": {
+			"rus": "Людоящер",
+			"eng": "Lizardfolk"
+		},
+		"url": "/races/lizardfolk",
+		"abilities": [
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 2
+			},
+			{
+				"key": "WISDOM",
+				"name": "Мудрость",
+				"shortName": "Мдр",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "VGM",
+			"name": "Справочник Воло по монстрам",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-lizardfolk.webp"
+	},
+	{
+		"name": {
+			"rus": "Людоящер",
+			"eng": "Lizardfolk MPMM"
+		},
+		"url": "/races/lizardfolk_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-lizardfolk-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Медуза",
+			"eng": "Medusa"
+		},
+		"url": "/races/medusa",
+		"abilities": [
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 2
+			},
+			{
+				"key": "INTELLIGENCE",
+				"name": "Интеллект",
+				"shortName": "Инт",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "3rd party",
+			"order": 4
+		},
+		"group": {
+			"name": "Расы от третьих лиц",
+			"order": 3
+		},
+		"source": {
+			"shortName": "ODL",
+			"name": "Одиссея Повелителей драконов",
+			"group": {
+				"name": "Контент от третьих лиц",
+				"shortName": "3rd"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-medusa.webp"
+	},
+	{
+		"name": {
+			"rus": "Минотавр",
+			"eng": "Minotaur"
+		},
+		"url": "/races/minotaur",
+		"abilities": [
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": 2
+			},
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "GGR",
+			"name": "Справочник гильдмастера по Равнике",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Минотавр (из Мидгарда)",
+					"eng": "Minotaur HH"
+				},
+				"url": "/races/minotaur/minotaur_hh",
+				"abilities": [
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 2
+					},
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "MHH",
+					"name": "Мидгард Справочник героя",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-minotaur.webp"
+			},
+			{
+				"name": {
+					"rus": "Минотавр (из Одиссеи)",
+					"eng": "Minotaur ODL"
+				},
+				"url": "/races/minotaur/minotaur_odl",
+				"abilities": [
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 2
+					},
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "ODL",
+					"name": "Одиссея Повелителей драконов",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-minotaur.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-minotaur.webp"
+	},
+	{
+		"name": {
+			"rus": "Минотавр",
+			"eng": "Minotaur MPMM"
+		},
+		"url": "/races/minotaur_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-minotaur-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Морской эльф",
+			"eng": "Sea Elf MPMM"
+		},
+		"url": "/races/sea_elf_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-sea-elf-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Нага",
+			"eng": "Naga"
+		},
+		"url": "/races/naga",
+		"abilities": [
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 2
+			},
+			{
+				"key": "INTELLIGENCE",
+				"name": "Интеллект",
+				"shortName": "Инт",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "PSA",
+			"name": "Plane Shift: Амонхет",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-naga.webp"
+	},
+	{
+		"name": {
+			"rus": "Нежить",
+			"eng": "Undead"
+		},
+		"url": "/races/undead",
+		"abilities": [
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Homebrew",
+			"order": 5
+		},
+		"group": {
+			"name": "Расы Homebrew",
+			"order": 4
+		},
+		"source": {
+			"shortName": "DMGi",
+			"name": "Гильдия Мастеров Подземелья",
+			"group": {
+				"name": "Хомбрю ",
+				"shortName": "HB"
+			},
+			"homebrew": true
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Нежить (скелет)",
+					"eng": "Skeleton"
+				},
+				"url": "/races/undead/skeleton",
+				"abilities": [
+
+				],
+				"type": {
+					"name": "Homebrew",
+					"order": 5
+				},
+				"group": {
+					"name": "Расы Homebrew",
+					"order": 4
+				},
+				"source": {
+					"shortName": "DMGi",
+					"name": "Гильдия Мастеров Подземелья",
+					"group": {
+						"name": "Хомбрю ",
+						"shortName": "HB"
+					},
+					"homebrew": true
+				},
+				"image": "https://img.ttg.club/races/background/race-undead.webp"
+			},
+			{
+				"name": {
+					"rus": "Нежить (восставший [ревенант])",
+					"eng": "Revenant"
+				},
+				"url": "/races/undead/revenant",
+				"abilities": [
+
+				],
+				"type": {
+					"name": "Homebrew",
+					"order": 5
+				},
+				"group": {
+					"name": "Расы Homebrew",
+					"order": 4
+				},
+				"source": {
+					"shortName": "DMGi",
+					"name": "Гильдия Мастеров Подземелья",
+					"group": {
+						"name": "Хомбрю ",
+						"shortName": "HB"
+					},
+					"homebrew": true
+				},
+				"image": "https://img.ttg.club/races/background/race-undead.webp"
+			},
+			{
+				"name": {
+					"rus": "Нежить (гуль)",
+					"eng": "Ghoul"
+				},
+				"url": "/races/undead/ghoul",
+				"abilities": [
+
+				],
+				"type": {
+					"name": "Homebrew",
+					"order": 5
+				},
+				"group": {
+					"name": "Расы Homebrew",
+					"order": 4
+				},
+				"source": {
+					"shortName": "DMGi",
+					"name": "Гильдия Мастеров Подземелья",
+					"group": {
+						"name": "Хомбрю ",
+						"shortName": "HB"
+					},
+					"homebrew": true
+				},
+				"image": "https://img.ttg.club/races/background/race-undead.webp"
+			},
+			{
+				"name": {
+					"rus": "Нежить (мумия)",
+					"eng": "Mummy"
+				},
+				"url": "/races/undead/mummy",
+				"abilities": [
+
+				],
+				"type": {
+					"name": "Homebrew",
+					"order": 5
+				},
+				"group": {
+					"name": "Расы Homebrew",
+					"order": 4
+				},
+				"source": {
+					"shortName": "DMGi",
+					"name": "Гильдия Мастеров Подземелья",
+					"group": {
+						"name": "Хомбрю ",
+						"shortName": "HB"
+					},
+					"homebrew": true
+				},
+				"image": "https://img.ttg.club/races/background/race-undead.webp"
+			},
+			{
+				"name": {
+					"rus": "Нежить (призрак)",
+					"eng": "Ghost"
+				},
+				"url": "/races/undead/ghost",
+				"abilities": [
+
+				],
+				"type": {
+					"name": "Homebrew",
+					"order": 5
+				},
+				"group": {
+					"name": "Расы Homebrew",
+					"order": 4
+				},
+				"source": {
+					"shortName": "DMGi",
+					"name": "Гильдия Мастеров Подземелья",
+					"group": {
+						"name": "Хомбрю ",
+						"shortName": "HB"
+					},
+					"homebrew": true
+				},
+				"image": "https://img.ttg.club/races/background/race-undead.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-undead.webp"
+	},
+	{
+		"name": {
+			"rus": "Нимфа",
+			"eng": "Nymph"
+		},
+		"url": "/races/nymph",
+		"abilities": [
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 2
+			},
+			{
+				"key": "WISDOM",
+				"name": "Мудрость",
+				"shortName": "Мдр",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "3rd party",
+			"order": 4
+		},
+		"group": {
+			"name": "Расы от третьих лиц",
+			"order": 3
+		},
+		"source": {
+			"shortName": "ODL",
+			"name": "Одиссея Повелителей драконов",
+			"group": {
+				"name": "Контент от третьих лиц",
+				"shortName": "3rd"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Нимфа (аура)",
+					"eng": "Aura"
+				},
+				"url": "/races/nymph/aura",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "ODL",
+					"name": "Одиссея Повелителей драконов",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-nymph.webp"
+			},
+			{
+				"name": {
+					"rus": "Нимфа (дриада)",
+					"eng": "Dryad"
+				},
+				"url": "/races/nymph/dryad",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "ODL",
+					"name": "Одиссея Повелителей драконов",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-nymph.webp"
+			},
+			{
+				"name": {
+					"rus": "Нимфа (наяда)",
+					"eng": "Naiad"
+				},
+				"url": "/races/nymph/naiad",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "ODL",
+					"name": "Одиссея Повелителей драконов",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-nymph.webp"
+			},
+			{
+				"name": {
+					"rus": "Нимфа (нереида)",
+					"eng": "Nereid"
+				},
+				"url": "/races/nymph/nereid",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "ODL",
+					"name": "Одиссея Повелителей драконов",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-nymph.webp"
+			},
+			{
+				"name": {
+					"rus": "Нимфа (ореада)",
+					"eng": "Oreada"
+				},
+				"url": "/races/nymph/oreada",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "ODL",
+					"name": "Одиссея Повелителей драконов",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-nymph.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-nymph.webp"
+	},
+	{
+		"name": {
+			"rus": "Орк",
+			"eng": "Orc"
+		},
+		"url": "/races/orc",
+		"abilities": [
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": 2
+			},
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "VGM",
+			"name": "Справочник Воло по монстрам",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-orc.webp"
+	},
+	{
+		"name": {
+			"rus": "Орк",
+			"eng": "Orc MPMM"
+		},
+		"url": "/races/orc_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-orc-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Плазмоид",
+			"eng": "Plasmoid"
+		},
+		"url": "/races/plasmoid",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "AAG",
+			"name": "Руководство астрального приключенца",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-plasmoid.webp"
+	},
+	{
+		"name": {
+			"rus": "Полуорк",
+			"eng": "Half-Orc"
+		},
+		"url": "/races/half-orc",
+		"abilities": [
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": 2
+			},
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Полуорк (метка поиска)",
+					"eng": "Mark of Finding"
+				},
+				"url": "/races/half-orc/mark_of_finding",
+				"abilities": [
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 2
+					},
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "ERLW",
+					"name": "Эберрон. Из пепла Последней войны",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-half-orc.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-half-orc.webp"
+	},
+	{
+		"name": {
+			"rus": "Полурослик",
+			"eng": "Halfling"
+		},
+		"url": "/races/halfling",
+		"abilities": [
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 2
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Полурослик (коренастый)",
+					"eng": "Stout"
+				},
+				"url": "/races/halfling/stout",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "PHB",
+					"name": "Книга игрока",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-halfling.webp"
+			},
+			{
+				"name": {
+					"rus": "Полурослик (легконогий)",
+					"eng": "Lightfoot"
+				},
+				"url": "/races/halfling/lightfoot",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "PHB",
+					"name": "Книга игрока",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-halfling.webp"
+			},
+			{
+				"name": {
+					"rus": "Полурослик (винтерфолк)",
+					"eng": "Winterfolk"
+				},
+				"url": "/races/halfling/winterfolk",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "MHH",
+					"name": "Мидгард Справочник героя",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-halfling.webp"
+			},
+			{
+				"name": {
+					"rus": "Полурослик (призрачный)",
+					"eng": "Ghostwise"
+				},
+				"url": "/races/halfling/ghostwise",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "SCAG",
+					"name": "Путеводитель приключенца по Побережью меча",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-halfling.webp"
+			},
+			{
+				"name": {
+					"rus": "Полурослик (метка исцеления)",
+					"eng": "Mark of Healing"
+				},
+				"url": "/races/halfling/mark_of_healing",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "ERLW",
+					"name": "Эберрон. Из пепла Последней войны",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-halfling.webp"
+			},
+			{
+				"name": {
+					"rus": "Полурослик (метка гостеприимства)",
+					"eng": "Mark of Hospitality"
+				},
+				"url": "/races/halfling/mark_of_hospitality",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "ERLW",
+					"name": "Эберрон. Из пепла Последней войны",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-halfling.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-halfling.webp"
+	},
+	{
+		"name": {
+			"rus": "Полуэльф",
+			"eng": "Half-Elf"
+		},
+		"url": "/races/half-elf",
+		"abilities": [
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 2
+			},
+			{
+				"key": "CHOICE_UNIQUE",
+				"name": "к 2 другим",
+				"shortName": "к 2 другим",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Полуэльф тёмный (полудроу)",
+					"eng": "Half drow"
+				},
+				"url": "/races/half-elf/half_drow",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "CHOICE_UNIQUE",
+						"name": "к 2 другим",
+						"shortName": "к 2 другим",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "SCAG",
+					"name": "Путеводитель приключенца по Побережью меча",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-half-elf.webp"
+			},
+			{
+				"name": {
+					"rus": "Полуэльф (лесной)",
+					"eng": "Forest"
+				},
+				"url": "/races/half-elf/forest",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "CHOICE_UNIQUE",
+						"name": "к 2 другим",
+						"shortName": "к 2 другим",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "SCAG",
+					"name": "Путеводитель приключенца по Побережью меча",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-half-elf.webp"
+			},
+			{
+				"name": {
+					"rus": "Полуэльф (водный)",
+					"eng": "Water"
+				},
+				"url": "/races/half-elf/water",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "CHOICE_UNIQUE",
+						"name": "к 2 другим",
+						"shortName": "к 2 другим",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "SCAG",
+					"name": "Путеводитель приключенца по Побережью меча",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-half-elf.webp"
+			},
+			{
+				"name": {
+					"rus": "Полуэльф (метка обнаружения)",
+					"eng": "Variant Mark of Detection"
+				},
+				"url": "/races/half-elf/variant_mark_of_detection",
+				"abilities": [
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 2
+					},
+					{
+						"key": "CHOICE",
+						"name": "к другой",
+						"shortName": "к другой",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "ERLW",
+					"name": "Эберрон. Из пепла Последней войны",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-half-elf.webp"
+			},
+			{
+				"name": {
+					"rus": "Полуэльф (метка бури)",
+					"eng": "Mark of Storm"
+				},
+				"url": "/races/half-elf/mark_of_storm",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "ERLW",
+					"name": "Эберрон. Из пепла Последней войны",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-half-elf.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-half-elf.webp"
+	},
+	{
+		"name": {
+			"rus": "Порчекровные",
+			"eng": "Hexblood"
+		},
+		"url": "/races/hexblood",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"group": {
+			"name": "Происхождения",
+			"order": 0
+		},
+		"source": {
+			"shortName": "VRGR",
+			"name": "Руководство ван Рихтена по Равенлофту",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-hexblood.webp"
+	},
+	{
+		"name": {
+			"rus": "Пробужденный",
+			"eng": "Awakened"
+		},
+		"url": "/races/awakened",
+		"abilities": [
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 2
+			},
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Homebrew",
+			"order": 5
+		},
+		"group": {
+			"name": "Расы Homebrew",
+			"order": 4
+		},
+		"source": {
+			"shortName": "PG",
+			"name": "Путеводитель игрока: Прорастающий хаос",
+			"group": {
+				"name": "Хомбрю ",
+				"shortName": "HB"
+			},
+			"homebrew": true
+		},
+		"image": "https://img.ttg.club/races/background/race-awakened.webp"
+	},
+	{
+		"name": {
+			"rus": "Рэвенфолк",
+			"eng": "Ravenfolk"
+		},
+		"url": "/races/ravenfolk",
+		"abilities": [
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 2
+			},
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "3rd party",
+			"order": 4
+		},
+		"group": {
+			"name": "Расы от третьих лиц",
+			"order": 3
+		},
+		"source": {
+			"shortName": "MHH",
+			"name": "Мидгард Справочник героя",
+			"group": {
+				"name": "Контент от третьих лиц",
+				"shortName": "3rd"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-ravenfolk.webp"
+	},
+	{
+		"name": {
+			"rus": "Рэтфолк",
+			"eng": "Ratfolk"
+		},
+		"url": "/races/ratfolk",
+		"abilities": [
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 2
+			},
+			{
+				"key": "INTELLIGENCE",
+				"name": "Интеллект",
+				"shortName": "Инт",
+				"value": 1
+			},
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": -2
+			}
+		],
+		"type": {
+			"name": "3rd party",
+			"order": 4
+		},
+		"group": {
+			"name": "Расы от третьих лиц",
+			"order": 3
+		},
+		"source": {
+			"shortName": "MHH",
+			"name": "Мидгард Справочник героя",
+			"group": {
+				"name": "Контент от третьих лиц",
+				"shortName": "3rd"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-ratfolk.webp"
+	},
+	{
+		"name": {
+			"rus": "Сатир",
+			"eng": "Satyr ODL"
+		},
+		"url": "/races/satyr_odl",
+		"abilities": [
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 2
+			},
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "3rd party",
+			"order": 4
+		},
+		"group": {
+			"name": "Расы от третьих лиц",
+			"order": 3
+		},
+		"source": {
+			"shortName": "ODL",
+			"name": "Одиссея Повелителей драконов",
+			"group": {
+				"name": "Контент от третьих лиц",
+				"shortName": "3rd"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-satyr-odl.webp"
+	},
+	{
+		"name": {
+			"rus": "Сатир",
+			"eng": "Satyr"
+		},
+		"url": "/races/satyr",
+		"abilities": [
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 2
+			},
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "MOT",
+			"name": "Мифические одиссеи Тероса",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-satyr.webp"
+	},
+	{
+		"name": {
+			"rus": "Сатир",
+			"eng": "Satyr MPMM"
+		},
+		"url": "/races/satyr_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-satyr-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Свежеватель разума",
+			"eng": "Mindflayer"
+		},
+		"url": "/races/mindflayer",
+		"abilities": [
+			{
+				"key": "INTELLIGENCE",
+				"name": "Интеллект",
+				"shortName": "Инт",
+				"value": 2
+			},
+			{
+				"key": "ONE",
+				"name": "к одной",
+				"shortName": "",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Homebrew",
+			"order": 5
+		},
+		"group": {
+			"name": "Расы Homebrew",
+			"order": 4
+		},
+		"source": {
+			"shortName": "MPRGM",
+			"name": "Свеживатель разума как персонаж игрока",
+			"group": {
+				"name": "Хомбрю ",
+				"shortName": "HB"
+			},
+			"homebrew": true
+		},
+		"image": "https://img.ttg.club/races/background/race-mindflayer.webp"
+	},
+	{
+		"name": {
+			"rus": "Своё происхождение",
+			"eng": "Your Origin"
+		},
+		"url": "/races/your_origin",
+		"abilities": [
+			{
+				"key": "ONE",
+				"name": "к одной",
+				"shortName": "",
+				"value": 2
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Происхождения",
+			"order": 0
+		},
+		"source": {
+			"shortName": "TCE",
+			"name": "Котел Таши со всякой всячиной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-your-origin.webp"
+	},
+	{
+		"name": {
+			"rus": "Сильва",
+			"eng": "Silva"
+		},
+		"url": "/races/silva",
+		"abilities": [
+			{
+				"key": "WISDOM",
+				"name": "Мудрость",
+				"shortName": "Мдр",
+				"value": 2
+			}
+		],
+		"type": {
+			"name": "Homebrew",
+			"order": 5
+		},
+		"group": {
+			"name": "Расы Homebrew",
+			"order": 4
+		},
+		"source": {
+			"shortName": "PG",
+			"name": "Путеводитель игрока: Прорастающий хаос",
+			"group": {
+				"name": "Хомбрю ",
+				"shortName": "HB"
+			},
+			"homebrew": true
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Сильва (лесная)",
+					"eng": "Forest"
+				},
+				"url": "/races/silva/forest",
+				"abilities": [
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 2
+					},
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Homebrew",
+					"order": 5
+				},
+				"group": {
+					"name": "Расы Homebrew",
+					"order": 4
+				},
+				"source": {
+					"shortName": "PG",
+					"name": "Путеводитель игрока: Прорастающий хаос",
+					"group": {
+						"name": "Хомбрю ",
+						"shortName": "HB"
+					},
+					"homebrew": true
+				},
+				"image": "https://img.ttg.club/races/background/race-silva.webp"
+			},
+			{
+				"name": {
+					"rus": "Сильва (из джунглей)",
+					"eng": "Jungle"
+				},
+				"url": "/races/silva/jungle",
+				"abilities": [
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 2
+					},
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Homebrew",
+					"order": 5
+				},
+				"group": {
+					"name": "Расы Homebrew",
+					"order": 4
+				},
+				"source": {
+					"shortName": "PG",
+					"name": "Путеводитель игрока: Прорастающий хаос",
+					"group": {
+						"name": "Хомбрю ",
+						"shortName": "HB"
+					},
+					"homebrew": true
+				},
+				"image": "https://img.ttg.club/races/background/race-silva.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-silva.webp"
+	},
+	{
+		"name": {
+			"rus": "Сирена",
+			"eng": "Siren"
+		},
+		"url": "/races/siren",
+		"abilities": [
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 2
+			},
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "3rd party",
+			"order": 4
+		},
+		"group": {
+			"name": "Расы от третьих лиц",
+			"order": 3
+		},
+		"source": {
+			"shortName": "ODL",
+			"name": "Одиссея Повелителей драконов",
+			"group": {
+				"name": "Контент от третьих лиц",
+				"shortName": "3rd"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-siren.webp"
+	},
+	{
+		"name": {
+			"rus": "Совлин",
+			"eng": "Owlin"
+		},
+		"url": "/races/owlin",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "SCC",
+			"name": "Стриксхейвен: Учебная программа хаоса",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-owlin.webp"
+	},
+	{
+		"name": {
+			"rus": "Табакси",
+			"eng": "Tabaxi"
+		},
+		"url": "/races/tabaxi",
+		"abilities": [
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 2
+			},
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "VGM",
+			"name": "Справочник Воло по монстрам",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-tabaxi.webp"
+	},
+	{
+		"name": {
+			"rus": "Табакси",
+			"eng": "Tabaxi MPMM"
+		},
+		"url": "/races/tabaxi_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-tabaxi-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Теневая фея",
+			"eng": "Shadow fey"
+		},
+		"url": "/races/shadow_fey",
+		"abilities": [
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 2
+			}
+		],
+		"type": {
+			"name": "3rd party",
+			"order": 4
+		},
+		"group": {
+			"name": "Расы от третьих лиц",
+			"order": 3
+		},
+		"source": {
+			"shortName": "MHH",
+			"name": "Мидгард Справочник героя",
+			"group": {
+				"name": "Контент от третьих лиц",
+				"shortName": "3rd"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-shadow-fey.webp"
+	},
+	{
+		"name": {
+			"rus": "Тератект",
+			"eng": "Teratect"
+		},
+		"url": "/races/teratect",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Homebrew",
+			"order": 5
+		},
+		"group": {
+			"name": "Расы Homebrew",
+			"order": 4
+		},
+		"source": {
+			"shortName": "CoN",
+			"name": "Хроники Наймирии",
+			"group": {
+				"name": "Хомбрю ",
+				"shortName": "HB"
+			},
+			"homebrew": true
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Восьминогие",
+					"eng": "Octopus"
+				},
+				"url": "/races/teratect/octopus",
+				"abilities": [
+					{
+						"key": "CHOICE_DOUBLE",
+						"name": "+2 и +1 / +1 к трем",
+						"shortName": "+2 и +1 / +1 к трем",
+						"value": 0
+					}
+				],
+				"type": {
+					"name": "Homebrew",
+					"order": 5
+				},
+				"group": {
+					"name": "Расы Homebrew",
+					"order": 4
+				},
+				"source": {
+					"shortName": "CoN",
+					"name": "Хроники Наймирии",
+					"group": {
+						"name": "Хомбрю ",
+						"shortName": "HB"
+					},
+					"homebrew": true
+				},
+				"image": "https://img.ttg.club/races/background/race-teratect.webp"
+			},
+			{
+				"name": {
+					"rus": "Двуногие",
+					"eng": "Bipeds"
+				},
+				"url": "/races/teratect/bipeds",
+				"abilities": [
+					{
+						"key": "CHOICE_DOUBLE",
+						"name": "+2 и +1 / +1 к трем",
+						"shortName": "+2 и +1 / +1 к трем",
+						"value": 0
+					}
+				],
+				"type": {
+					"name": "Homebrew",
+					"order": 5
+				},
+				"group": {
+					"name": "Расы Homebrew",
+					"order": 4
+				},
+				"source": {
+					"shortName": "CoN",
+					"name": "Хроники Наймирии",
+					"group": {
+						"name": "Хомбрю ",
+						"shortName": "HB"
+					},
+					"homebrew": true
+				},
+				"image": "https://img.ttg.club/races/background/race-teratect.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-teratect.webp"
+	},
+	{
+		"name": {
+			"rus": "Тифлинг",
+			"eng": "Tiefling"
+		},
+		"url": "/races/tiefling",
+		"abilities": [
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 2
+			},
+			{
+				"key": "INTELLIGENCE",
+				"name": "Интеллект",
+				"shortName": "Инт",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Тифлинг (Асмодей)",
+					"eng": "Asmodeus"
+				},
+				"url": "/races/tiefling/asmodeus",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "MTF",
+					"name": "Том Морденкайнена о врагах",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-tiefling.webp"
+			},
+			{
+				"name": {
+					"rus": "Тифлинг (Вельзевул)",
+					"eng": "Baalzebul"
+				},
+				"url": "/races/tiefling/baalzebul",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "MTF",
+					"name": "Том Морденкайнена о врагах",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-tiefling.webp"
+			},
+			{
+				"name": {
+					"rus": "Тифлинг (Диспатер)",
+					"eng": "Dispater"
+				},
+				"url": "/races/tiefling/dispater",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "MTF",
+					"name": "Том Морденкайнена о врагах",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-tiefling.webp"
+			},
+			{
+				"name": {
+					"rus": "Тифлинг (Фьёрна)",
+					"eng": "Fierna"
+				},
+				"url": "/races/tiefling/fierna",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "MTF",
+					"name": "Том Морденкайнена о врагах",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-tiefling.webp"
+			},
+			{
+				"name": {
+					"rus": "Тифлинг (Гласия)",
+					"eng": "Glasya"
+				},
+				"url": "/races/tiefling/glasya",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "MTF",
+					"name": "Том Морденкайнена о врагах",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-tiefling.webp"
+			},
+			{
+				"name": {
+					"rus": "Тифлинг (Левистус)",
+					"eng": "Levistus"
+				},
+				"url": "/races/tiefling/levistus",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "MTF",
+					"name": "Том Морденкайнена о врагах",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-tiefling.webp"
+			},
+			{
+				"name": {
+					"rus": "Тифлинг (Маммон)",
+					"eng": "Mammon"
+				},
+				"url": "/races/tiefling/mammon",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "MTF",
+					"name": "Том Морденкайнена о врагах",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-tiefling.webp"
+			},
+			{
+				"name": {
+					"rus": "Тифлинг (Мефистофель)",
+					"eng": "Mephistopheles"
+				},
+				"url": "/races/tiefling/mephistopheles",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "MTF",
+					"name": "Том Морденкайнена о врагах",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-tiefling.webp"
+			},
+			{
+				"name": {
+					"rus": "Тифлинг (Зариэль)",
+					"eng": "Zariel"
+				},
+				"url": "/races/tiefling/zariel",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "MTF",
+					"name": "Том Морденкайнена о врагах",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-tiefling.webp"
+			},
+			{
+				"name": {
+					"rus": "Тифлинг (язык дьявола)",
+					"eng": "Variant Devils Tongue"
+				},
+				"url": "/races/tiefling/variant_devils_tongue",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "SCAG",
+					"name": "Путеводитель приключенца по Побережью меча",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-tiefling.webp"
+			},
+			{
+				"name": {
+					"rus": "Тифлинг (адское пламя)",
+					"eng": "Variant Hellfire"
+				},
+				"url": "/races/tiefling/variant_hellfire",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "SCAG",
+					"name": "Путеводитель приключенца по Побережью меча",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-tiefling.webp"
+			},
+			{
+				"name": {
+					"rus": "Тифлинг (крылатый)",
+					"eng": "Variant Winged"
+				},
+				"url": "/races/tiefling/variant_winged",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "SCAG",
+					"name": "Путеводитель приключенца по Побережью меча",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-tiefling.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-tiefling.webp"
+	},
+	{
+		"name": {
+			"rus": "Тлеющий",
+			"eng": "Smoldering"
+		},
+		"url": "/races/smoldering",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Homebrew",
+			"order": 5
+		},
+		"group": {
+			"name": "Расы Homebrew",
+			"order": 4
+		},
+		"source": {
+			"shortName": "CoN",
+			"name": "Хроники Наймирии",
+			"group": {
+				"name": "Хомбрю ",
+				"shortName": "HB"
+			},
+			"homebrew": true
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Странник",
+					"eng": "Wanderer"
+				},
+				"url": "/races/smoldering/wanderer",
+				"abilities": [
+					{
+						"key": "CHOICE_DOUBLE",
+						"name": "+2 и +1 / +1 к трем",
+						"shortName": "+2 и +1 / +1 к трем",
+						"value": 0
+					}
+				],
+				"type": {
+					"name": "Homebrew",
+					"order": 5
+				},
+				"group": {
+					"name": "Расы Homebrew",
+					"order": 4
+				},
+				"source": {
+					"shortName": "CoN",
+					"name": "Хроники Наймирии",
+					"group": {
+						"name": "Хомбрю ",
+						"shortName": "HB"
+					},
+					"homebrew": true
+				},
+				"image": "https://img.ttg.club/races/background/race-smoldering.webp"
+			},
+			{
+				"name": {
+					"rus": "Страж",
+					"eng": "Guardian"
+				},
+				"url": "/races/smoldering/guardian",
+				"abilities": [
+					{
+						"key": "CHOICE_DOUBLE",
+						"name": "+2 и +1 / +1 к трем",
+						"shortName": "+2 и +1 / +1 к трем",
+						"value": 0
+					}
+				],
+				"type": {
+					"name": "Homebrew",
+					"order": 5
+				},
+				"group": {
+					"name": "Расы Homebrew",
+					"order": 4
+				},
+				"source": {
+					"shortName": "CoN",
+					"name": "Хроники Наймирии",
+					"group": {
+						"name": "Хомбрю ",
+						"shortName": "HB"
+					},
+					"homebrew": true
+				},
+				"image": "https://img.ttg.club/races/background/race-smoldering.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-smoldering.webp"
+	},
+	{
+		"name": {
+			"rus": "Тортл",
+			"eng": "Tortle"
+		},
+		"url": "/races/tortle",
+		"abilities": [
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": 2
+			},
+			{
+				"key": "WISDOM",
+				"name": "Мудрость",
+				"shortName": "Мдр",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "ttP",
+			"name": "Тортл пакет",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-tortle.webp"
+	},
+	{
+		"name": {
+			"rus": "Тортл",
+			"eng": "Tortle MPMM"
+		},
+		"url": "/races/tortle_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-tortle-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Три-крин",
+			"eng": "Thri-kreen"
+		},
+		"url": "/races/thri-kreen",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "AAG",
+			"name": "Руководство астрального приключенца",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-thri-kreen.webp"
+	},
+	{
+		"name": {
+			"rus": "Тритон",
+			"eng": "Triton"
+		},
+		"url": "/races/triton",
+		"abilities": [
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": 1
+			},
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 1
+			},
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "VGM",
+			"name": "Справочник Воло по монстрам",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-triton.webp"
+	},
+	{
+		"name": {
+			"rus": "Тритон",
+			"eng": "Triton MPMM"
+		},
+		"url": "/races/triton_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-triton-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Троллкин",
+			"eng": "Trollkin"
+		},
+		"url": "/races/trollkin",
+		"abilities": [
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 2
+			}
+		],
+		"type": {
+			"name": "3rd party",
+			"order": 4
+		},
+		"group": {
+			"name": "Расы от третьих лиц",
+			"order": 3
+		},
+		"source": {
+			"shortName": "MHH",
+			"name": "Мидгард Справочник героя",
+			"group": {
+				"name": "Контент от третьих лиц",
+				"shortName": "3rd"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Троллкин (шепчущие в ночи)",
+					"eng": "Whispers in the night"
+				},
+				"url": "/races/trollkin/whispers_in_the_night",
+				"abilities": [
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "MHH",
+					"name": "Мидгард Справочник героя",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-trollkin.webp"
+			},
+			{
+				"name": {
+					"rus": "Троллкин (камнешкурые)",
+					"eng": "Stonehide"
+				},
+				"url": "/races/trollkin/stonehide",
+				"abilities": [
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 2
+					},
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "MHH",
+					"name": "Мидгард Справочник героя",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-trollkin.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-trollkin.webp"
+	},
+	{
+		"name": {
+			"rus": "Феекровные",
+			"eng": "Fairyblood"
+		},
+		"url": "/races/fairyblood",
+		"abilities": [
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 2
+			}
+		],
+		"type": {
+			"name": "Homebrew",
+			"order": 5
+		},
+		"group": {
+			"name": "Расы Homebrew",
+			"order": 4
+		},
+		"source": {
+			"shortName": "LPZAE",
+			"name": "Потерянные страницы Занатара обо всем",
+			"group": {
+				"name": "Хомбрю ",
+				"shortName": "HB"
+			},
+			"homebrew": true
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Сильфы (Неборождённые)",
+					"eng": "Sylphs"
+				},
+				"url": "/races/fairyblood/sylphs",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Homebrew",
+					"order": 5
+				},
+				"group": {
+					"name": "Расы Homebrew",
+					"order": 4
+				},
+				"source": {
+					"shortName": "LPZAE",
+					"name": "Потерянные страницы Занатара обо всем",
+					"group": {
+						"name": "Хомбрю ",
+						"shortName": "HB"
+					},
+					"homebrew": true
+				},
+				"image": "https://img.ttg.club/races/background/race-fairyblood.webp"
+			},
+			{
+				"name": {
+					"rus": "Драйши (Землерождённые)",
+					"eng": "Dryshi"
+				},
+				"url": "/races/fairyblood/dryshi",
+				"abilities": [
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 2
+					},
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Homebrew",
+					"order": 5
+				},
+				"group": {
+					"name": "Расы Homebrew",
+					"order": 4
+				},
+				"source": {
+					"shortName": "LPZAE",
+					"name": "Потерянные страницы Занатара обо всем",
+					"group": {
+						"name": "Хомбрю ",
+						"shortName": "HB"
+					},
+					"homebrew": true
+				},
+				"image": "https://img.ttg.club/races/background/race-fairyblood.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-fairyblood.webp"
+	},
+	{
+		"name": {
+			"rus": "Фирболг",
+			"eng": "Firbolg"
+		},
+		"url": "/races/firbolg",
+		"abilities": [
+			{
+				"key": "WISDOM",
+				"name": "Мудрость",
+				"shortName": "Мдр",
+				"value": 2
+			},
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "VGM",
+			"name": "Справочник Воло по монстрам",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-firbolg.webp"
+	},
+	{
+		"name": {
+			"rus": "Фирболг",
+			"eng": "Firbolg MPMM"
+		},
+		"url": "/races/firbolg_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-firbolg-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Фэйри",
+			"eng": "Fairy"
+		},
+		"url": "/races/fairy",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Приключения",
+			"order": 1
+		},
+		"source": {
+			"shortName": "WBtW",
+			"name": "Чащоба за Ведьминым светом",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-fairy.webp"
+	},
+	{
+		"name": {
+			"rus": "Фэйри",
+			"eng": "Fairy MPMM"
+		},
+		"url": "/races/fairy_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-fairy-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Хадози",
+			"eng": "Hadozee"
+		},
+		"url": "/races/hadozee",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "AAG",
+			"name": "Руководство астрального приключенца",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-hadozee.webp"
+	},
+	{
+		"name": {
+			"rus": "Харенгон",
+			"eng": "Harengon"
+		},
+		"url": "/races/harengon",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Приключения",
+			"order": 1
+		},
+		"source": {
+			"shortName": "WBtW",
+			"name": "Чащоба за Ведьминым светом",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-harengon.webp"
+	},
+	{
+		"name": {
+			"rus": "Харенгон",
+			"eng": "Harengon MPMM"
+		},
+		"url": "/races/harengon_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-harengon-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Хенра",
+			"eng": "Khenra"
+		},
+		"url": "/races/khenra",
+		"abilities": [
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 2
+			},
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "PSA",
+			"name": "Plane Shift: Амонхет",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-khenra.webp"
+	},
+	{
+		"name": {
+			"rus": "Хобгоблин",
+			"eng": "Hobgoblin"
+		},
+		"url": "/races/hobgoblin",
+		"abilities": [
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 2
+			},
+			{
+				"key": "INTELLIGENCE",
+				"name": "Интеллект",
+				"shortName": "Инт",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "VGM",
+			"name": "Справочник Воло по монстрам",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+
+		],
+		"image": "https://img.ttg.club/races/background/race-hobgoblin.webp"
+	},
+	{
+		"name": {
+			"rus": "Хобгоблин",
+			"eng": "Hobgoblin MPMM"
+		},
+		"url": "/races/hobgoblin_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-hobgoblin-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Человек",
+			"eng": "Human"
+		},
+		"url": "/races/human",
+		"abilities": [
+			{
+				"key": "STRENGTH",
+				"name": "Сила",
+				"shortName": "Сил",
+				"value": 1
+			},
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 1
+			},
+			{
+				"key": "CONSTITUTION",
+				"name": "Телосложение",
+				"shortName": "Тел",
+				"value": 1
+			},
+			{
+				"key": "INTELLIGENCE",
+				"name": "Интеллект",
+				"shortName": "Инт",
+				"value": 1
+			},
+			{
+				"key": "WISDOM",
+				"name": "Мудрость",
+				"shortName": "Мдр",
+				"value": 1
+			},
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Человек (метка ухода)",
+					"eng": "Mark of Handling"
+				},
+				"url": "/races/human/mark_of_handling",
+				"abilities": [
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 2
+					},
+					{
+						"key": "CHOICE",
+						"name": "к другой",
+						"shortName": "к другой",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "ERLW",
+					"name": "Эберрон. Из пепла Последней войны",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-human.webp"
+			},
+			{
+				"name": {
+					"rus": "Человек (метка поиска)",
+					"eng": "Mark of Finding"
+				},
+				"url": "/races/human/mark_of_finding",
+				"abilities": [
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 2
+					},
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "ERLW",
+					"name": "Эберрон. Из пепла Последней войны",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-human.webp"
+			},
+			{
+				"name": {
+					"rus": "Человек (метка создания)",
+					"eng": "Mark of Making"
+				},
+				"url": "/races/human/mark_of_making",
+				"abilities": [
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 2
+					},
+					{
+						"key": "CHOICE",
+						"name": "к другой",
+						"shortName": "к другой",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "ERLW",
+					"name": "Эберрон. Из пепла Последней войны",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-human.webp"
+			},
+			{
+				"name": {
+					"rus": "Человек (метка прохода)",
+					"eng": "Mark of Passage"
+				},
+				"url": "/races/human/mark_of_passage",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "CHOICE",
+						"name": "к другой",
+						"shortName": "к другой",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "ERLW",
+					"name": "Эберрон. Из пепла Последней войны",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-human.webp"
+			},
+			{
+				"name": {
+					"rus": "Человек (метка стража)",
+					"eng": "Mark of Sentinel"
+				},
+				"url": "/races/human/mark_of_sentinel",
+				"abilities": [
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "ERLW",
+					"name": "Эберрон. Из пепла Последней войны",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-human.webp"
+			},
+			{
+				"name": {
+					"rus": "Человек (вариант)",
+					"eng": "Human (Variant)"
+				},
+				"url": "/races/human/human_(variant)",
+				"abilities": [
+					{
+						"key": "ONE",
+						"name": "к одной",
+						"shortName": "",
+						"value": 1
+					},
+					{
+						"key": "CHOICE",
+						"name": "к другой",
+						"shortName": "к другой",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "PHB",
+					"name": "Книга игрока",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-human.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-human.webp"
+	},
+	{
+		"name": {
+			"rus": "Шадар-кай",
+			"eng": "Shadar-Kai MPMM"
+		},
+		"url": "/races/shadar-kai_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-shadar-kai-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Шифтер",
+			"eng": "Shifter"
+		},
+		"url": "/races/shifter",
+		"abilities": [
+
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "ERLW",
+			"name": "Эберрон. Из пепла Последней войны",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Шифтер (Толстошкуры)",
+					"eng": "Beasthide"
+				},
+				"url": "/races/shifter/beasthide",
+				"abilities": [
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 2
+					},
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "ERLW",
+					"name": "Эберрон. Из пепла Последней войны",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-shifter.webp"
+			},
+			{
+				"name": {
+					"rus": "Шифтер (Длинноклыки)",
+					"eng": "Longtooth"
+				},
+				"url": "/races/shifter/longtooth",
+				"abilities": [
+					{
+						"key": "STRENGTH",
+						"name": "Сила",
+						"shortName": "Сил",
+						"value": 2
+					},
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "ERLW",
+					"name": "Эберрон. Из пепла Последней войны",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-shifter.webp"
+			},
+			{
+				"name": {
+					"rus": "Шифтер (Остронюхи)",
+					"eng": "Wildhunt"
+				},
+				"url": "/races/shifter/wildhunt",
+				"abilities": [
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 2
+					},
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "ERLW",
+					"name": "Эберрон. Из пепла Последней войны",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-shifter.webp"
+			},
+			{
+				"name": {
+					"rus": "Шифтер (Быстроноги)",
+					"eng": "Swiftstride"
+				},
+				"url": "/races/shifter/swiftstride",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "ERLW",
+					"name": "Эберрон. Из пепла Последней войны",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-shifter.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-shifter.webp"
+	},
+	{
+		"name": {
+			"rus": "Шифтер",
+			"eng": "Shifter MPMM"
+		},
+		"url": "/races/shifter_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-shifter-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Эладрин",
+			"eng": "Eladrin MPMM"
+		},
+		"url": "/races/eladrin_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-eladrin-mpmm.webp"
+	},
+	{
+		"name": {
+			"rus": "Эльф",
+			"eng": "Elf"
+		},
+		"url": "/races/elf",
+		"abilities": [
+			{
+				"key": "DEXTERITY",
+				"name": "Ловкость",
+				"shortName": "Лов",
+				"value": 2
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "PHB",
+			"name": "Книга игрока",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"subraces": [
+			{
+				"name": {
+					"rus": "Эльф (высший)",
+					"eng": "High"
+				},
+				"url": "/races/elf/high",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "PHB",
+					"name": "Книга игрока",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-elf.webp"
+			},
+			{
+				"name": {
+					"rus": "Эльф (лесной)",
+					"eng": "Wood"
+				},
+				"url": "/races/elf/wood",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "PHB",
+					"name": "Книга игрока",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-elf.webp"
+			},
+			{
+				"name": {
+					"rus": "Эльф (дроу)",
+					"eng": "Drow"
+				},
+				"url": "/races/elf/drow",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "PHB",
+					"name": "Книга игрока",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-elf.webp"
+			},
+			{
+				"name": {
+					"rus": "Эльф (морской)",
+					"eng": "Sea"
+				},
+				"url": "/races/elf/sea",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "MTF",
+					"name": "Том Морденкайнена о врагах",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-elf.webp"
+			},
+			{
+				"name": {
+					"rus": "Эльф (шадар-кай)",
+					"eng": "Shadar-kai"
+				},
+				"url": "/races/elf/shadar-kai",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "CONSTITUTION",
+						"name": "Телосложение",
+						"shortName": "Тел",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "MTF",
+					"name": "Том Морденкайнена о врагах",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-elf.webp"
+			},
+			{
+				"name": {
+					"rus": "Эльф (эладрин)",
+					"eng": "Eladrin"
+				},
+				"url": "/races/elf/eladrin",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Базовые",
+					"order": 0
+				},
+				"source": {
+					"shortName": "MTF",
+					"name": "Том Морденкайнена о врагах",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-elf.webp"
+			},
+			{
+				"name": {
+					"rus": "Эльф (солнечный)",
+					"eng": "Sun"
+				},
+				"url": "/races/elf/sun",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "SCAG",
+					"name": "Путеводитель приключенца по Побережью меча",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-elf.webp"
+			},
+			{
+				"name": {
+					"rus": "Эльф (лунный)",
+					"eng": "Moon"
+				},
+				"url": "/races/elf/moon",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "INTELLIGENCE",
+						"name": "Интеллект",
+						"shortName": "Инт",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "SCAG",
+					"name": "Путеводитель приключенца по Побережью меча",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-elf.webp"
+			},
+			{
+				"name": {
+					"rus": "Эльф (бледный)",
+					"eng": "Pallid"
+				},
+				"url": "/races/elf/pallid",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "WISDOM",
+						"name": "Мудрость",
+						"shortName": "Мдр",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "3rd party",
+					"order": 4
+				},
+				"group": {
+					"name": "Расы от третьих лиц",
+					"order": 3
+				},
+				"source": {
+					"shortName": "EGtW",
+					"name": "Путеводитель исследователя по Дикогорью",
+					"group": {
+						"name": "Контент от третьих лиц",
+						"shortName": "3rd"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-elf.webp"
+			},
+			{
+				"name": {
+					"rus": "Эльф (метка тени)",
+					"eng": "Mark of Shadow"
+				},
+				"url": "/races/elf/mark_of_shadow",
+				"abilities": [
+					{
+						"key": "DEXTERITY",
+						"name": "Ловкость",
+						"shortName": "Лов",
+						"value": 2
+					},
+					{
+						"key": "CHARISMA",
+						"name": "Харизма",
+						"shortName": "Хар",
+						"value": 1
+					}
+				],
+				"type": {
+					"name": "Сеттинги",
+					"order": 2
+				},
+				"source": {
+					"shortName": "ERLW",
+					"name": "Эберрон. Из пепла Последней войны",
+					"group": {
+						"name": "Официальные источники",
+						"shortName": "Basic"
+					}
+				},
+				"image": "https://img.ttg.club/races/background/race-elf.webp"
+			}
+		],
+		"image": "https://img.ttg.club/races/background/race-elf.webp"
+	},
+	{
+		"name": {
+			"rus": "Эльф (астральный)",
+			"eng": "Astral Elf"
+		},
+		"url": "/races/astral_elf",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Сеттинги",
+			"order": 2
+		},
+		"source": {
+			"shortName": "AAG",
+			"name": "Руководство астрального приключенца",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-astral-elf.webp"
+	},
+	{
+		"name": {
+			"rus": "Юань-ти",
+			"eng": "Yuan-ti"
+		},
+		"url": "/races/yuan-ti",
+		"abilities": [
+			{
+				"key": "CHARISMA",
+				"name": "Харизма",
+				"shortName": "Хар",
+				"value": 2
+			},
+			{
+				"key": "INTELLIGENCE",
+				"name": "Интеллект",
+				"shortName": "Инт",
+				"value": 1
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"source": {
+			"shortName": "VGM",
+			"name": "Справочник Воло по монстрам",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-yuan-ti.webp"
+	},
+	{
+		"name": {
+			"rus": "Юань-ти",
+			"eng": "Yuan-Ti MPMM"
+		},
+		"url": "/races/yuan-ti_mpmm",
+		"abilities": [
+			{
+				"key": "CHOICE_DOUBLE",
+				"name": "+2 и +1 / +1 к трем",
+				"shortName": "+2 и +1 / +1 к трем",
+				"value": 0
+			}
+		],
+		"type": {
+			"name": "Базовые",
+			"order": 0
+		},
+		"group": {
+			"name": "Расы из Монстры Мультивселенной",
+			"order": 1
+		},
+		"source": {
+			"shortName": "MPMM",
+			"name": "Морденкайнен представляет: Монстры Мультивселенной",
+			"group": {
+				"name": "Официальные источники",
+				"shortName": "Basic"
+			}
+		},
+		"image": "https://img.ttg.club/races/background/race-yuan-ti-mpmm.webp"
+	}
+];
