@@ -184,6 +184,7 @@ GitHub Actions workflow (`.github/workflows/test.yml`):
 
 Production build creates:
 - `main.js` - Bundled plugin (minified)
+- `manifest.json` - Obsidian plugin manifest (required for plugin loading)
 - `styles.css` - UI styles
 - `sql-wasm.wasm` - SQLite WebAssembly binary
 
@@ -213,22 +214,22 @@ To add a new entity type:
    - `FullNewType.ts` - Complete entity
    - `NewTypeFilters.ts` - Filter interface
 
-2. Create DAOs in `src/data/databse/`
+2. Add JSON data in `data/newtype.json`
+
+3. Create DAOs in `src/data/databse/`
    - `SmallNewTypeSqlTableDao.ts`
    - `FullNewTypeSqlTableDao.ts`
 
-3. Create repository in `src/data/repositories/`
+4. Create repository in `src/data/repositories/`
    - `NewTypeRepository.ts` implementing `Repository` interface
 
-4. Create UI components in `src/ui/layout/newtype/`
+5. Create UI components in `src/ui/layout/newtype/`
    - `NewTypeSmallUi.svelte`
    - `NewTypeFullUi.svelte`
 
-5. Create feature in `src/ui/components/feature/`
+6. Create feature in `src/ui/components/feature/`
    - `NewTypeFeature.ts` extending `BaseFeature`
 
-6. Register feature in `src/main.ts`
-
-7. Add JSON data in `data/newtype.json`
+7. Register feature in `src/main.ts`
 
 8. Add tests in `test/` directory
