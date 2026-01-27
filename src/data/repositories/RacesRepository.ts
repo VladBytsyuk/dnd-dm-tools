@@ -31,6 +31,35 @@ export class RacesRepository
         };
     }
 
+    protected override mapApiResponse(data: any, url: string): FullRace {
+        return {
+            name: data.name,
+            url: url,
+            abilities: data.abilities ?? [],
+            type: typeof data.type === 'string'
+                ? { name: data.type }
+                : data.type ?? { name: '' },
+            source: {
+                shortName: data.source?.shortName ?? '',
+                name: data.source?.name ?? '',
+                group: {
+                    name: data.source?.group?.name ?? '',
+                    shortName: data.source?.group?.shortName ?? '',
+                },
+                homebrew: data.source?.homebrew ?? false,
+            },
+            image: data.image,
+            group: data.group,
+            description: data.description ?? '',
+            size: data.size ?? '',
+            speed: data.speed ?? [],
+            skills: data.skills ?? [],
+            subraces: data.subraces?.map((subrace: any, index: number) =>
+                this.mapApiResponse(subrace, `${url}/subrace-${index}`)
+            ),
+        };
+    }
+
     async collectFiltersFromAllItems(allSmallItems: SmallRace[]): Promise<RaceFilters | null> {
         const abilitiesSet: Set<string> = new Set();
         const typesSet: Set<string> = new Set();

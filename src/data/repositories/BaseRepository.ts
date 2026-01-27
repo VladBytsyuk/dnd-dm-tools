@@ -111,6 +111,10 @@ export abstract class BaseRepository<
         return undefined;
     }
 
+    protected mapApiResponse(data: any, url: string): FullItem {
+        return data as FullItem;
+    }
+
     protected async fetchFromAPI(url: string): Promise<FullItem | null> {
         try {
             const body = this.getApiRequestBody(url);
@@ -126,7 +130,7 @@ export abstract class BaseRepository<
             }
             const data = await response.json;
             console.log(`Loaded ${url} from remote storage.`);
-            return data as FullItem;
+            return this.mapApiResponse(data, url);
         } catch (error) {
             console.error("Failed to fetch item from API:", error);
             return null;
