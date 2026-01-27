@@ -34,6 +34,7 @@ describe('UI Event Listener', () => {
             () => null,
             () => null,
             () => null,
+            () => null,
         );
         const url = '/bestiary/some-beast';
 
@@ -54,6 +55,7 @@ describe('UI Event Listener', () => {
             app,
             () => null,
             () => mockFeature,
+            () => null,
             () => null,
             () => null,
             () => null,
@@ -88,6 +90,7 @@ describe('UI Event Listener', () => {
             () => null,
             () => null,
             () => null,
+            () => null,
         );
         const url = '/weapon/some-weapon';
 
@@ -110,6 +113,7 @@ describe('UI Event Listener', () => {
             () => null,
             () => null,
             () => mockFeature,
+            () => null,
             () => null,
             () => null,
             () => null,
@@ -142,6 +146,7 @@ describe('UI Event Listener', () => {
             () => null,
             () => null,
             () => null,
+            () => null,
         );
         const url = '/item/some-item';
 
@@ -169,6 +174,7 @@ describe('UI Event Listener', () => {
             () => null,
             () => null,
             () => null,
+            () => null,
         );
         const url = '/artifact/some-artifact';
 
@@ -187,6 +193,7 @@ describe('UI Event Listener', () => {
         };
         const listener = new UiEventListener(
             app,
+            () => null,
             () => null,
             () => null,
             () => null,
@@ -223,6 +230,7 @@ describe('UI Event Listener', () => {
             () => mockFeature,
             () => null,
             () => null,
+            () => null,
         );
         const url = '/background/some-background';
 
@@ -237,14 +245,15 @@ describe('UI Event Listener', () => {
         // Arrange
         const app = new App();
         const listener = new UiEventListener(
-            app, 
-            () => null, 
-            () => null, 
-            () => null, 
-            () => null, 
-            () => null, 
-            () => null, 
-            () => null, 
+            app,
+            () => null,
+            () => null,
+            () => null,
+            () => null,
+            () => null,
+            () => null,
+            () => null,
+            () => null,
             () => null,
             () => null,
         );
@@ -265,13 +274,14 @@ describe('UI Event Listener', () => {
         // Arrange
         const app = new App();
         const listener = new UiEventListener(
-            app, 
-            () => null, 
-            () => null, 
-            () => null, 
-            () => null, 
-            () => null, 
-            () => null, 
+            app,
+            () => null,
+            () => null,
+            () => null,
+            () => null,
+            () => null,
+            () => null,
+            () => null,
             () => null,
             () => null,
             () => null,
