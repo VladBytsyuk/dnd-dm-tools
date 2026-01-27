@@ -6995,3 +6995,16 @@ export const baseRaces: SmallRace[] = [
 		"image": "https://img.ttg.club/races/background/race-yuan-ti-mpmm.webp"
 	}
 ];
+
+export function collectSourceBooks(races: SmallRace[]): string[] {
+	const sources = new Set<string>();
+	for (const race of races) {
+		sources.add(race.source.shortName);
+		if (race.subraces) {
+			for (const subrace of race.subraces) {
+				sources.add(subrace.source.shortName);
+			}
+		}
+	}
+	return Array.from(sources);
+}

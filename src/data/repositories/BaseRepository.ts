@@ -106,12 +106,19 @@ export abstract class BaseRepository<
         return await this.getFullItemByUrl(smallItem.url);
     }
 
-    // ---- private functions ----   
+    // ---- private functions ----
+    protected getApiRequestBody(url: string): object | undefined {
+        return undefined;
+    }
+
     protected async fetchFromAPI(url: string): Promise<FullItem | null> {
         try {
+            const body = this.getApiRequestBody(url);
             const response = await requestUrl({
                 url: `https://ttg.club/api/v1/${url}`,
                 method: 'POST',
+                body: body ? JSON.stringify(body) : undefined,
+                contentType: body ? 'application/json' : undefined,
             });
             if (response.status !== 200) {
                 console.error(`HTTP error ${response.status} for URL: ${url}`);

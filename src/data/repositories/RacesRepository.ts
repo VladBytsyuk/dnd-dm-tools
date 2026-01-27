@@ -6,11 +6,14 @@ import { type FullRace, EmptyFullRace } from "src/domain/models/race/FullRace";
 import { BaseRepository } from "./BaseRepository";
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
+import { baseRaces, collectSourceBooks } from "src/assets/data/races";
 
 
 export class RacesRepository
     extends BaseRepository<SmallRace, FullRace, RaceFilters>
     implements Races {
+
+    private static readonly RACE_SOURCE_BOOKS = collectSourceBooks(baseRaces);
 
     constructor(database: DB) {
         super(
@@ -18,6 +21,14 @@ export class RacesRepository
             database.smallRaceDao,
             database.fullRaceDao,
         );
+    }
+
+    protected override getApiRequestBody(url: string): object | undefined {
+        return {
+            filter: {
+                book: RacesRepository.RACE_SOURCE_BOOKS
+            }
+        };
     }
 
     async collectFiltersFromAllItems(allSmallItems: SmallRace[]): Promise<RaceFilters | null> {
