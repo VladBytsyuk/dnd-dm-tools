@@ -5,7 +5,7 @@ import type { FullRace } from "../../../src/domain/models/race/FullRace";
 import type { RaceFilters } from "../../../src/domain/models/race/RaceFilters";
 import { runBaseRepositoryTests } from "./BaseRepository";
 import { smallRace1, smallRace2, smallRace3, raceFilters } from "../../__mocks__/domain/models/race/small_race_items";
-import { fullRace1, fullRace2, fullRace3 } from "../../__mocks__/domain/models/race/full_race_items";
+import { fullRace1, fullRace2, fullRace3, fullRace1Subrace } from "../../__mocks__/domain/models/race/full_race_items";
 import { mockDatabase } from "../../__mocks__/dao/mock_item_dao";
 
 runBaseRepositoryTests<SmallRace, FullRace, RaceFilters>({
@@ -210,6 +210,203 @@ describe('RacesRepository - Filter Collection', () => {
         expect(filters?.sources).toContain('PHB');
         // XGE is from Supplements group, so has marker
         expect(filters?.sources).toContain('XGE*');
+    });
+});
+
+// Tests for subrace persistence when loading from remote
+describe('RacesRepository - Subrace Persistence', () => {
+    it('should save subraces to database when loading race from remote', async () => {
+        const subraceWithUrl: FullRace = {
+            ...fullRace1Subrace,
+            url: '/races/elf/subrace-0',
+        };
+        const raceWithSubraces: FullRace = {
+            ...fullRace1,
+            subraces: [subraceWithUrl],
+        };
+
+        const createItemMock = vi.fn();
+        const createItemWithParentMock = vi.fn();
+        const readItemByUrlMock = vi.fn().mockResolvedValue(null); // Not in cache
+
+        const mockFullDao = {
+            readAllItems: vi.fn().mockResolvedValue([]),
+            readItemByName: vi.fn().mockResolvedValue(null),
+            readItemByUrl: readItemByUrlMock,
+            createItem: createItemMock,
+            createItemWithParent: createItemWithParentMock,
+            readSubracesByParentUrl: vi.fn().mockResolvedValue([]),
+        };
+        const mockSmallDao = {
+            readAllItems: vi.fn().mockResolvedValue([smallRace1]),
+            readAllItemsNames: vi.fn().mockResolvedValue(['Эльф']),
+            readItemByName: vi.fn().mockResolvedValue(null),
+            readItemByUrl: vi.fn().mockResolvedValue(null),
+            readAllItemsWithParentUrl: vi.fn().mockResolvedValue([]),
+            readTopLevelRaces: vi.fn().mockResolvedValue([]),
+            readSubracesByParentUrl: vi.fn().mockResolvedValue([]),
+        };
+        const mockDb = {
+            smallRaceDao: mockSmallDao,
+            fullRaceDao: mockFullDao,
+            transaction: vi.fn().mockImplementation(async (fn) => await fn()),
+        };
+
+        const repo = new RacesRepository(mockDb as any);
+        // Mock the fetchFromAPI method to return race with subraces
+        (repo as any).fetchFromAPI = vi.fn().mockResolvedValue(raceWithSubraces);
+
+        const result = await repo.getFullItemByUrl('/races/elf');
+
+        // Verify the main race was saved
+        expect(createItemMock).toHaveBeenCalledWith(raceWithSubraces);
+
+        // Verify subraces were saved with parent URL
+        expect(createItemWithParentMock).toHaveBeenCalledTimes(1);
+        expect(createItemWithParentMock).toHaveBeenCalledWith(subraceWithUrl, '/races/elf');
+
+        // Verify the result contains subraces
+        expect(result?.subraces).toHaveLength(1);
+        expect(result?.subraces?.[0].url).toBe('/races/elf/subrace-0');
+    });
+
+    it('should save nested subraces recursively', async () => {
+        const nestedSubrace: FullRace = {
+            ...fullRace1Subrace,
+            name: { rus: 'Вложенная подраса', eng: 'Nested Subrace' },
+            url: '/races/elf/subrace-0/subrace-0',
+        };
+        const subrace: FullRace = {
+            ...fullRace1Subrace,
+            url: '/races/elf/subrace-0',
+            subraces: [nestedSubrace],
+        };
+        const raceWithNestedSubraces: FullRace = {
+            ...fullRace1,
+            subraces: [subrace],
+        };
+
+        const createItemMock = vi.fn();
+        const createItemWithParentMock = vi.fn();
+
+        const mockFullDao = {
+            readAllItems: vi.fn().mockResolvedValue([]),
+            readItemByName: vi.fn().mockResolvedValue(null),
+            readItemByUrl: vi.fn().mockResolvedValue(null),
+            createItem: createItemMock,
+            createItemWithParent: createItemWithParentMock,
+            readSubracesByParentUrl: vi.fn().mockResolvedValue([]),
+        };
+        const mockSmallDao = {
+            readAllItems: vi.fn().mockResolvedValue([]),
+            readAllItemsNames: vi.fn().mockResolvedValue([]),
+            readItemByName: vi.fn().mockResolvedValue(null),
+            readItemByUrl: vi.fn().mockResolvedValue(null),
+            readAllItemsWithParentUrl: vi.fn().mockResolvedValue([]),
+            readTopLevelRaces: vi.fn().mockResolvedValue([]),
+            readSubracesByParentUrl: vi.fn().mockResolvedValue([]),
+        };
+        const mockDb = {
+            smallRaceDao: mockSmallDao,
+            fullRaceDao: mockFullDao,
+            transaction: vi.fn().mockImplementation(async (fn) => await fn()),
+        };
+
+        const repo = new RacesRepository(mockDb as any);
+        (repo as any).fetchFromAPI = vi.fn().mockResolvedValue(raceWithNestedSubraces);
+
+        await repo.getFullItemByUrl('/races/elf');
+
+        // Verify both levels of subraces were saved
+        expect(createItemWithParentMock).toHaveBeenCalledTimes(2);
+        expect(createItemWithParentMock).toHaveBeenCalledWith(subrace, '/races/elf');
+        expect(createItemWithParentMock).toHaveBeenCalledWith(nestedSubrace, '/races/elf/subrace-0');
+    });
+
+    it('should load subraces from database when race is cached', async () => {
+        const cachedSubrace: FullRace = {
+            ...fullRace1Subrace,
+            url: '/races/elf/subrace-0',
+        };
+        const cachedRace: FullRace = {
+            ...fullRace1,
+            subraces: undefined, // Subraces not populated in cached object
+        };
+
+        const readSubracesByParentUrlMock = vi.fn().mockResolvedValue([cachedSubrace]);
+
+        const mockFullDao = {
+            readAllItems: vi.fn().mockResolvedValue([cachedRace]),
+            readItemByName: vi.fn().mockResolvedValue(null),
+            readItemByUrl: vi.fn().mockResolvedValue(cachedRace),
+            createItem: vi.fn(),
+            createItemWithParent: vi.fn(),
+            readSubracesByParentUrl: readSubracesByParentUrlMock,
+        };
+        const mockSmallDao = {
+            readAllItems: vi.fn().mockResolvedValue([]),
+            readAllItemsNames: vi.fn().mockResolvedValue([]),
+            readItemByName: vi.fn().mockResolvedValue(null),
+            readItemByUrl: vi.fn().mockResolvedValue(null),
+            readAllItemsWithParentUrl: vi.fn().mockResolvedValue([]),
+            readTopLevelRaces: vi.fn().mockResolvedValue([]),
+            readSubracesByParentUrl: vi.fn().mockResolvedValue([]),
+        };
+        const mockDb = {
+            smallRaceDao: mockSmallDao,
+            fullRaceDao: mockFullDao,
+            transaction: vi.fn(),
+        };
+
+        const repo = new RacesRepository(mockDb as any);
+        const result = await repo.getFullItemByUrl('/races/elf');
+
+        // Verify subraces were loaded from database
+        expect(readSubracesByParentUrlMock).toHaveBeenCalledWith('/races/elf');
+        expect(result?.subraces).toHaveLength(1);
+        expect(result?.subraces?.[0].url).toBe('/races/elf/subrace-0');
+    });
+
+    it('should not save subraces when race has no subraces', async () => {
+        const raceWithoutSubraces: FullRace = {
+            ...fullRace1,
+            subraces: undefined,
+        };
+
+        const createItemMock = vi.fn();
+        const createItemWithParentMock = vi.fn();
+
+        const mockFullDao = {
+            readAllItems: vi.fn().mockResolvedValue([]),
+            readItemByName: vi.fn().mockResolvedValue(null),
+            readItemByUrl: vi.fn().mockResolvedValue(null),
+            createItem: createItemMock,
+            createItemWithParent: createItemWithParentMock,
+            readSubracesByParentUrl: vi.fn().mockResolvedValue([]),
+        };
+        const mockSmallDao = {
+            readAllItems: vi.fn().mockResolvedValue([]),
+            readAllItemsNames: vi.fn().mockResolvedValue([]),
+            readItemByName: vi.fn().mockResolvedValue(null),
+            readItemByUrl: vi.fn().mockResolvedValue(null),
+            readAllItemsWithParentUrl: vi.fn().mockResolvedValue([]),
+            readTopLevelRaces: vi.fn().mockResolvedValue([]),
+            readSubracesByParentUrl: vi.fn().mockResolvedValue([]),
+        };
+        const mockDb = {
+            smallRaceDao: mockSmallDao,
+            fullRaceDao: mockFullDao,
+            transaction: vi.fn().mockImplementation(async (fn) => await fn()),
+        };
+
+        const repo = new RacesRepository(mockDb as any);
+        (repo as any).fetchFromAPI = vi.fn().mockResolvedValue(raceWithoutSubraces);
+
+        await repo.getFullItemByUrl('/races/elf');
+
+        // Verify main race was saved but no subraces
+        expect(createItemMock).toHaveBeenCalledWith(raceWithoutSubraces);
+        expect(createItemWithParentMock).not.toHaveBeenCalled();
     });
 });
 

@@ -32,9 +32,20 @@ export class RacesRepository
     }
 
     protected override mapApiResponse(data: any, url: string): FullRace {
+        // Handle name - could be string or object with rus/eng
+        const name = typeof data.name === 'string'
+            ? { rus: data.name, eng: data.name }
+            : {
+                rus: data.name?.rus ?? '',
+                eng: data.name?.eng ?? data.name?.rus ?? '',
+            };
+
+        // Determine the URL - prefer data.url, fall back to provided url
+        const itemUrl = data.url ?? url;
+
         return {
-            name: data.name,
-            url: url,
+            name,
+            url: itemUrl,
             abilities: data.abilities ?? [],
             type: typeof data.type === 'string'
                 ? { name: data.type }
@@ -54,9 +65,13 @@ export class RacesRepository
             size: data.size ?? '',
             speed: data.speed ?? [],
             skills: data.skills ?? [],
-            subraces: data.subraces?.map((subrace: any, index: number) =>
-                this.mapApiResponse(subrace, `${url}/subrace-${index}`)
-            ),
+            subraces: data.subraces?.map((subrace: any) => {
+                const engName = typeof subrace.name === 'string'
+                    ? subrace.name
+                    : (subrace.name?.eng ?? subrace.name?.rus ?? '');
+                const subraceUrlSuffix = engName.toLowerCase().replace(/\s+/g, '_');
+                return this.mapApiResponse(subrace, `${itemUrl}/${subraceUrlSuffix}`);
+            }),
         };
     }
 
@@ -104,11 +119,52 @@ export class RacesRepository
     }
 
     override async getFullItemByUrl(url: string): Promise<FullRace | null> {
-        const race = await super.getFullItemByUrl(url);
-        if (race && !race.subraces) {
-            race.subraces = await this.database.fullRaceDao.readSubracesByParentUrl(url);
+        // Try to load from cache first
+        const cachedRace = await this.database.fullRaceDao.readItemByUrl(url);
+        if (cachedRace) {
+            console.log(`Loaded ${url} from local storage.`);
+            // Load subraces if not already populated
+            if (!cachedRace.subraces) {
+                cachedRace.subraces = await this.database.fullRaceDao.readSubracesByParentUrl(url);
+            }
+            return cachedRace;
         }
-        return race;
+
+        // Fetch from API
+        const fullRace = await this.fetchFromAPI(url);
+        if (!fullRace) return null;
+
+        if (!fullRace.url) {
+            fullRace.url = url;
+        }
+
+        // Save to database with all subraces
+        await this.database.transaction(async () => {
+            // Save the main race
+            await this.database.fullRaceDao.createItem(fullRace);
+
+            // Save all subraces as separate rows
+            if (fullRace.subraces && fullRace.subraces.length > 0) {
+                await this.saveSubracesToDatabase(fullRace.subraces, fullRace.url);
+            } else {
+                console.log(`No subraces found for ${fullRace.url}`);
+            }
+        });
+
+        console.log(`Put ${url} into local storage.`);
+        return fullRace;
+    }
+
+    private async saveSubracesToDatabase(subraces: FullRace[], parentUrl: string): Promise<void> {
+        for (const subrace of subraces) {
+            console.log(`Saving subrace ${subrace.url} with parent ${parentUrl}`);
+            await this.database.fullRaceDao.createItemWithParent(subrace, parentUrl);
+
+            // Recursively save nested subraces (if any)
+            if (subrace.subraces && subrace.subraces.length > 0) {
+                await this.saveSubracesToDatabase(subrace.subraces, subrace.url);
+            }
+        }
     }
 
     // Optional: Get races with hierarchy reconstructed
