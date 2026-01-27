@@ -103,6 +103,14 @@ export class RacesRepository
         return EmptyFullRace();
     }
 
+    override async getFullItemByUrl(url: string): Promise<FullRace | null> {
+        const race = await super.getFullItemByUrl(url);
+        if (race && !race.subraces) {
+            race.subraces = await this.database.fullRaceDao.readSubracesByParentUrl(url);
+        }
+        return race;
+    }
+
     // Optional: Get races with hierarchy reconstructed
     async getRacesWithSubraces(): Promise<SmallRace[]> {
         const flatRaces = await this.database.smallRaceDao.readAllItemsWithParentUrl(null, null);
