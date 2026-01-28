@@ -198,7 +198,6 @@
     .header {
         display: flex;
         flex-direction: row;
-        justify-content: space-between;
         align-items: flex-start;
         margin: 0;
         padding: 0;
@@ -298,6 +297,7 @@
         width: 25%;
         z-index: 1;
         margin: 0;
+        margin-left: auto;
         padding: 0;
     }
 
