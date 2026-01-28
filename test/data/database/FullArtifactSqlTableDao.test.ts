@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { FullArtifactSqlTableDao } from '../../../src/data/databse/FullArtifactSqlTableDao';
+import { FullArtifactSqlTableDao } from '../../../src/data/database/FullArtifactSqlTableDao';
 import type { FullArtifact } from '../../../src/domain/models/artifact/FullArtifact';
 import type { ArtifactoryFilters } from '../../../src/domain/models/artifact/ArtifactoryFilters';
 import { runSqlDaoBaseTests } from './Dao';

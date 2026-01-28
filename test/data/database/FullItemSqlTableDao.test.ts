@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { FullItemSqlTableDao } from '../../../src/data/databse/FullItemSqlTableDao';
+import { FullItemSqlTableDao } from '../../../src/data/database/FullItemSqlTableDao';
 import type { FullItem } from '../../../src/domain/models/items/FullItem';
 import { runSqlDaoBaseTests } from './Dao';
 import { fullItemPoison } from '../../__mocks__/domain/models/items/full_items_items';

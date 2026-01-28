@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { FullFeatSqlTableDao } from '../../../src/data/databse/FullFeatSqlTableDao';
+import { FullFeatSqlTableDao } from '../../../src/data/database/FullFeatSqlTableDao';
 import type { FullFeat } from '../../../src/domain/models/feat/FullFeat';
 import { runSqlDaoBaseTests } from './Dao';
 

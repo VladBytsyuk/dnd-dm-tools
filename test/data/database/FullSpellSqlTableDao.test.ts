@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { FullSpellSqlTableDao } from '../../../src/data/databse/FullSpellSqlTableDao';
+import { FullSpellSqlTableDao } from '../../../src/data/database/FullSpellSqlTableDao';
 import type { FullSpell } from '../../../src/domain/models/spell/FullSpell';
 import { runSqlDaoBaseTests } from './Dao';
 import { spellbookFilters } from '../../__mocks__/domain/models/spell/small_spell_items';
