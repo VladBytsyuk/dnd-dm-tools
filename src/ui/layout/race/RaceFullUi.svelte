@@ -2,6 +2,7 @@
     import type { FullRace } from 'src/domain/models/race/FullRace';
     import type { IUiEventListener } from 'src/domain/listeners/ui_event_listener';
     import RaceHeaderFullUi from './RaceHeaderFullUi.svelte';
+    import RaceSkill from './RaceSkill.svelte';
     import HtmlBlock from '../uikit/HtmlBlock.svelte';
 
     interface Props {
@@ -23,6 +24,17 @@
 
     // Format skills
     const hasSkills = currentItem.skills && currentItem.skills.length > 0;
+
+    // Filter subrace skills that are not duplicates of parent race skills
+    const getUniqueSubraceSkills = (subraceSkills: typeof currentItem.skills) => {
+        if (!subraceSkills) return [];
+        return subraceSkills.filter(subraceSkill =>
+            !currentItem.skills?.some(parentSkill =>
+                parentSkill.name === subraceSkill.name &&
+                parentSkill.description === subraceSkill.description
+            )
+        );
+    };
 
     // Get image for header
     const images = currentItem.image ? [currentItem.image] : undefined;
@@ -73,17 +85,13 @@
 
     {#if hasSkills}
         <div class="race-skills">
-            <span class="race-skills__label">Особенности:</span>
-            <ul class="race-skills__list">
-                {#each currentItem.skills as skill}
-                    <li>
-                        <strong>{skill.name}</strong>
-                        {#if skill.description}
-                            <HtmlBlock htmlContent={skill.description} {uiEventListener} />
-                        {/if}
-                    </li>
-                {/each}
-            </ul>
+            {#each currentItem.skills as skill}
+                <RaceSkill
+                    name={skill.name}
+                    description={skill.description}
+                    {uiEventListener}
+                />
+            {/each}
         </div>
     {/if}
 
@@ -115,18 +123,13 @@
                             </div>
                         {/if}
 
-                        {#if subrace.skills && subrace.skills.length > 0}
-                            <ul class="race-details__skills-list">
-                                {#each subrace.skills as skill}
-                                    <li>
-                                        <strong>{skill.name}</strong>
-                                        {#if skill.description}
-                                            <HtmlBlock htmlContent={skill.description} {uiEventListener} />
-                                        {/if}
-                                    </li>
-                                {/each}
-                            </ul>
-                        {/if}
+                        {#each getUniqueSubraceSkills(subrace.skills) as skill}
+                            <RaceSkill
+                                name={skill.name}
+                                description={skill.description}
+                                {uiEventListener}
+                            />
+                        {/each}
 
                         {#if subrace.description}
                             <div class="race-details__subrace-description">
@@ -147,21 +150,7 @@
     }
 
     .race-skills {
-        padding: 12px;
         margin: 1em;
-    }
-
-    .race-skills__label {
-        font-weight: bold;
-    }
-
-    .race-skills__list {
-        margin: 8px 0 0 0;
-        padding-left: 20px;
-    }
-
-    .race-skills__list li {
-        margin-bottom: 8px;
     }
 
     .race-details__content {
@@ -244,6 +233,7 @@
     .race-details__row {
         display: flex;
         gap: 8px;
+        margin-bottom: 1em;
     }
 
     .race-details__label {
