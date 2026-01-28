@@ -3,7 +3,7 @@ import { BaseRepository } from "./BaseRepository";
 import type { SmallItem } from "src/domain/models/items/SmallItem";
 import type { FullItem } from "src/domain/models/items/FullItem";
 import type { Equipment } from "src/domain/repositories/Equipment";
-import type DB from "../databse/DB";
+import type DB from "../database/DB";
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
 

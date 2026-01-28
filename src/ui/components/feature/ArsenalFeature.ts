@@ -2,7 +2,7 @@ import { BaseFeature } from "./BaseFeature";
 import type { SmallWeapon } from "src/domain/models/weapon/SmallWeapon";
 import type { FullWeapon } from "src/domain/models/weapon/FullWeapon";
 import type { ArsenalFilters } from "src/domain/models/weapon/ArsenalFilters";
-import type DB from "src/data/databse/DB";
+import type DB from "src/data/database/DB";
 import type { Repository } from "src/domain/repositories/Repository";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type DndStatblockPlugin from "src/main";

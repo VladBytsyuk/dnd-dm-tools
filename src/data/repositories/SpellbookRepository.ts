@@ -1,5 +1,5 @@
 import { type SpellbookFilters } from "src/domain/models/spell/SpellbookFilters";
-import type DB from "../databse/DB";
+import type DB from "../database/DB";
 import type { Spellbook } from 'src/domain/repositories/Spellbook';
 import type { FullSpell } from "src/domain/models/spell/FullSpell";
 import type { SmallSpell } from 'src/domain/models/spell/SmallSpell';

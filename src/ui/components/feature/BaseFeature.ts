@@ -5,7 +5,7 @@ import type { Repository } from "src/domain/repositories/Repository";
 import type DndStatblockPlugin from "src/main";
 import type { BaseSidePanel } from "../sidepanel/BaseSidePanel";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
-import type DB from "src/data/databse/DB";
+import type DB from "src/data/database/DB";
 import type { BaseMdCodeBlockProcessor } from "../processor/BaseMdCodeBlockProcessor";
 import type { Editor } from "obsidian";
 

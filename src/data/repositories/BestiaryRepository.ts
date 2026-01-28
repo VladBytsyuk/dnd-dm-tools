@@ -1,6 +1,6 @@
 import type { SmallMonster } from "src/domain/models/monster/SmallMonster";
 import { type BestiaryFilters } from "src/domain/models/monster/BestiaryFilters";
-import type DB from "../databse/DB";
+import type DB from "../database/DB";
 import type { Bestiary } from 'src/domain/repositories/Bestiary';
 import { EmptyFullMonster, type FullMonster } from 'src/domain/models/monster/FullMonster';
 import { BaseRepository } from './BaseRepository';

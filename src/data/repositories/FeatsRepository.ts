@@ -1,6 +1,6 @@
 import type { SmallFeat } from "src/domain/models/feat/SmallFeat";
 import { type FeatsFilters } from "src/domain/models/feat/FeatsFilters";
-import type DB from "../databse/DB";
+import type DB from "../database/DB";
 import type { Feats } from 'src/domain/repositories/Feats';
 import { type FullFeat } from 'src/domain/models/feat/FullFeat';
 import { BaseRepository } from './BaseRepository';

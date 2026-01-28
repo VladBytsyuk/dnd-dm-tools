@@ -1,8 +1,8 @@
 import { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
-import type DB from "../databse/DB";
+import type DB from "../database/DB";
 import type { DmScreen } from "src/domain/repositories/DmScreen";
 import { BaseRepository } from "./BaseRepository";
-import type { DmScreenGroupSqlTableDao } from "../databse/DmScreenGroupSqlTableDao";
+import type { DmScreenGroupSqlTableDao } from "../database/DmScreenGroupSqlTableDao";
 
 export class DmScreenRepository 
     extends BaseRepository<DmScreenItem, DmScreenItem, any> 

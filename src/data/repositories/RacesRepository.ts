@@ -1,6 +1,6 @@
 import type { SmallRace } from "src/domain/models/race/SmallRace";
 import { type RaceFilters } from "src/domain/models/race/RaceFilters";
-import type DB from "../databse/DB";
+import type DB from "../database/DB";
 import type { Races } from "src/domain/repositories/Races";
 import { type FullRace, EmptyFullRace } from "src/domain/models/race/FullRace";
 import { BaseRepository } from "./BaseRepository";

@@ -3,7 +3,7 @@ import { BaseFeature } from "./BaseFeature";
 import type { FullArtifact } from "src/domain/models/artifact/FullArtifact";
 import type { ArtifactoryFilters } from "src/domain/models/artifact/ArtifactoryFilters";
 import type { Repository } from "src/domain/repositories/Repository";
-import type DB from "src/data/databse/DB";
+import type DB from "src/data/database/DB";
 import { ArtifactoryRepository } from "src/data/repositories/ArtifactoryRepository";
 import type DndStatblockPlugin from "src/main";
 import { ArtifactorySidePanel } from "../sidepanel/ArtifactorySidePanel";

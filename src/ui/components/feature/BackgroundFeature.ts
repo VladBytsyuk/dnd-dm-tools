@@ -2,7 +2,7 @@ import type { SmallBackground } from "src/domain/models/background/SmallBackgrou
 import { BaseFeature, type FeatureCommand } from "./BaseFeature";
 import type { FullBackground } from "src/domain/models/background/FullBackground";
 import type { BackgroundsFilters } from "src/domain/models/background/BackgroundsFilters";
-import type DB from "src/data/databse/DB";
+import type DB from "src/data/database/DB";
 import type { Repository } from "src/domain/repositories/Repository";
 import { BackgroundRepository } from "src/data/repositories/BackgroundRepository";
 import type DndStatblockPlugin from "src/main";

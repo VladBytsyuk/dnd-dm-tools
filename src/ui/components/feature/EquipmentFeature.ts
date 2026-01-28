@@ -2,7 +2,7 @@ import type { SmallItem } from "src/domain/models/items/SmallItem";
 import { BaseFeature } from "./BaseFeature";
 import type { FullItem } from "src/domain/models/items/FullItem";
 import type { EquipmentFilters } from "src/domain/models/items/EquipmentFilters";
-import type DB from "src/data/databse/DB";
+import type DB from "src/data/database/DB";
 import type { Repository } from "src/domain/repositories/Repository";
 import { EquipmentRepository } from "src/data/repositories/EquipmentRepository";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";

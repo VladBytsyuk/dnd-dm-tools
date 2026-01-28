@@ -1,4 +1,4 @@
-import type DB from "src/data/databse/DB";
+import type DB from "src/data/database/DB";
 import type { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import type { Repository } from "src/domain/repositories/Repository";
 import { BaseFeature } from "./BaseFeature";
