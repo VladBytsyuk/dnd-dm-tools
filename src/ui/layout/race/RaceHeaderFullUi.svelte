@@ -2,6 +2,7 @@
 	import type { Source } from './../../../domain/models/common/Source.ts';
 	import type { Name } from "../../../domain/models/common/Name";
 	import type { IUiEventListener } from '../../../domain/listeners/ui_event_listener.js';
+	import { copyTextToClipboard } from '../../../data/clipboard';
 	import { onMount } from 'svelte';
 
     interface SubraceLink {
@@ -72,7 +73,14 @@
                     <span>{name.rus}</span> <span class="clipboard-icon">📋</span>
                 </div>
                 <div class="name-eng">{name.eng}</div>
-                {#if url}<div class="name-url"><span>{url}</span> <span class="clipboard-icon">📋</span></div>{/if}
+                {#if url}<div
+                    class="name-url"
+                    role="button"
+                    tabindex="0"
+                    onclick={() => copyTextToClipboard(url)}
+                    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyTextToClipboard(url); } }}
+                    aria-label="Скопировать ссылку в буфер обмена"
+                ><span>{url}</span> <span class="clipboard-icon">📋</span></div>{/if}
             </div>
             <div class="info-container">
                 {#if type}<div class="type">{type}</div>{/if}
@@ -149,7 +157,14 @@
                     <span>{name.rus}</span> <span class="clipboard-icon">📋</span>
                 </div>
                 <div class="name-eng">{name.eng}</div>
-                {#if url}<div class="name-url"><span>{url}</span> <span class="clipboard-icon">📋</span></div>{/if}
+                {#if url}<div
+                    class="name-url"
+                    role="button"
+                    tabindex="0"
+                    onclick={() => copyTextToClipboard(url)}
+                    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyTextToClipboard(url); } }}
+                    aria-label="Скопировать ссылку в буфер обмена"
+                ><span>{url}</span> <span class="clipboard-icon">📋</span></div>{/if}
             </div>
             <div class="info-container">
                 {#if type}<div class="type">{type}</div>{/if}
@@ -233,6 +248,7 @@
         opacity: 0.5;
         font-size: 11px;
         margin: 0 0 2px;
+        cursor: pointer;
     }
 
     .info-container {
