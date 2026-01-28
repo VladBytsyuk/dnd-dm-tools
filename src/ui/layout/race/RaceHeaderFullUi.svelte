@@ -69,10 +69,10 @@
                     onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onClick(); } }}
                     aria-label="Скопировать в буфер обмена"
                 >
-                    {name.rus} 📋
+                    <span>{name.rus}</span> <span class="clipboard-icon">📋</span>
                 </div>
                 <div class="name-eng">{name.eng}</div>
-                {#if url}<div class="name-url">{url}</div>{/if}
+                {#if url}<div class="name-url"><span>{url}</span> <span class="clipboard-icon">📋</span></div>{/if}
             </div>
             <div class="info-container">
                 {#if type}<div class="type">{type}</div>{/if}
@@ -146,10 +146,10 @@
                     onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onClick(); } }}
                     aria-label="Скопировать в буфер обмена"
                 >
-                    {name.rus} 📋
+                    <span>{name.rus}</span> <span class="clipboard-icon">📋</span>
                 </div>
                 <div class="name-eng">{name.eng}</div>
-                {#if url}<div class="name-url">{url}</div>{/if}
+                {#if url}<div class="name-url"><span>{url}</span> <span class="clipboard-icon">📋</span></div>{/if}
             </div>
             <div class="info-container">
                 {#if type}<div class="type">{type}</div>{/if}
@@ -211,6 +211,9 @@
     }
 
     .name-rus {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         font-size: 21px;
         line-height: 1.2em;
         margin: 0 0 2px;
@@ -224,6 +227,9 @@
     }
 
     .name-url {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         opacity: 0.5;
         font-size: 11px;
         margin: 0 0 2px;
