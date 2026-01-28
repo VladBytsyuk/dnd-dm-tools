@@ -71,6 +71,7 @@
 <div class="full-item">
     <RaceHeaderFullUi
         name={currentItem.name}
+        url={currentItem.url}
         type={currentItem.type.name}
         source={currentItem.source}
         onClick={copyToClipboard}

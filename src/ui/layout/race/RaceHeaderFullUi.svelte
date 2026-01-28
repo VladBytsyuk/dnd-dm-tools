@@ -11,6 +11,7 @@
 
     interface Props {
         name: Name;
+        url?: string;
         type?: string;
         source?: Source;
         onClick: () => void;
@@ -23,7 +24,7 @@
         onSubraceClick?: (id: string) => void;
     }
 
-    let { name, type, source, onClick, images, uiEventListener, abilities, size, speed, subraces, onSubraceClick }: Props = $props();
+    let { name, url, type, source, onClick, images, uiEventListener, abilities, size, speed, subraces, onSubraceClick }: Props = $props();
 
     let currentImageIndex = $state(0);
     let imagesLength = $state(images?.length ?? 0);
@@ -71,6 +72,7 @@
                     {name.rus} 📋
                 </div>
                 <div class="name-eng">{name.eng}</div>
+                {#if url}<div class="name-url">{url}</div>{/if}
             </div>
             <div class="info-container">
                 {#if type}<div class="type">{type}</div>{/if}
@@ -147,6 +149,7 @@
                     {name.rus} 📋
                 </div>
                 <div class="name-eng">{name.eng}</div>
+                {#if url}<div class="name-url">{url}</div>{/if}
             </div>
             <div class="info-container">
                 {#if type}<div class="type">{type}</div>{/if}
@@ -217,6 +220,12 @@
     .name-eng {
         opacity: 0.75;
         font-size: 12px;
+        margin: 0 0 2px;
+    }
+
+    .name-url {
+        opacity: 0.5;
+        font-size: 11px;
         margin: 0 0 2px;
     }
 
