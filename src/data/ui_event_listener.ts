@@ -10,6 +10,7 @@ import type { ArmoryFeature } from "src/ui/components/feature/ArmoryFeature";
 import type { EquipmentFeature } from "src/ui/components/feature/EquipmentFeature";
 import type { ArtifactoryFeature } from "src/ui/components/feature/ArtifactoryFeature";
 import type { BackgroundFeature } from "src/ui/components/feature/BackgroundFeature";
+import type { RaceFeature } from "src/ui/components/feature/RaceFeature";
 import type { RollTraceResult } from "../domain/dice";
 
 export class UiEventListener implements IUiEventListener {
@@ -24,7 +25,8 @@ export class UiEventListener implements IUiEventListener {
         private equipmentFeatureProvider: () => EquipmentFeature,
         private artifactoryFeatureProvider: () => ArtifactoryFeature,
         private backgroundFeatureProvider: () => BackgroundFeature,
-        private featFeature: () => BaseFeature<any, any, any>,
+        private featFeatureProvider: () => BaseFeature<any, any, any>,
+        private raceFeatureProvider: () => RaceFeature,
         private dmScreenFeatureProvider: () => DmScreenFeature,
     ) {
         this.onBeastClick = this.onBeastClick.bind(this);
@@ -36,6 +38,7 @@ export class UiEventListener implements IUiEventListener {
         this.onScreenItemClick = this.onScreenItemClick.bind(this);
         this.onBackgroundClick = this.onBackgroundClick.bind(this);
         this.onFeatClick = this.onFeatClick.bind(this);
+        this.onRaceClick = this.onRaceClick.bind(this);
     }
 
     // ---- methods ----
@@ -72,7 +75,11 @@ export class UiEventListener implements IUiEventListener {
     }
 
     async onFeatClick(url: string): Promise<void> {
-        this.onClick(this.featFeature, url);
+        this.onClick(this.featFeatureProvider, url);
+    }
+
+    async onRaceClick(url: string): Promise<void> {
+        this.onClick(this.raceFeatureProvider, url);
     }
 
     onDiceRoll(label: string, value: RollTraceResult): void {

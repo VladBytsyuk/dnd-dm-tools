@@ -11,6 +11,7 @@ import type { FullItem } from "src/domain/models/items/FullItem";
 import type { FullArtifact } from "src/domain/models/artifact/FullArtifact";
 import type { FullBackground } from "src/domain/models/background/FullBackground";
 import type { FullFeat } from "../domain/models/feat/FullFeat";
+import type { FullRace } from "../domain/models/race/FullRace";
 
 // ---- Copy to clipboard ----
 export function copyTextToClipboard(text: string, ignoreNotice: boolean = false) {
@@ -60,6 +61,10 @@ export function copyBackgroundToClipboard(background: FullBackground) {
 
 export function copyFeatToClipboard(feat: FullFeat) {
     copyToClipboard(feat, feat.name.rus, "feat");
+}
+
+export function copyRaceToClipboard(race: FullRace) {
+    copyToClipboard(race, race.name.rus, "race");
 }
 
 function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string, additionalContent: string | null = null, ignoreNotice: boolean = false) {
