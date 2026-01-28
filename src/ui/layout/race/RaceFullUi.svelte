@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { FullRace } from 'src/domain/models/race/FullRace';
     import type { IUiEventListener } from 'src/domain/listeners/ui_event_listener';
-    import HeaderFullUi from '../uikit/HeaderFullUi.svelte';
+    import RaceHeaderFullUi from './RaceHeaderFullUi.svelte';
     import HtmlBlock from '../uikit/HtmlBlock.svelte';
 
     interface Props {
@@ -27,6 +27,28 @@
     // Get image for header
     const images = currentItem.image ? [currentItem.image] : undefined;
 
+    // Format subraces for header links
+    const subraceLinks = currentItem.subraces?.map((s, index) => ({ name: s.name.rus, id: `subrace-${index}` }));
+
+    // Track which subrace is open (only one at a time)
+    let openSubraceIndex: number | null = $state(null);
+
+    // Toggle subrace open/closed
+    const toggleSubrace = (index: number) => {
+        openSubraceIndex = openSubraceIndex === index ? null : index;
+    };
+
+    // Scroll to subrace and open it
+    const scrollToSubrace = (id: string) => {
+        const index = parseInt(id.replace('subrace-', ''));
+        openSubraceIndex = index;
+        // Use setTimeout to allow the DOM to update before scrolling
+        setTimeout(() => {
+            const element = document.getElementById(id);
+            element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 0);
+    };
+
     // Copy to clipboard
     const copyToClipboard = () => {
         const text = `\`\`\`race\n${currentItem.url}\n\`\`\``;
@@ -35,53 +57,35 @@
 </script>
 
 <div class="full-item">
-    <HeaderFullUi
+    <RaceHeaderFullUi
         name={currentItem.name}
         type={currentItem.type.name}
         source={currentItem.source}
         onClick={copyToClipboard}
         {images}
         {uiEventListener}
+        abilities={abilitiesText}
+        size={currentItem.size}
+        speed={speedText}
+        subraces={subraceLinks}
+        onSubraceClick={scrollToSubrace}
     />
 
-    <div class="race-details">
-        {#if abilitiesText}
-            <div class="race-details__row">
-                <span class="race-details__label">Характеристики:</span>
-                <span class="race-details__value">{abilitiesText}</span>
-            </div>
-        {/if}
-
-        {#if currentItem.size}
-            <div class="race-details__row">
-                <span class="race-details__label">Размер:</span>
-                <span class="race-details__value">{currentItem.size}</span>
-            </div>
-        {/if}
-
-        {#if speedText}
-            <div class="race-details__row">
-                <span class="race-details__label">Скорость:</span>
-                <span class="race-details__value">{speedText}</span>
-            </div>
-        {/if}
-
-        {#if hasSkills}
-            <div class="race-details__skills">
-                <span class="race-details__label">Особенности:</span>
-                <ul class="race-details__skills-list">
-                    {#each currentItem.skills as skill}
-                        <li>
-                            <strong>{skill.name}</strong>
-                            {#if skill.description}
-                                <HtmlBlock htmlContent={skill.description} {uiEventListener} />
-                            {/if}
-                        </li>
-                    {/each}
-                </ul>
-            </div>
-        {/if}
-    </div>
+    {#if hasSkills}
+        <div class="race-skills">
+            <span class="race-skills__label">Особенности:</span>
+            <ul class="race-skills__list">
+                {#each currentItem.skills as skill}
+                    <li>
+                        <strong>{skill.name}</strong>
+                        {#if skill.description}
+                            <HtmlBlock htmlContent={skill.description} {uiEventListener} />
+                        {/if}
+                    </li>
+                {/each}
+            </ul>
+        </div>
+    {/if}
 
     {#if currentItem.description}
         <div class="race-details__content">
@@ -92,9 +96,9 @@
     {#if currentItem.subraces && currentItem.subraces.length > 0}
         <div class="race-details__subraces">
             <h3>Разновидности</h3>
-            {#each currentItem.subraces as subrace}
-                <details class="race-details__subrace">
-                    <summary class="race-details__subrace-header">
+            {#each currentItem.subraces as subrace, index}
+                <details class="race-details__subrace" id="subrace-{index}" open={openSubraceIndex === index}>
+                    <summary class="race-details__subrace-header" onclick={(e) => { e.preventDefault(); toggleSubrace(index); }}>
                         <span class="race-details__subrace-chevron"></span>
                         <span class="race-details__subrace-title">{subrace.name.rus}</span>
                         <span class="race-details__subrace-eng">[{subrace.name.eng}]</span>
@@ -137,49 +141,37 @@
 </div>
 
 <style>
-    .race-details {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
+    .full-item {
+        margin: 0;
+        padding: 0;
+    }
+
+    .race-skills {
         padding: 12px;
-        background: #ffffff14;
-        border-radius: 8px;
-        margin-bottom: 1em;
+        margin: 1em;
     }
 
-    .race-details__row {
-        display: flex;
-        gap: 8px;
-    }
-
-    .race-details__label {
+    .race-skills__label {
         font-weight: bold;
-        flex-shrink: 0;
     }
 
-    .race-details__value {
-        flex: 1;
-    }
-
-    .race-details__skills {
-        margin-top: 8px;
-    }
-
-    .race-details__skills-list {
+    .race-skills__list {
         margin: 8px 0 0 0;
         padding-left: 20px;
     }
 
-    .race-details__skills-list li {
+    .race-skills__list li {
         margin-bottom: 8px;
     }
 
     .race-details__content {
-        margin-bottom: 1em;
+        padding: 12px;
+        -moz-background-inline-policy: 1em;
     }
 
     .race-details__subraces {
-        margin-top: 1em;
+        margin: 1em;
+        padding: 12px;
         padding-top: 1em;
         border-top: 1px solid #ffffff30;
     }
@@ -247,6 +239,20 @@
 
     .race-details__subrace-content {
         padding: 12px;
+    }
+
+    .race-details__row {
+        display: flex;
+        gap: 8px;
+    }
+
+    .race-details__label {
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+
+    .race-details__value {
+        flex: 1;
     }
 
     .race-details__subrace-description {
