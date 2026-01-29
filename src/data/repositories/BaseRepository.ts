@@ -1,5 +1,5 @@
 import type { Group, Repository } from "src/domain/repositories/Repository";
-import type DB from "../databse/DB";
+import type DB from "../database/DB";
 import type { Dao } from "src/domain/Dao";
 import { requestUrl } from "obsidian";
 import type { BaseItem } from "src/domain/models/common/BaseItem";

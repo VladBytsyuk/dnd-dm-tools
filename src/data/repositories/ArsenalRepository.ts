@@ -1,6 +1,6 @@
 import type { SmallWeapon } from 'src/domain/models/weapon/SmallWeapon';
 import type { Arsenal } from 'src/domain/repositories/Arsenal';
-import type DB from '../databse/DB';
+import type DB from '../database/DB';
 import type { FullWeapon } from 'src/domain/models/weapon/FullWeapon';
 import { type ArsenalFilters } from 'src/domain/models/weapon/ArsenalFilters';
 import { BaseRepository } from './BaseRepository';

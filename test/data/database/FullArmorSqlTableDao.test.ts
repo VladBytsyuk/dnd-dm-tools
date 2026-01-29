@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { FullArmorSqlTableDao } from '../../../src/data/databse/FullArmorSqlTableDao';
+import { FullArmorSqlTableDao } from '../../../src/data/database/FullArmorSqlTableDao';
 import type { FullArmor } from '../../../src/domain/models/armor/FullArmor';
 import { runSqlDaoBaseTests } from './Dao';
 import { fullArmorRingMail } from '../../__mocks__/domain/models/armor/full_armor_items';

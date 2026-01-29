@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { FullWeaponSqlTableDao } from '../../../src/data/databse/FullWeaponSqlTableDao';
+import { FullWeaponSqlTableDao } from '../../../src/data/database/FullWeaponSqlTableDao';
 import { FullWeapon } from '../../../src/domain/models/weapon/FullWeapon';
 import type { ArsenalFilters } from '../../../src/domain/models/weapon/ArsenalFilters';
 import { runSqlDaoBaseTests } from './Dao';

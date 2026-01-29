@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { FullBackgroundSqlTableDao } from '../../../src/data/databse/FullBackgroundSqlTableDao';
+import { FullBackgroundSqlTableDao } from '../../../src/data/database/FullBackgroundSqlTableDao';
 import type { FullBackground } from '../../../src/domain/models/background/FullBackground';
 import type { BackgroundsFilters } from '../../../src/domain/models/background/BackgroundsFilters';
 import { runSqlDaoBaseTests } from './Dao';

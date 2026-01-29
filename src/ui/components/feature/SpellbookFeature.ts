@@ -2,7 +2,7 @@ import type { SmallSpell } from "src/domain/models/spell/SmallSpell";
 import { BaseFeature, type FeatureCommand } from "./BaseFeature";
 import type { FullSpell } from "src/domain/models/spell/FullSpell";
 import type { SpellbookFilters } from "src/domain/models/spell/SpellbookFilters";
-import type DB from "src/data/databse/DB";
+import type DB from "src/data/database/DB";
 import type { Repository } from "src/domain/repositories/Repository";
 import { SpellbookRepository } from "src/data/repositories/SpellbookRepository";
 import type DndStatblockPlugin from "src/main";

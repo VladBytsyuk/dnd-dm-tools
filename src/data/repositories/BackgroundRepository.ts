@@ -3,7 +3,7 @@ import { BaseRepository } from "./BaseRepository";
 import type { FullBackground } from "src/domain/models/background/FullBackground";
 import { type BackgroundsFilters } from "src/domain/models/background/BackgroundsFilters";
 import type { Backgrounds } from "src/domain/repositories/Backgrounds";
-import type DB from "../databse/DB";
+import type DB from "../database/DB";
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
 

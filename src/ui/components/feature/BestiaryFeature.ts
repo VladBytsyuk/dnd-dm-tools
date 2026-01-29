@@ -2,7 +2,7 @@ import type { SmallMonster } from "src/domain/models/monster/SmallMonster";
 import { BaseFeature, type FeatureCommand } from "./BaseFeature";
 import type { FullMonster } from "src/domain/models/monster/FullMonster";
 import type { BestiaryFilters } from "src/domain/models/monster/BestiaryFilters";
-import type DB from "src/data/databse/DB";
+import type DB from "src/data/database/DB";
 import type { Repository } from "src/domain/repositories/Repository";
 import { BestiaryRepository } from "src/data/repositories/BestiaryRepository";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";

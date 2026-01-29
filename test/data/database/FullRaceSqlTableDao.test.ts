@@ -1,5 +1,5 @@
 import { expect, describe, it, beforeEach, vi } from 'vitest';
-import { FullRaceSqlTableDao } from '../../../src/data/databse/FullRaceSqlTableDao';
+import { FullRaceSqlTableDao } from '../../../src/data/database/FullRaceSqlTableDao';
 import type { FullRace } from '../../../src/domain/models/race/FullRace';
 import { runSqlDaoBaseTests } from './Dao';
 import { fullRace1, fullRace1Subrace } from '../../__mocks__/domain/models/race/full_race_items';

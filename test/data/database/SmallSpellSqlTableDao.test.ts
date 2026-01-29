@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { SmallSpellSqlTableDao } from '../../../src/data/databse/SmallSpellSqlTableDao';
+import { SmallSpellSqlTableDao } from '../../../src/data/database/SmallSpellSqlTableDao';
 import type { SmallSpell } from '../../../src/domain/models/spell/SmallSpell';
 import type { SpellbookFilters } from '../../../src/domain/models/spell/SpellbookFilters';
 import { runSqlDaoBaseTests } from './Dao';

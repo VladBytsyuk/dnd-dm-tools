@@ -1,5 +1,5 @@
 import { expect, describe, it, beforeEach, vi } from 'vitest';
-import { SmallRaceSqlTableDao } from '../../../src/data/databse/SmallRaceSqlTableDao';
+import { SmallRaceSqlTableDao } from '../../../src/data/database/SmallRaceSqlTableDao';
 import type { SmallRace } from '../../../src/domain/models/race/SmallRace';
 import type { RaceFilters } from '../../../src/domain/models/race/RaceFilters';
 import { runSqlDaoBaseTests } from './Dao';

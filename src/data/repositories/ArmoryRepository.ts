@@ -3,7 +3,7 @@ import { BaseRepository } from "./BaseRepository"
 import type { SmallArmor } from "src/domain/models/armor/SmallArmor"
 import type { FullArmor } from "src/domain/models/armor/FullArmor"
 import type { Armory } from "src/domain/repositories/Armory"
-import type DB from "../databse/DB"
+import type DB from "../database/DB"
 import { createFilters } from "src/domain/models/common/Filters"
 import type { Group } from "src/domain/repositories/Repository"
 

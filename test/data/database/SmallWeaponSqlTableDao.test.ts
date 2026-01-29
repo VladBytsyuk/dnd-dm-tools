@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { SmallWeaponSqlTableDao } from '../../../src/data/databse/SmallWeaponSqlTableDao';
+import { SmallWeaponSqlTableDao } from '../../../src/data/database/SmallWeaponSqlTableDao';
 import { SmallWeapon } from '../../../src/domain/models/weapon/SmallWeapon';
 import type { ArsenalFilters } from '../../../src/domain/models/weapon/ArsenalFilters';
 import { runSqlDaoBaseTests } from './Dao';

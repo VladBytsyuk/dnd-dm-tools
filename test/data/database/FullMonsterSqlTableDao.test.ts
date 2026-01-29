@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { FullMonsterSqlTableDao } from '../../../src/data/databse/FullMonsterSqlTableDao';
+import { FullMonsterSqlTableDao } from '../../../src/data/database/FullMonsterSqlTableDao';
 import type { FullMonster } from '../../../src/domain/models/monster/FullMonster';
 import type { BestiaryFilters } from '../../../src/domain/models/monster/BestiaryFilters';
 import { runSqlDaoBaseTests } from './Dao';

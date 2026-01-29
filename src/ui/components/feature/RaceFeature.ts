@@ -2,7 +2,7 @@ import type { SmallRace } from "src/domain/models/race/SmallRace";
 import { BaseFeature, type FeatureCommand } from "./BaseFeature";
 import type { FullRace } from "src/domain/models/race/FullRace";
 import type { RaceFilters } from "src/domain/models/race/RaceFilters";
-import type DB from "src/data/databse/DB";
+import type DB from "src/data/database/DB";
 import type { Repository } from "src/domain/repositories/Repository";
 import { RacesRepository } from "src/data/repositories/RacesRepository";
 import type DndStatblockPlugin from "src/main";

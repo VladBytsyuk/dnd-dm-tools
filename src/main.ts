@@ -4,7 +4,7 @@ import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor
 import { registerAddEncounterCommand } from './ui/components/command/add_encounter_command';
 import { UiEventListener } from './data/ui_event_listener';
 import type { IUiEventListener } from './domain/listeners/ui_event_listener';
-import DB from './data/databse/DB';
+import DB from './data/database/DB';
 import { registerSidePanelInitiativeTracker } from './ui/components/sidepanel/side_panel_initiative_tracker';
 import { ArsenalFeature } from './ui/components/feature/ArsenalFeature';
 import type { BaseFeature } from './ui/components/feature/BaseFeature';

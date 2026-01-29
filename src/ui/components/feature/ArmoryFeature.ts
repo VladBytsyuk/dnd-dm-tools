@@ -2,7 +2,7 @@ import type { SmallArmor } from "src/domain/models/armor/SmallArmor";
 import { BaseFeature } from "./BaseFeature";
 import type { FullArmor } from "src/domain/models/armor/FullArmor";
 import type { ArmoryFilters } from "src/domain/models/armor/ArmoryFilters";
-import type DB from "src/data/databse/DB";
+import type DB from "src/data/database/DB";
 import type { Repository } from "src/domain/repositories/Repository";
 import { ArmoryRepository } from "src/data/repositories/ArmoryRepository";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";

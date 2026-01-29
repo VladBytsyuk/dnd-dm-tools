@@ -3,7 +3,7 @@ import { BaseRepository } from "./BaseRepository";
 import type { FullArtifact } from "src/domain/models/artifact/FullArtifact";
 import { type ArtifactoryFilters } from "src/domain/models/artifact/ArtifactoryFilters";
 import type { Artifactory } from "src/domain/repositories/Artifactory";
-import type DB from "../databse/DB";
+import type DB from "../database/DB";
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
 
