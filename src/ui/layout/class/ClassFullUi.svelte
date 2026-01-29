@@ -15,7 +15,7 @@
         uiEventListener,
     } = $props<{
         currentItem: FullClass;
-        repository: ClassesRepository;
+        repository?: ClassesRepository;
         uiEventListener: IUiEventListener;
     }>();
 
@@ -29,7 +29,7 @@
     // Load archetypes when component mounts (only for base classes)
     onMount(async () => {
         diceRollersManager.onMount();
-        if (!currentItem.isArchetype) {
+        if (repository && !currentItem.isArchetype) {
             archetypes = await repository.getArchetypesForClass(currentItem.url);
         }
     });
