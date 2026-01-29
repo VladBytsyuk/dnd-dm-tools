@@ -21,7 +21,7 @@ runSqlDaoBaseTests<SmallClass, ClassesFilters>({
         table: 'small_classes',
         fill: true,
         whereClausesCount: 2,
-        filterParams: ["к6", "к8", "к10", "к12", "PHB", "XGE", "TCE", "SCAG*"],
+        filterParams: ["к6", "к8", "к10", "к12", "PHB", "XGE", "TCE", "SCAG"],
     },
     mutate: (c) => ({ ...c, dice: "к10" }),
     mapCase: {
