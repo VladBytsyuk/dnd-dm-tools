@@ -107,8 +107,10 @@ export class SmallWeaponSqlTableDao extends Dao<SmallWeapon, ArsenalFilters> {
                 params.push(...filters.types);
             }
             if (filters.sources.length > 0) {
-                whereClauses.push('(' + filters.sources.map(() => `source_short_name = ?`).join(' OR ') + ')');
-                params.push(...filters.sources);
+                // Strip trailing * marker from non-Basic sources before SQL filtering
+                const cleanedSources = filters.sources.map(source => source.replace(/\*$/, ''));
+                whereClauses.push('(' + cleanedSources.map(() => `source_short_name = ?`).join(' OR ') + ')');
+                params.push(...cleanedSources);
             }
 
             return WhereClauseData(whereClauses, params);
