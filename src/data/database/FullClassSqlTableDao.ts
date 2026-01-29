@@ -16,14 +16,8 @@ export class FullClassSqlTableDao extends Dao<FullClass, any> {
     }
 
     getLocalData(): FullClass[] {
-        return baseClasses.map((classData, index) => ({
-            id: index + 1,
-            name: classData.name,
-            url: classData.url,
-            dice: classData.dice,
-            source: classData.source,
-            archetypes: classData.archetypes
-        }));
+        // Return empty array - HTML content fetched on-demand
+        return [];
     }
 
     // Table management
@@ -40,7 +34,13 @@ export class FullClassSqlTableDao extends Dao<FullClass, any> {
                 group_name TEXT NOT NULL,
                 group_short_name TEXT NOT NULL,
                 homebrew INTEGER DEFAULT 0,
-                archetypes TEXT
+                is_archetype INTEGER DEFAULT 0,
+                parent_class_url TEXT,
+                archetype_type_name TEXT,
+                archetype_type_order INTEGER,
+                associated_url TEXT,
+                associated_html TEXT,
+                FOREIGN KEY (parent_class_url) REFERENCES full_classes(url)
             );
         `);
     }
@@ -54,8 +54,9 @@ export class FullClassSqlTableDao extends Dao<FullClass, any> {
                 `INSERT INTO ${this.getTableName()} (
                     rus_name, eng_name, url, dice,
                     source_short_name, source_name, group_name, group_short_name, homebrew,
-                    archetypes
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
+                    is_archetype, parent_class_url, archetype_type_name, archetype_type_order,
+                    associated_url, associated_html
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
                 [
                     item.name.rus,
                     item.name.eng,
@@ -66,7 +67,12 @@ export class FullClassSqlTableDao extends Dao<FullClass, any> {
                     item.source.group.name,
                     item.source.group.shortName,
                     item.source.homebrew ? 1 : 0,
-                    JSON.stringify(item.archetypes ?? []),
+                    item.isArchetype ? 1 : 0,
+                    item.parentClassUrl || null,
+                    item.archetypeType?.name || null,
+                    item.archetypeType?.order ?? null,
+                    item.associatedUrl || null,
+                    item.associatedHtml || null,
                 ]
             );
         } catch (error) {
@@ -81,7 +87,8 @@ export class FullClassSqlTableDao extends Dao<FullClass, any> {
                 `UPDATE ${this.getTableName()} SET
                     rus_name = ?, eng_name = ?, dice = ?,
                     source_short_name = ?, source_name = ?, group_name = ?, group_short_name = ?, homebrew = ?,
-                    archetypes = ?
+                    is_archetype = ?, parent_class_url = ?, archetype_type_name = ?, archetype_type_order = ?,
+                    associated_url = ?, associated_html = ?
                 WHERE url = ?;`,
                 [
                     item.name.rus,
@@ -92,7 +99,12 @@ export class FullClassSqlTableDao extends Dao<FullClass, any> {
                     item.source.group.name,
                     item.source.group.shortName,
                     item.source.homebrew ? 1 : 0,
-                    JSON.stringify(item.archetypes ?? []),
+                    item.isArchetype ? 1 : 0,
+                    item.parentClassUrl || null,
+                    item.archetypeType?.name || null,
+                    item.archetypeType?.order ?? null,
+                    item.associatedUrl || null,
+                    item.associatedHtml || null,
                     item.url,
                 ]
             );
@@ -122,7 +134,14 @@ export class FullClassSqlTableDao extends Dao<FullClass, any> {
                     },
                     homebrew: sqlValues[9] ? Boolean(sqlValues[9]) : undefined,
                 },
-                archetypes: JSON.parse(sqlValues[10] as string || '[]'),
+                isArchetype: Boolean(sqlValues[10]),
+                parentClassUrl: sqlValues[11] as string || undefined,
+                archetypeType: sqlValues[12] && sqlValues[13] ? {
+                    name: sqlValues[12] as string,
+                    order: sqlValues[13] as number,
+                } : undefined,
+                associatedUrl: sqlValues[14] as string || undefined,
+                associatedHtml: sqlValues[15] as string || undefined,
             };
         } catch (error) {
             console.error('Error mapping SQL values to FullClass:', error);

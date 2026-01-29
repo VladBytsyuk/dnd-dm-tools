@@ -7882,3 +7882,16 @@ export const baseClasses = [
     "sidekick": false
   }
 ];
+
+export function collectSourceBooks(classes: typeof baseClasses): string[] {
+  const sources = new Set<string>();
+  for (const classData of classes) {
+    sources.add(classData.source.shortName);
+    if (classData.archetypes) {
+      for (const archetype of classData.archetypes) {
+        sources.add(archetype.source.shortName);
+      }
+    }
+  }
+  return Array.from(sources);
+}

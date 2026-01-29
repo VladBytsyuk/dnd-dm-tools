@@ -87,6 +87,13 @@ export default class DB implements Initializable {
             this.database = database;
             const sqlTableDaos = this.initDaos(database);
 
+            // Check if classes migration needed
+            const needsClassesMigration = await this.checkClassesMigration();
+            if (needsClassesMigration) {
+                console.log('Classes table migration required...');
+                await this.migrateClassesTables();
+            }
+
             // Create tables if they do not exist
             await this.transaction(async () => {
                 await Promise.all(
@@ -211,5 +218,37 @@ export default class DB implements Initializable {
             }
         }
         return path.join('/').trim();
+    }
+
+    private async checkClassesMigration(): Promise<boolean> {
+        if (!this.database) return false;
+        try {
+            const result = this.database.exec(`PRAGMA table_info(full_classes);`);
+            if (result.length > 0) {
+                const columns = result[0].values.map(v => v[1] as string);
+                return columns.includes('archetypes'); // Old schema has this column
+            }
+        } catch (error) {
+            // Table doesn't exist - no migration needed
+            return false;
+        }
+        return false;
+    }
+
+    private async migrateClassesTables(): Promise<void> {
+        if (!this.database) return;
+        await this.transaction(async () => {
+            // Drop old tables
+            this.database!.exec(`DROP TABLE IF EXISTS small_classes;`);
+            this.database!.exec(`DROP TABLE IF EXISTS full_classes;`);
+
+            // Create new tables
+            await this.smallClassDao.createTable();
+            await this.fullClassDao.createTable();
+
+            // Repopulate from classes.ts
+            await this.smallClassDao.fillTableWithData();
+        });
+        console.log('Classes migration complete.');
     }
 }

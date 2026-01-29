@@ -22,12 +22,33 @@ export class SmallClassSqlTableDao extends Dao<SmallClass, ClassesFilters> {
     }
 
     getLocalData(): SmallClass[] {
-        return baseClasses.map(classData => ({
-            name: classData.name,
-            url: classData.url,
-            dice: classData.dice,
-            source: classData.source
-        }));
+        const items: SmallClass[] = [];
+
+        for (const classData of baseClasses) {
+            // Add base class
+            items.push({
+                name: classData.name,
+                url: classData.url,
+                dice: classData.dice,
+                source: classData.source,
+                isArchetype: false,
+                parentClassUrl: undefined,
+            });
+
+            // Add each archetype as separate item
+            for (const archetype of classData.archetypes) {
+                items.push({
+                    name: archetype.name,
+                    url: archetype.url,
+                    dice: classData.dice,           // Inherit from parent
+                    source: archetype.source,
+                    isArchetype: true,
+                    parentClassUrl: classData.url,
+                });
+            }
+        }
+
+        return items;  // Returns ~428 items
     }
 
     // Table management
@@ -43,7 +64,10 @@ export class SmallClassSqlTableDao extends Dao<SmallClass, ClassesFilters> {
                 source_name TEXT NOT NULL,
                 group_name TEXT NOT NULL,
                 group_short_name TEXT NOT NULL,
-                homebrew INTEGER DEFAULT 0
+                homebrew INTEGER DEFAULT 0,
+                is_archetype INTEGER DEFAULT 0,
+                parent_class_url TEXT,
+                FOREIGN KEY (parent_class_url) REFERENCES small_classes(url)
             );
         `);
     }
@@ -63,8 +87,10 @@ export class SmallClassSqlTableDao extends Dao<SmallClass, ClassesFilters> {
                     source_name,
                     group_name,
                     group_short_name,
-                    homebrew
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    homebrew,
+                    is_archetype,
+                    parent_class_url
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 item.name.rus,
                 item.name.eng,
@@ -75,6 +101,8 @@ export class SmallClassSqlTableDao extends Dao<SmallClass, ClassesFilters> {
                 item.source.group.name,
                 item.source.group.shortName,
                 item.source.homebrew ? 1 : 0,
+                item.isArchetype ? 1 : 0,
+                item.parentClassUrl || null,
             ]);
         } catch (error) {
             console.error(`Error creating SmallClass item ${item.name.rus}:`, error);
@@ -114,7 +142,9 @@ export class SmallClassSqlTableDao extends Dao<SmallClass, ClassesFilters> {
                     source_name = ?,
                     group_name = ?,
                     group_short_name = ?,
-                    homebrew = ?
+                    homebrew = ?,
+                    is_archetype = ?,
+                    parent_class_url = ?
                 WHERE url = ?;
             `, [
                 item.name.rus,
@@ -125,10 +155,33 @@ export class SmallClassSqlTableDao extends Dao<SmallClass, ClassesFilters> {
                 item.source.group.name,
                 item.source.group.shortName,
                 item.source.homebrew ? 1 : 0,
+                item.isArchetype ? 1 : 0,
+                item.parentClassUrl || null,
                 item.url,
             ]);
         } catch (error) {
             console.error(`Error updating SmallClass item ${item.name.rus}:`, error);
+            throw error;
+        }
+    }
+
+    // Additional query methods
+    async readArchetypesByParentUrl(parentUrl: string): Promise<SmallClass[]> {
+        try {
+            const result = this.database.exec(`
+                SELECT * FROM ${this.getTableName()}
+                WHERE parent_class_url = ? AND is_archetype = 1
+                ORDER BY rus_name ASC;
+            `, [parentUrl]);
+
+            if (result.length === 0) return [];
+            const items: SmallClass[] = [];
+            for (const row of result[0].values) {
+                items.push(await this.mapSqlValues(row));
+            }
+            return items;
+        } catch (error) {
+            console.error(`Error reading archetypes for parent ${parentUrl}:`, error);
             throw error;
         }
     }
@@ -152,6 +205,8 @@ export class SmallClassSqlTableDao extends Dao<SmallClass, ClassesFilters> {
                     },
                     homebrew: Boolean(sqlValues[9]),
                 },
+                isArchetype: Boolean(sqlValues[10]),
+                parentClassUrl: sqlValues[11] as string || undefined,
             };
         } catch (error) {
             console.error('Error mapping SQL values to SmallClass:', error);

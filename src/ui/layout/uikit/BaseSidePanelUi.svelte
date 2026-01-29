@@ -96,6 +96,7 @@
     {#if currentItem}
         <FullItemSlot
             currentItem={currentItem}
+            repository={repository}
             uiEventListener={uiEventListener}
             isEditable=true
             onClose={() => currentItem = undefined}
