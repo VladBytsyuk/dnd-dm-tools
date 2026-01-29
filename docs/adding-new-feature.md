@@ -20,7 +20,7 @@ Create `data/newtype.json` with the initial dataset. This data is loaded into th
 
 ### 3. DAOs
 
-Create in `src/data/databse/`:
+Create in `src/data/database/`:
 
 | File | Purpose |
 |------|---------|
@@ -95,7 +95,7 @@ export class NewTypeFeature extends BaseFeature<SmallNewType, FullNewType, NewTy
 
 ## Registration
 
-### In `src/data/databse/DB.ts`
+### In `src/data/database/DB.ts`
 
 1. Add DAO fields:
    ```typescript
@@ -210,7 +210,7 @@ To add clipboard support for the new entity type:
 
 - [ ] Domain models created (`SmallNewType`, `FullNewType`, `NewTypeFilters`)
 - [ ] JSON data file created in `data/`
-- [ ] SmallDao and FullDao created in `src/data/databse/`
+- [ ] SmallDao and FullDao created in `src/data/database/`
 - [ ] Repository created in `src/data/repositories/`
 - [ ] Svelte UI components created in `src/ui/layout/newtype/`
 - [ ] SidePanel created in `src/ui/components/sidepanel/`

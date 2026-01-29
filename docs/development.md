@@ -56,7 +56,7 @@ dnd-dm-tools/
 │   ├── main.ts             # Plugin entry point
 │   ├── domain/             # Business logic, models, interfaces
 │   ├── data/               # Database, DAOs, repositories
-│   │   └── databse/        # DB manager and DAO implementations
+│   │   └── database/       # DB manager and DAO implementations
 │   ├── ui/                 # UI components and Svelte layouts
 │   └── assets/data/        # TypeScript data imports
 ├── data/                   # JSON data files (D&D 5e content)
@@ -104,6 +104,5 @@ GitHub Actions (`.github/workflows/test.yml`) runs on push/PR to `main`:
 
 ## Notes
 
-- The database folder is named `databse` (missing 'a') — this is a known typo preserved for compatibility
 - Plugin UI text is in Russian
 - The plugin uses Svelte 5 runes syntax

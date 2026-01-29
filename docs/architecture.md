@@ -79,7 +79,7 @@ The plugin uses **SQL.js** (SQLite compiled to WebAssembly) for all data storage
 - **Transactions:** Supported via `DB.transaction()` with automatic rollback on error
 - **Persistence:** Database is saved to disk after each transaction
 
-The `DB` class (`src/data/databse/DB.ts`) is the central database manager. It initializes all DAOs and manages the database lifecycle.
+The `DB` class (`src/data/database/DB.ts`) is the central database manager. It initializes all DAOs and manages the database lifecycle.
 
 ## Plugin Entry Point
 

@@ -6,7 +6,7 @@ The data layer handles all database operations and provides repository implement
 
 ```
 src/data/
-├── databse/                    # Database manager and DAOs (note: intentional typo in folder name)
+├── database/                   # Database manager and DAOs
 │   ├── DB.ts                   # Central database manager
 │   ├── SmallMonsterSqlTableDao.ts
 │   ├── FullMonsterSqlTableDao.ts
@@ -23,7 +23,7 @@ src/data/
 
 ## DB.ts — Database Manager
 
-`src/data/databse/DB.ts` is the central database manager. It:
+`src/data/database/DB.ts` is the central database manager. It:
 
 1. Loads the `sql-wasm.wasm` binary (tries Obsidian vault adapter first, falls back to Node.js `fs`)
 2. Opens or creates the SQLite database from `database.db`
