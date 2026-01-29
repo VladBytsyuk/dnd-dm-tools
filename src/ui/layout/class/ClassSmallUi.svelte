@@ -15,6 +15,6 @@
     group={dice}
     name={name}
     source={source}
-    left={`Хит-дайс: ${dice}`}
+    left={dice}
     onItemClick={onItemClick}
 />
