@@ -22,6 +22,8 @@ import { SmallFeatSqlTableDao } from './SmallFeatSqlTableDao';
 import { FullFeatSqlTableDao } from './FullFeatSqlTableDao';
 import { SmallRaceSqlTableDao } from './SmallRaceSqlTableDao';
 import { FullRaceSqlTableDao } from './FullRaceSqlTableDao';
+import { SmallClassSqlTableDao } from './SmallClassSqlTableDao';
+import { FullClassSqlTableDao } from './FullClassSqlTableDao';
 import type { Initializable } from 'src/domain/Initializable';
 
 export default class DB implements Initializable {
@@ -47,6 +49,8 @@ export default class DB implements Initializable {
     public fullFeatDao: FullFeatSqlTableDao;
     public smallRaceDao: SmallRaceSqlTableDao;
     public fullRaceDao: FullRaceSqlTableDao;
+    public smallClassDao: SmallClassSqlTableDao;
+    public fullClassDao: FullClassSqlTableDao;
 
     constructor(
         private app: App,
@@ -160,6 +164,8 @@ export default class DB implements Initializable {
         this.fullFeatDao = new FullFeatSqlTableDao(database);
         this.smallRaceDao = new SmallRaceSqlTableDao(database, this.app, this.manifest);
         this.fullRaceDao = new FullRaceSqlTableDao(database);
+        this.smallClassDao = new SmallClassSqlTableDao(database, this.app, this.manifest);
+        this.fullClassDao = new FullClassSqlTableDao(database);
         return this.getDaos();
     }
 
@@ -184,6 +190,8 @@ export default class DB implements Initializable {
             this.fullFeatDao,
             this.smallRaceDao,
             this.fullRaceDao,
+            this.smallClassDao,
+            this.fullClassDao,
         ];
     }
 

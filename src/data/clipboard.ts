@@ -12,6 +12,7 @@ import type { FullArtifact } from "src/domain/models/artifact/FullArtifact";
 import type { FullBackground } from "src/domain/models/background/FullBackground";
 import type { FullFeat } from "../domain/models/feat/FullFeat";
 import type { FullRace } from "../domain/models/race/FullRace";
+import type { FullClass } from "../domain/models/class/FullClass";
 
 // ---- Copy to clipboard ----
 export function copyTextToClipboard(text: string, ignoreNotice: boolean = false) {
@@ -67,6 +68,10 @@ export function copyRaceToClipboard(race: FullRace) {
     copyToClipboard(race, race.name.rus, "race");
 }
 
+export function copyClassToClipboard(classItem: FullClass) {
+    copyToClipboard(classItem, classItem.name.rus, "dnd-class");
+}
+
 function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string, additionalContent: string | null = null, ignoreNotice: boolean = false) {
     const yaml = stringifyYaml(obj);
     const content = `\`\`\`${codeBlockName}\n${additionalContent ? `${additionalContent}\n`: ''}${yaml}\n\`\`\``
@@ -101,6 +106,13 @@ export async function getEncounterParticipantFromClipboard(ignoreNotice: boolean
 
 export async function getEncounterFromClipboard(): Promise<Encounter | undefined> {
     return getFromClipboard<Encounter>("encounter");
+}
+
+export async function getClassFromClipboard(ignoreNotice: boolean = false): Promise<FullClass | undefined> {
+    const classItem = await getFromClipboard<FullClass>("dnd-class");
+    if (classItem) return classItem;
+    if (!ignoreNotice) new Notice(`Не удалось прочитать класс из буфера обмена`);
+    return undefined;
 }
 
 async function getFromClipboard<T>(blockName: string): Promise<T | undefined> {
