@@ -149,7 +149,12 @@ export class ClassesRepository
         }
 
         return createFilters<ClassesFilters>({
-            diceTypes: Array.from(diceTypesSet),
+            diceTypes: Array.from(diceTypesSet).sort((a, b) => {
+                // Extract numeric values from dice strings (e.g., "d6" -> 6)
+                const aValue = parseInt(a.substring(1));
+                const bValue = parseInt(b.substring(1));
+                return aValue - bValue;
+            }),
             sources: sortSources(Array.from(sourcesSet))
         });
     }
