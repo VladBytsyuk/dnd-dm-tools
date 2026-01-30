@@ -8,13 +8,19 @@
     import type { Races } from "src/domain/repositories/Races";
     import RaceFullUi from "../race/RaceFullUi.svelte";
     import RaceSmallUi from "../race/RaceSmallUi.svelte";
+    import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
     let {
         initialFullItem,
         repository,
         uiEventListener,
-        openFiltersModal,
     }: SidePanelProps<SmallRace, FullRace, RaceFilters, Races> = $props();
+
+    const filterConfig: FilterConfig<RaceFilters>[] = [
+        { key: 'sources', label: 'Источник' },
+        { key: 'abilities', label: 'Способности' },
+        { key: 'types', label: 'Типы' },
+    ];
 </script>
 
 <BaseSidePanelUi
@@ -22,7 +28,7 @@
     initialFilters={emptyFilters<RaceFilters>(['abilities', 'types', 'sources'])}
     uiEventListener={uiEventListener}
     repository={repository}
-    openFiltersModal={openFiltersModal}
+    filterConfig={filterConfig}
     groupTitleBuilder={(group) => group.sort}
     FullItemSlot={RaceFullUi}
     SmallItemSlot={RaceSmallUi}

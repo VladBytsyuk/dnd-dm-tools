@@ -8,13 +8,19 @@
 	import BaseSidePanelUi from "../uikit/BaseSidePanelUi.svelte";
 	import type { SidePanelProps } from "src/domain/utils/props/SidePanelProps";
 	import type { SmallMonster } from "src/domain/models/monster/SmallMonster";
+	import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
-    let { 
+    let {
         initialFullItem,
         repository,
         uiEventListener,
-        openFiltersModal,
-    }: SidePanelProps<SmallMonster, FullMonster, BestiaryFilters, Bestiary> = $props();           
+    }: SidePanelProps<SmallMonster, FullMonster, BestiaryFilters, Bestiary> = $props();
+
+    const filterConfig: FilterConfig<BestiaryFilters>[] = [
+        { key: 'sources', label: 'Источник' },
+        { key: 'types', label: 'Типы' },
+        { key: 'challangeRatings', label: 'Опасность' },
+    ];
 </script>
 
 <BaseSidePanelUi
@@ -22,7 +28,7 @@
     initialFilters={emptyFilters<BestiaryFilters>(['types', 'challangeRatings', 'sources'])}
     uiEventListener={uiEventListener}
     repository={repository}
-    openFiltersModal={openFiltersModal}
+    filterConfig={filterConfig}
     groupTitleBuilder={(group) => `Опасность ${group.sort}`}
     FullItemSlot={MonsterFullUi}
     SmallItemSlot={MonsterSmallUi}

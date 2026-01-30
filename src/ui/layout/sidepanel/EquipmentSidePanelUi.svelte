@@ -8,13 +8,17 @@
 	import type { Equipment } from "src/domain/repositories/Equipment";
 	import EquipFullUi from "../equip/EquipFullUi.svelte";
 	import EquipSmallUi from "../equip/EquipSmallUi.svelte";
+	import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
-    let { 
+    let {
         initialFullItem,
         repository,
         uiEventListener,
-        openFiltersModal,
     }: SidePanelProps<SmallItem, FullItem, EquipmentFilters, Equipment> = $props();
+
+    const filterConfig: FilterConfig<EquipmentFilters>[] = [
+        { key: 'sources', label: 'Источник' },
+    ];
 </script>
 
 <BaseSidePanelUi
@@ -22,7 +26,7 @@
     initialFilters={emptyFilters<EquipmentFilters>(['sources'])}
     uiEventListener={uiEventListener}
     repository={repository}
-    openFiltersModal={openFiltersModal}
+    filterConfig={filterConfig}
     groupTitleBuilder={(group) => group.sort}
     FullItemSlot={EquipFullUi}
     SmallItemSlot={EquipSmallUi}

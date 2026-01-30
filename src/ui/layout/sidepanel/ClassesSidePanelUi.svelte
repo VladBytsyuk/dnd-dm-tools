@@ -8,9 +8,15 @@
     import ClassSmallUi from "../class/ClassSmallUi.svelte";
     import BaseSidePanelUi from "../uikit/BaseSidePanelUi.svelte";
     import type { SidePanelProps } from "src/domain/utils/props/SidePanelProps";
+    import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
-    let { initialFullItem, repository, uiEventListener, openFiltersModal }:
+    let { initialFullItem, repository, uiEventListener }:
         SidePanelProps<SmallClass, FullClass, ClassesFilters, Repository<SmallClass, FullClass, ClassesFilters>> = $props();
+
+    const filterConfig: FilterConfig<ClassesFilters>[] = [
+        { key: 'sources', label: 'Источник' },
+        { key: 'diceTypes', label: 'Типы костей' },
+    ];
 </script>
 
 <BaseSidePanelUi
@@ -18,7 +24,7 @@
     initialFilters={emptyFilters<ClassesFilters>(['diceTypes', 'sources'])}
     uiEventListener={uiEventListener}
     repository={repository}
-    openFiltersModal={openFiltersModal}
+    filterConfig={filterConfig}
     groupTitleBuilder={(group) => group.sort}
     FullItemSlot={ClassFullUi}
     SmallItemSlot={ClassSmallUi}

@@ -8,13 +8,17 @@
 	import BaseSidePanelUi from "../uikit/BaseSidePanelUi.svelte";
 	import type { SidePanelProps } from "src/domain/utils/props/SidePanelProps";
 	import type { SmallFeat } from "src/domain/models/feat/SmallFeat";
+	import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
-    let { 
+    let {
         initialFullItem,
         repository,
         uiEventListener,
-        openFiltersModal,
-    }: SidePanelProps<SmallFeat, FullFeat, FeatsFilters, Feats> = $props();           
+    }: SidePanelProps<SmallFeat, FullFeat, FeatsFilters, Feats> = $props();
+
+    const filterConfig: FilterConfig<FeatsFilters>[] = [
+        { key: 'sources', label: 'Источник' },
+    ];
 </script>
 
 <BaseSidePanelUi
@@ -22,7 +26,7 @@
     initialFilters={emptyFilters<FeatsFilters>(['sources'])}
     uiEventListener={uiEventListener}
     repository={repository}
-    openFiltersModal={openFiltersModal}
+    filterConfig={filterConfig}
     groupTitleBuilder={(group) => group.sort}
     FullItemSlot={FeatFullUi}
     SmallItemSlot={FeatSmallUi}

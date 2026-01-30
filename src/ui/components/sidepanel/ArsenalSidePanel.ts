@@ -4,7 +4,6 @@ import type { FullWeapon } from "src/domain/models/weapon/FullWeapon";
 import type { ArsenalFilters } from "src/domain/models/weapon/ArsenalFilters";
 import ArsenalSidePanelUi from "src/ui/layout/sidepanel/ArsenalSidePanelUi.svelte";
 import { mount } from "svelte";
-import { ArsenalFiltersModal } from "../modals/ArsenalFiltersModal";
 
 export class ArsenalSidePanel extends BaseSidePanel<SmallWeapon, FullWeapon, ArsenalFilters> {
 
@@ -19,9 +18,6 @@ export class ArsenalSidePanel extends BaseSidePanel<SmallWeapon, FullWeapon, Ars
                 initialFullItem: this.fullItem,
                 repository: this.repository,
                 uiEventListener: this.uiEventListener,
-                openFiltersModal: (fullFilters: ArsenalFilters, filters: ArsenalFilters, onApply: (newFilters: ArsenalFilters) => Promise<void>) => {
-                    new ArsenalFiltersModal(this.plugin.app, fullFilters, filters, onApply).open();
-                },
             },
         });
     }

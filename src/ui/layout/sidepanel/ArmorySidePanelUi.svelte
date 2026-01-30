@@ -8,13 +8,18 @@
 	import type { Armory } from "src/domain/repositories/Armory";
 	import ArmorFullUi from "../armor/ArmorFullUi.svelte";
 	import ArmorSmallUi from "../armor/ArmorSmallUi.svelte";
+	import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
-    let { 
+    let {
         initialFullItem,
         repository,
         uiEventListener,
-        openFiltersModal,
     }: SidePanelProps<SmallArmor, FullArmor, ArmoryFilters, Armory> = $props();
+
+    const filterConfig: FilterConfig<ArmoryFilters>[] = [
+        { key: 'sources', label: 'Источник' },
+        { key: 'types', label: 'Типы' },
+    ];
 </script>
 
 <BaseSidePanelUi
@@ -22,7 +27,7 @@
     initialFilters={emptyFilters<ArmoryFilters>(['types', 'sources'])}
     uiEventListener={uiEventListener}
     repository={repository}
-    openFiltersModal={openFiltersModal}
+    filterConfig={filterConfig}
     groupTitleBuilder={(group) => group.sort}
     FullItemSlot={ArmorFullUi}
     SmallItemSlot={ArmorSmallUi}

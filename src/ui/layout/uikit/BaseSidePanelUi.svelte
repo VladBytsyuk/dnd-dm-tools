@@ -2,10 +2,12 @@
 	import SidePanelHeader from "./SidePanelHeader.svelte";
 	import { onMount } from "svelte";
 	import GroupBlockUi from "./GroupBlockUi.svelte";
+	import FiltersOverlay from "./FiltersOverlay.svelte";
 	import type { BaseItem } from "src/domain/models/common/BaseItem";
 	import type { Group, Repository } from "src/domain/repositories/Repository";
 	import { isFiltersEmpty, type Filters } from "src/domain/models/common/Filters";
 	import type { IUiEventListener } from 'src/domain/listeners/ui_event_listener.js';
+	import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
     // ---- Props ----
     interface Props<Small extends BaseItem, Full extends Small, F extends Filters> {
@@ -13,18 +15,18 @@
         initialFilters: F;
         uiEventListener: IUiEventListener;
         repository: Repository<Small, Full, F>;
-        openFiltersModal: (fullFilters: F, filters: F, onApply: (newFilters: F) => Promise<void>) => void;
+        filterConfig: FilterConfig<F>[];
         groupTitleBuilder: (group: Group<Small>) => string;
         FullItemSlot: any;
         SmallItemSlot: any;
     }
 
-    let { 
+    let {
         initialFullItem,
         initialFilters,
         uiEventListener,
         repository,
-        openFiltersModal,
+        filterConfig,
         groupTitleBuilder,
         FullItemSlot,
         SmallItemSlot,
@@ -37,6 +39,8 @@
     let currentItem: BaseItem | undefined = $state(initialFullItem || undefined);
     let groups: Group<BaseItem>[] = $state([]);
     let emptyFullItem = repository.createEmptyFullItem();
+    let isFiltersOverlayOpen: boolean = $state(false);
+    let fullFilters: any = $state(null);
 
     // ---- Lifecycle ----  
     onMount(() => updateGroups()); 
@@ -55,16 +59,18 @@
     }                       
 
     async function onSearchBarFiltersClick() {
-        const fullFilters = await repository.getAllFilters();
+        fullFilters = await repository.getAllFilters();
         if (!fullFilters) return;
-        openFiltersModal(
-            fullFilters,
-            filters,
-            async (newFilters: any) => { 
-                filters = newFilters;
-                await updateGroups();
-            },
-        )
+        isFiltersOverlayOpen = true;
+    }
+
+    async function handleFiltersApply(newFilters: any) {
+        filters = newFilters;
+        await updateGroups();
+    }
+
+    function handleFiltersClose() {
+        isFiltersOverlayOpen = false;
     }
 
     async function onSmallItemClick(smallItem: BaseItem) {
@@ -82,9 +88,9 @@
     }
 </script>
 
-<div>
+<div class="side-panel-container">
     <SidePanelHeader
-        onbackclick={currentItem ? onSearchBarBackClick : undefined}    
+        onbackclick={currentItem ? onSearchBarBackClick : undefined}
         onvaluechange={onSearchBarValueChanged}
         isvaluechangable={() => !currentItem}
         onclearclick={undefined}
@@ -118,9 +124,23 @@
             {/each}
         </div>
     {/if}
+
+    {#if isFiltersOverlayOpen && fullFilters}
+        <FiltersOverlay
+            fullFilters={fullFilters}
+            initialFilters={filters}
+            filterConfig={filterConfig}
+            onApply={handleFiltersApply}
+            onClose={handleFiltersClose}
+        />
+    {/if}
 </div>
 
 <style>
+    .side-panel-container {
+        position: relative;
+    }
+
     .content {
         background-color: var(--color-background);
         gap: 4px;

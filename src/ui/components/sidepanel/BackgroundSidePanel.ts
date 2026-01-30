@@ -4,7 +4,6 @@ import type { FullBackground } from "src/domain/models/background/FullBackground
 import type { BackgroundsFilters } from "src/domain/models/background/BackgroundsFilters";
 import BackgroundSidePanelUi from "src/ui/layout/sidepanel/BackgroundSidePanelUi.svelte";
 import { mount } from "svelte";
-import { BackgroundFiltersModal } from "../modals/BackgroundFiltersModal";
 
 export class BackgroundSidePanel extends BaseSidePanel<SmallBackground, FullBackground, BackgroundsFilters>{
 
@@ -19,9 +18,6 @@ export class BackgroundSidePanel extends BaseSidePanel<SmallBackground, FullBack
                 initialFullItem: this.fullItem,
                 repository: this.repository,
                 uiEventListener: this.uiEventListener,
-                openFiltersModal: (fullFilters: BackgroundsFilters, filters: BackgroundsFilters, onApply: (newFilters: BackgroundsFilters) => Promise<void>) => {
-                    new BackgroundFiltersModal(this.plugin.app, fullFilters, filters, onApply).open();
-                },
             },
         });
     }

@@ -7,5 +7,4 @@ export interface SidePanelProps<ST extends BaseItem, FT extends ST, F extends Fi
     initialFullItem?: FT;
     repository: R;
     uiEventListener: IUiEventListener;
-    openFiltersModal: (fullFilters: F, filters: F, onApply: (newFilters: F) => Promise<void>) => void;
 }

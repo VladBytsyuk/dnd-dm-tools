@@ -8,13 +8,17 @@
 	import type { Backgrounds } from "src/domain/repositories/Backgrounds";
 	import BackgroundFullUi from "../background/BackgroundFullUi.svelte";
 	import BackgroundSmallUi from "../background/BackgroundSmallUi.svelte";
+	import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
-    let { 
+    let {
         initialFullItem,
         repository,
         uiEventListener,
-        openFiltersModal,
     }: SidePanelProps<SmallBackground, FullBackground, BackgroundsFilters, Backgrounds> = $props();
+
+    const filterConfig: FilterConfig<BackgroundsFilters>[] = [
+        { key: 'sources', label: 'Источник' },
+    ];
 </script>
 
 <BaseSidePanelUi
@@ -22,7 +26,7 @@
     initialFilters={emptyFilters<BackgroundsFilters>(['sources'])}
     uiEventListener={uiEventListener}
     repository={repository}
-    openFiltersModal={openFiltersModal}
+    filterConfig={filterConfig}
     groupTitleBuilder={(group) => group.sort}
     FullItemSlot={BackgroundFullUi}
     SmallItemSlot={BackgroundSmallUi}
