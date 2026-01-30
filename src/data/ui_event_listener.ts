@@ -11,6 +11,7 @@ import type { EquipmentFeature } from "src/ui/components/feature/EquipmentFeatur
 import type { ArtifactoryFeature } from "src/ui/components/feature/ArtifactoryFeature";
 import type { BackgroundFeature } from "src/ui/components/feature/BackgroundFeature";
 import type { RaceFeature } from "src/ui/components/feature/RaceFeature";
+import type { ClassesFeature } from "src/ui/components/feature/ClassesFeature";
 import type { RollTraceResult } from "../domain/dice";
 
 export class UiEventListener implements IUiEventListener {
@@ -27,6 +28,7 @@ export class UiEventListener implements IUiEventListener {
         private backgroundFeatureProvider: () => BackgroundFeature,
         private featFeatureProvider: () => BaseFeature<any, any, any>,
         private raceFeatureProvider: () => RaceFeature,
+        private classesFeatureProvider: () => ClassesFeature,
         private dmScreenFeatureProvider: () => DmScreenFeature,
     ) {
         this.onBeastClick = this.onBeastClick.bind(this);
@@ -39,6 +41,7 @@ export class UiEventListener implements IUiEventListener {
         this.onBackgroundClick = this.onBackgroundClick.bind(this);
         this.onFeatClick = this.onFeatClick.bind(this);
         this.onRaceClick = this.onRaceClick.bind(this);
+        this.onClassClick = this.onClassClick.bind(this);
     }
 
     // ---- methods ----
@@ -80,6 +83,10 @@ export class UiEventListener implements IUiEventListener {
 
     async onRaceClick(url: string): Promise<void> {
         this.onClick(this.raceFeatureProvider, url);
+    }
+
+    async onClassClick(url: string): Promise<void> {
+        this.onClick(this.classesFeatureProvider, url);
     }
 
     onDiceRoll(label: string, value: RollTraceResult): void {

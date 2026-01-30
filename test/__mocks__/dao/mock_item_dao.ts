@@ -40,6 +40,22 @@ export function mockDatabase<
             readSubracesByParentUrl: vi.fn().mockResolvedValue([]),
             createItemWithParent: vi.fn(),
         },
+        smallClassDao: {
+            ...mockItemDao<SmallItem, Filter>(smallItems),
+            readArchetypesByParentUrl: vi.fn().mockResolvedValue([]),
+            // Override to filter out archetypes for classes
+            readAllItems: async (name: any, filters: any) => {
+                const filtered = smallItems.filter((item: any) =>
+                    (!name || item.name.rus === name) && !item.isArchetype
+                );
+                return filtered;
+            },
+            readAllItemsNames: async () => {
+                const baseClasses = smallItems.filter((item: any) => !item.isArchetype);
+                return baseClasses.map(item => item.name.rus);
+            },
+        },
+        fullClassDao: mockItemDao<FullItem, Filter>(fullItems),
     } as any
 }
 
@@ -48,7 +64,7 @@ export function mockItemDao<
     Filter extends Filters,
 >(items: Item[]): Dao<Item, Filter> {
     return {
-        readAllItems: async (name) => items.filter(item => !name || item.name.rus === name),
+        readAllItems: async (name, filters) => items.filter(item => !name || item.name.rus === name),
         readAllItemsNames: async () => items.map(item => item.name.rus),
         readItemByName: async (name: string) => items.find(item => item.name.rus === name) || null,
         readItemByUrl: async (url: string) => items.find(item => item.url === url) || null,

@@ -22,6 +22,8 @@ import { SmallFeatSqlTableDao } from './SmallFeatSqlTableDao';
 import { FullFeatSqlTableDao } from './FullFeatSqlTableDao';
 import { SmallRaceSqlTableDao } from './SmallRaceSqlTableDao';
 import { FullRaceSqlTableDao } from './FullRaceSqlTableDao';
+import { SmallClassSqlTableDao } from './SmallClassSqlTableDao';
+import { FullClassSqlTableDao } from './FullClassSqlTableDao';
 import type { Initializable } from 'src/domain/Initializable';
 
 export default class DB implements Initializable {
@@ -47,6 +49,8 @@ export default class DB implements Initializable {
     public fullFeatDao: FullFeatSqlTableDao;
     public smallRaceDao: SmallRaceSqlTableDao;
     public fullRaceDao: FullRaceSqlTableDao;
+    public smallClassDao: SmallClassSqlTableDao;
+    public fullClassDao: FullClassSqlTableDao;
 
     constructor(
         private app: App,
@@ -82,6 +86,13 @@ export default class DB implements Initializable {
             const database = new SQL.Database(databaseData);
             this.database = database;
             const sqlTableDaos = this.initDaos(database);
+
+            // Check if classes migration needed
+            const needsClassesMigration = await this.checkClassesMigration();
+            if (needsClassesMigration) {
+                console.log('Classes table migration required...');
+                await this.migrateClassesTables();
+            }
 
             // Create tables if they do not exist
             await this.transaction(async () => {
@@ -160,6 +171,8 @@ export default class DB implements Initializable {
         this.fullFeatDao = new FullFeatSqlTableDao(database);
         this.smallRaceDao = new SmallRaceSqlTableDao(database, this.app, this.manifest);
         this.fullRaceDao = new FullRaceSqlTableDao(database);
+        this.smallClassDao = new SmallClassSqlTableDao(database, this.app, this.manifest);
+        this.fullClassDao = new FullClassSqlTableDao(database);
         return this.getDaos();
     }
 
@@ -184,6 +197,8 @@ export default class DB implements Initializable {
             this.fullFeatDao,
             this.smallRaceDao,
             this.fullRaceDao,
+            this.smallClassDao,
+            this.fullClassDao,
         ];
     }
 
@@ -203,5 +218,37 @@ export default class DB implements Initializable {
             }
         }
         return path.join('/').trim();
+    }
+
+    private async checkClassesMigration(): Promise<boolean> {
+        if (!this.database) return false;
+        try {
+            const result = this.database.exec(`PRAGMA table_info(full_classes);`);
+            if (result.length > 0) {
+                const columns = result[0].values.map(v => v[1] as string);
+                return columns.includes('archetypes'); // Old schema has this column
+            }
+        } catch (error) {
+            // Table doesn't exist - no migration needed
+            return false;
+        }
+        return false;
+    }
+
+    private async migrateClassesTables(): Promise<void> {
+        if (!this.database) return;
+        await this.transaction(async () => {
+            // Drop old tables
+            this.database!.exec(`DROP TABLE IF EXISTS small_classes;`);
+            this.database!.exec(`DROP TABLE IF EXISTS full_classes;`);
+
+            // Create new tables
+            await this.smallClassDao.createTable();
+            await this.fullClassDao.createTable();
+
+            // Repopulate from classes.ts
+            await this.smallClassDao.fillTableWithData();
+        });
+        console.log('Classes migration complete.');
     }
 }
