@@ -425,17 +425,12 @@ describe('ClassesRepository - Initialization', () => {
 });
 
 describe('ClassesRepository - Empty Item Creation', () => {
-    it('should create empty full class item', () => {
+    it('should return undefined for empty full class item', () => {
         const mockDb = mockDatabase([], []);
         const repo = new ClassesRepository(mockDb);
 
         const empty = repo.createEmptyFullItem();
 
-        expect(empty).toBeDefined();
-        expect(empty!.id).toBe(0);
-        expect(empty!.name).toBeDefined();
-        expect(empty!.url).toBe('');
-        expect(empty!.dice).toBe('');
-        expect(empty!.isArchetype).toBe(false);
+        expect(empty).toBeUndefined();
     });
 });

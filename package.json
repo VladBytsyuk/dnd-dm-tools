@@ -1,6 +1,6 @@
 {
 	"name": "dnd-dm-tools",
-	"version": "0.7.0",
+	"version": "0.8.0",
 	"description": "A plugin for Obsidian.md with DnD 5e DM tools in russian.",
 	"main": "main.js",
 	"scripts": {
