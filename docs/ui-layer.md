@@ -10,7 +10,7 @@ src/ui/
 │   ├── feature/           # Feature orchestrators (BaseFeature + implementations)
 │   ├── sidepanel/         # Side panel classes (BaseSidePanel + implementations)
 │   ├── processor/         # Markdown code block processors
-│   ├── modals/            # Obsidian modal dialogs
+│   ├── modals/            # Obsidian modal dialogs (editing, confirmation)
 │   ├── command/           # Editor commands
 │   └── suggest/           # Autocomplete/suggest components
 ├── layout/                # Svelte components (~60 files)
@@ -21,7 +21,7 @@ src/ui/
 │   ├── tracker/           # Initiative tracker UI
 │   ├── sidepanel/         # Side panel layout components
 │   ├── race/              # Race components
-│   └── uikit/             # Reusable UI kit components
+│   └── uikit/             # Reusable UI kit components (includes FilterBlock, FiltersOverlay)
 └── theme.ts               # Theme change listener
 ```
 
@@ -106,6 +106,32 @@ Modal dialogs (`src/ui/components/modals/`) extend Obsidian's `Modal` class for:
 - Item editing forms
 - Confirmation dialogs
 - Encounter creation
+
+## Filter Overlays
+
+Filters are implemented as Svelte overlay components within side panels rather than modal dialogs:
+
+### FiltersOverlay Component
+
+`src/ui/layout/uikit/FiltersOverlay.svelte` is a generic overlay component that:
+
+- Renders as a fixed-position overlay within the side panel
+- Accepts `filterConfig` defining which filters to display
+- Supports optional transformation functions for UI display (e.g., translating technical keys to readable names)
+- Provides visual feedback for selected filters and changes
+
+### FilterBlock Component
+
+`src/ui/layout/uikit/FilterBlock.svelte` renders individual filter categories with toggle buttons.
+
+### Filter Configuration
+
+Each feature's side panel UI component (`*SidePanelUi.svelte`) defines a `filterConfig` array specifying:
+
+- Filter keys from the filter type
+- Display labels
+
+Optional `filterDisplayTransform` and `filterApplyTransform` functions can translate between internal data representation and UI display values.
 
 ## Commands
 
