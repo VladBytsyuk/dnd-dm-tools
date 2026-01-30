@@ -32,7 +32,22 @@ export class ArsenalRepository
             sourcesSet.add(weapon.source.shortName + (weapon.source.group.shortName != "Basic" ? "*" : ""));
         }
         return createFilters<ArsenalFilters>({
-            dices: Array.from(dicesSet),
+            dices: Array.from(dicesSet).sort((a, b) => {
+                // Handle flat damage (just "1")
+                if (a === '1' && b === '1') return 0;
+                if (a === '1') return -1;
+                if (b === '1') return 1;
+
+                // Extract number of dice and dice size (e.g., "2к6" -> [2, 6])
+                const [aCount, aSize] = a.split('к').map(n => parseInt(n));
+                const [bCount, bSize] = b.split('к').map(n => parseInt(n));
+
+                // Sort by number of dice first, then by dice size
+                if (aCount !== bCount) {
+                    return aCount - bCount;
+                }
+                return aSize - bSize;
+            }),
             damageTypes: Array.from(damageTypesSet),
             types: Array.from(typesSet),
             sources: sortSources(Array.from(sourcesSet)),
