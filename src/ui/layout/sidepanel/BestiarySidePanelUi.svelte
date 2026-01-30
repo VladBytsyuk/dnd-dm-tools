@@ -19,13 +19,13 @@
     const filterConfig: FilterConfig<BestiaryFilters>[] = [
         { key: 'sources', label: 'Источник' },
         { key: 'types', label: 'Типы' },
-        { key: 'challangeRatings', label: 'Опасность' },
+        { key: 'challengeRatings', label: 'Опасность' },
     ];
 </script>
 
 <BaseSidePanelUi
     initialFullItem={initialFullItem}
-    initialFilters={emptyFilters<BestiaryFilters>(['types', 'challangeRatings', 'sources'])}
+    initialFilters={emptyFilters<BestiaryFilters>(['types', 'challengeRatings', 'sources'])}
     uiEventListener={uiEventListener}
     repository={repository}
     filterConfig={filterConfig}

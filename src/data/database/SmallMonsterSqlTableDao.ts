@@ -89,9 +89,9 @@ export class SmallMonsterSqlTableDao extends Dao<SmallMonster, BestiaryFilters> 
                 whereClauses.push('(' + filters.types.map(() => `type = ?`).join(' OR ') + ')');
                 params.push(...filters.types);
             }
-            if (filters.challangeRatings.length > 0) {
-                whereClauses.push('(' + filters.challangeRatings.map(() => `challenge_rating = ?`).join(' OR ') + ')');
-                params.push(...filters.challangeRatings);
+            if (filters.challengeRatings.length > 0) {
+                whereClauses.push('(' + filters.challengeRatings.map(() => `challenge_rating = ?`).join(' OR ') + ')');
+                params.push(...filters.challengeRatings);
             }
             if (filters.sources.length > 0) {
                 // Strip trailing * marker from non-Basic sources before SQL filtering
