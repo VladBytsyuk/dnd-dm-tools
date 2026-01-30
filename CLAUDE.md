@@ -4,7 +4,7 @@ This document provides context for AI assistants working with the DnD DM Tools O
 
 ## Project Overview
 
-DnD DM Tools is an [Obsidian](https://obsidian.md/) plugin providing Dungeon Master tools for D&D 5th Edition. The plugin UI is in Russian. Current version: **0.7.0**.
+DnD DM Tools is an [Obsidian](https://obsidian.md/) plugin providing Dungeon Master tools for D&D 5th Edition. The plugin UI is in Russian. Current version: **0.8.0**.
 
 **Core Features:**
 - **Bestiary** - Creature statblocks with editing capabilities
@@ -17,6 +17,8 @@ DnD DM Tools is an [Obsidian](https://obsidian.md/) plugin providing Dungeon Mas
 - **Artifactory** - Magic items
 - **Backgrounds** - Character backgrounds
 - **Feats** - Character feats
+- **Classes** - Character classes with archetypes and HTML content rendering
+- **Races** - Character races with subrace hierarchy support
 
 ## Tech Stack
 
@@ -45,6 +47,8 @@ dnd-dm-tools/
 │   │   │   ├── artifact/         # SmallArtifact, FullArtifact
 │   │   │   ├── background/       # SmallBackground, FullBackground
 │   │   │   ├── feat/             # SmallFeat, FullFeat
+│   │   │   ├── class/            # SmallClass, FullClass, ClassesFilters
+│   │   │   ├── race/             # SmallRace, FullRace, RacesFilters
 │   │   │   ├── dm_screen/        # DmScreenItem
 │   │   │   └── encounter/        # Encounter, EncounterParticipant
 │   │   ├── repositories/         # Repository interfaces
@@ -69,6 +73,8 @@ dnd-dm-tools/
 │   │       ├── spell/            # Spell UI components
 │   │       ├── weapon/           # Weapon UI components
 │   │       ├── armor/            # Armor UI components
+│   │       ├── class/            # Class UI components
+│   │       ├── race/             # Race UI components
 │   │       ├── tracker/          # Initiative tracker UI
 │   │       ├── sidepanel/        # Side panel layouts
 │   │       └── uikit/            # Reusable UI components
