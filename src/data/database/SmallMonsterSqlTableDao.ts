@@ -85,15 +85,15 @@ export class SmallMonsterSqlTableDao extends Dao<SmallMonster, BestiaryFilters> 
             const whereClauses: string[] = [];
             const params: SqlValue[] = [];
 
-            if (filters.types.length > 0) {
+            if (filters.types && filters.types.length > 0) {
                 whereClauses.push('(' + filters.types.map(() => `type = ?`).join(' OR ') + ')');
                 params.push(...filters.types);
             }
-            if (filters.challangeRatings.length > 0) {
-                whereClauses.push('(' + filters.challangeRatings.map(() => `challenge_rating = ?`).join(' OR ') + ')');
-                params.push(...filters.challangeRatings);
+            if (filters.challengeRatings && filters.challengeRatings.length > 0) {
+                whereClauses.push('(' + filters.challengeRatings.map(() => `challenge_rating = ?`).join(' OR ') + ')');
+                params.push(...filters.challengeRatings);
             }
-            if (filters.sources.length > 0) {
+            if (filters.sources && filters.sources.length > 0) {
                 // Strip trailing * marker from non-Basic sources before SQL filtering
                 const cleanedSources = filters.sources.map(source => source.replace(/\*$/, ''));
                 whereClauses.push('(' + cleanedSources.map(() => `source_short_name = ?`).join(' OR ') + ')');

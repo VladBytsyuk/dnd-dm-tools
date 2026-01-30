@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { FeatsRepository } from "../../../src/data/repositories/FeatsRepository";
 import type { SmallFeat } from "../../../src/domain/models/feat/SmallFeat";
 import type { FullFeat } from "../../../src/domain/models/feat/FullFeat";
@@ -34,4 +35,90 @@ runBaseRepositoryTests<SmallFeat, FullFeat, FeatsFilters>({
         smallItem: smallFeat2 as SmallFeat,
         fullItem: fullFeat2 as FullFeat,
     }
+});
+
+describe('FeatsRepository - Source-based Grouping', () => {
+    it('should group feats by source', async () => {
+        const phbFeat = { ...smallFeat1, source: { ...smallFeat1.source, shortName: 'PHB', name: 'Player\'s Handbook' } };
+        const xgeFeat = { ...smallFeat2, source: { ...smallFeat2.source, shortName: 'XGE', name: 'Xanathar\'s Guide' } };
+        const feats = [xgeFeat, phbFeat];
+        const mockDb = mockDatabase(feats, []);
+        const repo = new FeatsRepository(mockDb);
+
+        const groups = await repo.groupItems(feats as SmallFeat[]);
+
+        expect(groups.length).toBe(2);
+        expect(groups.some(g => g.sort === 'Player\'s Handbook')).toBe(true);
+        expect(groups.some(g => g.sort === 'Xanathar\'s Guide')).toBe(true);
+    });
+
+    it('should sort groups using source priority (PHB, XGE, TCE first)', async () => {
+        const scagFeat = {
+            ...smallFeat1,
+            source: {
+                shortName: 'SCAG',
+                name: 'Sword Coast Adventurer\'s Guide',
+                group: { name: 'Official', shortName: 'Basic' },
+                homebrew: false
+            }
+        };
+        const xgeFeat = {
+            ...smallFeat2,
+            source: {
+                shortName: 'XGE',
+                name: 'Xanathar\'s Guide',
+                group: { name: 'Official', shortName: 'Basic' },
+                homebrew: false
+            }
+        };
+        const phbFeat = {
+            ...smallFeat3,
+            source: {
+                shortName: 'PHB',
+                name: 'Player\'s Handbook',
+                group: { name: 'Official', shortName: 'Basic' },
+                homebrew: false
+            }
+        };
+        const feats = [scagFeat, xgeFeat, phbFeat];
+        const mockDb = mockDatabase(feats, []);
+        const repo = new FeatsRepository(mockDb);
+
+        const groups = await repo.groupItems(feats as SmallFeat[]);
+
+        // Should be ordered: PHB, XGE, SCAG (alphabetically after priority)
+        expect(groups[0].sort).toBe('Player\'s Handbook');
+        expect(groups[1].sort).toBe('Xanathar\'s Guide');
+        expect(groups[2].sort).toBe('Sword Coast Adventurer\'s Guide');
+    });
+
+    it('should place homebrew sources at the end', async () => {
+        const phbFeat = {
+            ...smallFeat1,
+            source: {
+                shortName: 'PHB',
+                name: 'Player\'s Handbook',
+                group: { name: 'Official', shortName: 'Basic' },
+                homebrew: false
+            }
+        };
+        const homebrewFeat = {
+            ...smallFeat2,
+            source: {
+                shortName: 'HB',
+                name: 'Homebrew Content',
+                group: { name: 'Homebrew', shortName: 'HB' },
+                homebrew: true
+            }
+        };
+        const feats = [homebrewFeat, phbFeat];
+        const mockDb = mockDatabase(feats, []);
+        const repo = new FeatsRepository(mockDb);
+
+        const groups = await repo.groupItems(feats as SmallFeat[]);
+
+        // PHB should come before homebrew
+        expect(groups[0].sort).toBe('Player\'s Handbook');
+        expect(groups[1].sort).toBe('Homebrew Content');
+    });
 });

@@ -6,6 +6,7 @@ import type { Equipment } from "src/domain/repositories/Equipment";
 import type DB from "../database/DB";
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
+import { sortSources } from "src/domain/utils/SourceSorter";
 
 export class EquipmentRepository
     extends BaseRepository<SmallItem, FullItem, EquipmentFilters>
@@ -25,7 +26,7 @@ export class EquipmentRepository
             sourcesSet.add(item.source.shortName + (item.source.group.shortName != "Basic" ? "*" : ""));
         }
         return createFilters<EquipmentFilters>({
-            sources: Array.from(sourcesSet),
+            sources: sortSources(Array.from(sourcesSet)),
         });
     }
 

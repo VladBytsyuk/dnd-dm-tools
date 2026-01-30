@@ -1,9 +1,9 @@
 import { BestiaryFilters } from "../../../../../src/domain/models/monster/BestiaryFilters"
 import { SmallMonster } from "../../../../../src/domain/models/monster/SmallMonster"
 
-export const bestiaryFilters = { 
-    types: ['нежить', 'элементаль', 'исчадие'], 
-    sources: ['UA22WotM*', 'MM', 'RoT'],
+export const bestiaryFilters = {
+    types: ['нежить', 'элементаль', 'исчадие'],
+    sources: ['MM', 'RoT', 'UA22WotM*'],
     challengeRatings: ['—', '5', '30']
 } as BestiaryFilters;
 

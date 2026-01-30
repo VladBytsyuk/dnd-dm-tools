@@ -6,6 +6,7 @@ import type { Artifactory } from "src/domain/repositories/Artifactory";
 import type DB from "../database/DB";
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
+import { sortSources } from "src/domain/utils/SourceSorter";
 
 export class ArtifactoryRepository
     extends BaseRepository<SmallArtifact, FullArtifact, ArtifactoryFilters>
@@ -29,8 +30,8 @@ export class ArtifactoryRepository
             sourcesSet.add(artifact.source.shortName + (artifact.source.group.shortName != "Basic" ? "*" : ""));
         }
         return createFilters<ArtifactoryFilters>({
-            types: Array.from(typesSet), 
-            sources: Array.from(sourcesSet),
+            types: Array.from(typesSet),
+            sources: sortSources(Array.from(sourcesSet)),
             rarities: Array.from(raritiesSet),
         });
     }

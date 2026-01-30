@@ -6,6 +6,7 @@ import type { SmallSpell } from 'src/domain/models/spell/SmallSpell';
 import { BaseRepository } from './BaseRepository';
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
+import { sortSources } from "src/domain/utils/SourceSorter";
 
 export class SpellbookRepository
     extends BaseRepository<SmallSpell, FullSpell, SpellbookFilters> 
@@ -29,9 +30,9 @@ export class SpellbookRepository
             sourcesSet.add(spell.source.shortName);
         }
         return createFilters<SpellbookFilters>({
-            levels: Array.from(levelsSet).map(value => +value), 
+            levels: Array.from(levelsSet).map(value => +value),
             schools: Array.from(schoolsSet),
-            sources: Array.from(sourcesSet)
+            sources: sortSources(Array.from(sourcesSet))
         });
     }
 

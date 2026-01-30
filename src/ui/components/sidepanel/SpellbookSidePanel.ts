@@ -2,7 +2,6 @@ import type { FullSpell } from "src/domain/models/spell/FullSpell";
 import { mount } from "svelte";
 import SpellbookSidePanelUi from "src/ui/layout/sidepanel/SpellbookSidePanelUi.svelte";
 import type { SpellbookFilters } from "src/domain/models/spell/SpellbookFilters";
-import { SpellbookFiltersModal } from "../modals/SpellbookFiltersModal";
 import { BaseSidePanel } from "./BaseSidePanel";
 import type { SmallSpell } from "src/domain/models/spell/SmallSpell";
 
@@ -19,9 +18,6 @@ export class SpellBookSidePanel extends BaseSidePanel<SmallSpell, FullSpell, Spe
                 initialFullItem: this.fullItem,
                 repository: this.repository,
                 uiEventListener: this.uiEventListener,
-                openFiltersModal: (fullFilters: SpellbookFilters, filters: SpellbookFilters, onApply: (newFilters: SpellbookFilters) => Promise<void>) => {
-                    new SpellbookFiltersModal(this.plugin.app, fullFilters, filters, onApply).open();
-                },
             },
         });
     }

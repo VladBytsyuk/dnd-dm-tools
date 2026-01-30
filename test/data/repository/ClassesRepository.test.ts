@@ -26,7 +26,7 @@ const baseClassesOnly = [smallClassBard, smallClassWizard, smallClassFighter];
 
 // Expected filters based on actual data
 const expectedFilters: ClassesFilters = {
-    diceTypes: ["к8", "к6", "к10"],  // Order from baseClassesOnly
+    diceTypes: ["к6", "к8", "к10"],  // Sorted numerically
     sources: ["PHB"]  // All base classes are PHB
 };
 

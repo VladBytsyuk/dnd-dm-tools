@@ -7,6 +7,7 @@ import { BaseRepository } from "./BaseRepository";
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
 import { baseRaces, collectSourceBooks } from "src/assets/data/races";
+import { sortSources } from "src/domain/utils/SourceSorter";
 
 
 export class RacesRepository
@@ -81,7 +82,7 @@ export class RacesRepository
         const sourcesSet: Set<string> = new Set();
 
         for (const race of allSmallItems) {
-            // Collect ability keys
+            // Collect ability keys (raw technical keys, not translated)
             for (const ability of race.abilities) {
                 abilitiesSet.add(ability.key);
             }
@@ -94,7 +95,7 @@ export class RacesRepository
         return createFilters<RaceFilters>({
             abilities: Array.from(abilitiesSet).sort(),
             types: Array.from(typesSet).sort(),
-            sources: Array.from(sourcesSet).sort(),
+            sources: sortSources(Array.from(sourcesSet)),
         });
     }
 
@@ -106,12 +107,29 @@ export class RacesRepository
             return acc;
         }, {} as { [key: string]: SmallRace[] });
 
+        // Define priority order for race types
+        const typeOrder: Record<string, number> = {
+            'Базовые': 1,
+            'Приключения': 2,
+            'Сеттинги': 3,
+            'Unearthed Arcana': 4,
+            '3rd party': 5,
+            'Homebrew': 6,
+        };
+
         return Object.entries(groups)
             .map(([type, races]) => ({
                 sort: type,
                 smallItems: races
             } as Group<SmallRace>))
-            .sort((a, b) => a.sort.localeCompare(b.sort, 'ru-RU'));
+            .sort((a, b) => {
+                const aOrder = typeOrder[a.sort] ?? 999;
+                const bOrder = typeOrder[b.sort] ?? 999;
+                if (aOrder !== bOrder) {
+                    return aOrder - bOrder;
+                }
+                return a.sort.localeCompare(b.sort, 'ru-RU');
+            });
     }
 
     createEmptyFullItem(): FullRace {

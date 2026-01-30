@@ -1,10 +1,10 @@
 import { ArsenalFilters } from "../../../../../src/domain/models/weapon/ArsenalFilters";
 import { SmallWeapon } from "../../../../../src/domain/models/weapon/SmallWeapon"
 
-export const arsenalFilters = { 
-    types: ['Воинское рукопашное', 'Простое рукопашное', 'Воинское дальнобойное'], 
-    sources: ['PHB'], 
-    dices: ['1к10', '1к6', '1'],
+export const arsenalFilters = {
+    types: ['Воинское рукопашное', 'Простое рукопашное', 'Воинское дальнобойное'],
+    sources: ['PHB'],
+    dices: ['1', '1к6', '1к10'],
     damageTypes: ['рубящий', 'дробящий', 'колющий']
 } as ArsenalFilters;
 
