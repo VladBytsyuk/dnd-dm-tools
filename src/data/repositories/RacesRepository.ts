@@ -107,12 +107,29 @@ export class RacesRepository
             return acc;
         }, {} as { [key: string]: SmallRace[] });
 
+        // Define priority order for race types
+        const typeOrder: Record<string, number> = {
+            'Базовые': 1,
+            'Приключения': 2,
+            'Сеттинги': 3,
+            'Unearthed Arcana': 4,
+            '3rd party': 5,
+            'Homebrew': 6,
+        };
+
         return Object.entries(groups)
             .map(([type, races]) => ({
                 sort: type,
                 smallItems: races
             } as Group<SmallRace>))
-            .sort((a, b) => a.sort.localeCompare(b.sort, 'ru-RU'));
+            .sort((a, b) => {
+                const aOrder = typeOrder[a.sort] ?? 999;
+                const bOrder = typeOrder[b.sort] ?? 999;
+                if (aOrder !== bOrder) {
+                    return aOrder - bOrder;
+                }
+                return a.sort.localeCompare(b.sort, 'ru-RU');
+            });
     }
 
     createEmptyFullItem(): FullRace {
