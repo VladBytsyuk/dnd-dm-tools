@@ -32,14 +32,32 @@ export class BackgroundRepository
 
     async groupItems(smallItems: SmallBackground[]): Promise<Group<SmallBackground>[]> {
         const groups = smallItems.reduce((acc, background) => {
-            const type = background.name.rus[0] ?? '—';
-            (acc[type] ||= []).push(background);
+            const source = background.source.name;
+            (acc[source] ||= []).push(background);
             return acc;
         }, {} as { [key: string]: SmallBackground[] });
 
-        return Object.entries(groups)
-            .map(([type, smallBackgrounds]) => ({ sort: type, smallItems: smallBackgrounds } as Group<SmallBackground>))
-            .sort((a, b) => a.sort.localeCompare(b.sort));
+        // Create a map of full name to short name for sorting
+        const nameToShortName = new Map<string, string>();
+        for (const background of smallItems) {
+            const shortName = background.source.shortName + (background.source.group.shortName != "Basic" ? "*" : "");
+            nameToShortName.set(background.source.name, shortName);
+        }
+
+        const groupsArray = Object.entries(groups)
+            .map(([source, smallItems]) => ({ sort: source, smallItems: smallItems } as Group<SmallBackground>));
+
+        // Sort using the same logic as filter sources
+        const shortNames = Array.from(nameToShortName.values());
+        const sortedShortNames = sortSources([...new Set(shortNames)]);
+
+        return groupsArray.sort((a, b) => {
+            const aShort = nameToShortName.get(a.sort) || a.sort;
+            const bShort = nameToShortName.get(b.sort) || b.sort;
+            const aIndex = sortedShortNames.indexOf(aShort);
+            const bIndex = sortedShortNames.indexOf(bShort);
+            return aIndex - bIndex;
+        });
     }
 
     async getFullItemByUrl(url: string): Promise<FullBackground | null> {
