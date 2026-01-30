@@ -186,8 +186,4 @@ export class ClassesRepository
                 return a.sort.localeCompare(b.sort);
             });
     }
-
-    createEmptyFullItem(): FullClass | undefined {
-        return EmptyFullClass();
-    }
 }

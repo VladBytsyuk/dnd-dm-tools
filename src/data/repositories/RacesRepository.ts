@@ -132,10 +132,6 @@ export class RacesRepository
             });
     }
 
-    createEmptyFullItem(): FullRace {
-        return EmptyFullRace();
-    }
-
     override async getFullItemByUrl(url: string): Promise<FullRace | null> {
         // Try to load from cache first
         const cachedRace = await this.database.fullRaceDao.readItemByUrl(url);
