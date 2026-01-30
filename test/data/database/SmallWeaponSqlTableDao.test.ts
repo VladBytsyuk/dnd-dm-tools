@@ -14,7 +14,7 @@ runSqlDaoBaseTests<SmallWeapon, ArsenalFilters>({
         table: 'small_arsenal',
         fill: true,
         whereClausesCount: 4,
-        filterParams: ['1к10', '1к6', '1', 'рубящий', 'дробящий', 'колющий', 'Воинское рукопашное', 'Простое рукопашное', 'Воинское дальнобойное', 'PHB'],
+        filterParams: ['1', '1к6', '1к10', 'рубящий', 'дробящий', 'колющий', 'Воинское рукопашное', 'Простое рукопашное', 'Воинское дальнобойное', 'PHB'],
     },
     mutate: (w) => ({ ...w, price: '11gp' }),
     mapCase: {

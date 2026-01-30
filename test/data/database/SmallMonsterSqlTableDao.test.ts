@@ -19,7 +19,7 @@ const sampleMonster: SmallMonster = {
 
 const filters: BestiaryFilters = {
     types: ['Гуманоид'],
-    challangeRatings: ['1/4'],
+    challengeRatings: ['1/4'],
     sources: ['MM'],
 };
 
