@@ -277,7 +277,7 @@
 		</div>
 	</header>
 
-	<div class="content">
+	<div class="tracker-content">
 		{#if state.current.encounter.participants.length === 0}
 			<div class="empty">
 				<Skull size={18} />
@@ -429,7 +429,7 @@
 		background: var(--background-secondary);
 	}
 
-	.content {
+	.tracker-content {
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
@@ -458,6 +458,7 @@
 		display: flex;
 		gap: 8px;
 		align-items: stretch;
+		margin-top: 4px;
 	}
 
 	.footerPrimary {
