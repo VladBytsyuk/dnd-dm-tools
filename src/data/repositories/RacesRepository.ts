@@ -82,7 +82,7 @@ export class RacesRepository
         const sourcesSet: Set<string> = new Set();
 
         for (const race of allSmallItems) {
-            // Collect ability keys
+            // Collect ability keys (raw technical keys, not translated)
             for (const ability of race.abilities) {
                 abilitiesSet.add(ability.key);
             }

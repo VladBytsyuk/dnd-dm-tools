@@ -19,6 +19,8 @@
         groupTitleBuilder: (group: Group<Small>) => string;
         FullItemSlot: any;
         SmallItemSlot: any;
+        filterDisplayTransform?: (filters: F) => F;
+        filterApplyTransform?: (filters: F) => F;
     }
 
     let {
@@ -30,6 +32,8 @@
         groupTitleBuilder,
         FullItemSlot,
         SmallItemSlot,
+        filterDisplayTransform,
+        filterApplyTransform,
     }: Props<any, any, any> = $props();
 
     // ---- State ----
@@ -59,13 +63,14 @@
     }                       
 
     async function onSearchBarFiltersClick() {
-        fullFilters = await repository.getAllFilters();
-        if (!fullFilters) return;
+        const rawFilters = await repository.getAllFilters();
+        if (!rawFilters) return;
+        fullFilters = filterDisplayTransform ? filterDisplayTransform(rawFilters) : rawFilters;
         isFiltersOverlayOpen = true;
     }
 
     async function handleFiltersApply(newFilters: any) {
-        filters = newFilters;
+        filters = filterApplyTransform ? filterApplyTransform(newFilters) : newFilters;
         await updateGroups();
     }
 
@@ -128,7 +133,7 @@
     {#if isFiltersOverlayOpen && fullFilters}
         <FiltersOverlay
             fullFilters={fullFilters}
-            initialFilters={filters}
+            initialFilters={filterDisplayTransform ? filterDisplayTransform(filters) : filters}
             filterConfig={filterConfig}
             onApply={handleFiltersApply}
             onClose={handleFiltersClose}

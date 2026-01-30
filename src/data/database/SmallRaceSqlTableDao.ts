@@ -148,10 +148,10 @@ export class SmallRaceSqlTableDao extends Dao<SmallRace, RaceFilters> {
             const params: SqlValue[] = [];
 
             if (filters.abilities.length > 0) {
-                // Filter by ability keys in JSON array
+                // Filter by ability keys in JSON array (filters already contain technical keys)
                 const abilityConditions = filters.abilities.map(() => `abilities LIKE ?`).join(' OR ');
                 whereClauses.push('(' + abilityConditions + ')');
-                params.push(...filters.abilities.map(ability => `%"key":"${ability}"%`));
+                params.push(...filters.abilities.map(key => `%"key":"${key}"%`));
             }
 
             if (filters.types.length > 0) {
