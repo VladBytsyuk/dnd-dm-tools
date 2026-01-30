@@ -6,6 +6,7 @@ import { type ArsenalFilters } from 'src/domain/models/weapon/ArsenalFilters';
 import { BaseRepository } from './BaseRepository';
 import { createFilters } from 'src/domain/models/common/Filters';
 import type { Group } from 'src/domain/repositories/Repository';
+import { sortSources } from 'src/domain/utils/SourceSorter';
 
 export class ArsenalRepository 
     extends BaseRepository<SmallWeapon, FullWeapon, ArsenalFilters> 
@@ -31,10 +32,10 @@ export class ArsenalRepository
             sourcesSet.add(weapon.source.shortName + (weapon.source.group.shortName != "Basic" ? "*" : ""));
         }
         return createFilters<ArsenalFilters>({
-            dices: Array.from(dicesSet), 
-            damageTypes: Array.from(damageTypesSet), 
-            types: Array.from(typesSet), 
-            sources: Array.from(sourcesSet),
+            dices: Array.from(dicesSet),
+            damageTypes: Array.from(damageTypesSet),
+            types: Array.from(typesSet),
+            sources: sortSources(Array.from(sourcesSet)),
         });
     }
 

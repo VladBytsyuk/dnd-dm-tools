@@ -6,6 +6,7 @@ import { EmptyFullMonster, type FullMonster } from 'src/domain/models/monster/Fu
 import { BaseRepository } from './BaseRepository';
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
+import { sortSources } from "src/domain/utils/SourceSorter";
 
 
 export class BestiaryRepository 
@@ -32,7 +33,7 @@ export class BestiaryRepository
         return createFilters<BestiaryFilters>({
             types: Array.from(typesSet),
             challengeRatings: Array.from(challengeRatingsSet),
-            sources: Array.from(sourcesSet)
+            sources: sortSources(Array.from(sourcesSet))
         });
     }
 

@@ -6,6 +6,7 @@ import type { Backgrounds } from "src/domain/repositories/Backgrounds";
 import type DB from "../database/DB";
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
+import { sortSources } from "src/domain/utils/SourceSorter";
 
 export class BackgroundRepository
     extends BaseRepository<SmallBackground, FullBackground, BackgroundsFilters>
@@ -25,7 +26,7 @@ export class BackgroundRepository
             sourcesSet.add(background.source.shortName + (background.source.group.shortName != "Basic" ? "*" : ""));
         }
         return createFilters<BackgroundsFilters>({
-            sources: Array.from(sourcesSet), 
+            sources: sortSources(Array.from(sourcesSet)),
         });
     }
 

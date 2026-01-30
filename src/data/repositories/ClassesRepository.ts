@@ -6,6 +6,7 @@ import { BaseRepository } from './BaseRepository';
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group, Repository } from "src/domain/repositories/Repository";
 import { baseClasses, collectSourceBooks } from "src/assets/data/classes";
+import { sortSources } from "src/domain/utils/SourceSorter";
 
 
 export class ClassesRepository
@@ -149,7 +150,7 @@ export class ClassesRepository
 
         return createFilters<ClassesFilters>({
             diceTypes: Array.from(diceTypesSet),
-            sources: Array.from(sourcesSet)
+            sources: sortSources(Array.from(sourcesSet))
         });
     }
 

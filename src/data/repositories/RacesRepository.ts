@@ -7,6 +7,7 @@ import { BaseRepository } from "./BaseRepository";
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
 import { baseRaces, collectSourceBooks } from "src/assets/data/races";
+import { sortSources } from "src/domain/utils/SourceSorter";
 
 
 export class RacesRepository
@@ -94,7 +95,7 @@ export class RacesRepository
         return createFilters<RaceFilters>({
             abilities: Array.from(abilitiesSet).sort(),
             types: Array.from(typesSet).sort(),
-            sources: Array.from(sourcesSet).sort(),
+            sources: sortSources(Array.from(sourcesSet)),
         });
     }
 

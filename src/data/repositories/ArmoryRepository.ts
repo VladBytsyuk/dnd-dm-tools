@@ -6,6 +6,7 @@ import type { Armory } from "src/domain/repositories/Armory"
 import type DB from "../database/DB"
 import { createFilters } from "src/domain/models/common/Filters"
 import type { Group } from "src/domain/repositories/Repository"
+import { sortSources } from "src/domain/utils/SourceSorter"
 
 export class ArmoryRepository
     extends BaseRepository<SmallArmor, FullArmor, ArmoryFilters>
@@ -27,8 +28,8 @@ export class ArmoryRepository
             sourcesSet.add(armor.source.shortName + (armor.source.group.shortName != "Basic" ? "*" : ""));
         }
         return createFilters<ArmoryFilters>({
-            types: Array.from(typesSet), 
-            sources: Array.from(sourcesSet),
+            types: Array.from(typesSet),
+            sources: sortSources(Array.from(sourcesSet)),
         });
     }
 

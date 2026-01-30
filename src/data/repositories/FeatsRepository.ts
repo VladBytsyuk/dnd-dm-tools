@@ -6,6 +6,7 @@ import { type FullFeat } from 'src/domain/models/feat/FullFeat';
 import { BaseRepository } from './BaseRepository';
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
+import { sortSources } from "src/domain/utils/SourceSorter";
 
 
 export class FeatsRepository 
@@ -26,7 +27,7 @@ export class FeatsRepository
             sourcesSet.add(feat.source.shortName + (feat.source.group.shortName != "Basic" ? "*" : ""));
         }
         return createFilters<FeatsFilters>({
-            sources: Array.from(sourcesSet)
+            sources: sortSources(Array.from(sourcesSet))
         });
     }
 
