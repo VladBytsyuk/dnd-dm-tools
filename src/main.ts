@@ -18,6 +18,7 @@ import { BackgroundFeature } from './ui/components/feature/BackgroundFeature';
 import { FeatFeature } from './ui/components/feature/FeatFeature';
 import { RaceFeature } from './ui/components/feature/RaceFeature';
 import { ClassesFeature } from './ui/components/feature/ClassesFeature';
+import { CharacterSheetFeature } from './ui/components/feature/CharacterSheetFeature';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -32,6 +33,7 @@ export default class DndStatblockPlugin extends Plugin {
 	featFeature: FeatFeature;
 	raceFeature: RaceFeature;
 	classesFeature: ClassesFeature;
+	characterSheetFeature: CharacterSheetFeature;
 	bestiaryFeature: BestiaryFeature;
 	spellbookFeature: SpellbookFeature;
 	dmScreenFeature: DmScreenFeature;
@@ -79,6 +81,7 @@ export default class DndStatblockPlugin extends Plugin {
 			() => this.featFeature,
 			() => this.raceFeature,
 			() => this.classesFeature,
+			() => this.characterSheetFeature,
 			() => this.dmScreenFeature,
 		);
 
@@ -93,6 +96,7 @@ export default class DndStatblockPlugin extends Plugin {
 		this.featFeature = new FeatFeature(this, this.#database, this.#uiEventListener);
 		this.raceFeature = new RaceFeature(this, this.#database, this.#uiEventListener);
 		this.classesFeature = new ClassesFeature(this, this.#database, this.#uiEventListener);
+		this.characterSheetFeature = new CharacterSheetFeature(this, this.#database, this.#uiEventListener);
 		this.features = [
 			this.bestiaryFeature,
 			this.spellbookFeature,
@@ -105,6 +109,7 @@ export default class DndStatblockPlugin extends Plugin {
 			this.featFeature,
 			this.raceFeature,
 			this.classesFeature,
+			this.characterSheetFeature,
 		];
 		this.features.forEach(feature => feature.initialize());
 		
