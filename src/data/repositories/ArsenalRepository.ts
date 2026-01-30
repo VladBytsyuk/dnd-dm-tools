@@ -61,8 +61,48 @@ export class ArsenalRepository
             return acc;
         }, {} as { [key: string]: SmallWeapon[] });
 
+        // Define priority order for weapon categories and range types
+        const categoryOrder: Record<string, number> = {
+            'Простое': 1,
+            'Воинское': 2,
+            'Экзотическое': 3,
+        };
+
+        const rangeOrder: Record<string, number> = {
+            'рукопашное': 1,
+            'дальнобойное': 2,
+        };
+
         return Object.entries(groups)
             .map(([type, smallWeapons]) => ({ sort: type, smallItems: smallWeapons } as Group<SmallWeapon>))
-            .sort((a, b) => a.sort.localeCompare(b.sort));
+            .sort((a, b) => {
+                // Extract category and range type from the type name
+                let aCategory = '';
+                let aRange = '';
+                let bCategory = '';
+                let bRange = '';
+
+                for (const cat of Object.keys(categoryOrder)) {
+                    if (a.sort.includes(cat)) aCategory = cat;
+                    if (b.sort.includes(cat)) bCategory = cat;
+                }
+
+                for (const range of Object.keys(rangeOrder)) {
+                    if (a.sort.includes(range)) aRange = range;
+                    if (b.sort.includes(range)) bRange = range;
+                }
+
+                // Sort by category first, then by range type
+                const aCatOrder = categoryOrder[aCategory] ?? 999;
+                const bCatOrder = categoryOrder[bCategory] ?? 999;
+
+                if (aCatOrder !== bCatOrder) {
+                    return aCatOrder - bCatOrder;
+                }
+
+                const aRangeOrder = rangeOrder[aRange] ?? 999;
+                const bRangeOrder = rangeOrder[bRange] ?? 999;
+                return aRangeOrder - bRangeOrder;
+            });
     }
 }
