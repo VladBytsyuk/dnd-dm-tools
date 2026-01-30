@@ -94,7 +94,7 @@
 
 <style>
     .filters-overlay-backdrop {
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
         right: 0;
@@ -113,7 +113,7 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         max-width: 600px;
         width: 90%;
-        max-height: calc(100% - 40px);
+        max-height: calc(100vh - 40px);
         display: flex;
         flex-direction: column;
     }
