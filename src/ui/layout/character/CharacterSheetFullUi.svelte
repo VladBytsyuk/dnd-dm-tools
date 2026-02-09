@@ -4,10 +4,8 @@
 
 	// Import kit components
 	import CharacterHeader from "./kit/CharacterHeader.svelte";
-	import CharacterAbilityScores from "./kit/CharacterAbilityScores.svelte";
+	import CharacterAbilityGroup from "./kit/CharacterAbilityGroup.svelte";
 	import CharacterVitalityBlock from "./kit/CharacterVitalityBlock.svelte";
-	import CharacterSavingThrows from "./kit/CharacterSavingThrows.svelte";
-	import CharacterSkillsList from "./kit/CharacterSkillsList.svelte";
 	import CharacterCombat from "./kit/CharacterCombat.svelte";
 	import CharacterSpellbook from "./kit/CharacterSpellbook.svelte";
 	import CharacterEquipment from "./kit/CharacterEquipment.svelte";
@@ -111,6 +109,69 @@
 		'spells-level-9': data.text?.['spells-level-9'] || ''
 	});
 
+	// Ability groups with their associated skills
+	const abilityGroups = [
+		{
+			key: 'str',
+			label: 'СИЛ',
+			fullName: 'Сила',
+			skills: [
+				{ key: 'athletics', label: 'Атлетика' }
+			]
+		},
+		{
+			key: 'dex',
+			label: 'ЛОВ',
+			fullName: 'Ловкость',
+			skills: [
+				{ key: 'acrobatics', label: 'Акробатика' },
+				{ key: 'sleight-of-hand', label: 'Ловкость рук' },
+				{ key: 'stealth', label: 'Скрытность' }
+			]
+		},
+		{
+			key: 'con',
+			label: 'ТЕЛ',
+			fullName: 'Телосложение',
+			skills: []
+		},
+		{
+			key: 'int',
+			label: 'ИНТ',
+			fullName: 'Интеллект',
+			skills: [
+				{ key: 'arcana', label: 'Магия' },
+				{ key: 'history', label: 'История' },
+				{ key: 'investigation', label: 'Анализ' },
+				{ key: 'nature', label: 'Природа' },
+				{ key: 'religion', label: 'Религия' }
+			]
+		},
+		{
+			key: 'wis',
+			label: 'МДР',
+			fullName: 'Мудрость',
+			skills: [
+				{ key: 'animal-handling', label: 'Обращение с животными' },
+				{ key: 'insight', label: 'Проницательность' },
+				{ key: 'medicine', label: 'Медицина' },
+				{ key: 'perception', label: 'Восприятие' },
+				{ key: 'survival', label: 'Выживание' }
+			]
+		},
+		{
+			key: 'cha',
+			label: 'ХАР',
+			fullName: 'Харизма',
+			skills: [
+				{ key: 'deception', label: 'Обман' },
+				{ key: 'intimidation', label: 'Запугивание' },
+				{ key: 'performance', label: 'Выступление' },
+				{ key: 'persuasion', label: 'Убеждение' }
+			]
+		}
+	];
+
 	const hasPhysicalInfo = $derived(
 		data.subInfo?.age?.value ||
 		data.subInfo?.height?.value ||
@@ -123,11 +184,20 @@
 
 <div class="character-sheet-full">
 	<div class="character-sheet-layout">
-		<!-- Left Column: Abilities, Saves, Skills, Physical Info -->
+		<!-- Left Column: Abilities with Saves and Skills -->
 		<div class="column column-left">
-			<CharacterAbilityScores {stats} />
-			<CharacterSavingThrows {saves} {stats} {proficiency} />
-			<CharacterSkillsList skills={data.skills || {}} {stats} {proficiency} />
+			{#each abilityGroups as group}
+				<CharacterAbilityGroup
+					abilityKey={group.key}
+					abilityLabel={group.label}
+					abilityFullName={group.fullName}
+					stat={stats[group.key as keyof typeof stats]}
+					save={saves[group.key as keyof typeof saves]}
+					skills={group.skills}
+					allSkills={data.skills || {}}
+					{proficiency}
+				/>
+			{/each}
 
 			{#if hasPhysicalInfo}
 				<div class="physical-info-section">
