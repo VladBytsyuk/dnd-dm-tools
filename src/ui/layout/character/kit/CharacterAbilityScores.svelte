@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { calculateModifier, formatModifier } from "../../../../domain/modifier";
+
 	interface AbilityStat {
 		score: number;
 		modifier: number;
@@ -25,10 +27,6 @@
 		{ key: 'wis', label: 'МДР', fullName: 'Мудрость' },
 		{ key: 'cha', label: 'ХАР', fullName: 'Харизма' }
 	];
-
-	function formatModifier(mod: number): string {
-		return mod >= 0 ? `+${mod}` : `${mod}`;
-	}
 </script>
 
 <div class="character-ability-scores">
@@ -36,10 +34,11 @@
 	<div class="abilities-grid">
 		{#each abilities as ability}
 			{@const stat = stats[ability.key as keyof typeof stats]}
+			{@const modifier = calculateModifier(stat.score)}
 			<div class="ability-container" title={ability.fullName}>
 				<div class="ability-label">{ability.label}</div>
 				<div class="ability-circle">
-					<div class="ability-modifier">{formatModifier(stat.modifier)}</div>
+					<div class="ability-modifier">{formatModifier(modifier)}</div>
 					<div class="ability-score">{stat.score}</div>
 				</div>
 			</div>

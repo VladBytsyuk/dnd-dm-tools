@@ -1,5 +1,6 @@
 <script lang="ts">
 	import HtmlBlock from "../../uikit/HtmlBlock.svelte";
+	import { formatModifier } from "../../../../domain/modifier";
 
 	interface Weapon {
 		name: string;
@@ -16,10 +17,6 @@
 	}
 
 	let { proficiency, weaponsList = [], attacksText = '' }: Props = $props();
-
-	function formatModifier(mod: number): string {
-		return mod >= 0 ? `+${mod}` : `${mod}`;
-	}
 </script>
 
 <div class="character-combat">

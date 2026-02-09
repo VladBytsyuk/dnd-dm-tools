@@ -1,5 +1,6 @@
 <script lang="ts">
 	import HtmlBlock from "../../uikit/HtmlBlock.svelte";
+	import { formatModifier as formatMod } from "../../../../domain/modifier";
 
 	interface Props {
 		spellsInfo?: {
@@ -44,7 +45,7 @@
 
 	function formatModifier(mod: number | undefined): string {
 		if (mod === undefined) return '—';
-		return mod >= 0 ? `+${mod}` : `${mod}`;
+		return formatMod(mod);
 	}
 </script>
 

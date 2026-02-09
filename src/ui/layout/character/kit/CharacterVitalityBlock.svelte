@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { formatModifier } from "../../../../domain/modifier";
+
 	interface Props {
 		vitality: {
 			'hp-max': number;
@@ -20,10 +22,6 @@
 		hpPercentage > 25 ? 'var(--color-yellow)' :
 		'var(--color-red)'
 	);
-
-	function formatModifier(mod: number): string {
-		return mod >= 0 ? `+${mod}` : `${mod}`;
-	}
 </script>
 
 <div class="character-vitality-block">

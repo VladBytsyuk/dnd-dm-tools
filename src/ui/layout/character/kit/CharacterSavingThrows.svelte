@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { calculateModifier, formatModifier } from "../../../../domain/modifier";
+
 	interface AbilityStat {
 		score: number;
 		modifier: number;
@@ -41,13 +43,9 @@
 
 	function getSaveBonus(saveKey: string): number {
 		const key = saveKey as keyof typeof stats;
-		const baseMod = stats[key].modifier;
+		const baseMod = calculateModifier(stats[key].score);
 		const profBonus = saves[key].isProf ? proficiency : 0;
 		return baseMod + profBonus;
-	}
-
-	function formatModifier(mod: number): string {
-		return mod >= 0 ? `+${mod}` : `${mod}`;
 	}
 </script>
 
