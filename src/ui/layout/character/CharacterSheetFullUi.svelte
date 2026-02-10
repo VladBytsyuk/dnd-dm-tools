@@ -394,7 +394,6 @@
 				onLookupRace={lookupRace}
 				onLookupClass={lookupClass}
 				onLookupBackground={lookupBackground}
-				app={plugin?.app}
 			/>
 
 			<CharacterVitalityBlock {vitality} />

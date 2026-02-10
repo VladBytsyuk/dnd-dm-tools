@@ -5,7 +5,6 @@
 	import AlignmentPicker from './AlignmentPicker.svelte';
 	import LinkedInput from './LinkedInput.svelte';
 	import MulticlassInput from './MulticlassInput.svelte';
-	import { XpAdderModal } from '../../../components/modals/XpAdderModal';
 
 	interface Props {
 		name: { value: string };
@@ -60,23 +59,66 @@
 
 	const avatarUrl = $derived(avatar?.webp || avatar?.jpeg || '');
 
+	// XP popup state
+	let showXpPopup = $state(false);
+	let xpToAdd = $state('');
+	let xpPopupRef: HTMLDivElement | undefined = $state();
+	let xpButtonRef: HTMLButtonElement | undefined = $state();
+
 	function handleNameInput(event: Event) {
 		const newName = (event.target as HTMLInputElement).value;
 		onNameChange?.(newName);
 	}
 
-	function openXpAdder() {
-		if (app && onExperienceAdd) {
-			const currentXp = info.experience || 0;
-			new XpAdderModal(app, currentXp, (additionalXp) => {
-				onExperienceAdd(additionalXp);
-			}).open();
+	function toggleXpPopup(event: MouseEvent) {
+		event.stopPropagation();
+		showXpPopup = !showXpPopup;
+		if (showXpPopup) {
+			xpToAdd = '';
+			// Focus input after popup opens
+			setTimeout(() => {
+				const input = xpPopupRef?.querySelector('input');
+				input?.focus();
+			}, 10);
+		}
+	}
+
+	function handleXpAdd() {
+		const amount = parseInt(xpToAdd) || 0;
+		if (amount !== 0 && onExperienceAdd) {
+			onExperienceAdd(amount);
+		}
+		showXpPopup = false;
+		xpToAdd = '';
+	}
+
+	function handleXpKeydown(event: KeyboardEvent) {
+		if (event.key === 'Enter') {
+			handleXpAdd();
+		} else if (event.key === 'Escape') {
+			showXpPopup = false;
+			xpToAdd = '';
+		}
+	}
+
+	// Close popup when clicking outside
+	function handleClickOutside(event: MouseEvent) {
+		const target = event.target as Node;
+		if (showXpPopup &&
+			xpPopupRef &&
+			!xpPopupRef.contains(target) &&
+			xpButtonRef &&
+			!xpButtonRef.contains(target)) {
+			showXpPopup = false;
+			xpToAdd = '';
 		}
 	}
 
 	// Format experience for display
 	const experienceDisplay = $derived((info.experience || 0).toLocaleString('ru-RU'));
 </script>
+
+<svelte:window onclick={handleClickOutside} />
 
 <div class="character-header">
 	<div class="header-content">
@@ -147,13 +189,37 @@
 					<span class="label">Опыт:</span>
 					<div class="xp-container">
 						<span class="xp-value">{experienceDisplay}</span>
-						{#if app && onExperienceAdd}
-							<button
-								class="xp-add-btn"
-								onclick={openXpAdder}
-								title="Добавить опыт"
-								type="button"
-							>+</button>
+						{#if onExperienceAdd}
+							<div class="xp-add-wrapper">
+								<button
+									bind:this={xpButtonRef}
+									class="xp-add-btn"
+									onclick={toggleXpPopup}
+									title="Добавить опыт"
+									type="button"
+								>+</button>
+								{#if showXpPopup}
+									<div class="xp-popup" bind:this={xpPopupRef}>
+										<input
+											type="number"
+											bind:value={xpToAdd}
+											onkeydown={handleXpKeydown}
+											placeholder="0"
+											class="xp-popup-input"
+										/>
+										<button
+											class="xp-popup-btn xp-popup-btn-confirm"
+											onclick={handleXpAdd}
+											type="button"
+										>✓</button>
+										<button
+											class="xp-popup-btn xp-popup-btn-cancel"
+											onclick={() => { showXpPopup = false; xpToAdd = ''; }}
+											type="button"
+										>✕</button>
+									</div>
+								{/if}
+							</div>
 						{/if}
 					</div>
 				</div>
@@ -295,6 +361,10 @@
 		font-weight: 600;
 	}
 
+	.xp-add-wrapper {
+		position: relative;
+	}
+
 	.xp-add-btn {
 		width: 20px;
 		height: 20px;
@@ -314,6 +384,70 @@
 	.xp-add-btn:hover {
 		background-color: var(--interactive-accent-hover);
 		transform: scale(1.1);
+	}
+
+	.xp-popup {
+		position: absolute;
+		top: 24px;
+		right: 0;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		padding: 6px;
+		background-color: var(--background-primary);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 4px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+		z-index: 100;
+		min-width: 120px;
+	}
+
+	.xp-popup-input {
+		flex: 1;
+		padding: 3px 6px;
+		font-size: 11px;
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 2px;
+		background-color: var(--background-primary-alt);
+		color: var(--text-normal);
+		min-width: 60px;
+	}
+
+	.xp-popup-input:focus {
+		outline: none;
+		border-color: var(--text-accent);
+	}
+
+	.xp-popup-btn {
+		width: 22px;
+		height: 22px;
+		padding: 0;
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 2px;
+		font-size: 12px;
+		line-height: 1;
+		cursor: pointer;
+		transition: all 0.2s;
+		flex-shrink: 0;
+	}
+
+	.xp-popup-btn-confirm {
+		background-color: var(--interactive-accent);
+		color: var(--text-on-accent);
+	}
+
+	.xp-popup-btn-confirm:hover {
+		background-color: var(--interactive-accent-hover);
+	}
+
+	.xp-popup-btn-cancel {
+		background-color: var(--background-primary);
+		color: var(--text-muted);
+	}
+
+	.xp-popup-btn-cancel:hover {
+		background-color: var(--background-modifier-error);
+		color: var(--text-error);
 	}
 
 	/* Seamless Input Styling - looks like regular text when not focused */
