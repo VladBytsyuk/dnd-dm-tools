@@ -151,9 +151,9 @@
 			label: 'ИНТ',
 			fullName: 'Интеллект',
 			skills: [
-				{ key: 'arcana', label: 'Магия' },
-				{ key: 'history', label: 'История' },
 				{ key: 'investigation', label: 'Анализ' },
+				{ key: 'history', label: 'История' },
+				{ key: 'arcana', label: 'Магия' },
 				{ key: 'nature', label: 'Природа' },
 				{ key: 'religion', label: 'Религия' }
 			]
@@ -163,11 +163,11 @@
 			label: 'МДР',
 			fullName: 'Мудрость',
 			skills: [
-				{ key: 'animal-handling', label: 'Обращение с животными' },
-				{ key: 'insight', label: 'Проницательность' },
-				{ key: 'medicine', label: 'Медицина' },
 				{ key: 'perception', label: 'Восприятие' },
-				{ key: 'survival', label: 'Выживание' }
+				{ key: 'survival', label: 'Выживание' },
+				{ key: 'medicine', label: 'Медицина' },
+				{ key: 'animal-handling', label: 'Обращение с животными' },
+				{ key: 'insight', label: 'Проницательность' }
 			]
 		},
 		{
@@ -175,9 +175,9 @@
 			label: 'ХАР',
 			fullName: 'Харизма',
 			skills: [
-				{ key: 'deception', label: 'Обман' },
-				{ key: 'intimidation', label: 'Запугивание' },
 				{ key: 'performance', label: 'Выступление' },
+				{ key: 'intimidation', label: 'Запугивание' },
+				{ key: 'deception', label: 'Обман' },
 				{ key: 'persuasion', label: 'Убеждение' }
 			]
 		}
