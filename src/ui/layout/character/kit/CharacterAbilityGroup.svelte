@@ -59,19 +59,29 @@
 <div class="ability-group">
 	<!-- Ability + Save in one row -->
 	<div class="ability-save-row">
-		<div class="ability-circle" title={abilityFullName}>
-			<div
-				class="ability-modifier clickable"
-				onclick={() => rollDice(`к20${formatModifier(modifier)}`, `${abilityFullName} (проверка)`)}>
+		<div
+			class="ability-circle clickable"
+			title={abilityFullName}
+			onclick={() => rollDice(`к20${formatModifier(modifier)}`, `${abilityFullName} (проверка)`)}>
+			<div class="ability-modifier">
 				{formatModifier(modifier)}
 			</div>
 		</div>
-		<div class="ability-info">
+		<div
+			class="ability-info clickable"
+			onclick={() => rollDice(`к20${formatModifier(modifier)}`, `${abilityFullName} (проверка)`)}>
 			<div class="ability-name">{abilityLabel}</div>
 			<div class="ability-score">{stat.score}</div>
 		</div>
-		<div class="save-label">Спасбросок:</div>
-		<div class="save-indicator" class:proficient={save.isProf}>
+		<div
+			class="save-label clickable"
+			onclick={() => rollDice(`к20${formatModifier(saveBonus)}`, `${abilityFullName} (спасбросок)`)}>
+			Спасбросок:
+		</div>
+		<div
+			class="save-indicator clickable"
+			class:proficient={save.isProf}
+			onclick={() => rollDice(`к20${formatModifier(saveBonus)}`, `${abilityFullName} (спасбросок)`)}>
 			{#if save.isProf}
 				<div class="prof-dot"></div>
 			{/if}
@@ -95,7 +105,11 @@
 							<div class="prof-dot"></div>
 						{/if}
 					</div>
-					<div class="skill-name">{skill.label}</div>
+					<div
+						class="skill-name clickable"
+						onclick={() => rollDice(`к20${formatModifier(bonus)}`, skill.label)}>
+						{skill.label}
+					</div>
 					<div
 						class="skill-bonus clickable"
 						onclick={() => rollDice(`к20${formatModifier(bonus)}`, skill.label)}>
@@ -137,6 +151,12 @@
 		align-items: center;
 		justify-content: center;
 		flex-shrink: 0;
+		transition: background-color 0.2s, border-color 0.2s;
+	}
+
+	.ability-circle.clickable:hover {
+		background-color: var(--background-modifier-hover);
+		border-color: var(--interactive-accent);
 	}
 
 	.ability-modifier {
@@ -152,6 +172,11 @@
 		gap: 1px;
 		flex: 1;
 		min-width: 0;
+		transition: opacity 0.2s;
+	}
+
+	.ability-info.clickable:hover {
+		opacity: 0.8;
 	}
 
 	.ability-name {
@@ -179,10 +204,16 @@
 		align-items: center;
 		justify-content: center;
 		flex-shrink: 0;
+		transition: border-color 0.2s, transform 0.2s;
 	}
 
 	.save-indicator.proficient {
 		border-color: var(--text-accent);
+	}
+
+	.save-indicator.clickable:hover {
+		border-color: var(--interactive-accent);
+		transform: scale(1.1);
 	}
 
 	.prof-dot {
