@@ -10,14 +10,89 @@
 	let { title, content, collapsible = false }: Props = $props();
 	let isExpanded = $state(true);
 
+	/**
+	 * Serializes a ProseMirror EditorNode to HTML
+	 */
+	function serializeNode(node: any): string {
+		if (!node) return '';
+
+		// Handle text nodes
+		if (node.type === 'text') {
+			let text = node.text || '';
+
+			// Apply text marks (bold, italic, links, etc.)
+			if (node.marks && Array.isArray(node.marks)) {
+				for (const mark of node.marks) {
+					if (mark.type === 'bold') {
+						text = `<strong>${text}</strong>`;
+					} else if (mark.type === 'italic') {
+						text = `<em>${text}</em>`;
+					} else if (mark.type === 'link') {
+						const href = mark.attrs?.href || '#';
+						const target = mark.attrs?.target || '_blank';
+						text = `<a href="${href}" target="${target}" rel="noopener noreferrer">${text}</a>`;
+					}
+				}
+			}
+
+			return text;
+		}
+
+		// Handle container nodes with content
+		const childrenHtml = node.content && Array.isArray(node.content)
+			? node.content.map((child: any) => serializeNode(child)).join('')
+			: '';
+
+		// Map node types to HTML tags
+		switch (node.type) {
+			case 'doc':
+				return childrenHtml;
+			case 'paragraph':
+				return `<p>${childrenHtml || ''}</p>`;
+			case 'heading':
+				const level = node.attrs?.level || 1;
+				return `<h${level}>${childrenHtml}</h${level}>`;
+			case 'bulletList':
+				return `<ul>${childrenHtml}</ul>`;
+			case 'orderedList':
+				return `<ol>${childrenHtml}</ol>`;
+			case 'listItem':
+				return `<li>${childrenHtml}</li>`;
+			case 'blockquote':
+				return `<blockquote>${childrenHtml}</blockquote>`;
+			case 'codeBlock':
+				return `<pre><code>${childrenHtml}</code></pre>`;
+			case 'hardBreak':
+				return '<br>';
+			case 'horizontalRule':
+				return '<hr>';
+			default:
+				// Unknown node type - return content as-is
+				return childrenHtml;
+		}
+	}
+
 	const htmlContent = $derived(() => {
 		if (!content) return '';
+
+		// Simple string content
 		if (typeof content === 'string') return content;
+
 		// Handle TextField with EditorState
 		if (content.value && typeof content.value === 'object') {
-			// For now, return empty - proper serialization would go here
-			return '';
+			const data = content.value.data;
+
+			// If data is already an HTML string
+			if (typeof data === 'string') {
+				return data;
+			}
+
+			// If data is a ProseMirror document structure
+			if (data && typeof data === 'object' && data.type === 'doc') {
+				return serializeNode(data);
+			}
 		}
+
 		return String(content);
 	});
 
