@@ -1,14 +1,16 @@
 <script lang="ts">
 	import type { ClassEntry } from '../../../../domain/models/character/ClassEntry';
 	import type { EntityLinkResult } from '../../../../domain/services/EntityLinkService';
+	import type { IUiEventListener } from '../../../../domain/listeners/ui_event_listener';
 
 	interface Props {
 		classes: ClassEntry[];
 		onchange?: (classes: ClassEntry[]) => void;
 		onLookupClass?: (className: string) => Promise<EntityLinkResult>;
+		uiEventListener?: IUiEventListener;
 	}
 
-	let { classes = [], onchange, onLookupClass }: Props = $props();
+	let { classes = [], onchange, onLookupClass, uiEventListener }: Props = $props();
 	let classLinks = $state<(EntityLinkResult | null)[]>([]);
 
 	async function checkClassLink(index: number, className: string) {
@@ -16,6 +18,26 @@
 			classLinks[index] = await onLookupClass(className.trim());
 		} else {
 			classLinks[index] = null;
+		}
+	}
+
+	async function handleLinkClick(event: MouseEvent, index: number) {
+		event.preventDefault();
+		event.stopPropagation();
+
+		const linkResult = classLinks[index];
+		if (!linkResult?.exists || !linkResult.url || !uiEventListener) return;
+
+		const url = linkResult.url;
+		if (url.includes('/classes/')) {
+			await uiEventListener.onClassClick(url);
+		}
+	}
+
+	function handleKeydown(event: KeyboardEvent, index: number) {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			handleLinkClick(event as any, index);
 		}
 	}
 
@@ -59,7 +81,15 @@
 							class="class-name-input"
 						/>
 						{#if classLinks[index]?.exists}
-							<span class="link-icon" title="Найдено в базе">🔗</span>
+							<span
+								class="link-icon"
+								class:clickable={!!uiEventListener}
+								title="Найдено в базе"
+								onclick={(e) => handleLinkClick(e, index)}
+								onkeydown={(e) => handleKeydown(e, index)}
+								role="button"
+								tabindex="0"
+							>🔗</span>
 						{/if}
 					</div>
 					<input
@@ -197,6 +227,18 @@
 		font-size: 10px;
 		pointer-events: none;
 		opacity: 0.7;
+		transition: all 0.2s;
+		cursor: help;
+	}
+
+	.link-icon.clickable {
+		cursor: pointer;
+		pointer-events: auto;
+	}
+
+	.link-icon.clickable:hover {
+		opacity: 1;
+		transform: scale(1.15);
 	}
 
 	.remove-btn {

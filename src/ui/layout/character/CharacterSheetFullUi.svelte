@@ -394,6 +394,7 @@
 				onLookupRace={lookupRace}
 				onLookupClass={lookupClass}
 				onLookupBackground={lookupBackground}
+				uiEventListener={uiEventListener}
 			/>
 
 			<CharacterVitalityBlock {vitality} />

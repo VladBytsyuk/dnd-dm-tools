@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ClassEntry } from '../../../../domain/models/character/ClassEntry';
 	import type { EntityLinkResult } from '../../../../domain/services/EntityLinkService';
+	import type { IUiEventListener } from '../../../../domain/listeners/ui_event_listener';
 	import type { App } from 'obsidian';
 	import AlignmentPicker from './AlignmentPicker.svelte';
 	import LinkedInput from './LinkedInput.svelte';
@@ -36,6 +37,9 @@
 		onLookupClass?: (className: string) => Promise<EntityLinkResult>;
 		onLookupBackground?: (bg: string) => Promise<EntityLinkResult>;
 
+		// UI event listener
+		uiEventListener?: IUiEventListener;
+
 		// App instance for modals
 		app?: App;
 	}
@@ -54,10 +58,56 @@
 		onLookupRace,
 		onLookupClass,
 		onLookupBackground,
+		uiEventListener,
 		app
 	}: Props = $props();
 
 	const avatarUrl = $derived(avatar?.webp || avatar?.jpeg || '');
+
+	// D&D 5e XP to Level table
+	const XP_TABLE = [
+		0,      // Level 1
+		300,    // Level 2
+		900,    // Level 3
+		2700,   // Level 4
+		6500,   // Level 5
+		14000,  // Level 6
+		23000,  // Level 7
+		34000,  // Level 8
+		48000,  // Level 9
+		64000,  // Level 10
+		85000,  // Level 11
+		100000, // Level 12
+		120000, // Level 13
+		140000, // Level 14
+		165000, // Level 15
+		195000, // Level 16
+		225000, // Level 17
+		265000, // Level 18
+		305000, // Level 19
+		355000  // Level 20
+	];
+
+	// Calculate level from XP
+	function getLevelFromXP(xp: number): number {
+		for (let i = XP_TABLE.length - 1; i >= 0; i--) {
+			if (xp >= XP_TABLE[i]) {
+				return Math.min(i + 1, 20); // Level is index + 1, max 20
+			}
+		}
+		return 1; // Minimum level
+	}
+
+	// Calculate overall level as sum of all classes levels
+	const overallLevel = $derived(
+		Math.max(1, Math.min(20, info.classes.reduce((sum, c) => sum + (c.level || 0), 0)))
+	);
+
+	// Calculate XP-based level
+	const xpLevel = $derived(getLevelFromXP(info.experience || 0));
+
+	// Check if level-up is available
+	const canLevelUp = $derived(overallLevel < xpLevel);
 
 	// XP popup state
 	let showXpPopup = $state(false);
@@ -137,7 +187,7 @@
 					class="character-name-input seamless-input"
 					placeholder="Имя персонажа"
 				/>
-				<div class="level-badge">Ур. {info.level}</div>
+				<div class="level-badge">Ур. {overallLevel}</div>
 			</div>
 
 			<!-- Race and Background on one line -->
@@ -147,6 +197,7 @@
 					placeholder="Раса"
 					onchange={onRaceChange}
 					onLookup={onLookupRace}
+					uiEventListener={uiEventListener}
 				/>
 				<span class="separator">•</span>
 				<LinkedInput
@@ -154,6 +205,7 @@
 					placeholder="Предыстория"
 					onchange={onBackgroundChange}
 					onLookup={onLookupBackground}
+					uiEventListener={uiEventListener}
 				/>
 			</div>
 
@@ -163,6 +215,7 @@
 					classes={info.classes}
 					onchange={onClassesChange}
 					onLookupClass={onLookupClass}
+					uiEventListener={uiEventListener}
 				/>
 			</div>
 
@@ -188,6 +241,11 @@
 				<div class="bottom-item">
 					<span class="label">Опыт:</span>
 					<div class="xp-container">
+						{#if canLevelUp}
+							<div class="levelup-notifier" title="Доступно повышение уровня!">
+								<span class="levelup-arrow">↑</span>
+							</div>
+						{/if}
 						<span class="xp-value">{experienceDisplay}</span>
 						{#if onExperienceAdd}
 							<div class="xp-add-wrapper">
@@ -352,9 +410,44 @@
 	}
 
 	.xp-container {
+		position: relative;
 		display: flex;
 		align-items: center;
 		gap: 4px;
+	}
+
+	.levelup-notifier {
+		position: absolute;
+		top: -6px;
+		right: -6px;
+		width: 14px;
+		height: 14px;
+		background-color: var(--text-accent);
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		animation: pulse 2s ease-in-out infinite;
+		z-index: 10;
+	}
+
+	.levelup-arrow {
+		color: white;
+		font-size: 11px;
+		font-weight: 700;
+		line-height: 1;
+	}
+
+	@keyframes pulse {
+		0%, 100% {
+			transform: scale(1);
+			opacity: 1;
+		}
+		50% {
+			transform: scale(1.15);
+			opacity: 0.85;
+		}
 	}
 
 	.xp-value {

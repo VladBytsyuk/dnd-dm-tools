@@ -1,14 +1,16 @@
 <script lang="ts">
 	import type { EntityLinkResult } from '../../../../domain/services/EntityLinkService';
+	import type { IUiEventListener } from '../../../../domain/listeners/ui_event_listener';
 
 	interface Props {
 		value: string;
 		placeholder?: string;
 		onchange?: (value: string) => void;
 		onLookup?: (value: string) => Promise<EntityLinkResult>;
+		uiEventListener?: IUiEventListener;
 	}
 
-	let { value = '', placeholder = '', onchange, onLookup }: Props = $props();
+	let { value = '', placeholder = '', onchange, onLookup, uiEventListener }: Props = $props();
 	let linkResult = $state<EntityLinkResult | null>(null);
 	let lookupTimeout: NodeJS.Timeout | null = null;
 
@@ -34,6 +36,31 @@
 			linkResult = await onLookup(value.trim());
 		}
 	}
+
+	async function handleLinkClick(event: MouseEvent) {
+		event.preventDefault();
+		event.stopPropagation();
+
+		if (!linkResult?.exists || !linkResult.url || !uiEventListener) return;
+
+		const url = linkResult.url;
+
+		// Determine which listener to call based on URL pattern
+		if (url.includes('/races/')) {
+			await uiEventListener.onRaceClick(url);
+		} else if (url.includes('/classes/')) {
+			await uiEventListener.onClassClick(url);
+		} else if (url.includes('/backgrounds/')) {
+			await uiEventListener.onBackgroundClick(url);
+		}
+	}
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			handleLinkClick(event as any);
+		}
+	}
 </script>
 
 <div class="linked-input-container">
@@ -49,7 +76,12 @@
 	{#if linkResult?.exists}
 		<span
 			class="link-indicator"
+			class:clickable={!!uiEventListener}
 			title="Найдено в базе данных: {linkResult.name?.rus}"
+			onclick={handleLinkClick}
+			onkeydown={handleKeydown}
+			role="button"
+			tabindex="0"
 		>🔗</span>
 	{/if}
 </div>
@@ -104,5 +136,16 @@
 		cursor: help;
 		opacity: 0.7;
 		pointer-events: none;
+		transition: all 0.2s;
+	}
+
+	.link-indicator.clickable {
+		cursor: pointer;
+		pointer-events: auto;
+	}
+
+	.link-indicator.clickable:hover {
+		opacity: 1;
+		transform: scale(1.15);
 	}
 </style>
