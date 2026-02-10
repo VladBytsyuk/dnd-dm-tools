@@ -40,7 +40,7 @@
 
 	function hasSpellsForLevel(level: number): boolean {
 		const text = getSpellText(level);
-		return text && text.trim().length > 0;
+		return !!text && typeof text === 'string' && text.trim().length > 0;
 	}
 
 	function formatModifier(mod: number | undefined): string {

@@ -77,7 +77,7 @@
 	const proficiency = $derived(data.proficiency || 2);
 
 	const weaponsList = $derived(
-		(data.weaponsList || []).map(w => ({
+		(data.weaponsList || []).map((w: any) => ({
 			name: w.name?.value || '',
 			mod: w.mod?.value || '',
 			dmg: w.dmg?.value || '',
@@ -87,7 +87,7 @@
 	);
 
 	const attunementsList = $derived(
-		(data.attunementsList || []).map(a => ({
+		(data.attunementsList || []).map((a: any) => ({
 			value: a.value || '',
 			checked: a.checked || false
 		}))
