@@ -103,8 +103,18 @@
 		color: var(--text-normal);
 	}
 
-	.empty-state {
+	.character-text-section .empty-state {
+		/* Override Obsidian's global .empty-state styles */
+		position: static !important;
+		height: auto !important;
+		width: auto !important;
+		top: auto !important;
+		inset-inline-start: auto !important;
+		display: block !important;
+
+		/* Our styles */
 		color: var(--text-muted);
 		font-style: italic;
+		pointer-events: none;
 	}
 </style>

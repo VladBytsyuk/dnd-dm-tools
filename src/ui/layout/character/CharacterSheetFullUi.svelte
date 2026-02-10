@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onMount, onDestroy, tick } from 'svelte';
+	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 	import type { FullCharacterSheet } from "../../../domain/models/character";
 	import type { IUiEventListener } from "../../../domain/listeners/ui_event_listener";
 
@@ -19,6 +21,15 @@
 		currentItem: FullCharacterSheet;
 		uiEventListener: IUiEventListener;
 	}>();
+
+	const diceRollersManager = DiceRollersManager.create(uiEventListener);
+	onMount(async () => {
+		await tick();
+		diceRollersManager.onMount();
+	});
+	onDestroy(() => {
+		diceRollersManager.onDestroy();
+	});
 
 	const { data } = currentItem;
 

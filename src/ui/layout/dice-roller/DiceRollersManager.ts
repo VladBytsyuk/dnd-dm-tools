@@ -17,16 +17,16 @@ export class DiceRollersManager {
 
     static create(diceRollListener: IDiceRollListener): DiceRollersManager {
         return new DiceRollersManager(diceRollListener.onDiceRoll);
-    }  
+    }
 
     onMount() {
         const elements = document.querySelectorAll('dice-roller');
-    
+
         elements.forEach(element => {
             const content = element.innerHTML.trim();
             element.empty();
             const component = mount(DiceRoller, {
-                target: element, 
+                target: element,
                 props: {
                     formula: element.getAttribute('formula') || "",
                     label: element.getAttribute('label'),

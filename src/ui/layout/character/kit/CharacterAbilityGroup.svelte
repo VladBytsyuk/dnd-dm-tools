@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { calculateModifier, formatModifier } from "../../../../domain/modifier";
+	import { rollRawTrace } from "../../../../domain/dice";
+	import { Notice } from "obsidian";
 
 	interface AbilityStat {
 		score: number;
@@ -33,13 +35,18 @@
 
 	let { abilityKey, abilityLabel, abilityFullName, stat, save, skills, allSkills, proficiency }: Props = $props();
 
-	const modifier = $derived(calculateModifier(stat.score));
-	const saveBonus = $derived(modifier + (save.isProf ? proficiency : 0));
+	function rollDice(formula: string, label: string) {
+		const result = rollRawTrace(formula);
+		new Notice(`${label}: ${result.total}\n\n${result.resolvedFormula}`);
+	}
+
+	const modifier = $derived(calculateModifier(stat?.score ?? 10));
+	const saveBonus = $derived(modifier + (save?.isProf ? (proficiency ?? 2) : 0));
 
 	function getSkillBonus(skillKey: string): number {
 		const skill = allSkills[skillKey];
 		if (!skill) return modifier;
-		const profBonus = proficiency * skill.isProf;
+		const profBonus = (proficiency ?? 2) * (skill.isProf ?? 0);
 		return modifier + profBonus;
 	}
 
@@ -53,18 +60,27 @@
 	<!-- Ability + Save in one row -->
 	<div class="ability-save-row">
 		<div class="ability-circle" title={abilityFullName}>
-			<div class="ability-modifier">{formatModifier(modifier)}</div>
+			<div
+				class="ability-modifier clickable"
+				onclick={() => rollDice(`к20${formatModifier(modifier)}`, `${abilityFullName} (проверка)`)}>
+				{formatModifier(modifier)}
+			</div>
 		</div>
 		<div class="ability-info">
 			<div class="ability-name">{abilityLabel}</div>
 			<div class="ability-score">{stat.score}</div>
 		</div>
+		<div class="save-label">Спасбросок:</div>
 		<div class="save-indicator" class:proficient={save.isProf}>
 			{#if save.isProf}
 				<div class="prof-dot"></div>
 			{/if}
 		</div>
-		<div class="save-bonus">{formatModifier(saveBonus)}</div>
+		<div
+			class="save-bonus clickable"
+			onclick={() => rollDice(`к20${formatModifier(saveBonus)}`, `${abilityFullName} (спасбросок)`)}>
+			{formatModifier(saveBonus)}
+		</div>
 	</div>
 
 	<!-- Skills list -->
@@ -75,17 +91,16 @@
 				{@const profLevel = getSkillProfLevel(skill.key)}
 				<div class="skill-row">
 					<div class="skill-indicator" class:proficient={profLevel === 1} class:expertise={profLevel === 2}>
-						{#if profLevel === 1}
+						{#if profLevel === 1 || profLevel === 2}
 							<div class="prof-dot"></div>
-						{:else if profLevel === 2}
-							<div class="expertise-dots">
-								<div class="dot"></div>
-								<div class="dot"></div>
-							</div>
 						{/if}
 					</div>
 					<div class="skill-name">{skill.label}</div>
-					<div class="skill-bonus">{formatModifier(bonus)}</div>
+					<div
+						class="skill-bonus clickable"
+						onclick={() => rollDice(`к20${formatModifier(bonus)}`, skill.label)}>
+						{formatModifier(bonus)}
+					</div>
 				</div>
 			{/each}
 		</div>
@@ -95,7 +110,7 @@
 <style>
 	.ability-group {
 		margin-bottom: 8px;
-		padding: 6px;
+		padding: 0;
 		background-color: var(--background-primary);
 		border: 1px solid var(--background-modifier-border);
 		border-radius: 4px;
@@ -110,7 +125,6 @@
 		margin-bottom: 4px;
 		background-color: var(--background-secondary);
 		border-radius: 3px;
-		border-left: 2px solid var(--text-accent);
 	}
 
 	.ability-circle {
@@ -178,6 +192,14 @@
 		border-radius: 50%;
 	}
 
+	.save-label {
+		font-size: 9px;
+		font-weight: 600;
+		color: var(--text-muted);
+		text-transform: uppercase;
+		margin-right: 2px;
+	}
+
 	.save-bonus {
 		font-size: 12px;
 		font-weight: 700;
@@ -220,12 +242,14 @@
 	}
 
 	.skill-indicator.proficient {
-		border-color: var(--text-accent);
+		border-color: transparent;
+		background-color: transparent;
 	}
 
 	.skill-indicator.expertise {
 		border-color: var(--text-accent);
-		background-color: var(--text-accent);
+		border-width: 2px;
+		background-color: transparent;
 	}
 
 	.skill-indicator .prof-dot {
@@ -233,16 +257,14 @@
 		height: 4px;
 	}
 
-	.expertise-dots {
-		display: flex;
-		gap: 1px;
+	.skill-indicator.proficient .prof-dot {
+		width: 8px;
+		height: 8px;
 	}
 
-	.expertise-dots .dot {
+	.skill-indicator.expertise .prof-dot {
 		width: 3px;
 		height: 3px;
-		background-color: var(--background-primary);
-		border-radius: 50%;
 	}
 
 	.skill-name {
@@ -259,5 +281,15 @@
 		color: var(--text-accent);
 		min-width: 24px;
 		text-align: right;
+	}
+
+	/* Clickable dice rollers */
+	.clickable {
+		cursor: pointer;
+		transition: color 0.2s;
+	}
+
+	.clickable:hover {
+		color: var(--interactive-accent);
 	}
 </style>
