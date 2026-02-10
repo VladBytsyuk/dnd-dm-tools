@@ -35,24 +35,106 @@
 
 	let { abilityKey, abilityLabel, abilityFullName, stat, save, skills, allSkills, proficiency }: Props = $props();
 
+	// Editable state
+	let abilityScore = $state(stat?.score ?? 10);
+	let saveIsProf = $state(save?.isProf ?? false);
+	let saveBonusOverride = $state<number | null>(null);
+	let skillProfLevels = $state<Record<string, number>>({});
+	let skillBonusOverrides = $state<Record<string, number | null>>({});
+
+	// Initialize skill prof levels from data
+	$effect(() => {
+		skills.forEach(skill => {
+			if (skillProfLevels[skill.key] === undefined) {
+				skillProfLevels[skill.key] = getSkillProfLevel(skill.key);
+			}
+		});
+	});
+
 	function rollDice(formula: string, label: string) {
 		const result = rollRawTrace(formula);
 		new Notice(`${label}: ${result.total}\n\n${result.resolvedFormula}`);
 	}
 
-	const modifier = $derived(calculateModifier(stat?.score ?? 10));
-	const saveBonus = $derived(modifier + (save?.isProf ? (proficiency ?? 2) : 0));
+	const modifier = $derived(calculateModifier(abilityScore));
+	const calculatedSaveBonus = $derived(modifier + (saveIsProf ? (proficiency ?? 2) : 0));
+	const saveBonus = $derived(saveBonusOverride ?? calculatedSaveBonus);
+	const isSaveBonusOverridden = $derived(saveBonusOverride !== null);
 
 	function getSkillBonus(skillKey: string): number {
-		const skill = allSkills[skillKey];
-		if (!skill) return modifier;
-		const profBonus = (proficiency ?? 2) * (skill.isProf ?? 0);
+		if (skillBonusOverrides[skillKey] !== null && skillBonusOverrides[skillKey] !== undefined) {
+			return skillBonusOverrides[skillKey]!;
+		}
+		const profLevel = skillProfLevels[skillKey] ?? 0;
+		const profBonus = (proficiency ?? 2) * profLevel;
 		return modifier + profBonus;
+	}
+
+	function isSkillBonusOverridden(skillKey: string): boolean {
+		return skillBonusOverrides[skillKey] !== null && skillBonusOverrides[skillKey] !== undefined;
 	}
 
 	function getSkillProfLevel(skillKey: string): number {
 		const skill = allSkills[skillKey];
 		return skill?.isProf || 0;
+	}
+
+	function toggleSaveProf() {
+		saveIsProf = !saveIsProf;
+		// Clear override when toggling proficiency
+		saveBonusOverride = null;
+	}
+
+	function toggleSkillProf(skillKey: string) {
+		const current = skillProfLevels[skillKey] ?? 0;
+		skillProfLevels[skillKey] = (current + 1) % 3; // Cycle through 0, 1, 2
+		// Clear override when toggling proficiency
+		skillBonusOverrides[skillKey] = null;
+	}
+
+	function handleAbilityScoreChange(e: Event) {
+		const input = e.target as HTMLInputElement;
+		const value = parseInt(input.value);
+		if (!isNaN(value)) {
+			abilityScore = value;
+		}
+	}
+
+	function handleSaveBonusChange(e: Event) {
+		const input = e.target as HTMLInputElement;
+		const cleaned = input.value.replace(/\s/g, ''); // Remove spaces
+		const value = parseInt(cleaned);
+		if (!isNaN(value)) {
+			// Remove override if value matches calculated
+			if (value === calculatedSaveBonus) {
+				saveBonusOverride = null;
+			} else {
+				saveBonusOverride = value;
+			}
+		} else {
+			saveBonusOverride = null;
+		}
+	}
+
+	function handleSkillBonusChange(skillKey: string, e: Event) {
+		const input = e.target as HTMLInputElement;
+		const cleaned = input.value.replace(/\s/g, ''); // Remove spaces
+		const value = parseInt(cleaned);
+		if (!isNaN(value)) {
+			// Calculate what the bonus should be
+			const profLevel = skillProfLevels[skillKey] ?? 0;
+			const profBonus = (proficiency ?? 2) * profLevel;
+			const calculatedBonus = modifier + profBonus;
+
+			// Remove override if value matches calculated
+			if (value === calculatedBonus) {
+				skillBonusOverrides[skillKey] = null;
+			} else {
+				skillBonusOverrides[skillKey] = value;
+			}
+		} else {
+			skillBonusOverrides[skillKey] = null;
+		}
 	}
 </script>
 
@@ -63,7 +145,7 @@
 			class="ability-circle clickable"
 			title={abilityFullName}
 			onclick={() => rollDice(`к20${formatModifier(modifier)}`, `${abilityFullName} (проверка)`)}>
-			<div class="ability-modifier" onclick={(e) => e.stopPropagation()}>
+			<div class="ability-modifier">
 				{formatModifier(modifier)}
 			</div>
 		</div>
@@ -73,21 +155,30 @@
 				onclick={() => rollDice(`к20${formatModifier(modifier)}`, `${abilityFullName} (проверка)`)}>
 				{abilityLabel}
 			</div>
-			<div class="ability-score">{stat.score}</div>
+			<input
+				type="number"
+				class="ability-score editable-input"
+				value={abilityScore}
+				oninput={handleAbilityScoreChange}
+			/>
 		</div>
 		<div
 			class="save-label clickable"
 			onclick={() => rollDice(`к20${formatModifier(saveBonus)}`, `${abilityFullName} (спасбросок)`)}>
 			Спасбросок:
 		</div>
-		<div class="save-indicator" class:proficient={save.isProf}>
-			{#if save.isProf}
+		<div class="save-indicator clickable" class:proficient={saveIsProf} onclick={toggleSaveProf}>
+			{#if saveIsProf}
 				<div class="prof-dot"></div>
 			{/if}
 		</div>
-		<div class="save-bonus">
-			{formatModifier(saveBonus)}
-		</div>
+		<input
+			type="text"
+			class="save-bonus editable-input"
+			class:overridden={isSaveBonusOverridden}
+			value={formatModifier(saveBonus)}
+			oninput={handleSaveBonusChange}
+		/>
 	</div>
 
 	<!-- Skills list -->
@@ -95,9 +186,14 @@
 		<div class="skills-list">
 			{#each skills as skill}
 				{@const bonus = getSkillBonus(skill.key)}
-				{@const profLevel = getSkillProfLevel(skill.key)}
+				{@const profLevel = skillProfLevels[skill.key] ?? 0}
+				{@const isOverridden = isSkillBonusOverridden(skill.key)}
 				<div class="skill-row">
-					<div class="skill-indicator" class:proficient={profLevel === 1} class:expertise={profLevel === 2}>
+					<div
+						class="skill-indicator clickable"
+						class:proficient={profLevel === 1}
+						class:expertise={profLevel === 2}
+						onclick={() => toggleSkillProf(skill.key)}>
 						{#if profLevel === 1 || profLevel === 2}
 							<div class="prof-dot"></div>
 						{/if}
@@ -107,9 +203,13 @@
 						onclick={() => rollDice(`к20${formatModifier(bonus)}`, skill.label)}>
 						{skill.label}
 					</div>
-					<div class="skill-bonus">
-						{formatModifier(bonus)}
-					</div>
+					<input
+						type="text"
+						class="skill-bonus editable-input"
+						class:overridden={isOverridden}
+						value={formatModifier(bonus)}
+						oninput={(e) => handleSkillBonusChange(skill.key, e)}
+					/>
 				</div>
 			{/each}
 		</div>
@@ -188,6 +288,26 @@
 		font-weight: 500;
 		color: var(--text-muted);
 		line-height: 1;
+		height: 12px;
+		width: 24px;
+		max-width: 24px;
+		text-align: center;
+		background: transparent;
+		border: 1px solid transparent;
+		border-radius: 2px;
+		padding: 0 2px;
+		transition: border-color 0.2s, background-color 0.2s;
+	}
+
+	.ability-score:hover {
+		border-color: var(--background-modifier-border);
+		background-color: var(--background-modifier-hover);
+	}
+
+	.ability-score:focus {
+		outline: none;
+		border-color: var(--interactive-accent);
+		background-color: var(--background-primary);
 	}
 
 	.save-indicator {
@@ -230,8 +350,32 @@
 		font-size: 12px;
 		font-weight: 700;
 		color: var(--text-accent);
-		min-width: 26px;
+		line-height: 1;
+		height: 14px;
+		width: 28px;
+		max-width: 28px;
 		text-align: right;
+		background: transparent;
+		border: 1px solid transparent;
+		border-radius: 2px;
+		padding: 0 3px;
+		transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+	}
+
+	.save-bonus:hover {
+		border-color: var(--background-modifier-border);
+		background-color: var(--background-modifier-hover);
+	}
+
+	.save-bonus:focus {
+		outline: none;
+		border-color: var(--interactive-accent);
+		background-color: var(--background-primary);
+	}
+
+	.save-bonus.overridden {
+		color: var(--text-warning);
+		font-weight: 800;
 	}
 
 	/* Skills list */
@@ -265,6 +409,12 @@
 		align-items: center;
 		justify-content: center;
 		flex-shrink: 0;
+		transition: border-color 0.2s, transform 0.2s;
+	}
+
+	.skill-indicator.clickable:hover {
+		border-color: var(--interactive-accent);
+		transform: scale(1.15);
 	}
 
 	.skill-indicator.proficient {
@@ -305,8 +455,32 @@
 		font-size: 11px;
 		font-weight: 700;
 		color: var(--text-accent);
-		min-width: 24px;
+		line-height: 1;
+		height: 13px;
+		width: 26px;
+		max-width: 26px;
 		text-align: right;
+		background: transparent;
+		border: 1px solid transparent;
+		border-radius: 2px;
+		padding: 0 3px;
+		transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+	}
+
+	.skill-bonus:hover {
+		border-color: var(--background-modifier-border);
+		background-color: var(--background-modifier-hover);
+	}
+
+	.skill-bonus:focus {
+		outline: none;
+		border-color: var(--interactive-accent);
+		background-color: var(--background-primary);
+	}
+
+	.skill-bonus.overridden {
+		color: var(--text-warning);
+		font-weight: 800;
 	}
 
 	/* Clickable dice rollers */
