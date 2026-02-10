@@ -49,6 +49,54 @@
 		entityLinkService = new EntityLinkService(database);
 	}
 
+	// Autocomplete data state
+	let raceOptions = $state<Array<{ name: { rus: string; eng: string }; url: string }>>([]);
+	let backgroundOptions = $state<Array<{ name: { rus: string; eng: string }; url: string }>>([]);
+	let classOptions = $state<Array<{ name: { rus: string; eng: string }; url: string }>>([]);
+	let archetypeOptions = $state<Array<{ name: { rus: string; eng: string }; url: string; parentClassUrl: string }>>([]);
+
+	// Fetch autocomplete data from database
+	$effect(() => {
+		if (repository) {
+			const database = repository.getDatabase();
+
+			// Fetch races
+			database.smallRaceDao.readAllItems(null, null).then(races => {
+				raceOptions = races.map(r => ({
+					name: r.name,
+					url: r.url
+				}));
+			});
+
+			// Fetch backgrounds
+			database.smallBackgroundDao.readAllItems(null, null).then(backgrounds => {
+				backgroundOptions = backgrounds.map(b => ({
+					name: b.name,
+					url: b.url
+				}));
+			});
+
+			// Fetch classes (filter out archetypes)
+			database.smallClassDao.readAllItems(null, null).then(classes => {
+				classOptions = classes
+					.filter(c => !c.isArchetype)
+					.map(c => ({
+						name: c.name,
+						url: c.url
+					}));
+
+				// Fetch archetypes (subclasses)
+				archetypeOptions = classes
+					.filter(c => c.isArchetype)
+					.map(c => ({
+						name: c.name,
+						url: c.url,
+						parentClassUrl: c.parentClassUrl || ''
+					}));
+			});
+		}
+	});
+
 	// Migration logic: Convert old single-class format to new multiclass format
 	function migrateToMulticlass() {
 		if (!data.info?.classes || data.info.classes.value.length === 0) {
@@ -169,6 +217,10 @@
 
 	async function lookupClass(className: string) {
 		return entityLinkService ? await entityLinkService.findClass(className) : { exists: false };
+	}
+
+	async function lookupSubclass(subclassName: string) {
+		return entityLinkService ? await entityLinkService.findArchetype(subclassName) : { exists: false };
 	}
 
 	async function lookupBackground(bg: string) {
@@ -393,8 +445,13 @@
 				onExperienceAdd={handleExperienceAdd}
 				onLookupRace={lookupRace}
 				onLookupClass={lookupClass}
+				onLookupSubclass={lookupSubclass}
 				onLookupBackground={lookupBackground}
 				uiEventListener={uiEventListener}
+				{raceOptions}
+				{backgroundOptions}
+				{classOptions}
+				{archetypeOptions}
 			/>
 
 			<CharacterVitalityBlock {vitality} />

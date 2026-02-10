@@ -2,16 +2,32 @@
 	import type { ClassEntry } from '../../../../domain/models/character/ClassEntry';
 	import type { EntityLinkResult } from '../../../../domain/services/EntityLinkService';
 	import type { IUiEventListener } from '../../../../domain/listeners/ui_event_listener';
+	import AutocompleteInput from '../../uikit/AutocompleteInput.svelte';
+
+	interface ClassOption {
+		name: { rus: string; eng: string };
+		url: string;
+	}
+
+	interface ArchetypeOption {
+		name: { rus: string; eng: string };
+		url: string;
+		parentClassUrl: string;
+	}
 
 	interface Props {
 		classes: ClassEntry[];
 		onchange?: (classes: ClassEntry[]) => void;
 		onLookupClass?: (className: string) => Promise<EntityLinkResult>;
+		onLookupSubclass?: (subclassName: string) => Promise<EntityLinkResult>;
 		uiEventListener?: IUiEventListener;
+		classOptions?: ClassOption[];
+		archetypeOptions?: ArchetypeOption[];
 	}
 
-	let { classes = [], onchange, onLookupClass, uiEventListener }: Props = $props();
+	let { classes = [], onchange, onLookupClass, onLookupSubclass, uiEventListener, classOptions, archetypeOptions }: Props = $props();
 	let classLinks = $state<(EntityLinkResult | null)[]>([]);
+	let subclassLinks = $state<(EntityLinkResult | null)[]>([]);
 
 	// Initial lookup for all classes when component mounts or classes change
 	$effect(() => {
@@ -24,11 +40,30 @@
 		}
 	});
 
+	// Initial lookup for all subclasses when component mounts or classes change
+	$effect(() => {
+		if (onLookupSubclass) {
+			classes.forEach((classEntry, index) => {
+				if (classEntry.subclassName?.trim()) {
+					checkSubclassLink(index, classEntry.subclassName);
+				}
+			});
+		}
+	});
+
 	async function checkClassLink(index: number, className: string) {
 		if (onLookupClass && className.trim()) {
 			classLinks[index] = await onLookupClass(className.trim());
 		} else {
 			classLinks[index] = null;
+		}
+	}
+
+	async function checkSubclassLink(index: number, subclassName: string) {
+		if (onLookupSubclass && subclassName.trim()) {
+			subclassLinks[index] = await onLookupSubclass(subclassName.trim());
+		} else {
+			subclassLinks[index] = null;
 		}
 	}
 
@@ -52,6 +87,27 @@
 		}
 	}
 
+	async function handleSubclassLinkClick(event: MouseEvent, index: number) {
+		event.preventDefault();
+		event.stopPropagation();
+
+		const linkResult = subclassLinks[index];
+		if (!linkResult?.exists || !linkResult.url || !uiEventListener) return;
+
+		const url = linkResult.url;
+		// Archetypes use /classes/ URL pattern, same as base classes
+		if (url.includes('/classes/')) {
+			await uiEventListener.onClassClick(url);
+		}
+	}
+
+	function handleSubclassLinkKeydown(event: KeyboardEvent, index: number) {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			handleSubclassLinkClick(event as any, index);
+		}
+	}
+
 	function addClass() {
 		const updated = [...classes, { className: '', level: 1 }];
 		onchange?.(updated);
@@ -69,12 +125,36 @@
 
 		if (field === 'className') {
 			checkClassLink(index, value);
+		} else if (field === 'subclassName') {
+			checkSubclassLink(index, value);
 		}
 	}
 
 	// Calculate total level
 	const totalLevel = $derived(classes.reduce((sum, c) => sum + (c.level || 0), 0));
 	const isMaxLevel = $derived(totalLevel >= 20);
+
+	// Check if autocomplete is available
+	const hasAutocomplete = $derived(!!classOptions && classOptions.length > 0);
+	const hasArchetypeAutocomplete = $derived(!!archetypeOptions && archetypeOptions.length > 0);
+
+	// Get filtered archetype options for a specific class entry
+	function getArchetypeOptionsForClass(index: number): ArchetypeOption[] {
+		if (!archetypeOptions || !classLinks[index]?.url) return [];
+
+		const classUrl = classLinks[index].url;
+		return archetypeOptions.filter(archetype => archetype.parentClassUrl === classUrl);
+	}
+
+	async function handleAutocompleteSelect(index: number, item: ClassOption) {
+		updateClass(index, 'className', item.name.rus);
+		await checkClassLink(index, item.name.rus);
+	}
+
+	async function handleArchetypeAutocompleteSelect(index: number, item: ArchetypeOption) {
+		updateClass(index, 'subclassName', item.name.rus);
+		await checkSubclassLink(index, item.name.rus);
+	}
 </script>
 
 <div class="multiclass-input">
@@ -83,14 +163,26 @@
 			{#each classes as classEntry, index}
 				<div class="class-entry">
 					<div class="class-name-wrapper">
-						<input
-							type="text"
-							placeholder="Класс"
-							value={classEntry.className}
-							oninput={(e) => updateClass(index, 'className', e.currentTarget.value)}
-							onblur={(e) => checkClassLink(index, e.currentTarget.value)}
-							class="class-name-input"
-						/>
+						{#if hasAutocomplete && classOptions}
+							<AutocompleteInput
+								value={classEntry.className}
+								placeholder="Класс"
+								items={classOptions}
+								onchange={(newValue) => {
+									updateClass(index, 'className', newValue);
+								}}
+								onSelect={(item) => handleAutocompleteSelect(index, item)}
+							/>
+						{:else}
+							<input
+								type="text"
+								placeholder="Класс"
+								value={classEntry.className}
+								oninput={(e) => updateClass(index, 'className', e.currentTarget.value)}
+								onblur={(e) => checkClassLink(index, e.currentTarget.value)}
+								class="class-name-input"
+							/>
+						{/if}
 						{#if classLinks[index]?.exists}
 							<span
 								class="link-icon"
@@ -103,13 +195,52 @@
 							>🔗</span>
 						{/if}
 					</div>
-					<input
-						type="text"
-						placeholder="Подкласс"
-						value={classEntry.subclassName || ''}
-						oninput={(e) => updateClass(index, 'subclassName', e.currentTarget.value)}
-						class="subclass-input"
-					/>
+					<div class="subclass-wrapper">
+						{#if hasArchetypeAutocomplete && archetypeOptions}
+							{@const filteredArchetypes = getArchetypeOptionsForClass(index)}
+							{#if filteredArchetypes.length > 0}
+								<AutocompleteInput
+									value={classEntry.subclassName || ''}
+									placeholder="Подкласс"
+									items={filteredArchetypes}
+									onchange={(newValue) => {
+										updateClass(index, 'subclassName', newValue);
+									}}
+									onSelect={(item) => handleArchetypeAutocompleteSelect(index, item)}
+								/>
+							{:else}
+								<input
+									type="text"
+									placeholder="Подкласс"
+									value={classEntry.subclassName || ''}
+									oninput={(e) => updateClass(index, 'subclassName', e.currentTarget.value)}
+									onblur={(e) => checkSubclassLink(index, e.currentTarget.value)}
+									class="subclass-input"
+								/>
+							{/if}
+						{:else}
+							<input
+								type="text"
+								placeholder="Подкласс"
+								value={classEntry.subclassName || ''}
+								oninput={(e) => updateClass(index, 'subclassName', e.currentTarget.value)}
+								onblur={(e) => checkSubclassLink(index, e.currentTarget.value)}
+								class="subclass-input"
+								class:has-link={subclassLinks[index]?.exists}
+							/>
+						{/if}
+						{#if subclassLinks[index]?.exists}
+							<span
+								class="link-icon"
+								class:clickable={!!uiEventListener}
+								title="Найдено в базе: {subclassLinks[index].name?.rus}"
+								onclick={(e) => handleSubclassLinkClick(e, index)}
+								onkeydown={(e) => handleSubclassLinkKeydown(e, index)}
+								role="button"
+								tabindex="0"
+							>🔗</span>
+						{/if}
+					</div>
 					<input
 						type="number"
 						min="1"
@@ -179,6 +310,16 @@
 		align-items: center;
 	}
 
+	.class-name-wrapper :global(.autocomplete-container) {
+		flex: 1;
+	}
+
+	.class-name-wrapper :global(.autocomplete-input) {
+		padding-right: 18px; /* Space for link icon */
+		font-weight: 600;
+		font-size: 11px;
+	}
+
 	.class-name-input,
 	.subclass-input,
 	.level-input {
@@ -220,10 +361,53 @@
 		box-shadow: 0 0 0 1px var(--background-modifier-border-focus);
 	}
 
-	.subclass-input {
+	.subclass-wrapper {
+		position: relative;
 		flex: 2;
+		display: flex;
+		align-items: center;
+	}
+
+	.subclass-wrapper :global(.autocomplete-container) {
+		flex: 1;
+	}
+
+	.subclass-wrapper :global(.autocomplete-input) {
+		padding-right: 18px; /* Space for link icon */
 		font-style: italic;
 		color: var(--text-muted);
+		font-size: 11px;
+	}
+
+	.subclass-input {
+		flex: 1;
+		font-style: italic;
+		color: var(--text-muted);
+	}
+
+	.subclass-input.has-link {
+		padding-right: 18px; /* Make room for link icon */
+	}
+
+	/* Link icon styles for subclass wrapper */
+	.subclass-wrapper .link-icon {
+		position: absolute;
+		right: 3px;
+		font-size: 10px;
+		pointer-events: none;
+		opacity: 0.7;
+		transition: all 0.2s;
+		cursor: help;
+	}
+
+	.subclass-wrapper .link-icon.clickable {
+		cursor: pointer;
+		pointer-events: auto;
+	}
+
+	.subclass-wrapper .link-icon.clickable:hover {
+		opacity: 1;
+		transform: scale(1.15);
 	}
 
 	.level-input {

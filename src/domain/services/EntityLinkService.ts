@@ -79,6 +79,37 @@ export class EntityLinkService {
 	}
 
 	/**
+	 * Searches for an archetype (subclass) by name in the class database.
+	 * Only searches archetypes, not base classes.
+	 * @param archetypeName The archetype name to search for (case-insensitive)
+	 * @returns EntityLinkResult with existence status and details
+	 */
+	async findArchetype(archetypeName: string): Promise<EntityLinkResult> {
+		if (!archetypeName || !archetypeName.trim()) {
+			return { exists: false };
+		}
+
+		try {
+			const allClasses = await this.database.smallClassDao.readAllItems('', null);
+			const normalizedSearch = archetypeName.toLowerCase().trim();
+
+			// Filter to only archetypes - opposite of findClass
+			const match = allClasses.find(c =>
+				c.isArchetype &&
+				(c.name.rus.toLowerCase().trim() === normalizedSearch ||
+				c.name.eng.toLowerCase().trim() === normalizedSearch)
+			);
+
+			return match
+				? { exists: true, url: match.url, name: match.name }
+				: { exists: false };
+		} catch (error) {
+			console.error('Error finding archetype:', error);
+			return { exists: false };
+		}
+	}
+
+	/**
 	 * Searches for a background by name in the background database.
 	 * @param bgName The background name to search for (case-insensitive)
 	 * @returns EntityLinkResult with existence status and details

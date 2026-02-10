@@ -7,6 +7,17 @@
 	import LinkedInput from './LinkedInput.svelte';
 	import MulticlassInput from './MulticlassInput.svelte';
 
+	interface AutocompleteItem {
+		name: { rus: string; eng: string };
+		url: string;
+	}
+
+	interface ArchetypeOption {
+		name: { rus: string; eng: string };
+		url: string;
+		parentClassUrl: string;
+	}
+
 	interface Props {
 		name: { value: string };
 		info: {
@@ -35,6 +46,7 @@
 		// Database lookup services
 		onLookupRace?: (race: string) => Promise<EntityLinkResult>;
 		onLookupClass?: (className: string) => Promise<EntityLinkResult>;
+		onLookupSubclass?: (subclassName: string) => Promise<EntityLinkResult>;
 		onLookupBackground?: (bg: string) => Promise<EntityLinkResult>;
 
 		// UI event listener
@@ -42,6 +54,12 @@
 
 		// App instance for modals
 		app?: App;
+
+		// Autocomplete options
+		raceOptions?: AutocompleteItem[];
+		backgroundOptions?: AutocompleteItem[];
+		classOptions?: AutocompleteItem[];
+		archetypeOptions?: ArchetypeOption[];
 	}
 
 	let {
@@ -57,9 +75,14 @@
 		onExperienceAdd,
 		onLookupRace,
 		onLookupClass,
+		onLookupSubclass,
 		onLookupBackground,
 		uiEventListener,
-		app
+		app,
+		raceOptions,
+		backgroundOptions,
+		classOptions,
+		archetypeOptions
 	}: Props = $props();
 
 	const avatarUrl = $derived(avatar?.webp || avatar?.jpeg || '');
@@ -198,6 +221,8 @@
 					onchange={onRaceChange}
 					onLookup={onLookupRace}
 					uiEventListener={uiEventListener}
+					autocompleteItems={raceOptions}
+					onAutocompleteSelect={(item) => onRaceChange?.(item.name.rus)}
 				/>
 				<span class="separator">•</span>
 				<LinkedInput
@@ -206,6 +231,8 @@
 					onchange={onBackgroundChange}
 					onLookup={onLookupBackground}
 					uiEventListener={uiEventListener}
+					autocompleteItems={backgroundOptions}
+					onAutocompleteSelect={(item) => onBackgroundChange?.(item.name.rus)}
 				/>
 			</div>
 
@@ -215,7 +242,10 @@
 					classes={info.classes}
 					onchange={onClassesChange}
 					onLookupClass={onLookupClass}
+					onLookupSubclass={onLookupSubclass}
 					uiEventListener={uiEventListener}
+					classOptions={classOptions}
+					archetypeOptions={archetypeOptions}
 				/>
 			</div>
 

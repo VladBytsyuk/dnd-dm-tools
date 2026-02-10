@@ -1,6 +1,12 @@
 <script lang="ts">
 	import type { EntityLinkResult } from '../../../../domain/services/EntityLinkService';
 	import type { IUiEventListener } from '../../../../domain/listeners/ui_event_listener';
+	import AutocompleteInput from '../../uikit/AutocompleteInput.svelte';
+
+	interface Item {
+		name: { rus: string; eng: string };
+		url: string;
+	}
 
 	interface Props {
 		value: string;
@@ -8,11 +14,25 @@
 		onchange?: (value: string) => void;
 		onLookup?: (value: string) => Promise<EntityLinkResult>;
 		uiEventListener?: IUiEventListener;
+		// Autocomplete props
+		autocompleteItems?: Item[];
+		onAutocompleteSelect?: (item: Item) => void;
 	}
 
-	let { value = '', placeholder = '', onchange, onLookup, uiEventListener }: Props = $props();
+	let {
+		value = '',
+		placeholder = '',
+		onchange,
+		onLookup,
+		uiEventListener,
+		autocompleteItems,
+		onAutocompleteSelect
+	}: Props = $props();
 	let linkResult = $state<EntityLinkResult | null>(null);
 	let lookupTimeout: NodeJS.Timeout | null = null;
+
+	// Determine if we should show autocomplete
+	const hasAutocomplete = $derived(!!autocompleteItems && autocompleteItems.length > 0);
 
 	// Initial lookup when component mounts with existing value
 	$effect(() => {
@@ -70,18 +90,49 @@
 			handleLinkClick(event as any);
 		}
 	}
+
+	async function handleAutocompleteSelect(item: Item) {
+		onchange?.(item.name.rus);
+		onAutocompleteSelect?.(item);
+
+		// Trigger lookup after selection
+		if (onLookup) {
+			linkResult = await onLookup(item.name.rus);
+		}
+	}
 </script>
 
 <div class="linked-input-container">
-	<input
-		type="text"
-		{value}
-		{placeholder}
-		oninput={handleInput}
-		onblur={handleBlur}
-		class="linked-input"
-		class:has-link={linkResult?.exists}
-	/>
+	{#if hasAutocomplete && autocompleteItems}
+		<AutocompleteInput
+			bind:value={value}
+			{placeholder}
+			items={autocompleteItems}
+			onchange={(newValue) => {
+				onchange?.(newValue);
+				// Debounced lookup for manual typing
+				if (lookupTimeout) clearTimeout(lookupTimeout);
+				if (onLookup && newValue.trim()) {
+					lookupTimeout = setTimeout(async () => {
+						linkResult = await onLookup(newValue.trim());
+					}, 500);
+				} else {
+					linkResult = null;
+				}
+			}}
+			onSelect={handleAutocompleteSelect}
+		/>
+	{:else}
+		<input
+			type="text"
+			{value}
+			{placeholder}
+			oninput={handleInput}
+			onblur={handleBlur}
+			class="linked-input"
+			class:has-link={linkResult?.exists}
+		/>
+	{/if}
 	{#if linkResult?.exists}
 		<span
 			class="link-indicator"
