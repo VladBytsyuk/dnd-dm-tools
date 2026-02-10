@@ -28,7 +28,7 @@
 
 	const skillsList = [
 		{ key: 'acrobatics', label: 'Акробатика', stat: 'dex' },
-		{ key: 'animal-handling', label: 'Обращение с животными', stat: 'wis' },
+		{ key: 'animal handling', label: 'Обращение с животными', stat: 'wis' },
 		{ key: 'arcana', label: 'Магия', stat: 'int' },
 		{ key: 'athletics', label: 'Атлетика', stat: 'str' },
 		{ key: 'deception', label: 'Обман', stat: 'cha' },
@@ -42,7 +42,7 @@
 		{ key: 'performance', label: 'Выступление', stat: 'cha' },
 		{ key: 'persuasion', label: 'Убеждение', stat: 'cha' },
 		{ key: 'religion', label: 'Религия', stat: 'int' },
-		{ key: 'sleight-of-hand', label: 'Ловкость рук', stat: 'dex' },
+		{ key: 'sleight of hand', label: 'Ловкость рук', stat: 'dex' },
 		{ key: 'stealth', label: 'Скрытность', stat: 'dex' },
 		{ key: 'survival', label: 'Выживание', stat: 'wis' }
 	];

@@ -136,7 +136,7 @@
 			fullName: 'Ловкость',
 			skills: [
 				{ key: 'acrobatics', label: 'Акробатика' },
-				{ key: 'sleight-of-hand', label: 'Ловкость рук' },
+				{ key: 'sleight of hand', label: 'Ловкость рук' },
 				{ key: 'stealth', label: 'Скрытность' }
 			]
 		},
@@ -166,7 +166,7 @@
 				{ key: 'perception', label: 'Восприятие' },
 				{ key: 'survival', label: 'Выживание' },
 				{ key: 'medicine', label: 'Медицина' },
-				{ key: 'animal-handling', label: 'Обращение с животными' },
+				{ key: 'animal handling', label: 'Обращение с животными' },
 				{ key: 'insight', label: 'Проницательность' }
 			]
 		},
