@@ -10,6 +10,12 @@ export interface NameField {
 	value: string;
 }
 
+// Avatar field (image URLs)
+export interface Avatar {
+	jpeg?: string;
+	webp?: string;
+}
+
 // Main character data structure (parsed from data string)
 export interface CharacterData {
 	isDefault: boolean;
@@ -35,5 +41,6 @@ export interface CharacterData {
 	bonusesSkills: Record<string, unknown>;
 	bonusesStats: Record<string, unknown>;
 	conditions: unknown[];
+	avatar?: Avatar; // Character avatar images
 	createdAt: string; // ISO date string
 }

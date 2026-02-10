@@ -195,11 +195,18 @@
 
 <div class="character-header">
 	<div class="header-content">
-		{#if avatarUrl}
-			<div class="avatar-container">
+		<div class="avatar-container">
+			{#if avatarUrl}
 				<img src={avatarUrl} alt={name.value} class="avatar-image" />
-			</div>
-		{/if}
+			{:else}
+				<div class="avatar-placeholder">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+						<circle cx="12" cy="7" r="4"></circle>
+					</svg>
+				</div>
+			{/if}
+		</div>
 		<div class="header-info">
 			<!-- Name and Level on one line -->
 			<div class="name-level-row">
@@ -318,31 +325,71 @@
 
 <style>
 	.character-header {
-		padding: 8px;
+		padding: 0;
 		background: linear-gradient(135deg, var(--background-secondary) 0%, var(--background-primary) 100%);
 		border: 2px solid var(--background-modifier-border);
 		border-radius: 6px;
 		margin-bottom: 12px;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		overflow: visible;
 	}
 
 	.header-content {
 		display: flex;
+		gap: 0;
 		align-items: flex-start;
-		gap: 10px;
 	}
 
 	.avatar-container {
 		flex-shrink: 0;
+		aspect-ratio: 1 / 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		align-self: stretch;
+		width: auto;
+		height: auto;
+		max-width: 150px;
+		border-radius: 6px 0 0 6px;
+	}
+
+	.header-info {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+		padding: 8px;
+		overflow: visible;
 	}
 
 	.avatar-image {
-		width: 70px;
-		height: 70px;
-		border-radius: 50%;
+		width: 100%;
+		height: 100%;
+		border-radius: 6px 0 0 6px;
 		object-fit: cover;
-		border: 2px solid var(--text-accent);
-		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+		border: none;
+		box-shadow: none;
+	}
+
+	.avatar-placeholder {
+		width: 100%;
+		height: 100%;
+		border-radius: 6px 0 0 6px;
+		background: linear-gradient(135deg, var(--background-secondary-alt) 0%, var(--background-secondary) 100%);
+		border-right: 2px dashed var(--background-modifier-border);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--text-muted);
+		opacity: 0.6;
+	}
+
+	.avatar-placeholder svg {
+		width: 50%;
+		height: 50%;
+		max-width: 60px;
+		max-height: 60px;
 	}
 
 	.header-info {
@@ -389,7 +436,12 @@
 		margin-bottom: 2px;
 	}
 
-	.race-background-row :global(.linked-input-container) {
+	.race-background-row :global(.linked-input-container):first-child {
+		width: 150px;
+		flex-shrink: 0;
+	}
+
+	.race-background-row :global(.linked-input-container):last-child {
 		flex: 1;
 	}
 
@@ -407,12 +459,14 @@
 	/* Bottom Row */
 	.bottom-row {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
 		justify-content: space-between;
 		gap: 12px;
 		font-size: 11px;
 		color: var(--text-muted);
 		margin-top: 2px;
+		overflow: visible;
 	}
 
 	.bottom-item {

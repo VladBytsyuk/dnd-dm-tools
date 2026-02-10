@@ -305,7 +305,8 @@
 
 	.class-name-wrapper {
 		position: relative;
-		flex: 2;
+		width: 150px;
+		flex-shrink: 0;
 		display: flex;
 		align-items: center;
 	}

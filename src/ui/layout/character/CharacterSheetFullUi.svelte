@@ -435,7 +435,7 @@
 			<CharacterHeader
 				name={data.name}
 				info={headerInfo}
-				avatar={currentItem.avatar}
+				avatar={data.avatar}
 				onNameChange={handleNameChange}
 				onClassesChange={handleClassesChange}
 				onRaceChange={handleRaceChange}
