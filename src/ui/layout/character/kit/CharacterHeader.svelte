@@ -321,6 +321,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		gap: 12px;
 		font-size: 11px;
 		color: var(--text-muted);
 		margin-top: 2px;
@@ -371,8 +372,8 @@
 		padding: 0;
 		border: 1px solid var(--background-modifier-border);
 		border-radius: 3px;
-		background-color: var(--interactive-accent);
-		color: var(--text-on-accent);
+		background-color: var(--background-primary);
+		color: var(--text-muted);
 		font-size: 14px;
 		font-weight: 700;
 		line-height: 1;
@@ -382,7 +383,9 @@
 	}
 
 	.xp-add-btn:hover {
-		background-color: var(--interactive-accent-hover);
+		background-color: var(--background-primary-alt);
+		color: var(--text-normal);
+		border-color: var(--text-accent);
 		transform: scale(1.1);
 	}
 
@@ -491,6 +494,7 @@
 		background-color: transparent;
 		color: var(--text-normal);
 		line-height: 1.3;
+		min-width: 150px;
 	}
 
 	.bottom-item :global(.alignment-picker:hover) {
