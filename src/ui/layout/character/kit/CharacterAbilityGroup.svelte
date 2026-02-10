@@ -63,14 +63,16 @@
 			class="ability-circle clickable"
 			title={abilityFullName}
 			onclick={() => rollDice(`к20${formatModifier(modifier)}`, `${abilityFullName} (проверка)`)}>
-			<div class="ability-modifier">
+			<div class="ability-modifier" onclick={(e) => e.stopPropagation()}>
 				{formatModifier(modifier)}
 			</div>
 		</div>
-		<div
-			class="ability-info clickable"
-			onclick={() => rollDice(`к20${formatModifier(modifier)}`, `${abilityFullName} (проверка)`)}>
-			<div class="ability-name">{abilityLabel}</div>
+		<div class="ability-info">
+			<div
+				class="ability-name clickable"
+				onclick={() => rollDice(`к20${formatModifier(modifier)}`, `${abilityFullName} (проверка)`)}>
+				{abilityLabel}
+			</div>
 			<div class="ability-score">{stat.score}</div>
 		</div>
 		<div
@@ -78,17 +80,12 @@
 			onclick={() => rollDice(`к20${formatModifier(saveBonus)}`, `${abilityFullName} (спасбросок)`)}>
 			Спасбросок:
 		</div>
-		<div
-			class="save-indicator clickable"
-			class:proficient={save.isProf}
-			onclick={() => rollDice(`к20${formatModifier(saveBonus)}`, `${abilityFullName} (спасбросок)`)}>
+		<div class="save-indicator" class:proficient={save.isProf}>
 			{#if save.isProf}
 				<div class="prof-dot"></div>
 			{/if}
 		</div>
-		<div
-			class="save-bonus clickable"
-			onclick={() => rollDice(`к20${formatModifier(saveBonus)}`, `${abilityFullName} (спасбросок)`)}>
+		<div class="save-bonus">
 			{formatModifier(saveBonus)}
 		</div>
 	</div>
@@ -110,9 +107,7 @@
 						onclick={() => rollDice(`к20${formatModifier(bonus)}`, skill.label)}>
 						{skill.label}
 					</div>
-					<div
-						class="skill-bonus clickable"
-						onclick={() => rollDice(`к20${formatModifier(bonus)}`, skill.label)}>
+					<div class="skill-bonus">
 						{formatModifier(bonus)}
 					</div>
 				</div>
