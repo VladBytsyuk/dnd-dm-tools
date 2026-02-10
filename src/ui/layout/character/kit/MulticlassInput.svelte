@@ -13,6 +13,17 @@
 	let { classes = [], onchange, onLookupClass, uiEventListener }: Props = $props();
 	let classLinks = $state<(EntityLinkResult | null)[]>([]);
 
+	// Initial lookup for all classes when component mounts or classes change
+	$effect(() => {
+		if (onLookupClass) {
+			classes.forEach((classEntry, index) => {
+				if (classEntry.className.trim()) {
+					checkClassLink(index, classEntry.className);
+				}
+			});
+		}
+	});
+
 	async function checkClassLink(index: number, className: string) {
 		if (onLookupClass && className.trim()) {
 			classLinks[index] = await onLookupClass(className.trim());

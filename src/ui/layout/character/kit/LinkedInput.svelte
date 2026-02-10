@@ -14,6 +14,15 @@
 	let linkResult = $state<EntityLinkResult | null>(null);
 	let lookupTimeout: NodeJS.Timeout | null = null;
 
+	// Initial lookup when component mounts with existing value
+	$effect(() => {
+		if (onLookup && value.trim()) {
+			onLookup(value.trim()).then(result => {
+				linkResult = result;
+			});
+		}
+	});
+
 	function handleInput(event: Event) {
 		const newValue = (event.target as HTMLInputElement).value;
 		onchange?.(newValue);
