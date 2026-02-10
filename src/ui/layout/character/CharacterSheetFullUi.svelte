@@ -88,8 +88,8 @@
 
 	const attunementsList = $derived(
 		(data.attunementsList || []).map(a => ({
-			value: a.value?.value || '',
-			checked: a.checked?.value || false
+			value: a.value || '',
+			checked: a.checked || false
 		}))
 	);
 
