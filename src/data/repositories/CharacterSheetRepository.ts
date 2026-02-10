@@ -16,6 +16,14 @@ export class CharacterSheetRepository
 		super(database, database.characterSheetDao, database.characterSheetDao);
 	}
 
+	/**
+	 * Gets the database instance for accessing DAOs.
+	 * Needed for EntityLinkService to query races, classes, and backgrounds.
+	 */
+	getDatabase(): DB {
+		return this.database;
+	}
+
 	async collectFiltersFromAllItems(
 		allSmallItems: SmallCharacterSheet[]
 	): Promise<CharacterSheetFilters | null> {

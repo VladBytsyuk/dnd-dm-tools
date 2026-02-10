@@ -1,9 +1,16 @@
 <script lang="ts">
+	import type { ClassEntry } from '../../../../domain/models/character/ClassEntry';
+	import type { EntityLinkResult } from '../../../../domain/services/EntityLinkService';
+	import type { App } from 'obsidian';
+	import AlignmentPicker from './AlignmentPicker.svelte';
+	import LinkedInput from './LinkedInput.svelte';
+	import MulticlassInput from './MulticlassInput.svelte';
+	import { XpAdderModal } from '../../../components/modals/XpAdderModal';
+
 	interface Props {
 		name: { value: string };
 		info: {
-			charClass: string;
-			charSubclass?: string;
+			classes: ClassEntry[];
 			level: number;
 			race: string;
 			background?: string;
@@ -15,14 +22,60 @@
 			jpeg?: string;
 			webp?: string;
 		};
+
+		// Event handlers
+		onNameChange?: (name: string) => void;
+		onClassesChange?: (classes: ClassEntry[]) => void;
+		onRaceChange?: (race: string) => void;
+		onBackgroundChange?: (background: string) => void;
+		onPlayerNameChange?: (playerName: string) => void;
+		onAlignmentChange?: (alignment: string) => void;
+		onExperienceAdd?: (additionalXp: number) => void;
+
+		// Database lookup services
+		onLookupRace?: (race: string) => Promise<EntityLinkResult>;
+		onLookupClass?: (className: string) => Promise<EntityLinkResult>;
+		onLookupBackground?: (bg: string) => Promise<EntityLinkResult>;
+
+		// App instance for modals
+		app?: App;
 	}
 
-	let { name, info, avatar }: Props = $props();
+	let {
+		name,
+		info,
+		avatar,
+		onNameChange,
+		onClassesChange,
+		onRaceChange,
+		onBackgroundChange,
+		onPlayerNameChange,
+		onAlignmentChange,
+		onExperienceAdd,
+		onLookupRace,
+		onLookupClass,
+		onLookupBackground,
+		app
+	}: Props = $props();
 
 	const avatarUrl = $derived(avatar?.webp || avatar?.jpeg || '');
-	const classDisplay = $derived(
-		info.charSubclass ? `${info.charClass} (${info.charSubclass})` : info.charClass
-	);
+
+	function handleNameInput(event: Event) {
+		const newName = (event.target as HTMLInputElement).value;
+		onNameChange?.(newName);
+	}
+
+	function openXpAdder() {
+		if (app && onExperienceAdd) {
+			const currentXp = info.experience || 0;
+			new XpAdderModal(app, currentXp, (additionalXp) => {
+				onExperienceAdd(additionalXp);
+			}).open();
+		}
+	}
+
+	// Format experience for display
+	const experienceDisplay = $derived((info.experience || 0).toLocaleString('ru-RU'));
 </script>
 
 <div class="character-header">
@@ -33,37 +86,77 @@
 			</div>
 		{/if}
 		<div class="header-info">
-			<h1 class="character-name">{name.value}</h1>
-			<div class="character-subtitle">
-				<span class="class-info">{classDisplay} {info.level}</span>
-				<span class="separator">•</span>
-				<span class="race-info">{info.race}</span>
+			<!-- Name and Level on one line -->
+			<div class="name-level-row">
+				<input
+					type="text"
+					value={name.value}
+					oninput={handleNameInput}
+					class="character-name-input seamless-input"
+					placeholder="Имя персонажа"
+				/>
+				<div class="level-badge">Ур. {info.level}</div>
 			</div>
-			<div class="character-details">
-				{#if info.background}
-					<span class="detail-item">
-						<span class="detail-label">Предыстория:</span>
-						<span class="detail-value">{info.background}</span>
-					</span>
-				{/if}
-				{#if info.playerName}
-					<span class="detail-item">
-						<span class="detail-label">Игрок:</span>
-						<span class="detail-value">{info.playerName}</span>
-					</span>
-				{/if}
-				{#if info.alignment}
-					<span class="detail-item">
-						<span class="detail-label">Мировоззрение:</span>
-						<span class="detail-value">{info.alignment}</span>
-					</span>
-				{/if}
-				{#if info.experience !== undefined}
-					<span class="detail-item">
-						<span class="detail-label">Опыт:</span>
-						<span class="detail-value">{info.experience.toLocaleString()}</span>
-					</span>
-				{/if}
+
+			<!-- Race and Background on one line -->
+			<div class="race-background-row">
+				<LinkedInput
+					value={info.race}
+					placeholder="Раса"
+					onchange={onRaceChange}
+					onLookup={onLookupRace}
+				/>
+				<span class="separator">•</span>
+				<LinkedInput
+					value={info.background || ''}
+					placeholder="Предыстория"
+					onchange={onBackgroundChange}
+					onLookup={onLookupBackground}
+				/>
+			</div>
+
+			<!-- Classes (multiclass support) -->
+			<div class="classes-section">
+				<MulticlassInput
+					classes={info.classes}
+					onchange={onClassesChange}
+					onLookupClass={onLookupClass}
+				/>
+			</div>
+
+			<!-- Bottom row: Alignment, Player, XP -->
+			<div class="bottom-row">
+				<div class="bottom-item">
+					<span class="label">Мировоззрение:</span>
+					<AlignmentPicker
+						value={info.alignment || 'true-neutral'}
+						onchange={onAlignmentChange}
+					/>
+				</div>
+				<div class="bottom-item">
+					<span class="label">Игрок:</span>
+					<input
+						type="text"
+						value={info.playerName || ''}
+						oninput={(e) => onPlayerNameChange?.(e.currentTarget.value)}
+						class="text-input seamless-input"
+						placeholder="—"
+					/>
+				</div>
+				<div class="bottom-item">
+					<span class="label">Опыт:</span>
+					<div class="xp-container">
+						<span class="xp-value">{experienceDisplay}</span>
+						{#if app && onExperienceAdd}
+							<button
+								class="xp-add-btn"
+								onclick={openXpAdder}
+								title="Добавить опыт"
+								type="button"
+							>+</button>
+						{/if}
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -71,18 +164,18 @@
 
 <style>
 	.character-header {
-		padding: 20px;
+		padding: 8px;
 		background: linear-gradient(135deg, var(--background-secondary) 0%, var(--background-primary) 100%);
 		border: 2px solid var(--background-modifier-border);
-		border-radius: 8px;
-		margin-bottom: 16px;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+		border-radius: 6px;
+		margin-bottom: 12px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 	}
 
 	.header-content {
 		display: flex;
-		align-items: center;
-		gap: 20px;
+		align-items: flex-start;
+		gap: 10px;
 	}
 
 	.avatar-container {
@@ -90,82 +183,222 @@
 	}
 
 	.avatar-image {
-		width: 100px;
-		height: 100px;
+		width: 70px;
+		height: 70px;
 		border-radius: 50%;
 		object-fit: cover;
-		border: 3px solid var(--text-accent);
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+		border: 2px solid var(--text-accent);
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 	}
 
 	.header-info {
 		flex: 1;
 		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
 	}
 
-	.character-name {
-		margin: 0 0 8px 0;
-		font-size: 28px;
-		font-weight: 700;
-		color: var(--text-normal);
-		line-height: 1.2;
-	}
-
-	.character-subtitle {
+	/* Name and Level Row */
+	.name-level-row {
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		margin-bottom: 12px;
-		font-size: 16px;
-		color: var(--text-muted);
+		margin-bottom: 0;
 	}
 
-	.class-info,
-	.race-info {
-		font-weight: 600;
+	.character-name-input {
+		flex: 1;
+		font-size: 18px;
+		font-weight: 700;
+		color: var(--text-normal);
+		min-width: 0;
+	}
+
+	.level-badge {
+		padding: 1px 8px;
+		font-size: 13px;
+		font-weight: 700;
+		color: var(--text-accent);
+		background-color: var(--background-primary-alt);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 10px;
+		white-space: nowrap;
+	}
+
+	/* Race and Background Row */
+	.race-background-row {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 12px;
+		margin-bottom: 2px;
+	}
+
+	.race-background-row :global(.linked-input-container) {
+		flex: 1;
 	}
 
 	.separator {
+		color: var(--text-muted);
 		opacity: 0.5;
+		user-select: none;
 	}
 
-	.character-details {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 12px;
-		font-size: 13px;
+	/* Classes Section */
+	.classes-section {
+		margin: 2px 0;
 	}
 
-	.detail-item {
+	/* Bottom Row */
+	.bottom-row {
 		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		font-size: 11px;
+		color: var(--text-muted);
+		margin-top: 2px;
+	}
+
+	.bottom-item {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		flex: 1;
+	}
+
+	.bottom-item:first-child {
+		justify-content: flex-start;
+	}
+
+	.bottom-item:nth-child(2) {
+		justify-content: center;
+	}
+
+	.bottom-item:last-child {
+		justify-content: flex-end;
+	}
+
+	.label {
+		font-weight: 600;
+		white-space: nowrap;
+	}
+
+	.xp-container {
+		display: flex;
+		align-items: center;
 		gap: 4px;
 	}
 
-	.detail-label {
+	.xp-value {
+		color: var(--text-normal);
 		font-weight: 600;
-		color: var(--text-muted);
 	}
 
-	.detail-value {
+	.xp-add-btn {
+		width: 20px;
+		height: 20px;
+		padding: 0;
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 3px;
+		background-color: var(--interactive-accent);
+		color: var(--text-on-accent);
+		font-size: 14px;
+		font-weight: 700;
+		line-height: 1;
+		cursor: pointer;
+		transition: all 0.2s;
+		flex-shrink: 0;
+	}
+
+	.xp-add-btn:hover {
+		background-color: var(--interactive-accent-hover);
+		transform: scale(1.1);
+	}
+
+	/* Seamless Input Styling - looks like regular text when not focused */
+	.seamless-input {
+		padding: 0px 2px;
+		border: 1px solid transparent;
+		border-radius: 2px;
+		background-color: transparent;
 		color: var(--text-normal);
+		transition: all 0.2s;
+		line-height: 1.3;
+	}
+
+	.seamless-input::placeholder {
+		color: var(--text-faint);
+		opacity: 0.5;
+	}
+
+	.seamless-input:hover {
+		background-color: var(--background-primary-alt);
+		border-color: var(--background-modifier-border);
+	}
+
+	.seamless-input:focus {
+		outline: none;
+		background-color: var(--background-primary);
+		border-color: var(--text-accent);
+		box-shadow: 0 0 0 1px var(--background-modifier-border-focus);
+	}
+
+	.text-input {
+		font-size: 11px;
+		min-width: 60px;
+	}
+
+	/* Alignment Picker Styling */
+	.bottom-item :global(.alignment-picker) {
+		font-size: 10px;
+		padding: 0px 2px;
+		border: 1px solid transparent;
+		background-color: transparent;
+		color: var(--text-normal);
+		line-height: 1.3;
+	}
+
+	.bottom-item :global(.alignment-picker:hover) {
+		background-color: var(--background-primary-alt);
+		border-color: var(--background-modifier-border);
+	}
+
+	.bottom-item :global(.alignment-picker:focus) {
+		background-color: var(--background-primary);
+		border-color: var(--text-accent);
 	}
 
 	@media (max-width: 768px) {
 		.header-content {
 			flex-direction: column;
-			text-align: center;
+			align-items: center;
 		}
 
-		.character-name {
-			font-size: 24px;
+		.name-level-row {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 4px;
 		}
 
-		.character-subtitle {
-			justify-content: center;
+		.race-background-row {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 4px;
 		}
 
-		.character-details {
-			justify-content: center;
+		.separator {
+			display: none;
+		}
+
+		.bottom-row {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 8px;
+		}
+
+		.character-name-input {
+			font-size: 18px;
 		}
 	}
 </style>

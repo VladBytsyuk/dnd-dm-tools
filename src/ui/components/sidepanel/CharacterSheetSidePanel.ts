@@ -27,6 +27,7 @@ export class CharacterSheetSidePanel extends BaseSidePanel<
 				initialFullItem: this.fullItem,
 				repository: this.repository,
 				uiEventListener: this.uiEventListener,
+				plugin: this.plugin,
 			},
 		});
 	}
