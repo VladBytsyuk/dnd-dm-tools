@@ -144,7 +144,10 @@
 		<div
 			class="ability-circle clickable"
 			title={abilityFullName}
-			onclick={() => rollDice(`к20${formatModifier(modifier)}`, `${abilityFullName} (проверка)`)}>
+			role="button"
+			tabindex="0"
+			onclick={() => rollDice(`к20${formatModifier(modifier)}`, `${abilityFullName} (проверка)`)}
+			onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); rollDice(`к20${formatModifier(modifier)}`, `${abilityFullName} (проверка)`); } }}>
 			<div class="ability-modifier">
 				{formatModifier(modifier)}
 			</div>
@@ -152,7 +155,10 @@
 		<div class="ability-info">
 			<div
 				class="ability-name clickable"
-				onclick={() => rollDice(`к20${formatModifier(modifier)}`, `${abilityFullName} (проверка)`)}>
+				role="button"
+				tabindex="0"
+				onclick={() => rollDice(`к20${formatModifier(modifier)}`, `${abilityFullName} (проверка)`)}
+				onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); rollDice(`к20${formatModifier(modifier)}`, `${abilityFullName} (проверка)`); } }}>
 				{abilityLabel}
 			</div>
 			<input
@@ -164,10 +170,19 @@
 		</div>
 		<div
 			class="save-label clickable"
-			onclick={() => rollDice(`к20${formatModifier(saveBonus)}`, `${abilityFullName} (спасбросок)`)}>
+			role="button"
+			tabindex="0"
+			onclick={() => rollDice(`к20${formatModifier(saveBonus)}`, `${abilityFullName} (спасбросок)`)}
+			onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); rollDice(`к20${formatModifier(saveBonus)}`, `${abilityFullName} (спасбросок)`); } }}>
 			Спасбросок:
 		</div>
-		<div class="save-indicator clickable" class:proficient={saveIsProf} onclick={toggleSaveProf}>
+		<div
+			class="save-indicator clickable"
+			class:proficient={saveIsProf}
+			role="button"
+			tabindex="0"
+			onclick={toggleSaveProf}
+			onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSaveProf(); } }}>
 			{#if saveIsProf}
 				<div class="prof-dot"></div>
 			{/if}
@@ -193,14 +208,20 @@
 						class="skill-indicator clickable"
 						class:proficient={profLevel === 1}
 						class:expertise={profLevel === 2}
-						onclick={() => toggleSkillProf(skill.key)}>
+						role="button"
+						tabindex="0"
+						onclick={() => toggleSkillProf(skill.key)}
+						onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSkillProf(skill.key); } }}>
 						{#if profLevel === 1 || profLevel === 2}
 							<div class="prof-dot"></div>
 						{/if}
 					</div>
 					<div
 						class="skill-name clickable"
-						onclick={() => rollDice(`к20${formatModifier(bonus)}`, skill.label)}>
+						role="button"
+						tabindex="0"
+						onclick={() => rollDice(`к20${formatModifier(bonus)}`, skill.label)}
+						onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); rollDice(`к20${formatModifier(bonus)}`, skill.label); } }}>
 						{skill.label}
 					</div>
 					<input
@@ -268,10 +289,6 @@
 		flex: 1;
 		min-width: 0;
 		transition: opacity 0.2s;
-	}
-
-	.ability-info.clickable:hover {
-		opacity: 0.8;
 	}
 
 	.ability-name {
