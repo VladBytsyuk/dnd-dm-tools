@@ -63,9 +63,11 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 4px;
+		gap: 2px;
+		width: 100%; /* Fill available space */
 	}
 
+	/* Smaller sizes for all breakpoints */
 	.stat-label {
 		font-size: 8px;
 		font-weight: 600;

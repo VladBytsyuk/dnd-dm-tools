@@ -98,22 +98,33 @@
 	.info-block {
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: 2px;
 		padding-top: 8px;
 		padding-right: 8px;
+		container-type: inline-size;
 	}
 
+	/* Mobile: 2x3 grid (2 columns, 3 rows) */
 	.stats-grid {
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 8px;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 2px;
+		padding: 2px 0;
 		justify-items: center;
 	}
 
-	@media (max-width: 768px) {
+	/* Container queries: responsive to actual container width */
+	@container (min-width: 400px) {
 		.stats-grid {
-			grid-template-columns: repeat(2, 1fr);
-			gap: 12px;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 0px;
+		}
+	}
+
+	@container (min-width: 600px) {
+		.stats-grid {
+			grid-template-columns: repeat(6, 1fr);
+			gap: 2px;
 		}
 	}
 </style>

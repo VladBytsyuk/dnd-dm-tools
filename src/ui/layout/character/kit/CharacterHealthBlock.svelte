@@ -81,29 +81,63 @@
 		onChange={handleHpChange}
 	/>
 
-	<CharacterHitDice
-		{hitDiceCurrent}
-		{hitDiceTotal}
-		{hitDieType}
-		{hpCurrent}
-		{hpMax}
-		{conModifier}
-		onChange={handleHitDiceChange}
-	/>
+	<div class="dice-and-saves">
+		<CharacterHitDice
+			{hitDiceCurrent}
+			{hitDiceTotal}
+			{hitDieType}
+			{hpCurrent}
+			{hpMax}
+			{conModifier}
+			onChange={handleHitDiceChange}
+		/>
 
-	<CharacterDeathSaves
-		successCount={deathSavesSuccess}
-		failCount={deathSavesFail}
-		isDisabled={hpCurrent !== 0 || isDying || deathSavesSuccess >= 3 || deathSavesFail >= 3}
-		onChange={handleDeathSavesChange}
-		{onDeath}
-	/>
+		<CharacterDeathSaves
+			successCount={deathSavesSuccess}
+			failCount={deathSavesFail}
+			isDisabled={hpCurrent !== 0 || isDying || deathSavesSuccess >= 3 || deathSavesFail >= 3}
+			onChange={handleDeathSavesChange}
+			{onDeath}
+		/>
+	</div>
 </div>
 
 <style>
 	.health-block {
 		display: flex;
 		flex-direction: column;
-		gap: 12px;
+		gap: 8px;
+		container-type: inline-size;
+	}
+
+	.dice-and-saves {
+		display: flex;
+		flex-direction: row;
+		gap: 4px;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	/* Hit dices fills remaining width */
+	.dice-and-saves > :global(:first-child) {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	/* Death saves aligned right, centered, minimal width */
+	.dice-and-saves > :global(:last-child) {
+		flex: 0 0 auto;
+		align-self: center;
+	}
+
+	/* Stack vertically on very narrow containers */
+	@container (max-width: 250px) {
+		.dice-and-saves {
+			flex-direction: column;
+		}
+
+		.dice-and-saves > :global(:last-child) {
+			align-self: stretch;
+		}
 	}
 </style>

@@ -115,6 +115,7 @@
 		flex-direction: column;
 		gap: 8px;
 		padding: 12px;
+		container-type: inline-size;
 	}
 
 	.conditions-header {
@@ -125,9 +126,10 @@
 		text-align: center;
 	}
 
+	/* Mobile: 3x5 grid (3 columns, 5 rows) */
 	.conditions-grid {
 		display: grid;
-		grid-template-columns: repeat(5, 1fr);
+		grid-template-columns: repeat(3, 1fr);
 		gap: 6px;
 	}
 
@@ -139,12 +141,13 @@
 		gap: 2px;
 	}
 
+	/* Fixed smaller cell size */
 	.cell {
 		position: relative;
 		display: grid;
 		place-items: center;
-		width: 32px;
-		height: 32px;
+		width: 28px;
+		height: 28px;
 		cursor: pointer;
 		border-radius: 50%;
 		background: var(--background-primary);
@@ -189,5 +192,18 @@
 	.info-button:hover {
 		color: var(--interactive-accent);
 		background: var(--background-secondary);
+	}
+
+	/* Container queries: responsive to actual container width */
+	@container (min-width: 400px) {
+		.conditions-grid {
+			grid-template-columns: repeat(5, 1fr);
+		}
+	}
+
+	@container (min-width: 800px) {
+		.conditions-grid {
+			grid-template-columns: repeat(15, 1fr);
+		}
 	}
 </style>

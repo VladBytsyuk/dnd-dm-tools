@@ -2,6 +2,7 @@
 	import { rollRaw } from "../../../../domain/dice";
 	import { Dices, Moon, Clock } from "lucide-svelte";
 	import { formatModifier } from "../../../../domain/modifier";
+	import { evalNumericExpression } from "../../../../domain/utils/mathExpression";
 
 	/**
 	 * Hit Dice and Rest management component
@@ -19,7 +20,38 @@
 	let { hitDiceCurrent, hitDiceTotal, hitDieType, hpCurrent, hpMax, conModifier, onChange }: Props =
 		$props();
 
+	let diceInput = $state(String(hitDiceCurrent));
+
+	// Sync input when prop changes
+	$effect(() => {
+		diceInput = String(hitDiceCurrent);
+	});
+
 	const isHpFull = $derived(hpCurrent >= hpMax);
+
+	// Convert dice type from Latin 'd' to Cyrillic 'к' (e.g., "d8" -> "к8")
+	const displayDiceType = $derived(hitDieType.replace(/^d/, 'к'));
+
+	function handleDiceInputChange() {
+		const result = evalNumericExpression(diceInput);
+		if (result !== null) {
+			const value = Math.floor(result);
+			const clamped = Math.max(0, Math.min(hitDiceTotal, value));
+			diceInput = String(clamped);
+			onChange({ "hp-dice-current": clamped });
+		} else {
+			diceInput = String(hitDiceCurrent); // Reset to current value
+		}
+	}
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === "Enter") {
+			(e.target as HTMLInputElement).blur();
+		} else if (e.key === "Escape") {
+			diceInput = String(hitDiceCurrent);
+			(e.target as HTMLInputElement).blur();
+		}
+	}
 
 	function spendHitDie() {
 		if (hitDiceCurrent <= 0 || isHpFull) return;
@@ -66,7 +98,16 @@
 	<div class="hit-dice-header">
 		<div class="hit-dice-label">Кости Хитов</div>
 		<div class="hit-dice-value">
-			{hitDiceCurrent} / {hitDiceTotal} ({hitDieType})
+			<input
+				type="text"
+				class="hit-dice-input"
+				bind:value={diceInput}
+				onblur={handleDiceInputChange}
+				onkeydown={handleKeydown}
+			/>
+			<span class="hit-dice-separator">/</span>
+			<span class="hit-dice-total">{hitDiceTotal}</span>
+			<span class="hit-dice-type">({displayDiceType})</span>
 		</div>
 	</div>
 
@@ -75,7 +116,7 @@
 			class="hit-dice-button"
 			onclick={spendHitDie}
 			disabled={hitDiceCurrent <= 0 || isHpFull}
-			title="Потратить кость хитов (1{hitDieType}{formatModifier(conModifier)})"
+			title="Потратить кость хитов (1{displayDiceType}{formatModifier(conModifier)})"
 		>
 			<Dices size={16} />
 		</button>
@@ -94,8 +135,8 @@
 	.hit-dice-container {
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
-		padding: 8px;
+		gap: 6px;
+		padding: 6px 8px;
 	}
 
 	.hit-dice-header {
@@ -116,13 +157,48 @@
 		font-size: 12px;
 		font-weight: 700;
 		color: var(--text-normal);
+		display: flex;
+		align-items: center;
+		gap: 4px;
 	}
 
+	.hit-dice-input {
+		width: 32px;
+		padding: 2px 4px;
+		font-size: 12px;
+		font-weight: 700;
+		text-align: center;
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 3px;
+		background: var(--background-primary);
+		color: var(--text-accent);
+	}
+
+	.hit-dice-input:focus {
+		outline: none;
+		border-color: var(--interactive-accent);
+	}
+
+	.hit-dice-separator {
+		color: var(--text-muted);
+	}
+
+	.hit-dice-total {
+		color: var(--text-normal);
+	}
+
+	.hit-dice-type {
+		color: var(--text-muted);
+		font-size: 11px;
+	}
+
+	/* Mobile: Allow wrapping on very narrow screens */
 	.hit-dice-buttons {
 		display: flex;
 		flex-direction: row;
-		gap: 6px;
+		gap: 4px;
 		justify-content: center;
+		flex-wrap: wrap;
 	}
 
 	.hit-dice-button {
@@ -140,7 +216,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		flex: 1;
+		flex: 1 1 auto;
+		min-width: 40px; /* Minimum touchable size */
 	}
 
 	.hit-dice-button:hover:not(:disabled) {
@@ -162,4 +239,5 @@
 		background: var(--interactive-accent);
 		color: white;
 	}
+
 </style>

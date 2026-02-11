@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { roll, d20 } from "../../../../domain/dice";
 	import { Dices } from "lucide-svelte";
+	import { Notice } from "obsidian";
 
 	/**
 	 * Death Saving Throws component - Horizontal layout
@@ -39,19 +40,27 @@
 
 		let newSuccess = successCount;
 		let newFail = failCount;
+		let message = `Спасбросок от смерти: ${result}`;
 
 		if (result === 1) {
 			newFail += 2;
+			message += " (критический провал, +2 провала)";
 		} else if (result >= 2 && result <= 9) {
 			newFail += 1;
+			message += " (провал)";
 		} else if (result >= 10 && result <= 19) {
 			newSuccess += 1;
+			message += " (успех)";
 		} else if (result === 20) {
 			newSuccess += 2;
+			message += " (критический успех, +2 успеха)";
 		}
 
 		newSuccess = clamp(newSuccess, 0, 3);
 		newFail = clamp(newFail, 0, 3);
+
+		// Show notification
+		new Notice(message, 3000);
 
 		onChange(newSuccess, newFail);
 
@@ -98,17 +107,20 @@
 </div>
 
 <style>
+	/* Mobile: Vertical stack */
 	.death-saves-container {
 		display: flex;
-		align-items: center;
+		flex-direction: column;
+		align-items: stretch;
 		padding: 6px 8px;
-		gap: 16px;
+		gap: 6px;
 	}
 
 	.death-saves-circles-wrapper {
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
+		align-items: center; /* Center circles on mobile */
 	}
 
 	.death-saves-circles {
@@ -116,13 +128,14 @@
 		gap: 3px;
 	}
 
+	/* Mobile: Larger circles for better touch targets */
 	.death-save-circle {
-		width: 18px;
-		height: 18px;
+		width: 20px;
+		height: 20px;
 		border-radius: 50%;
 		border: 2px solid var(--background-modifier-border);
 		background: var(--background-primary);
-		font-size: 12px;
+		font-size: 14px;
 		line-height: 1;
 		cursor: pointer;
 		transition:
@@ -172,8 +185,9 @@
 		border-color: var(--background-modifier-border);
 	}
 
+	/* Mobile: Full width button */
 	.death-save-roll-button {
-		padding: 4px;
+		padding: 8px;
 		font-size: 12px;
 		font-weight: 600;
 		border-radius: 4px;
@@ -188,7 +202,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		flex-shrink: 0;
+		width: 100%;
 	}
 
 	.death-save-roll-button:hover:not(:disabled) {
@@ -201,9 +215,27 @@
 		cursor: not-allowed;
 	}
 
-	@media (max-width: 768px) {
-		.death-saves-container {
-			gap: 6px;
-		}
+	/* Always horizontal layout when side by side with hit dice */
+	.death-saves-container {
+		flex-direction: row;
+		align-items: center;
+		padding: 6px 8px;
+		gap: 8px;
+	}
+
+	.death-saves-circles-wrapper {
+		align-items: flex-start;
+	}
+
+	.death-save-circle {
+		width: 18px;
+		height: 18px;
+		font-size: 12px;
+	}
+
+	.death-save-roll-button {
+		width: auto;
+		padding: 4px;
+		flex-shrink: 0;
 	}
 </style>

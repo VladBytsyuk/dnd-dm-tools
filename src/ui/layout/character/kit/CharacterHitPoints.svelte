@@ -148,7 +148,9 @@
 		flex-direction: column;
 		gap: 4px;
 		padding-left: 8px;
+		padding-right: 8px;
 		padding-top: 8px;
+		container-type: inline-size;
 	}
 
 	.stat-label {
@@ -159,10 +161,11 @@
 		text-align: center;
 	}
 
+	/* Mobile: Single column for all inputs */
 	.hp-inputs {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 4px;
+		grid-template-columns: 1fr;
+		gap: 6px;
 	}
 
 	.hp-input-group {
@@ -171,17 +174,19 @@
 		gap: 2px;
 	}
 
+	/* Mobile: Larger labels for readability */
 	.hp-input-label {
-		font-size: 8px;
+		font-size: 10px;
 		font-weight: 600;
 		text-transform: uppercase;
 		color: var(--text-muted);
 		text-align: center;
 	}
 
+	/* Mobile: 16px font prevents iOS zoom on focus */
 	.hp-input {
 		padding: 4px;
-		font-size: 14px;
+		font-size: 16px;
 		font-weight: 700;
 		text-align: center;
 		border: 2px solid var(--background-modifier-border);
@@ -218,7 +223,7 @@
 	}
 
 	.hp-max-label {
-		font-size: 8px;
+		font-size: 10px;
 		font-weight: 600;
 		text-transform: uppercase;
 		color: var(--text-muted);
@@ -243,5 +248,25 @@
 			width 0.3s ease,
 			background-color 0.3s ease;
 		border-radius: 6px;
+	}
+
+	/* Container queries: Two columns when enough space */
+	@container (min-width: 200px) {
+		.hp-inputs {
+			grid-template-columns: 1fr 1fr;
+			gap: 4px;
+		}
+
+		.hp-input-label {
+			font-size: 8px;
+		}
+
+		.hp-max-label {
+			font-size: 8px;
+		}
+
+		.hp-input {
+			font-size: 14px;
+		}
 	}
 </style>

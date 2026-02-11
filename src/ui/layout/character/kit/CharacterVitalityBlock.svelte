@@ -172,12 +172,14 @@
 		border-radius: 8px;
 		margin-bottom: 16px;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		container-type: inline-size;
 	}
 
+	/* Mobile-first: Single column default */
 	.vitality-grid {
 		display: grid;
-		grid-template-columns: minmax(130px, 35%) 1fr;
-		gap: 16px;
+		grid-template-columns: 1fr;
+		gap: 12px;
 	}
 
 	.vitality-column {
@@ -185,10 +187,24 @@
 		flex-direction: column;
 	}
 
-	@media (max-width: 768px) {
+	/* Container queries: responsive to actual container width */
+	@container (min-width: 600px) {
 		.vitality-grid {
-			grid-template-columns: 1fr;
 			gap: 16px;
+		}
+	}
+
+	@container (min-width: 768px) {
+		.vitality-grid {
+			grid-template-columns: minmax(200px, 35%) 1fr;
+			gap: 16px;
+		}
+	}
+
+	@container (min-width: 1400px) {
+		.vitality-grid {
+			grid-template-columns: minmax(250px, 30%) 1fr;
+			gap: 20px;
 		}
 	}
 </style>
