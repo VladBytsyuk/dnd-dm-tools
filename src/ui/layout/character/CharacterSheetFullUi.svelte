@@ -60,40 +60,50 @@
 		if (repository) {
 			const database = repository.getDatabase();
 
-			// Fetch races
-			database.smallRaceDao.readAllItems(null, null).then(races => {
-				raceOptions = races.map(r => ({
-					name: r.name,
-					url: r.url
-				}));
-			});
-
-			// Fetch backgrounds
-			database.smallBackgroundDao.readAllItems(null, null).then(backgrounds => {
-				backgroundOptions = backgrounds.map(b => ({
-					name: b.name,
-					url: b.url
-				}));
-			});
-
-			// Fetch classes (filter out archetypes)
-			database.smallClassDao.readAllItems(null, null).then(classes => {
-				classOptions = classes
-					.filter(c => !c.isArchetype)
-					.map(c => ({
-						name: c.name,
-						url: c.url
+			// Fetch all autocomplete data in parallel with error handling
+			Promise.all([
+				database.smallRaceDao.readAllItems(null, null),
+				database.smallBackgroundDao.readAllItems(null, null),
+				database.smallClassDao.readAllItems(null, null)
+			])
+				.then(([races, backgrounds, classes]) => {
+					// Map races
+					raceOptions = races.map(r => ({
+						name: r.name,
+						url: r.url
 					}));
 
-				// Fetch archetypes (subclasses)
-				archetypeOptions = classes
-					.filter(c => c.isArchetype)
-					.map(c => ({
-						name: c.name,
-						url: c.url,
-						parentClassUrl: c.parentClassUrl || ''
+					// Map backgrounds
+					backgroundOptions = backgrounds.map(b => ({
+						name: b.name,
+						url: b.url
 					}));
-			});
+
+					// Map classes (filter out archetypes)
+					classOptions = classes
+						.filter(c => !c.isArchetype)
+						.map(c => ({
+							name: c.name,
+							url: c.url
+						}));
+
+					// Map archetypes (subclasses)
+					archetypeOptions = classes
+						.filter(c => c.isArchetype)
+						.map(c => ({
+							name: c.name,
+							url: c.url,
+							parentClassUrl: c.parentClassUrl || ''
+						}));
+				})
+				.catch(error => {
+					console.error('Failed to load autocomplete data:', error);
+					// Set empty arrays as fallback to allow component to function
+					raceOptions = [];
+					backgroundOptions = [];
+					classOptions = [];
+					archetypeOptions = [];
+				});
 		}
 	});
 

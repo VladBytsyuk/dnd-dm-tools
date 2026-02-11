@@ -12,12 +12,49 @@ export interface EntityLinkResult {
 	name?: { rus: string; eng: string };
 }
 
+interface CacheEntry<T> {
+	data: T;
+	timestamp: number;
+}
+
 /**
  * Service for checking if character-related entities (race, class, background)
  * exist in the plugin's databases and retrieving their information.
+ *
+ * Uses in-memory caching to avoid repeated database queries.
  */
 export class EntityLinkService {
+	private cache = new Map<string, CacheEntry<any>>();
+	private readonly CACHE_TTL = 60000; // 1 minute in milliseconds
+
 	constructor(private database: DB) {}
+
+	/**
+	 * Gets cached data or fetches and caches it if expired.
+	 */
+	private async getCached<T>(
+		key: string,
+		fetcher: () => Promise<T>
+	): Promise<T> {
+		const cached = this.cache.get(key);
+		const now = Date.now();
+
+		if (cached && (now - cached.timestamp) < this.CACHE_TTL) {
+			return cached.data as T;
+		}
+
+		// Fetch fresh data
+		const data = await fetcher();
+		this.cache.set(key, { data, timestamp: now });
+		return data;
+	}
+
+	/**
+	 * Clears all cached data. Useful when database is updated.
+	 */
+	clearCache(): void {
+		this.cache.clear();
+	}
 
 	/**
 	 * Searches for a race by name in the race database.
@@ -30,7 +67,10 @@ export class EntityLinkService {
 		}
 
 		try {
-			const allRaces = await this.database.smallRaceDao.readAllItems('', null);
+			const allRaces = await this.getCached(
+				'races',
+				() => this.database.smallRaceDao.readAllItems('', null)
+			);
 			const normalizedSearch = raceName.toLowerCase().trim();
 
 			const match = allRaces.find(r =>
@@ -59,7 +99,10 @@ export class EntityLinkService {
 		}
 
 		try {
-			const allClasses = await this.database.smallClassDao.readAllItems('', null);
+			const allClasses = await this.getCached(
+				'classes',
+				() => this.database.smallClassDao.readAllItems('', null)
+			);
 			const normalizedSearch = className.toLowerCase().trim();
 
 			// Filter out archetypes - only search base classes
@@ -90,7 +133,10 @@ export class EntityLinkService {
 		}
 
 		try {
-			const allClasses = await this.database.smallClassDao.readAllItems('', null);
+			const allClasses = await this.getCached(
+				'classes',
+				() => this.database.smallClassDao.readAllItems('', null)
+			);
 			const normalizedSearch = archetypeName.toLowerCase().trim();
 
 			// Filter to only archetypes - opposite of findClass
@@ -120,7 +166,10 @@ export class EntityLinkService {
 		}
 
 		try {
-			const allBackgrounds = await this.database.smallBackgroundDao.readAllItems('', null);
+			const allBackgrounds = await this.getCached(
+				'backgrounds',
+				() => this.database.smallBackgroundDao.readAllItems('', null)
+			);
 			const normalizedSearch = bgName.toLowerCase().trim();
 
 			const match = allBackgrounds.find(b =>

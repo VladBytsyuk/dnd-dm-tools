@@ -26,52 +26,65 @@
 	}
 
 	let { classes = [], onchange, onLookupClass, onLookupSubclass, uiEventListener, classOptions, archetypeOptions }: Props = $props();
-	let classLinks = $state<(EntityLinkResult | null)[]>([]);
-	let subclassLinks = $state<(EntityLinkResult | null)[]>([]);
 
-	// Initial lookup for all classes when component mounts or classes change
+	// Use Maps keyed by className to avoid index desync issues when classes are removed
+	let classLinksMap = $state<Map<string, EntityLinkResult>>(new Map());
+	let subclassLinksMap = $state<Map<string, EntityLinkResult>>(new Map());
+
+	// Synchronize link lookups when classes change
 	$effect(() => {
 		if (onLookupClass) {
-			classes.forEach((classEntry, index) => {
-				if (classEntry.className.trim()) {
-					checkClassLink(index, classEntry.className);
+			classes.forEach((classEntry) => {
+				const className = classEntry.className.trim();
+				if (className && !classLinksMap.has(className)) {
+					checkClassLink(className);
 				}
 			});
 		}
 	});
 
-	// Initial lookup for all subclasses when component mounts or classes change
 	$effect(() => {
 		if (onLookupSubclass) {
-			classes.forEach((classEntry, index) => {
-				if (classEntry.subclassName?.trim()) {
-					checkSubclassLink(index, classEntry.subclassName);
+			classes.forEach((classEntry) => {
+				const subclassName = classEntry.subclassName?.trim();
+				if (subclassName && !subclassLinksMap.has(subclassName)) {
+					checkSubclassLink(subclassName);
 				}
 			});
 		}
 	});
 
-	async function checkClassLink(index: number, className: string) {
+	async function checkClassLink(className: string) {
 		if (onLookupClass && className.trim()) {
-			classLinks[index] = await onLookupClass(className.trim());
-		} else {
-			classLinks[index] = null;
+			const result = await onLookupClass(className.trim());
+			if (result.exists) {
+				classLinksMap.set(className.trim(), result);
+				classLinksMap = classLinksMap; // Trigger reactivity
+			} else {
+				classLinksMap.delete(className.trim());
+				classLinksMap = classLinksMap;
+			}
 		}
 	}
 
-	async function checkSubclassLink(index: number, subclassName: string) {
+	async function checkSubclassLink(subclassName: string) {
 		if (onLookupSubclass && subclassName.trim()) {
-			subclassLinks[index] = await onLookupSubclass(subclassName.trim());
-		} else {
-			subclassLinks[index] = null;
+			const result = await onLookupSubclass(subclassName.trim());
+			if (result.exists) {
+				subclassLinksMap.set(subclassName.trim(), result);
+				subclassLinksMap = subclassLinksMap; // Trigger reactivity
+			} else {
+				subclassLinksMap.delete(subclassName.trim());
+				subclassLinksMap = subclassLinksMap;
+			}
 		}
 	}
 
-	async function handleLinkClick(event: MouseEvent, index: number) {
+	async function handleLinkClick(event: MouseEvent, className: string) {
 		event.preventDefault();
 		event.stopPropagation();
 
-		const linkResult = classLinks[index];
+		const linkResult = classLinksMap.get(className.trim());
 		if (!linkResult?.exists || !linkResult.url || !uiEventListener) return;
 
 		const url = linkResult.url;
@@ -80,18 +93,18 @@
 		}
 	}
 
-	function handleKeydown(event: KeyboardEvent, index: number) {
+	function handleKeydown(event: KeyboardEvent, className: string) {
 		if (event.key === 'Enter' || event.key === ' ') {
 			event.preventDefault();
-			handleLinkClick(event as any, index);
+			handleLinkClick(event as any, className);
 		}
 	}
 
-	async function handleSubclassLinkClick(event: MouseEvent, index: number) {
+	async function handleSubclassLinkClick(event: MouseEvent, subclassName: string) {
 		event.preventDefault();
 		event.stopPropagation();
 
-		const linkResult = subclassLinks[index];
+		const linkResult = subclassLinksMap.get(subclassName.trim());
 		if (!linkResult?.exists || !linkResult.url || !uiEventListener) return;
 
 		const url = linkResult.url;
@@ -101,10 +114,10 @@
 		}
 	}
 
-	function handleSubclassLinkKeydown(event: KeyboardEvent, index: number) {
+	function handleSubclassLinkKeydown(event: KeyboardEvent, subclassName: string) {
 		if (event.key === 'Enter' || event.key === ' ') {
 			event.preventDefault();
-			handleSubclassLinkClick(event as any, index);
+			handleSubclassLinkClick(event as any, subclassName);
 		}
 	}
 
@@ -123,10 +136,10 @@
 		updated[index] = { ...updated[index], [field]: value };
 		onchange?.(updated);
 
-		if (field === 'className') {
-			checkClassLink(index, value);
-		} else if (field === 'subclassName') {
-			checkSubclassLink(index, value);
+		if (field === 'className' && value) {
+			checkClassLink(value);
+		} else if (field === 'subclassName' && value) {
+			checkSubclassLink(value);
 		}
 	}
 
@@ -139,21 +152,23 @@
 	const hasArchetypeAutocomplete = $derived(!!archetypeOptions && archetypeOptions.length > 0);
 
 	// Get filtered archetype options for a specific class entry
-	function getArchetypeOptionsForClass(index: number): ArchetypeOption[] {
-		if (!archetypeOptions || !classLinks[index]?.url) return [];
+	function getArchetypeOptionsForClass(className: string): ArchetypeOption[] {
+		if (!archetypeOptions) return [];
 
-		const classUrl = classLinks[index].url;
-		return archetypeOptions.filter(archetype => archetype.parentClassUrl === classUrl);
+		const classLink = classLinksMap.get(className.trim());
+		if (!classLink?.url) return [];
+
+		return archetypeOptions.filter(archetype => archetype.parentClassUrl === classLink.url);
 	}
 
 	async function handleAutocompleteSelect(index: number, item: ClassOption) {
 		updateClass(index, 'className', item.name.rus);
-		await checkClassLink(index, item.name.rus);
+		await checkClassLink(item.name.rus);
 	}
 
 	async function handleArchetypeAutocompleteSelect(index: number, item: ArchetypeOption) {
 		updateClass(index, 'subclassName', item.name.rus);
-		await checkSubclassLink(index, item.name.rus);
+		await checkSubclassLink(item.name.rus);
 	}
 </script>
 
@@ -179,17 +194,17 @@
 								placeholder="Класс"
 								value={classEntry.className}
 								oninput={(e) => updateClass(index, 'className', e.currentTarget.value)}
-								onblur={(e) => checkClassLink(index, e.currentTarget.value)}
+								onblur={(e) => checkClassLink(e.currentTarget.value)}
 								class="class-name-input"
 							/>
 						{/if}
-						{#if classLinks[index]?.exists}
+						{#if classLinksMap.get(classEntry.className.trim())?.exists}
 							<span
 								class="link-icon"
 								class:clickable={!!uiEventListener}
 								title="Найдено в базе"
-								onclick={(e) => handleLinkClick(e, index)}
-								onkeydown={(e) => handleKeydown(e, index)}
+								onclick={(e) => handleLinkClick(e, classEntry.className)}
+								onkeydown={(e) => handleKeydown(e, classEntry.className)}
 								role="button"
 								tabindex="0"
 							>🔗</span>
@@ -197,7 +212,7 @@
 					</div>
 					<div class="subclass-wrapper">
 						{#if hasArchetypeAutocomplete && archetypeOptions}
-							{@const filteredArchetypes = getArchetypeOptionsForClass(index)}
+							{@const filteredArchetypes = getArchetypeOptionsForClass(classEntry.className)}
 							{#if filteredArchetypes.length > 0}
 								<AutocompleteInput
 									value={classEntry.subclassName || ''}
@@ -214,7 +229,7 @@
 									placeholder="Подкласс"
 									value={classEntry.subclassName || ''}
 									oninput={(e) => updateClass(index, 'subclassName', e.currentTarget.value)}
-									onblur={(e) => checkSubclassLink(index, e.currentTarget.value)}
+									onblur={(e) => checkSubclassLink(e.currentTarget.value)}
 									class="subclass-input"
 								/>
 							{/if}
@@ -224,18 +239,19 @@
 								placeholder="Подкласс"
 								value={classEntry.subclassName || ''}
 								oninput={(e) => updateClass(index, 'subclassName', e.currentTarget.value)}
-								onblur={(e) => checkSubclassLink(index, e.currentTarget.value)}
+								onblur={(e) => checkSubclassLink(e.currentTarget.value)}
 								class="subclass-input"
-								class:has-link={subclassLinks[index]?.exists}
+								class:has-link={classEntry.subclassName && subclassLinksMap.get(classEntry.subclassName.trim())?.exists}
 							/>
 						{/if}
-						{#if subclassLinks[index]?.exists}
+						{#if classEntry.subclassName && subclassLinksMap.get(classEntry.subclassName.trim())?.exists}
+							{@const subclassLink = subclassLinksMap.get(classEntry.subclassName.trim())}
 							<span
 								class="link-icon"
 								class:clickable={!!uiEventListener}
-								title="Найдено в базе: {subclassLinks[index].name?.rus}"
-								onclick={(e) => handleSubclassLinkClick(e, index)}
-								onkeydown={(e) => handleSubclassLinkKeydown(e, index)}
+								title="Найдено в базе: {subclassLink?.name?.rus}"
+								onclick={(e) => handleSubclassLinkClick(e, classEntry.subclassName || '')}
+								onkeydown={(e) => handleSubclassLinkKeydown(e, classEntry.subclassName || '')}
 								role="button"
 								tabindex="0"
 							>🔗</span>
