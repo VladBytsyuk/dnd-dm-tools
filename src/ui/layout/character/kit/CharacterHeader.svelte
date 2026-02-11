@@ -33,6 +33,7 @@
 			jpeg?: string;
 			webp?: string;
 		};
+		isDying?: boolean;
 
 		// Event handlers
 		onNameChange?: (name: string) => void;
@@ -66,6 +67,7 @@
 		name,
 		info,
 		avatar,
+		isDying = false,
 		onNameChange,
 		onClassesChange,
 		onRaceChange,
@@ -214,7 +216,7 @@
 	<div class="header-content">
 		<div class="avatar-container">
 			{#if avatarUrl}
-				<img src={avatarUrl} alt={name.value} class="avatar-image" />
+				<img src={avatarUrl} alt={name.value} class="avatar-image" class:dead={isDying} />
 			{:else}
 				<div class="avatar-placeholder">
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -392,6 +394,12 @@
 		object-fit: cover;
 		border: none;
 		box-shadow: none;
+		transition: filter 0.3s ease;
+	}
+
+	.avatar-image.dead {
+		filter: grayscale(100%);
+		opacity: 0.7;
 	}
 
 	.avatar-placeholder {

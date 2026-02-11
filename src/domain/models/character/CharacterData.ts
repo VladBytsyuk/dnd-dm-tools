@@ -40,7 +40,7 @@ export interface CharacterData {
 	resources: Record<string, unknown>;
 	bonusesSkills: Record<string, unknown>;
 	bonusesStats: Record<string, unknown>;
-	conditions: unknown[];
+	conditions: string[]; // Array of condition URLs (e.g., "/screens/unconscious")
 	avatar?: Avatar; // Character avatar images
 	createdAt: string; // ISO date string
 }

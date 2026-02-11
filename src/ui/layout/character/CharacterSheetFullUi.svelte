@@ -223,6 +223,16 @@
 		debouncedSave();
 	}
 
+	function handleVitalityChange(newVitality: any, newConditions: string[]) {
+		data.vitality = newVitality;
+		data.conditions = newConditions;
+		debouncedSave();
+	}
+
+	function handleOpenConditionDetails(url: string) {
+		uiEventListener.onScreenItemClick(url);
+	}
+
 	// Database lookup wrappers
 	async function lookupRace(race: string) {
 		return entityLinkService ? await entityLinkService.findRace(race) : { exists: false };
@@ -269,16 +279,27 @@
 		cha: { isProf: data.saves?.cha?.isProf || false }
 	});
 
-	const vitality = $derived({
-		'hp-max': data.vitality?.['hp-max']?.value || 0,
-		'hp-current': data.vitality?.['hp-current']?.value || 0,
-		ac: data.vitality?.ac?.value || 10,
-		speed: data.vitality?.speed?.value?.toString() || '30',
-		initiative: data.vitality?.initiative?.value || 0,
-		'hit-die': data.vitality?.['hit-die']?.value || 'd8',
-		'hp-dice-current': data.vitality?.['hp-dice-current']?.value || 0,
-		isDying: data.vitality?.isDying?.value || false
+	const vitality = $derived(data.vitality || {
+		"hp-max": { value: 0 },
+		"hp-max-bonus": { value: 0 },
+		"hit-die": { value: "d8" },
+		"hp-dice-current": { value: 0 },
+		"hp-dice-multi": {},
+		ac: { value: 10 },
+		shield: { value: false, mod: 0 },
+		speed: { value: 30 },
+		initiative: { value: 0 },
+		isDying: false,
+		"hp-current": { value: 0 },
+		"hp-temp": { value: 0 },
+		"death-saves-success": { value: 0 },
+		"death-saves-fail": { value: 0 },
+		"proficiency-bonus": { value: 2 },
+		"passive-perception": { value: 10 },
+		"darkvision": { value: 0 },
 	});
+
+	const conditions = $derived(data.conditions || []);
 
 	const proficiency = $derived(data.proficiency || 2);
 
@@ -449,6 +470,7 @@
 				name={data.name}
 				info={headerInfo}
 				avatar={data.avatar}
+				isDying={vitality.isDying ?? false}
 				onNameChange={handleNameChange}
 				onClassesChange={handleClassesChange}
 				onRaceChange={handleRaceChange}
@@ -467,7 +489,16 @@
 				{archetypeOptions}
 			/>
 
-			<CharacterVitalityBlock {vitality} />
+			<CharacterVitalityBlock
+				{vitality}
+				stats={data.stats}
+				skills={data.skills}
+				{proficiency}
+				level={headerInfo.level}
+				{conditions}
+				onChange={handleVitalityChange}
+				onOpenConditionDetails={handleOpenConditionDetails}
+			/>
 
 			<CharacterCombat
 				{proficiency}
