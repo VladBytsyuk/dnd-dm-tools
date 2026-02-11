@@ -111,14 +111,24 @@
 		355000  // Level 20
 	];
 
-	// Calculate level from XP
+	// Calculate level from XP using binary search (O(log n) instead of O(n))
 	function getLevelFromXP(xp: number): number {
-		for (let i = XP_TABLE.length - 1; i >= 0; i--) {
-			if (xp >= XP_TABLE[i]) {
-				return Math.min(i + 1, 20); // Level is index + 1, max 20
+		if (xp < XP_TABLE[0]) return 1;
+		if (xp >= XP_TABLE[XP_TABLE.length - 1]) return 20;
+
+		let left = 0;
+		let right = XP_TABLE.length - 1;
+
+		while (left < right) {
+			const mid = Math.floor((left + right + 1) / 2);
+			if (XP_TABLE[mid] <= xp) {
+				left = mid;
+			} else {
+				right = mid - 1;
 			}
 		}
-		return 1; // Minimum level
+
+		return left + 1; // Level is index + 1
 	}
 
 	// Calculate overall level as sum of all classes levels

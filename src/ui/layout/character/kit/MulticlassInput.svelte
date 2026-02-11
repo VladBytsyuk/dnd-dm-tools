@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
 	import type { ClassEntry } from '../../../../domain/models/character/ClassEntry';
 	import type { EntityLinkResult } from '../../../../domain/services/EntityLinkService';
 	import type { IUiEventListener } from '../../../../domain/listeners/ui_event_listener';
@@ -31,6 +32,18 @@
 	let classLinksMap = $state<Map<string, EntityLinkResult>>(new Map());
 	let subclassLinksMap = $state<Map<string, EntityLinkResult>>(new Map());
 
+	// Debounce timeouts for entity lookups
+	let classLookupTimeouts = new Map<string, NodeJS.Timeout>();
+	let subclassLookupTimeouts = new Map<string, NodeJS.Timeout>();
+
+	// Cleanup timeouts on component destroy
+	onDestroy(() => {
+		classLookupTimeouts.forEach(timeout => clearTimeout(timeout));
+		subclassLookupTimeouts.forEach(timeout => clearTimeout(timeout));
+		classLookupTimeouts.clear();
+		subclassLookupTimeouts.clear();
+	});
+
 	// Synchronize link lookups when classes change
 	$effect(() => {
 		if (onLookupClass) {
@@ -54,29 +67,65 @@
 		}
 	});
 
-	async function checkClassLink(className: string) {
-		if (onLookupClass && className.trim()) {
-			const result = await onLookupClass(className.trim());
+	function checkClassLink(className: string, debounce = false) {
+		if (!onLookupClass || !className.trim()) return;
+
+		const key = className.trim();
+
+		// Clear existing timeout for this class
+		const existingTimeout = classLookupTimeouts.get(key);
+		if (existingTimeout) {
+			clearTimeout(existingTimeout);
+		}
+
+		const performLookup = async () => {
+			const result = await onLookupClass(key);
 			if (result.exists) {
-				classLinksMap.set(className.trim(), result);
+				classLinksMap.set(key, result);
 				classLinksMap = classLinksMap; // Trigger reactivity
 			} else {
-				classLinksMap.delete(className.trim());
+				classLinksMap.delete(key);
 				classLinksMap = classLinksMap;
 			}
+			classLookupTimeouts.delete(key);
+		};
+
+		if (debounce) {
+			const timeout = setTimeout(performLookup, 500);
+			classLookupTimeouts.set(key, timeout);
+		} else {
+			performLookup();
 		}
 	}
 
-	async function checkSubclassLink(subclassName: string) {
-		if (onLookupSubclass && subclassName.trim()) {
-			const result = await onLookupSubclass(subclassName.trim());
+	function checkSubclassLink(subclassName: string, debounce = false) {
+		if (!onLookupSubclass || !subclassName.trim()) return;
+
+		const key = subclassName.trim();
+
+		// Clear existing timeout for this subclass
+		const existingTimeout = subclassLookupTimeouts.get(key);
+		if (existingTimeout) {
+			clearTimeout(existingTimeout);
+		}
+
+		const performLookup = async () => {
+			const result = await onLookupSubclass(key);
 			if (result.exists) {
-				subclassLinksMap.set(subclassName.trim(), result);
+				subclassLinksMap.set(key, result);
 				subclassLinksMap = subclassLinksMap; // Trigger reactivity
 			} else {
-				subclassLinksMap.delete(subclassName.trim());
+				subclassLinksMap.delete(key);
 				subclassLinksMap = subclassLinksMap;
 			}
+			subclassLookupTimeouts.delete(key);
+		};
+
+		if (debounce) {
+			const timeout = setTimeout(performLookup, 500);
+			subclassLookupTimeouts.set(key, timeout);
+		} else {
+			performLookup();
 		}
 	}
 
@@ -131,15 +180,15 @@
 		onchange?.(updated);
 	}
 
-	function updateClass(index: number, field: keyof ClassEntry, value: any) {
+	function updateClass(index: number, field: keyof ClassEntry, value: any, debounce = false) {
 		const updated = [...classes];
 		updated[index] = { ...updated[index], [field]: value };
 		onchange?.(updated);
 
 		if (field === 'className' && value) {
-			checkClassLink(value);
+			checkClassLink(value, debounce);
 		} else if (field === 'subclassName' && value) {
-			checkSubclassLink(value);
+			checkSubclassLink(value, debounce);
 		}
 	}
 
@@ -184,7 +233,7 @@
 								placeholder="Класс"
 								items={classOptions}
 								onchange={(newValue) => {
-									updateClass(index, 'className', newValue);
+									updateClass(index, 'className', newValue, true);
 								}}
 								onSelect={(item) => handleAutocompleteSelect(index, item)}
 							/>
@@ -193,8 +242,8 @@
 								type="text"
 								placeholder="Класс"
 								value={classEntry.className}
-								oninput={(e) => updateClass(index, 'className', e.currentTarget.value)}
-								onblur={(e) => checkClassLink(e.currentTarget.value)}
+								oninput={(e) => updateClass(index, 'className', e.currentTarget.value, true)}
+								onblur={(e) => checkClassLink(e.currentTarget.value, false)}
 								class="class-name-input"
 							/>
 						{/if}
@@ -219,7 +268,7 @@
 									placeholder="Подкласс"
 									items={filteredArchetypes}
 									onchange={(newValue) => {
-										updateClass(index, 'subclassName', newValue);
+										updateClass(index, 'subclassName', newValue, true);
 									}}
 									onSelect={(item) => handleArchetypeAutocompleteSelect(index, item)}
 								/>
@@ -228,8 +277,8 @@
 									type="text"
 									placeholder="Подкласс"
 									value={classEntry.subclassName || ''}
-									oninput={(e) => updateClass(index, 'subclassName', e.currentTarget.value)}
-									onblur={(e) => checkSubclassLink(e.currentTarget.value)}
+									oninput={(e) => updateClass(index, 'subclassName', e.currentTarget.value, true)}
+									onblur={(e) => checkSubclassLink(e.currentTarget.value, false)}
 									class="subclass-input"
 								/>
 							{/if}
@@ -238,8 +287,8 @@
 								type="text"
 								placeholder="Подкласс"
 								value={classEntry.subclassName || ''}
-								oninput={(e) => updateClass(index, 'subclassName', e.currentTarget.value)}
-								onblur={(e) => checkSubclassLink(e.currentTarget.value)}
+								oninput={(e) => updateClass(index, 'subclassName', e.currentTarget.value, true)}
+								onblur={(e) => checkSubclassLink(e.currentTarget.value, false)}
 								class="subclass-input"
 								class:has-link={classEntry.subclassName && subclassLinksMap.get(classEntry.subclassName.trim())?.exists}
 							/>
