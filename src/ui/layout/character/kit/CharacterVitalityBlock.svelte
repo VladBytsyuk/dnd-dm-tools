@@ -102,10 +102,18 @@
 		for (const [key, val] of Object.entries(updates)) {
 			const numValue = Number(val);
 			if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
-				localVitality = {
-					...localVitality,
-					[key]: { value: numValue },
-				};
+				// Handle isDying specially - it's a bare boolean, not wrapped in {value:}
+				if (key === "isDying") {
+					localVitality = {
+						...localVitality,
+						isDying: Boolean(numValue),
+					};
+				} else {
+					localVitality = {
+						...localVitality,
+						[key]: { value: numValue },
+					};
+				}
 			}
 		}
 
