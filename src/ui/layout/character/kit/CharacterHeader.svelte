@@ -356,6 +356,7 @@
 		margin-bottom: 12px;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 		overflow: visible;
+		container-type: inline-size;
 	}
 
 	.header-content {
@@ -371,9 +372,8 @@
 		align-items: center;
 		justify-content: center;
 		align-self: stretch;
-		width: auto;
+		width: 80px;
 		height: auto;
-		max-width: 150px;
 		border-radius: 6px 0 0 6px;
 	}
 
@@ -382,8 +382,8 @@
 		min-width: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 3px;
-		padding: 8px;
+		gap: 2px;
+		padding: 6px;
 		overflow: visible;
 	}
 
@@ -416,18 +416,11 @@
 	}
 
 	.avatar-placeholder svg {
-		width: 50%;
-		height: 50%;
+		width: 45%;
+		height: 45%;
+		min-width: 32px;
 		max-width: 60px;
 		max-height: 60px;
-	}
-
-	.header-info {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 3px;
 	}
 
 	/* Name and Level Row */
@@ -461,18 +454,19 @@
 	.race-background-row {
 		display: flex;
 		align-items: center;
-		gap: 6px;
+		gap: 4px;
 		font-size: 12px;
 		margin-bottom: 2px;
 	}
 
 	.race-background-row :global(.linked-input-container):first-child {
-		width: 150px;
-		flex-shrink: 0;
+		flex: 0 1 auto;
+		min-width: 80px;
 	}
 
 	.race-background-row :global(.linked-input-container):last-child {
-		flex: 1;
+		flex: 1 1 auto;
+		min-width: 100px;
 	}
 
 	.separator {
@@ -489,10 +483,9 @@
 	/* Bottom Row */
 	.bottom-row {
 		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-		gap: 12px;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 6px;
 		font-size: 11px;
 		color: var(--text-muted);
 		margin-top: 2px;
@@ -503,19 +496,7 @@
 		display: flex;
 		align-items: center;
 		gap: 4px;
-		flex: 1;
-	}
-
-	.bottom-item:first-child {
-		justify-content: flex-start;
-	}
-
-	.bottom-item:nth-child(2) {
-		justify-content: center;
-	}
-
-	.bottom-item:last-child {
-		justify-content: flex-end;
+		width: 100%;
 	}
 
 	.label {
@@ -701,7 +682,7 @@
 		background-color: transparent;
 		color: var(--text-normal);
 		line-height: 1.3;
-		min-width: 150px;
+		min-width: 140px;
 	}
 
 	.bottom-item :global(.alignment-picker:hover) {
@@ -714,36 +695,139 @@
 		border-color: var(--text-accent);
 	}
 
-	@media (max-width: 768px) {
-		.header-content {
-			flex-direction: column;
-			align-items: center;
+	/* Container queries for adaptive layout */
+
+	/* Extra Narrow (<280px): Ultra compact */
+	@container (max-width: 280px) {
+		.avatar-container {
+			width: 60px;
 		}
 
+		.header-info {
+			padding: 4px;
+			gap: 1px;
+		}
+
+		.classes-section :global(.class-name-wrapper) {
+			width: 70px;
+		}
+
+		.classes-section :global(.subclass-wrapper) {
+			display: none; /* Hide subclass at ultra-narrow */
+		}
+
+		.classes-section :global(.level-input) {
+			width: 30px;
+		}
+	}
+
+	/* Narrow (<300px): Extra compact name row */
+	@container (max-width: 300px) {
 		.name-level-row {
-			flex-direction: column;
-			align-items: flex-start;
 			gap: 4px;
 		}
+	}
 
+	/* Narrow (<400px): Stack race/background vertically, hide separator, compact classes and alignment */
+	@container (max-width: 400px) {
 		.race-background-row {
 			flex-direction: column;
 			align-items: flex-start;
-			gap: 4px;
 		}
 
 		.separator {
 			display: none;
 		}
 
+		/* Make multiclass input more compact */
+		.classes-section :global(.class-entry) {
+			gap: 2px;
+			font-size: 10px;
+		}
+
+		.classes-section :global(.class-name-wrapper) {
+			width: 90px;
+		}
+
+		.classes-section :global(.level-input) {
+			width: 35px;
+			font-size: 10px;
+		}
+
+		.classes-section :global(.remove-btn),
+		.classes-section :global(.add-class-btn) {
+			width: 14px;
+			height: 14px;
+			font-size: 11px;
+		}
+
+		.classes-section :global(.class-name-input),
+		.classes-section :global(.subclass-input),
+		.classes-section :global(.autocomplete-input) {
+			font-size: 10px;
+		}
+
+		/* Reduce alignment picker width */
+		.bottom-item :global(.alignment-picker) {
+			min-width: 110px;
+			font-size: 9px;
+		}
+
+		/* Allow bottom items to wrap if needed */
+		.bottom-item {
+			flex-wrap: wrap;
+		}
+	}
+
+	/* Medium (400px+): Increase spacing, scale avatar */
+	@container (min-width: 400px) {
+		.avatar-container {
+			width: clamp(80px, 22%, 150px);
+		}
+
+		.header-info {
+			padding: 8px;
+			gap: 3px;
+		}
+
 		.bottom-row {
-			flex-direction: column;
-			align-items: flex-start;
+			display: grid;
+			grid-template-columns: 1fr 1fr;
 			gap: 8px;
 		}
 
-		.character-name-input {
-			font-size: 18px;
+		.bottom-item {
+			width: auto;
+		}
+
+		.bottom-item:last-child {
+			grid-column: 1 / -1;
+		}
+	}
+
+	/* Wide (600px+): Horizontal bottom row */
+	@container (min-width: 600px) {
+		.bottom-row {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			gap: 12px;
+		}
+
+		.bottom-item:last-child {
+			grid-column: auto;
+			margin-left: auto;
+		}
+	}
+
+	/* Extra Wide (800px+): Full-size avatar */
+	@container (min-width: 800px) {
+		.avatar-container {
+			width: clamp(100px, 25%, 150px);
+		}
+
+		.bottom-item :global(.alignment-picker) {
+			min-width: 150px;
 		}
 	}
 </style>
