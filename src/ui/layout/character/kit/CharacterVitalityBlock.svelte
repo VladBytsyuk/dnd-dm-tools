@@ -75,32 +75,37 @@
 	const darkvision = $derived(localVitality.darkvision?.value ?? 0);
 
 	// Hit dice total equals character level
+	// TODO: Multi-class support - Currently assumes single class.
+	// Multi-class characters should calculate hit dice from array of class levels,
+	// as each class contributes its own hit die type.
 	const hitDiceTotal = $derived(Math.max(1, level));
 
-	function handleChange(field: string, value: number | Record<string, number>) {
-		if (typeof value === "object") {
-			// Batch update
-			for (const [key, val] of Object.entries(value)) {
-				const numValue = Number(val);
-				if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
-					localVitality = {
-						...localVitality,
-						[key]: { value: numValue },
-					};
-				}
-			}
+	function handleChange(field: string, value: number) {
+		// Single field update
+		if (field === "isDying") {
+			localVitality = { ...localVitality, isDying: Boolean(value) };
 		} else {
-			// Single field update
-			if (field === "isDying") {
-				localVitality = { ...localVitality, isDying: Boolean(value) };
-			} else {
-				const numValue = Number(value);
-				if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
-					localVitality = {
-						...localVitality,
-						[field]: { value: numValue },
-					};
-				}
+			const numValue = Number(value);
+			if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+				localVitality = {
+					...localVitality,
+					[field]: { value: numValue },
+				};
+			}
+		}
+
+		debouncedSave();
+	}
+
+	function handleBatchChange(updates: Record<string, number>) {
+		// Batch update - apply all changes at once
+		for (const [key, val] of Object.entries(updates)) {
+			const numValue = Number(val);
+			if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
+				localVitality = {
+					...localVitality,
+					[key]: { value: numValue },
+				};
 			}
 		}
 
@@ -144,6 +149,7 @@
 				deathSavesFail={deathSavesFail}
 				{conModifier}
 				onChange={handleChange}
+				onBatchChange={handleBatchChange}
 				onDeath={handleDeath}
 			/>
 		</div>

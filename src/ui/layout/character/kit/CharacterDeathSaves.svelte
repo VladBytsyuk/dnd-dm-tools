@@ -13,9 +13,24 @@
 		isDisabled: boolean;
 		onChange: (success: number, fail: number) => void;
 		onDeath: () => void;
+		onRestore?: () => void; // Called when natural 20 restores 1 HP
 	}
 
-	let { successCount, failCount, isDisabled, onChange, onDeath }: Props = $props();
+	let { successCount, failCount, isDisabled, onChange, onDeath, onRestore }: Props = $props();
+
+	// Accessibility: Announce death save changes to screen readers
+	let announceText = $state("");
+	$effect(() => {
+		if (successCount >= 3) {
+			announceText = "Три успеха! Персонаж стабилизирован.";
+		} else if (failCount >= 3) {
+			announceText = "Три провала. Персонаж мёртв.";
+		} else if (successCount > 0 || failCount > 0) {
+			announceText = `Спасброски от смерти: ${successCount} успехов, ${failCount} провалов`;
+		} else {
+			announceText = "";
+		}
+	});
 
 	function clamp(value: number, min: number, max: number): number {
 		return Math.max(min, Math.min(max, value));
@@ -52,8 +67,16 @@
 			newSuccess += 1;
 			message += " (успех)";
 		} else if (result === 20) {
-			newSuccess += 2;
-			message += " (критический успех, +2 успеха)";
+			// Natural 20: Restore 1 HP and become conscious (D&D 5e rule)
+			message += " (критический успех, восстановлено 1 ХП)";
+			new Notice(message, 3000);
+
+			// Clear death saves and restore 1 HP
+			onChange(0, 0);
+			if (onRestore) {
+				onRestore();
+			}
+			return;
 		}
 
 		newSuccess = clamp(newSuccess, 0, 3);
@@ -71,6 +94,11 @@
 </script>
 
 <div class="death-saves-container">
+	<!-- Accessibility: Screen reader announcements -->
+	<div aria-live="polite" aria-atomic="true" class="sr-only">
+		{announceText}
+	</div>
+
 	<div class="death-saves-circles-wrapper">
 		<div class="death-saves-circles">
 			{#each [0, 1, 2] as i}
@@ -107,20 +135,20 @@
 </div>
 
 <style>
-	/* Mobile: Vertical stack */
+	/* Always horizontal layout when side by side with hit dice */
 	.death-saves-container {
 		display: flex;
-		flex-direction: column;
-		align-items: stretch;
+		flex-direction: row;
+		align-items: center;
 		padding: 6px 8px;
-		gap: 6px;
+		gap: 8px;
 	}
 
 	.death-saves-circles-wrapper {
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
-		align-items: center; /* Center circles on mobile */
+		align-items: flex-start;
 	}
 
 	.death-saves-circles {
@@ -128,14 +156,13 @@
 		gap: 3px;
 	}
 
-	/* Mobile: Larger circles for better touch targets */
 	.death-save-circle {
-		width: 20px;
-		height: 20px;
+		width: 18px;
+		height: 18px;
 		border-radius: 50%;
 		border: 2px solid var(--background-modifier-border);
 		background: var(--background-primary);
-		font-size: 14px;
+		font-size: 12px;
 		line-height: 1;
 		cursor: pointer;
 		transition:
@@ -185,10 +212,11 @@
 		border-color: var(--background-modifier-border);
 	}
 
-	/* Mobile: Full width button */
 	.death-save-roll-button {
-		padding: 8px;
+		width: auto;
+		padding: 4px;
 		font-size: 12px;
+		flex-shrink: 0;
 		font-weight: 600;
 		border-radius: 4px;
 		border: 2px solid var(--interactive-accent);
@@ -202,7 +230,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 100%;
 	}
 
 	.death-save-roll-button:hover:not(:disabled) {
@@ -215,27 +242,16 @@
 		cursor: not-allowed;
 	}
 
-	/* Always horizontal layout when side by side with hit dice */
-	.death-saves-container {
-		flex-direction: row;
-		align-items: center;
-		padding: 6px 8px;
-		gap: 8px;
-	}
-
-	.death-saves-circles-wrapper {
-		align-items: flex-start;
-	}
-
-	.death-save-circle {
-		width: 18px;
-		height: 18px;
-		font-size: 12px;
-	}
-
-	.death-save-roll-button {
-		width: auto;
-		padding: 4px;
-		flex-shrink: 0;
+	/* Screen reader only text */
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border-width: 0;
 	}
 </style>

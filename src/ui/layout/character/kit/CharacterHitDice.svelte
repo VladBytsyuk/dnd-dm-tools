@@ -56,9 +56,9 @@
 	function spendHitDie() {
 		if (hitDiceCurrent <= 0 || isHpFull) return;
 
-		// Roll hit die + CON modifier
+		// Roll hit die + CON modifier (D&D 5e: minimum 0 HP restored)
 		const roll = rollRaw(`1${hitDieType}`);
-		const healing = Math.max(1, roll + conModifier);
+		const healing = Math.max(0, roll + conModifier);
 
 		// Heal and decrement hit dice
 		const newHp = Math.min(hpMax, hpCurrent + healing);

@@ -1,3 +1,8 @@
+// Pre-compiled regexes for performance
+const VALID_CHARS_REGEX = /^[0-9+\-*/().\s]+$/;
+const DIGIT_OR_DOT_REGEX = /[0-9.]/;
+const NUMBER_REGEX = /^[0-9.]+$/;
+
 /**
  * Evaluates numeric expressions with basic arithmetic operations.
  * Supports: +, -, *, /, parentheses
@@ -17,7 +22,7 @@ export function evalNumericExpression(exprRaw: string): number | null {
 	if (!expr.length) return null;
 
 	// If expression contains only valid characters for math
-	if (!/^[0-9+\-*/().\s]+$/.test(expr)) {
+	if (!VALID_CHARS_REGEX.test(expr)) {
 		const n = Number(expr);
 		return Number.isFinite(n) ? n : null;
 	}
@@ -33,9 +38,16 @@ export function evalNumericExpression(exprRaw: string): number | null {
 			continue;
 		}
 		// Parse numbers (including decimals)
-		if (/[0-9.]/.test(c)) {
+		if (DIGIT_OR_DOT_REGEX.test(c)) {
 			let j = i + 1;
-			while (j < expr.length && /[0-9.]/.test(expr[j])) j++;
+			let hasDecimal = c === '.';
+			while (j < expr.length && DIGIT_OR_DOT_REGEX.test(expr[j])) {
+				if (expr[j] === '.') {
+					if (hasDecimal) return null; // Multiple decimal points
+					hasDecimal = true;
+				}
+				j++;
+			}
 			tokens.push(expr.slice(i, j));
 			i = j;
 			continue;
@@ -68,7 +80,7 @@ export function evalNumericExpression(exprRaw: string): number | null {
 
 	for (const t of fixed) {
 		// Numbers go directly to output
-		if (/^[0-9.]+$/.test(t)) {
+		if (NUMBER_REGEX.test(t)) {
 			out.push(t);
 			continue;
 		}
@@ -107,7 +119,7 @@ export function evalNumericExpression(exprRaw: string): number | null {
 	// Evaluate postfix expression
 	const stack: number[] = [];
 	for (const t of out) {
-		if (/^[0-9.]+$/.test(t)) {
+		if (NUMBER_REGEX.test(t)) {
 			const n = Number(t);
 			if (!Number.isFinite(n)) return null;
 			stack.push(n);

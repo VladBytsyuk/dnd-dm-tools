@@ -39,15 +39,28 @@
 				: "var(--color-red)"
 	);
 
+	// Accessibility: Announce HP changes to screen readers
+	let announceText = $state("");
+	$effect(() => {
+		if (hpCurrent === 0) {
+			announceText = "Хиты упали до нуля. Персонаж без сознания.";
+		} else if (isDying) {
+			announceText = "Персонаж при смерти.";
+		} else {
+			announceText = `Текущие хиты: ${hpCurrent} из ${hpMax}`;
+		}
+	});
+
 	function handleCurrentBlur() {
 		const result = evalNumericExpression(currentInput);
 		if (result !== null) {
 			const value = Math.floor(result);
 			// Check for massive damage before clamping
 			if (value < -hpMax) {
-				// Massive damage - instant death
-				currentInput = "0";
-				onChange("hp-current", value);
+				// Massive damage - instant death (set HP to 0)
+				const clampedValue = 0;
+				currentInput = String(clampedValue);
+				onChange("hp-current", clampedValue);
 			} else {
 				// Normal damage - clamp to valid range
 				const clamped = Math.max(0, Math.min(hpMax, value));
@@ -81,7 +94,7 @@
 		}
 	}
 
-	function handleKeydown(e: KeyboardEvent, handler: () => void) {
+	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === "Enter") {
 			e.preventDefault();
 			(e.target as HTMLInputElement).blur();
@@ -93,6 +106,11 @@
 </script>
 
 <div class="hp-container">
+	<!-- Accessibility: Screen reader announcements -->
+	<div aria-live="polite" aria-atomic="true" class="sr-only">
+		{announceText}
+	</div>
+
 	<div class="stat-label">Хиты</div>
 
 	<div class="hp-inputs">
@@ -104,7 +122,7 @@
 				class:dying={isDying}
 				bind:value={currentInput}
 				onblur={handleCurrentBlur}
-				onkeydown={(e) => handleKeydown(e, handleCurrentBlur)}
+				onkeydown={handleKeydown}
 			/>
 			<label class="hp-input-label" for="hp-current-input">Текущие</label>
 		</div>
@@ -116,7 +134,7 @@
 				class="hp-input hp-temp-input"
 				bind:value={tempInput}
 				onblur={handleTempBlur}
-				onkeydown={(e) => handleKeydown(e, handleTempBlur)}
+				onkeydown={handleKeydown}
 			/>
 			<label class="hp-input-label" for="hp-temp-input">Временные</label>
 		</div>
@@ -129,7 +147,7 @@
 			class="hp-input hp-max-input"
 			bind:value={maxInput}
 			onblur={handleMaxBlur}
-			onkeydown={(e) => handleKeydown(e, handleMaxBlur)}
+			onkeydown={handleKeydown}
 		/>
 		<label class="hp-max-label" for="hp-max-input">Максимум</label>
 	</div>
@@ -268,5 +286,18 @@
 		.hp-input {
 			font-size: 14px;
 		}
+	}
+
+	/* Screen reader only text */
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border-width: 0;
 	}
 </style>

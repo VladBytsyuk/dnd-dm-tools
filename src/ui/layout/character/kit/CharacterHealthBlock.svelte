@@ -18,7 +18,8 @@
 		deathSavesSuccess: number;
 		deathSavesFail: number;
 		conModifier: number;
-		onChange: (field: string, value: number | Record<string, number>) => void;
+		onChange: (field: string, value: number) => void;
+		onBatchChange?: (updates: Record<string, number>) => void;
 		onDeath: () => void;
 	}
 
@@ -34,15 +35,25 @@
 		deathSavesFail,
 		conModifier,
 		onChange,
+		onBatchChange,
 		onDeath,
 	}: Props = $props();
 
 	function handleHpChange(field: string, value: number) {
 		// D&D 5e Massive Damage: If damage brings HP to negative max HP or below, instant death
 		if (field === "hp-current" && value < -hpMax) {
-			onChange("hp-current", 0);
-			onChange("death-saves-success", 0);
-			onChange("death-saves-fail", 3);
+			// Batch update: massive damage instant death
+			if (onBatchChange) {
+				onBatchChange({
+					"hp-current": 0,
+					"death-saves-success": 0,
+					"death-saves-fail": 3,
+				});
+			} else {
+				onChange("hp-current", 0);
+				onChange("death-saves-success", 0);
+				onChange("death-saves-fail", 3);
+			}
 			onDeath();
 			return;
 		}
@@ -51,9 +62,18 @@
 
 		// Clear death saves and isDying when HP > 0
 		if (field === "hp-current" && value > 0) {
-			onChange("death-saves-success", 0);
-			onChange("death-saves-fail", 0);
-			onChange("isDying", 0);
+			// Batch update: clear death saves
+			if (onBatchChange) {
+				onBatchChange({
+					"death-saves-success": 0,
+					"death-saves-fail": 0,
+					isDying: 0,
+				});
+			} else {
+				onChange("death-saves-success", 0);
+				onChange("death-saves-fail", 0);
+				onChange("isDying", 0);
+			}
 		}
 		// Set isDying to false when HP reaches exactly 0 (unconscious, not dead)
 		else if (field === "hp-current" && value === 0) {
@@ -63,12 +83,44 @@
 
 	function handleHitDiceChange(updates: Record<string, number>) {
 		// Pass the entire updates object as a batch update
-		onChange("", updates);
+		if (onBatchChange) {
+			onBatchChange(updates);
+		} else {
+			// Fallback: apply updates one by one
+			for (const [field, value] of Object.entries(updates)) {
+				onChange(field, value);
+			}
+		}
 	}
 
 	function handleDeathSavesChange(success: number, fail: number) {
-		onChange("death-saves-success", success);
-		onChange("death-saves-fail", fail);
+		// Batch update: both death save counters
+		if (onBatchChange) {
+			onBatchChange({
+				"death-saves-success": success,
+				"death-saves-fail": fail,
+			});
+		} else {
+			onChange("death-saves-success", success);
+			onChange("death-saves-fail", fail);
+		}
+	}
+
+	function handleDeathSaveRestore() {
+		// Natural 20 on death save: restore 1 HP and clear death saves
+		if (onBatchChange) {
+			onBatchChange({
+				"hp-current": 1,
+				"death-saves-success": 0,
+				"death-saves-fail": 0,
+				isDying: 0,
+			});
+		} else {
+			onChange("hp-current", 1);
+			onChange("death-saves-success", 0);
+			onChange("death-saves-fail", 0);
+			onChange("isDying", 0);
+		}
 	}
 </script>
 
@@ -98,6 +150,7 @@
 			isDisabled={hpCurrent !== 0 || isDying || deathSavesSuccess >= 3 || deathSavesFail >= 3}
 			onChange={handleDeathSavesChange}
 			{onDeath}
+			onRestore={handleDeathSaveRestore}
 		/>
 	</div>
 </div>

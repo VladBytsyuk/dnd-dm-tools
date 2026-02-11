@@ -25,13 +25,3 @@ export const CLASS_HIT_DICE: Record<string, string> = {
 export function getHitDieForClass(className: string): string {
 	return CLASS_HIT_DICE[className] || "d8";
 }
-
-/**
- * Gets the numeric value of a hit die (e.g., "d8" -> 8)
- * @param hitDie - Hit die string (e.g., "d8", "d10")
- * @returns Numeric value of the die
- */
-export function getHitDieValue(hitDie: string): number {
-	const match = hitDie.match(/d(\d+)/);
-	return match ? parseInt(match[1], 10) : 8;
-}
