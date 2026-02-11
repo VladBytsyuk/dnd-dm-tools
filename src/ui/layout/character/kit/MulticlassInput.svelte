@@ -80,13 +80,14 @@
 
 		const performLookup = async () => {
 			const result = await onLookupClass(key);
+			// Create new Map to trigger Svelte 5 reactivity
+			const newMap = new Map(classLinksMap);
 			if (result.exists) {
-				classLinksMap.set(key, result);
-				classLinksMap = classLinksMap; // Trigger reactivity
+				newMap.set(key, result);
 			} else {
-				classLinksMap.delete(key);
-				classLinksMap = classLinksMap;
+				newMap.delete(key);
 			}
+			classLinksMap = newMap;
 			classLookupTimeouts.delete(key);
 		};
 
@@ -111,13 +112,14 @@
 
 		const performLookup = async () => {
 			const result = await onLookupSubclass(key);
+			// Create new Map to trigger Svelte 5 reactivity
+			const newMap = new Map(subclassLinksMap);
 			if (result.exists) {
-				subclassLinksMap.set(key, result);
-				subclassLinksMap = subclassLinksMap; // Trigger reactivity
+				newMap.set(key, result);
 			} else {
-				subclassLinksMap.delete(key);
-				subclassLinksMap = subclassLinksMap;
+				newMap.delete(key);
 			}
+			subclassLinksMap = newMap;
 			subclassLookupTimeouts.delete(key);
 		};
 
