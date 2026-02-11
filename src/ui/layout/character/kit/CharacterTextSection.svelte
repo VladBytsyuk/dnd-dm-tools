@@ -104,6 +104,7 @@
 </script>
 
 <div class="character-text-section">
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<div
 		class="section-header"

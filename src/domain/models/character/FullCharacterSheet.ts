@@ -26,6 +26,7 @@ export function EmptyFullCharacterSheet(): FullCharacterSheet {
 		info: {
 			charClass: { name: "charClass", value: "" },
 			charSubclass: { name: "charSubclass", value: "" },
+			classes: { name: "classes", value: [] },
 			level: { name: "level", value: 1 },
 			background: { name: "background", value: "" },
 			playerName: { name: "playerName", value: "" },

@@ -3,6 +3,13 @@
 	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 	import type { FullCharacterSheet } from "../../../domain/models/character";
 	import type { IUiEventListener } from "../../../domain/listeners/ui_event_listener";
+	import type { CharacterSheetRepository } from "../../../data/repositories/CharacterSheetRepository";
+	import type { ClassEntry } from "../../../domain/models/character/ClassEntry";
+	import { EntityLinkService } from "../../../domain/services/EntityLinkService";
+	import type DndStatblockPlugin from "../../../main";
+	import type { SmallRace } from "../../../domain/models/race/SmallRace";
+	import type { SmallBackground } from "../../../domain/models/background/SmallBackground";
+	import type { SmallClass } from "../../../domain/models/class/SmallClass";
 
 	// Import kit components
 	import CharacterHeader from "./kit/CharacterHeader.svelte";
@@ -17,15 +24,20 @@
 	let {
 		currentItem,
 		uiEventListener,
+		repository,
+		plugin,
 	} = $props<{
 		currentItem: FullCharacterSheet;
 		uiEventListener: IUiEventListener;
+		repository?: CharacterSheetRepository;
+		plugin?: DndStatblockPlugin;
 	}>();
 
 	const diceRollersManager = DiceRollersManager.create(uiEventListener);
 	onMount(async () => {
 		await tick();
 		diceRollersManager.onMount();
+		migrateToMulticlass();
 	});
 	onDestroy(() => {
 		diceRollersManager.onDestroy();
@@ -33,10 +45,204 @@
 
 	const { data } = currentItem;
 
+	// Create EntityLinkService if repository is available
+	let entityLinkService: EntityLinkService | undefined;
+	if (repository) {
+		const database = repository.getDatabase();
+		entityLinkService = new EntityLinkService(database);
+	}
+
+	// Autocomplete data state
+	let raceOptions = $state<Array<{ name: { rus: string; eng: string }; url: string }>>([]);
+	let backgroundOptions = $state<Array<{ name: { rus: string; eng: string }; url: string }>>([]);
+	let classOptions = $state<Array<{ name: { rus: string; eng: string }; url: string }>>([]);
+	let archetypeOptions = $state<Array<{ name: { rus: string; eng: string }; url: string; parentClassUrl: string }>>([]);
+
+	// Fetch autocomplete data from database
+	$effect(() => {
+		if (repository) {
+			const database = repository.getDatabase();
+
+			// Fetch all autocomplete data in parallel with error handling
+			Promise.all([
+				database.smallRaceDao.readAllItems(null, null),
+				database.smallBackgroundDao.readAllItems(null, null),
+				database.smallClassDao.readAllItems(null, null)
+			])
+				.then(([races, backgrounds, classes]) => {
+					// Map races
+					raceOptions = races.map((r: SmallRace) => ({
+						name: r.name,
+						url: r.url
+					}));
+
+					// Map backgrounds
+					backgroundOptions = backgrounds.map((b: SmallBackground) => ({
+						name: b.name,
+						url: b.url
+					}));
+
+					// Map classes (filter out archetypes)
+					classOptions = classes
+						.filter((c: SmallClass) => !c.isArchetype)
+						.map((c: SmallClass) => ({
+							name: c.name,
+							url: c.url
+						}));
+
+					// Map archetypes (subclasses)
+					archetypeOptions = classes
+						.filter((c: SmallClass) => c.isArchetype)
+						.map((c: SmallClass) => ({
+							name: c.name,
+							url: c.url,
+							parentClassUrl: c.parentClassUrl || ''
+						}));
+				})
+				.catch((error) => {
+					console.error('Failed to load autocomplete data:', error);
+					// Set empty arrays as fallback to allow component to function
+					raceOptions = [];
+					backgroundOptions = [];
+					classOptions = [];
+					archetypeOptions = [];
+				});
+		}
+	});
+
+	// Migration logic: Convert old single-class format to new multiclass format
+	function migrateToMulticlass() {
+		if (!data.info?.classes || data.info.classes.value.length === 0) {
+			const legacyClass = data.info?.charClass?.value || '';
+			const legacySubclass = data.info?.charSubclass?.value || '';
+			const legacyLevel = data.info?.level?.value || 1;
+
+			if (legacyClass) {
+				data.info.classes = {
+					name: 'classes',
+					value: [{
+						className: legacyClass,
+						subclassName: legacySubclass || undefined,
+						level: legacyLevel
+					}]
+				};
+			} else {
+				// No class at all, create empty array
+				data.info.classes = {
+					name: 'classes',
+					value: []
+				};
+			}
+		}
+	}
+
+	// Auto-save functionality
+	let saveTimeout: NodeJS.Timeout | null = null;
+	let isSaving = $state(false);
+
+	async function debouncedSave() {
+		if (!repository) return;
+
+		if (saveTimeout) clearTimeout(saveTimeout);
+		saveTimeout = setTimeout(async () => {
+			isSaving = true;
+			try {
+				await repository.putItem(currentItem);
+				console.log('Character saved');
+			} catch (error) {
+				console.error('Failed to save character:', error);
+			} finally {
+				isSaving = false;
+			}
+		}, 1000); // 1 second debounce
+	}
+
+	// Event handlers for character header
+	function handleNameChange(newName: string) {
+		data.name.value = newName;
+		currentItem.name.rus = newName;
+		currentItem.name.eng = newName;
+		debouncedSave();
+	}
+
+	function handleClassesChange(newClasses: ClassEntry[]) {
+		// Validation: at least one class required
+		if (newClasses.length === 0) return;
+
+		// Validation: total level cannot exceed 20
+		const totalLevel = newClasses.reduce((sum, c) => sum + (c.level || 0), 0);
+		if (totalLevel > 20) return;
+
+		// Validation: each class level must be 1-20
+		const invalidLevel = newClasses.some(c => !c.level || c.level < 1 || c.level > 20);
+		if (invalidLevel) return;
+
+		// Update multiclass array
+		data.info.classes.value = newClasses;
+
+		// Update legacy fields for backward compatibility
+		if (newClasses.length > 0) {
+			data.info.charClass.value = newClasses[0].className;
+			data.info.charSubclass.value = newClasses[0].subclassName || '';
+			currentItem.charClass = newClasses[0].className;
+		}
+
+		// Update total level
+		data.info.level.value = totalLevel;
+		currentItem.level = totalLevel;
+
+		debouncedSave();
+	}
+
+	function handleRaceChange(newRace: string) {
+		data.info.race.value = newRace;
+		currentItem.race = newRace;
+		debouncedSave();
+	}
+
+	function handleBackgroundChange(newBackground: string) {
+		data.info.background.value = newBackground;
+		debouncedSave();
+	}
+
+	function handlePlayerNameChange(newPlayerName: string) {
+		data.info.playerName.value = newPlayerName;
+		currentItem.playerName = newPlayerName;
+		debouncedSave();
+	}
+
+	function handleAlignmentChange(newAlignment: string) {
+		data.info.alignment.value = newAlignment;
+		debouncedSave();
+	}
+
+	function handleExperienceAdd(additionalXp: number) {
+		const currentXp = parseInt(data.info.experience.value || '0') || 0;
+		const newXp = currentXp + additionalXp;
+		data.info.experience.value = newXp.toString();
+		debouncedSave();
+	}
+
+	// Database lookup wrappers
+	async function lookupRace(race: string) {
+		return entityLinkService ? await entityLinkService.findRace(race) : { exists: false };
+	}
+
+	async function lookupClass(className: string) {
+		return entityLinkService ? await entityLinkService.findClass(className) : { exists: false };
+	}
+
+	async function lookupSubclass(subclassName: string, parentClassName?: string) {
+		return entityLinkService ? await entityLinkService.findArchetype(subclassName, parentClassName) : { exists: false };
+	}
+
+	async function lookupBackground(bg: string) {
+		return entityLinkService ? await entityLinkService.findBackground(bg) : { exists: false };
+	}
+
 	// Transform data for components
 	const headerInfo = $derived({
-		charClass: data.info?.charClass?.value || '',
-		charSubclass: data.info?.charSubclass?.value,
+		classes: data.info?.classes?.value || [],
 		level: data.info?.level?.value || 1,
 		race: data.info?.race?.value || '',
 		background: data.info?.background?.value,
@@ -242,7 +448,23 @@
 			<CharacterHeader
 				name={data.name}
 				info={headerInfo}
-				avatar={currentItem.avatar}
+				avatar={data.avatar}
+				onNameChange={handleNameChange}
+				onClassesChange={handleClassesChange}
+				onRaceChange={handleRaceChange}
+				onBackgroundChange={handleBackgroundChange}
+				onPlayerNameChange={handlePlayerNameChange}
+				onAlignmentChange={handleAlignmentChange}
+				onExperienceAdd={handleExperienceAdd}
+				onLookupRace={lookupRace}
+				onLookupClass={lookupClass}
+				onLookupSubclass={lookupSubclass}
+				onLookupBackground={lookupBackground}
+				uiEventListener={uiEventListener}
+				{raceOptions}
+				{backgroundOptions}
+				{classOptions}
+				{archetypeOptions}
 			/>
 
 			<CharacterVitalityBlock {vitality} />

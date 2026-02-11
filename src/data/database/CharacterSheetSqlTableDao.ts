@@ -28,6 +28,24 @@ export class CharacterSheetSqlTableDao extends Dao<FullCharacterSheet, Character
 		return [];
 	}
 
+	/**
+	 * Extracts the primary class name from a character for database storage.
+	 * Uses new multiclass format if available, falls back to legacy field.
+	 * Finds the first non-empty class name to handle cases where the first entry
+	 * might be blank during editing.
+	 */
+	private extractPrimaryClass(item: FullCharacterSheet): string {
+		// Try new multiclass format first - find first non-empty class name
+		if (item.data?.info?.classes?.value && item.data.info.classes.value.length > 0) {
+			const firstNonEmpty = item.data.info.classes.value.find(c => c.className?.trim());
+			if (firstNonEmpty) {
+				return firstNonEmpty.className;
+			}
+		}
+		// Fallback to legacy field or item.charClass
+		return item.charClass || item.data?.info?.charClass?.value || '';
+	}
+
 	// Table management
 	async createTable(): Promise<void> {
 		this.database.exec(`
@@ -58,6 +76,8 @@ export class CharacterSheetSqlTableDao extends Dao<FullCharacterSheet, Character
 			const existing = await this.checkItemExists(item);
 			if (existing) return;
 
+			const primaryClass = this.extractPrimaryClass(item);
+
 			this.database.exec(
 				`
                 INSERT INTO ${this.getTableName()} (
@@ -81,7 +101,7 @@ export class CharacterSheetSqlTableDao extends Dao<FullCharacterSheet, Character
 				[
 					item.name.rus,
 					item.name.eng,
-					item.charClass,
+					primaryClass,
 					item.level,
 					item.race,
 					item.playerName || null,
@@ -104,6 +124,8 @@ export class CharacterSheetSqlTableDao extends Dao<FullCharacterSheet, Character
 
 	async updateItem(item: FullCharacterSheet): Promise<void> {
 		try {
+			const primaryClass = this.extractPrimaryClass(item);
+
 			this.database.exec(
 				`
                 UPDATE ${this.getTableName()} SET
@@ -126,7 +148,7 @@ export class CharacterSheetSqlTableDao extends Dao<FullCharacterSheet, Character
 				[
 					item.name.rus,
 					item.name.eng,
-					item.charClass,
+					primaryClass,
 					item.level,
 					item.race,
 					item.playerName || null,

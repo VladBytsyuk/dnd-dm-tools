@@ -16,6 +16,14 @@ export class CharacterSheetRepository
 		super(database, database.characterSheetDao, database.characterSheetDao);
 	}
 
+	/**
+	 * Gets the database instance for accessing DAOs.
+	 * Needed for EntityLinkService to query races, classes, and backgrounds.
+	 */
+	getDatabase(): DB {
+		return this.database;
+	}
+
 	async collectFiltersFromAllItems(
 		allSmallItems: SmallCharacterSheet[]
 	): Promise<CharacterSheetFilters | null> {
@@ -71,57 +79,95 @@ export class CharacterSheetRepository
 	 * Import character sheet from JSON file content.
 	 * Parses the raw JSON, extracts fields, and saves to database.
 	 * Supports both standard format and riardon.json format.
+	 * @throws {Error} If JSON is malformed or required fields are missing
 	 */
 	async importFromJson(jsonContent: string): Promise<FullCharacterSheet> {
-		const rawSheet = JSON.parse(jsonContent) as Partial<CharacterSheet>;
+		try {
+			// Validate JSON is parseable
+			if (!jsonContent || typeof jsonContent !== 'string') {
+				throw new Error('Invalid input: expected non-empty string');
+			}
 
-		// Provide default disabledBlocks if missing (riardon.json format)
-		const completeSheet: CharacterSheet = {
-			tags: rawSheet.tags || [],
-			disabledBlocks: rawSheet.disabledBlocks || {
-				"info-left": [],
-				"info-right": [],
-				"subinfo-left": [],
-				"subinfo-right": [],
-				"notes-left": [],
-				"notes-right": [],
-				_id: "",
-			},
-			edition: rawSheet.edition || "2024",
-			spells: rawSheet.spells || { mode: "cards", prepared: [], book: [] },
-			data: rawSheet.data || "{}",
-			jsonType: "character",
-			version: rawSheet.version || "2",
-		};
+			const rawSheet = JSON.parse(jsonContent) as Partial<CharacterSheet>;
 
-		const parsedSheet = parseCharacterData(completeSheet);
+			// Basic structure validation
+			if (typeof rawSheet !== 'object' || rawSheet === null) {
+				throw new Error('Invalid character sheet: expected JSON object');
+			}
 
-		// Extract fields for SmallCharacterSheet
-		const charClass = parsedSheet.data.info.charClass?.value || "";
-		const level = parsedSheet.data.info.level?.value || 1;
-		const race = parsedSheet.data.info.race?.value || "";
-		const name = parsedSheet.data.name?.value || "Unnamed Character";
-		const playerName = parsedSheet.data.info.playerName?.value || "";
+			// Validate jsonType if present
+			if (rawSheet.jsonType && rawSheet.jsonType !== 'character') {
+				throw new Error(`Invalid jsonType: expected "character", got "${rawSheet.jsonType}"`);
+			}
 
-		const fullSheet: FullCharacterSheet = {
-			...parsedSheet,
-			name: { rus: name, eng: name },
-			url: this.generateUrl(name),
-			charClass,
-			level,
-			race,
-			playerName,
-		};
+			// Provide default disabledBlocks if missing (riardon.json format)
+			const completeSheet: CharacterSheet = {
+				tags: Array.isArray(rawSheet.tags) ? rawSheet.tags : [],
+				disabledBlocks: rawSheet.disabledBlocks || {
+					"info-left": [],
+					"info-right": [],
+					"subinfo-left": [],
+					"subinfo-right": [],
+					"notes-left": [],
+					"notes-right": [],
+					_id: "",
+				},
+				edition: rawSheet.edition || "2024",
+				spells: rawSheet.spells || { mode: "cards", prepared: [], book: [] },
+				data: rawSheet.data || "{}",
+				jsonType: "character",
+				version: rawSheet.version || "2",
+			};
 
-		await this.putItem(fullSheet);
-		return fullSheet;
+			const parsedSheet = parseCharacterData(completeSheet);
+
+			// Extract fields for SmallCharacterSheet
+			const charClass = parsedSheet.data.info.charClass?.value || "";
+			const level = parsedSheet.data.info.level?.value || 1;
+			const race = parsedSheet.data.info.race?.value || "";
+			const name = parsedSheet.data.name?.value || "Unnamed Character";
+			const playerName = parsedSheet.data.info.playerName?.value || "";
+
+			// Validate extracted name
+			if (!name.trim()) {
+				throw new Error('Invalid character sheet: character name is required');
+			}
+
+			const fullSheet: FullCharacterSheet = {
+				...parsedSheet,
+				name: { rus: name, eng: name },
+				url: this.generateUrl(name),
+				charClass,
+				level,
+				race,
+				playerName,
+			};
+
+			await this.putItem(fullSheet);
+			return fullSheet;
+		} catch (error) {
+			// Enhance error messages for common issues
+			if (error instanceof SyntaxError) {
+				throw new Error(`Failed to parse JSON: ${error.message}`);
+			}
+			if (error instanceof Error) {
+				throw new Error(`Failed to import character sheet: ${error.message}`);
+			}
+			throw new Error('Failed to import character sheet: Unknown error');
+		}
 	}
 
 	/**
 	 * Generate URL from character name (lowercase with hyphens).
+	 * Handles edge cases like consecutive special characters.
 	 */
 	private generateUrl(name: string): string {
-		return name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-zа-я0-9-]/gi, "");
+		return name
+			.toLowerCase()
+			.replace(/\s+/g, "-")              // Replace spaces with hyphens
+			.replace(/[^a-zа-я0-9-]/gi, "")   // Remove special characters
+			.replace(/-+/g, "-")               // Collapse consecutive hyphens
+			.replace(/^-|-$/g, "");            // Remove leading/trailing hyphens
 	}
 
 	/**

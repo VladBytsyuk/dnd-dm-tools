@@ -1,3 +1,5 @@
+import type { ClassEntry } from './ClassEntry';
+
 // Common field wrapper interface
 export interface Field<T> {
 	name: string;
@@ -7,8 +9,14 @@ export interface Field<T> {
 
 // Basic character info
 export interface CharacterInfo {
+	// Legacy fields (maintained for backward compatibility)
 	charClass: Field<string>;
 	charSubclass: Field<string>;
+
+	// NEW: Multiclass support
+	classes?: Field<ClassEntry[]>;
+
+	// Character properties
 	level: Field<number>;
 	background: Field<string>;
 	playerName: Field<string>;
