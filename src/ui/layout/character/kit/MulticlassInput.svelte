@@ -20,7 +20,7 @@
 		classes: ClassEntry[];
 		onchange?: (classes: ClassEntry[]) => void;
 		onLookupClass?: (className: string) => Promise<EntityLinkResult>;
-		onLookupSubclass?: (subclassName: string) => Promise<EntityLinkResult>;
+		onLookupSubclass?: (subclassName: string, parentClassName?: string) => Promise<EntityLinkResult>;
 		uiEventListener?: IUiEventListener;
 		classOptions?: ClassOption[];
 		archetypeOptions?: ArchetypeOption[];
@@ -61,7 +61,7 @@
 			classes.forEach((classEntry) => {
 				const subclassName = classEntry.subclassName?.trim();
 				if (subclassName && !subclassLinksMap.has(subclassName)) {
-					checkSubclassLink(subclassName);
+					checkSubclassLink(subclassName, classEntry.className);
 				}
 			});
 		}
@@ -99,7 +99,7 @@
 		}
 	}
 
-	function checkSubclassLink(subclassName: string, debounce = false) {
+	function checkSubclassLink(subclassName: string, parentClassName?: string, debounce = false) {
 		if (!onLookupSubclass || !subclassName.trim()) return;
 
 		const key = subclassName.trim();
@@ -111,7 +111,7 @@
 		}
 
 		const performLookup = async () => {
-			const result = await onLookupSubclass(key);
+			const result = await onLookupSubclass(key, parentClassName);
 			// Create new Map to trigger Svelte 5 reactivity
 			const newMap = new Map(subclassLinksMap);
 			if (result.exists) {
@@ -190,7 +190,7 @@
 		if (field === 'className' && value) {
 			checkClassLink(value, debounce);
 		} else if (field === 'subclassName' && value) {
-			checkSubclassLink(value, debounce);
+			checkSubclassLink(value, classes[index].className, debounce);
 		}
 	}
 
@@ -219,7 +219,7 @@
 
 	async function handleArchetypeAutocompleteSelect(index: number, item: ArchetypeOption) {
 		updateClass(index, 'subclassName', item.name.rus);
-		await checkSubclassLink(item.name.rus);
+		await checkSubclassLink(item.name.rus, classes[index].className);
 	}
 </script>
 
@@ -280,7 +280,7 @@
 									placeholder="Подкласс"
 									value={classEntry.subclassName || ''}
 									oninput={(e) => updateClass(index, 'subclassName', e.currentTarget.value, true)}
-									onblur={(e) => checkSubclassLink(e.currentTarget.value, false)}
+									onblur={(e) => checkSubclassLink(e.currentTarget.value, classEntry.className, false)}
 									class="subclass-input"
 								/>
 							{/if}
@@ -290,7 +290,7 @@
 								placeholder="Подкласс"
 								value={classEntry.subclassName || ''}
 								oninput={(e) => updateClass(index, 'subclassName', e.currentTarget.value, true)}
-								onblur={(e) => checkSubclassLink(e.currentTarget.value, false)}
+								onblur={(e) => checkSubclassLink(e.currentTarget.value, classEntry.className, false)}
 								class="subclass-input"
 								class:has-link={classEntry.subclassName && subclassLinksMap.get(classEntry.subclassName.trim())?.exists}
 							/>

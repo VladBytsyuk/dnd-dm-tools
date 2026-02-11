@@ -127,7 +127,7 @@ export class EntityLinkService {
 	 * @param archetypeName The archetype name to search for (case-insensitive)
 	 * @returns EntityLinkResult with existence status and details
 	 */
-	async findArchetype(archetypeName: string): Promise<EntityLinkResult> {
+	async findArchetype(archetypeName: string, parentClassName?: string): Promise<EntityLinkResult> {
 		if (!archetypeName || !archetypeName.trim()) {
 			return { exists: false };
 		}
@@ -139,12 +139,30 @@ export class EntityLinkService {
 			);
 			const normalizedSearch = archetypeName.toLowerCase().trim();
 
-			// Filter to only archetypes - opposite of findClass
-			const match = allClasses.find(c =>
-				c.isArchetype &&
-				(c.name.rus.toLowerCase().trim() === normalizedSearch ||
-				c.name.eng.toLowerCase().trim() === normalizedSearch)
-			);
+			// If parent class is provided, find its URL first for filtering
+			let parentClassUrl: string | undefined;
+			if (parentClassName && parentClassName.trim()) {
+				const normalizedParent = parentClassName.toLowerCase().trim();
+				const parentClass = allClasses.find(c =>
+					!c.isArchetype &&
+					(c.name.rus.toLowerCase().trim() === normalizedParent ||
+					c.name.eng.toLowerCase().trim() === normalizedParent)
+				);
+				parentClassUrl = parentClass?.url;
+			}
+
+			// Filter to only archetypes, optionally matching parent class
+			const match = allClasses.find(c => {
+				const nameMatches = c.isArchetype &&
+					(c.name.rus.toLowerCase().trim() === normalizedSearch ||
+					c.name.eng.toLowerCase().trim() === normalizedSearch);
+
+				// If parent class context provided, also match parentClassUrl
+				if (parentClassUrl) {
+					return nameMatches && c.parentClassUrl === parentClassUrl;
+				}
+				return nameMatches;
+			});
 
 			return match
 				? { exists: true, url: match.url, name: match.name }

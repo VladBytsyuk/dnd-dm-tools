@@ -46,8 +46,12 @@
 	// Initial lookup when component mounts with existing value
 	$effect(() => {
 		if (onLookup && value.trim()) {
-			onLookup(value.trim()).then(result => {
-				linkResult = result;
+			const searchValue = value.trim();
+			onLookup(searchValue).then(result => {
+				// Only update if the value hasn't changed
+				if (value.trim() === searchValue) {
+					linkResult = result;
+				}
 			});
 		}
 	});
@@ -60,8 +64,13 @@
 		if (lookupTimeout) clearTimeout(lookupTimeout);
 
 		if (onLookup && newValue.trim()) {
+			const searchValue = newValue.trim();
 			lookupTimeout = setTimeout(async () => {
-				linkResult = await onLookup(newValue.trim());
+				const result = await onLookup(searchValue);
+				// Only update if the value hasn't changed since the lookup started
+				if (value.trim() === searchValue) {
+					linkResult = result;
+				}
 			}, 500); // 500ms debounce
 		} else {
 			linkResult = null;
@@ -71,7 +80,12 @@
 	async function handleBlur() {
 		// Immediate lookup on blur
 		if (onLookup && value.trim()) {
-			linkResult = await onLookup(value.trim());
+			const searchValue = value.trim();
+			const result = await onLookup(searchValue);
+			// Only update if the value hasn't changed since the lookup started
+			if (value.trim() === searchValue) {
+				linkResult = result;
+			}
 		}
 	}
 

@@ -31,11 +31,16 @@ export class CharacterSheetSqlTableDao extends Dao<FullCharacterSheet, Character
 	/**
 	 * Extracts the primary class name from a character for database storage.
 	 * Uses new multiclass format if available, falls back to legacy field.
+	 * Finds the first non-empty class name to handle cases where the first entry
+	 * might be blank during editing.
 	 */
 	private extractPrimaryClass(item: FullCharacterSheet): string {
-		// Try new multiclass format first
+		// Try new multiclass format first - find first non-empty class name
 		if (item.data?.info?.classes?.value && item.data.info.classes.value.length > 0) {
-			return item.data.info.classes.value[0].className || '';
+			const firstNonEmpty = item.data.info.classes.value.find(c => c.className?.trim());
+			if (firstNonEmpty) {
+				return firstNonEmpty.className;
+			}
 		}
 		// Fallback to legacy field or item.charClass
 		return item.charClass || item.data?.info?.charClass?.value || '';

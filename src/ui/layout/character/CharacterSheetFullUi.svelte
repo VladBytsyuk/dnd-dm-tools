@@ -232,8 +232,8 @@
 		return entityLinkService ? await entityLinkService.findClass(className) : { exists: false };
 	}
 
-	async function lookupSubclass(subclassName: string) {
-		return entityLinkService ? await entityLinkService.findArchetype(subclassName) : { exists: false };
+	async function lookupSubclass(subclassName: string, parentClassName?: string) {
+		return entityLinkService ? await entityLinkService.findArchetype(subclassName, parentClassName) : { exists: false };
 	}
 
 	async function lookupBackground(bg: string) {

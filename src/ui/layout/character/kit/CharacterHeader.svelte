@@ -46,7 +46,7 @@
 		// Database lookup services
 		onLookupRace?: (race: string) => Promise<EntityLinkResult>;
 		onLookupClass?: (className: string) => Promise<EntityLinkResult>;
-		onLookupSubclass?: (subclassName: string) => Promise<EntityLinkResult>;
+		onLookupSubclass?: (subclassName: string, parentClassName?: string) => Promise<EntityLinkResult>;
 		onLookupBackground?: (bg: string) => Promise<EntityLinkResult>;
 
 		// UI event listener
