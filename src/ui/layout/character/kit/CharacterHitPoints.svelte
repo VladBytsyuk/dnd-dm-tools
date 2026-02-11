@@ -55,17 +55,18 @@
 		const result = evalNumericExpression(currentInput);
 		if (result !== null) {
 			const value = Math.floor(result);
-			// Check for massive damage before clamping
+			// Send the raw value to parent for massive damage detection
+			// Parent will handle instant death if value < -hpMax
+			onChange("hp-current", value);
+
+			// Update input display to show clamped value
 			if (value < -hpMax) {
-				// Massive damage - instant death (set HP to 0)
-				const clampedValue = 0;
-				currentInput = String(clampedValue);
-				onChange("hp-current", clampedValue);
+				// Massive damage - display will show 0 after parent processes death
+				currentInput = "0";
 			} else {
-				// Normal damage - clamp to valid range
+				// Normal damage - clamp display to valid range
 				const clamped = Math.max(0, Math.min(hpMax, value));
 				currentInput = String(clamped);
-				onChange("hp-current", clamped);
 			}
 		} else {
 			currentInput = String(hpCurrent);

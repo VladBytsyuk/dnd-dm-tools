@@ -46,7 +46,8 @@
 	const hpTemp = $derived(localVitality["hp-temp"]?.value ?? 0);
 	const hpMax = $derived(localVitality["hp-max"]?.value ?? 0);
 	const hitDiceCurrent = $derived(localVitality["hp-dice-current"]?.value ?? 0);
-	const hitDieType = $derived(localVitality["hit-die"]?.value ?? "d8");
+	// Treat empty strings as unset - fallback to d8
+	const hitDieType = $derived(localVitality["hit-die"]?.value || "d8");
 	const deathSavesSuccess = $derived(localVitality["death-saves-success"]?.value ?? 0);
 	const deathSavesFail = $derived(localVitality["death-saves-fail"]?.value ?? 0);
 	const isDying = $derived(localVitality.isDying ?? false);
@@ -55,10 +56,10 @@
 	const initiative = $derived(localVitality.initiative?.value ?? 0);
 	const speed = $derived(localVitality.speed?.value ?? 30);
 
-	// Calculate proficiency bonus (can be overridden)
-	const calculatedProficiency = $derived(Math.ceil(proficiency / 4) + 1);
+	// Proficiency bonus (can be overridden)
+	// Note: 'proficiency' prop is already the computed bonus (2-6), not character level
 	const proficiencyBonus = $derived(
-		localVitality["proficiency-bonus"]?.value ?? calculatedProficiency
+		localVitality["proficiency-bonus"]?.value ?? proficiency
 	);
 
 	// Calculate passive perception (can be overridden)
