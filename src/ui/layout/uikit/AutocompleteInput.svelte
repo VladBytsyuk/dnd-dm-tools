@@ -1,13 +1,5 @@
-<script lang="ts">
-	interface Item {
-		name: {
-			rus: string;
-			eng: string;
-		};
-		url?: string;
-	}
-
-	interface Props<T extends Item> {
+<script lang="ts" generics="T extends { name: { rus: string; eng: string } }">
+	interface Props {
 		value: string;
 		placeholder?: string;
 		items: T[];
@@ -25,16 +17,16 @@
 		onSelect,
 		disabled = false,
 		filterFn
-	}: Props<Item> = $props();
+	}: Props = $props();
 
 	let showDropdown = $state(false);
-	let filteredItems = $state<Item[]>([]);
+	let filteredItems = $state<T[]>([]);
 	let selectedIndex = $state(0);
 	let inputElement: HTMLInputElement | undefined = $state();
 	let containerElement: HTMLDivElement | undefined = $state();
 
 	// Default filter function: search both Russian and English names
-	const defaultFilterFn = (item: Item, query: string): boolean => {
+	const defaultFilterFn = (item: T, query: string): boolean => {
 		const rusName = item.name.rus.toLowerCase();
 		const engName = item.name.eng.toLowerCase();
 		const lowerQuery = query.toLowerCase().trim();
@@ -65,7 +57,7 @@
 		selectedIndex = 0;
 	}
 
-	function selectItem(item: Item) {
+	function selectItem(item: T) {
 		value = item.name.rus;
 		onchange?.(item.name.rus);
 		onSelect?.(item);

@@ -138,7 +138,7 @@
 	/>
 	<div style="height:1em;"></div>
 	{#if currentItem}
-		<CharacterSheetFullUi {currentItem} {uiEventListener} {repository} {plugin} />
+		<CharacterSheetFullUi {currentItem} {uiEventListener} repository={characterRepo} {plugin} />
 	{:else if searchBarValue.length > 0 && groups.length === 0}
 		<h2>Результаты поиска</h2>
 		<div>Ничего не найдено</div>

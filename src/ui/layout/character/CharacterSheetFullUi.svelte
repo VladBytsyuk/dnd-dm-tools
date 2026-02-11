@@ -7,6 +7,9 @@
 	import type { ClassEntry } from "../../../domain/models/character/ClassEntry";
 	import { EntityLinkService } from "../../../domain/services/EntityLinkService";
 	import type DndStatblockPlugin from "../../../main";
+	import type { SmallRace } from "../../../domain/models/race/SmallRace";
+	import type { SmallBackground } from "../../../domain/models/background/SmallBackground";
+	import type { SmallClass } from "../../../domain/models/class/SmallClass";
 
 	// Import kit components
 	import CharacterHeader from "./kit/CharacterHeader.svelte";
@@ -68,35 +71,35 @@
 			])
 				.then(([races, backgrounds, classes]) => {
 					// Map races
-					raceOptions = races.map(r => ({
+					raceOptions = races.map((r: SmallRace) => ({
 						name: r.name,
 						url: r.url
 					}));
 
 					// Map backgrounds
-					backgroundOptions = backgrounds.map(b => ({
+					backgroundOptions = backgrounds.map((b: SmallBackground) => ({
 						name: b.name,
 						url: b.url
 					}));
 
 					// Map classes (filter out archetypes)
 					classOptions = classes
-						.filter(c => !c.isArchetype)
-						.map(c => ({
+						.filter((c: SmallClass) => !c.isArchetype)
+						.map((c: SmallClass) => ({
 							name: c.name,
 							url: c.url
 						}));
 
 					// Map archetypes (subclasses)
 					archetypeOptions = classes
-						.filter(c => c.isArchetype)
-						.map(c => ({
+						.filter((c: SmallClass) => c.isArchetype)
+						.map((c: SmallClass) => ({
 							name: c.name,
 							url: c.url,
 							parentClassUrl: c.parentClassUrl || ''
 						}));
 				})
-				.catch(error => {
+				.catch((error) => {
 					console.error('Failed to load autocomplete data:', error);
 					// Set empty arrays as fallback to allow component to function
 					raceOptions = [];
