@@ -157,8 +157,15 @@
 	}
 
 	function handleXpAdd() {
-		const amount = parseInt(xpToAdd) || 0;
-		if (amount !== 0 && onExperienceAdd) {
+		const amount = parseInt(xpToAdd);
+
+		// Validate: must be a valid positive integer
+		if (isNaN(amount) || amount <= 0) {
+			// Invalid input - do nothing and keep popup open for correction
+			return;
+		}
+
+		if (onExperienceAdd) {
 			onExperienceAdd(amount);
 		}
 		showXpPopup = false;
@@ -299,18 +306,23 @@
 											type="number"
 											bind:value={xpToAdd}
 											onkeydown={handleXpKeydown}
-											placeholder="0"
+											placeholder="Опыт"
+											min="1"
+											step="1"
 											class="xp-popup-input"
+											title="Введите положительное число"
 										/>
 										<button
 											class="xp-popup-btn xp-popup-btn-confirm"
 											onclick={handleXpAdd}
 											type="button"
+											title="Добавить опыт"
 										>✓</button>
 										<button
 											class="xp-popup-btn xp-popup-btn-cancel"
 											onclick={() => { showXpPopup = false; xpToAdd = ''; }}
 											type="button"
+											title="Отменить"
 										>✕</button>
 									</div>
 								{/if}

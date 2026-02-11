@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
 	import type { EntityLinkResult } from '../../../../domain/services/EntityLinkService';
 	import type { IUiEventListener } from '../../../../domain/listeners/ui_event_listener';
 	import AutocompleteInput from '../../uikit/AutocompleteInput.svelte';
@@ -30,6 +31,14 @@
 	}: Props = $props();
 	let linkResult = $state<EntityLinkResult | null>(null);
 	let lookupTimeout: NodeJS.Timeout | null = null;
+
+	// Cleanup timeout on component destroy to prevent memory leaks
+	onDestroy(() => {
+		if (lookupTimeout) {
+			clearTimeout(lookupTimeout);
+			lookupTimeout = null;
+		}
+	});
 
 	// Determine if we should show autocomplete
 	const hasAutocomplete = $derived(!!autocompleteItems && autocompleteItems.length > 0);
