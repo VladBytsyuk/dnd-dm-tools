@@ -38,6 +38,15 @@
 	}: Props = $props();
 
 	function handleHpChange(field: string, value: number) {
+		// D&D 5e Massive Damage: If damage brings HP to negative max HP or below, instant death
+		if (field === "hp-current" && value < -hpMax) {
+			onChange("hp-current", 0);
+			onChange("death-saves-success", 0);
+			onChange("death-saves-fail", 3);
+			onDeath();
+			return;
+		}
+
 		onChange(field, value);
 
 		// Clear death saves and isDying when HP > 0
