@@ -1,0 +1,218 @@
+<script lang="ts">
+	import { roll, d20 } from "../../../../domain/dice";
+	import { Dices } from "lucide-svelte";
+
+	/**
+	 * Death Saving Throws component - Horizontal layout
+	 * Layout: |Successes    Throw Button    Failures|
+	 */
+	interface Props {
+		successCount: number;
+		failCount: number;
+		isDisabled: boolean;
+		onChange: (success: number, fail: number) => void;
+		onDeath: () => void;
+	}
+
+	let { successCount, failCount, isDisabled, onChange, onDeath }: Props = $props();
+
+	function clamp(value: number, min: number, max: number): number {
+		return Math.max(min, Math.min(max, value));
+	}
+
+	function toggleSuccess(index: number) {
+		const newCount = successCount > index ? index : index + 1;
+		onChange(clamp(newCount, 0, 3), failCount);
+	}
+
+	function toggleFail(index: number) {
+		const newCount = failCount > index ? index : index + 1;
+		const clamped = clamp(newCount, 0, 3);
+		onChange(successCount, clamped);
+		if (clamped >= 3) {
+			onDeath();
+		}
+	}
+
+	function rollDeathSave() {
+		const result = roll(d20()(0));
+
+		let newSuccess = successCount;
+		let newFail = failCount;
+
+		if (result === 1) {
+			newFail += 2;
+		} else if (result >= 2 && result <= 9) {
+			newFail += 1;
+		} else if (result >= 10 && result <= 19) {
+			newSuccess += 1;
+		} else if (result === 20) {
+			newSuccess += 2;
+		}
+
+		newSuccess = clamp(newSuccess, 0, 3);
+		newFail = clamp(newFail, 0, 3);
+
+		onChange(newSuccess, newFail);
+
+		if (newFail >= 3) {
+			onDeath();
+		}
+	}
+</script>
+
+<div class="death-saves-container">
+	<div class="death-saves-circles">
+		{#each [0, 1, 2] as i}
+			<button
+				class="death-save-circle success"
+				class:filled={i < successCount}
+				onclick={() => toggleSuccess(i)}
+				disabled={isDisabled}
+				aria-label="Успех {i + 1}"
+				title="Успех {i + 1}"
+			>
+			</button>
+		{/each}
+	</div>
+
+	<button class="death-save-roll-button" onclick={rollDeathSave} disabled={isDisabled} title="Бросить спасбросок от смерти (d20)">
+		<Dices size={16} />
+	</button>
+
+	<div class="death-saves-circles">
+		{#each [0, 1, 2] as i}
+			<button
+				class="death-save-circle fail"
+				class:filled={i < failCount}
+				onclick={() => toggleFail(i)}
+				disabled={isDisabled}
+				aria-label="Провал {i + 1}"
+				title="Провал {i + 1}"
+			>
+			</button>
+		{/each}
+	</div>
+</div>
+
+<style>
+	.death-saves-container {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		grid-template-rows: auto auto;
+		padding: 6px 8px;
+		background-color: var(--background-secondary);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 6px;
+		gap: 4px;
+	}
+
+	.death-saves-circles {
+		display: flex;
+		gap: 3px;
+	}
+
+	.death-saves-circles:first-child {
+		grid-column: 1;
+		grid-row: 1;
+	}
+
+	.death-saves-circles:last-child {
+		grid-column: 1;
+		grid-row: 2;
+	}
+
+	.death-save-circle {
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		border: 2px solid var(--background-modifier-border);
+		background: var(--background-primary);
+		font-size: 12px;
+		line-height: 1;
+		cursor: pointer;
+		transition:
+			background-color 0.2s,
+			border-color 0.2s,
+			color 0.2s;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0;
+	}
+
+	.death-save-circle.success {
+		border-color: var(--color-green);
+	}
+
+	.death-save-circle.fail {
+		border-color: var(--color-red);
+	}
+
+	.death-save-circle:hover:not(:disabled) {
+		opacity: 0.8;
+	}
+
+	.death-save-circle.success.filled {
+		background-color: var(--color-green);
+		border-color: var(--color-green);
+		color: white;
+	}
+
+	.death-save-circle.fail.filled {
+		background-color: var(--color-red);
+		border-color: var(--color-red);
+		color: white;
+	}
+
+	.death-save-circle:not(.filled) {
+		color: var(--text-muted);
+	}
+
+	.death-save-circle:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.death-save-circle:disabled:hover {
+		border-color: var(--background-modifier-border);
+	}
+
+	.death-save-roll-button {
+		grid-column: 2;
+		grid-row: 1 / 3;
+		padding: 4px;
+		font-size: 12px;
+		font-weight: 600;
+		border-radius: 4px;
+		border: 2px solid var(--interactive-accent);
+		background: var(--interactive-accent);
+		color: white;
+		cursor: pointer;
+		transition:
+			background-color 0.2s,
+			border-color 0.2s;
+		white-space: nowrap;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		align-self: center;
+		justify-self: end;
+	}
+
+	.death-save-roll-button:hover:not(:disabled) {
+		background: var(--interactive-accent-hover);
+		border-color: var(--interactive-accent-hover);
+	}
+
+	.death-save-roll-button:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	@media (max-width: 768px) {
+		.death-saves-container {
+			gap: 6px;
+		}
+	}
+</style>
