@@ -159,7 +159,7 @@
 				tabindex="0"
 				onclick={() => rollDice(`к20${formatModifier(modifier)}`, `${abilityFullName} (проверка)`)}
 				onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); rollDice(`к20${formatModifier(modifier)}`, `${abilityFullName} (проверка)`); } }}>
-				{abilityLabel}
+				{abilityFullName}
 			</div>
 			<input
 				type="number"
@@ -244,6 +244,7 @@
 		background-color: var(--background-primary);
 		border: 1px solid var(--background-modifier-border);
 		border-radius: 4px;
+		container-type: inline-size;
 	}
 
 	/* Compact ability + save row */
@@ -337,6 +338,7 @@
 		justify-content: center;
 		flex-shrink: 0;
 		transition: border-color 0.2s, transform 0.2s;
+		align-self: flex-end;
 	}
 
 	.save-indicator.proficient {
@@ -361,6 +363,7 @@
 		color: var(--text-muted);
 		text-transform: uppercase;
 		margin-right: 2px;
+		align-self: flex-end;
 	}
 
 	.save-bonus {
@@ -377,6 +380,7 @@
 		border-radius: 2px;
 		padding: 0 3px;
 		transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+		align-self: flex-end;
 	}
 
 	.save-bonus:hover {
@@ -508,5 +512,88 @@
 
 	.clickable:hover {
 		color: var(--interactive-accent);
+	}
+
+	/* Container query breakpoints for adaptive sizing */
+
+	/* Ultra-compact: < 180px */
+	@container (max-width: 180px) {
+		.ability-circle {
+			width: 32px;
+			height: 32px;
+		}
+
+		.ability-modifier {
+			font-size: 12px;
+		}
+
+		.ability-name {
+			font-size: 9px;
+		}
+
+		.ability-save-row {
+			gap: 4px;
+			padding: 3px;
+		}
+
+		.ability-score {
+			width: 22px;
+			max-width: 22px;
+		}
+
+		.save-bonus {
+			width: 26px;
+			max-width: 26px;
+		}
+
+		.skill-bonus {
+			width: 24px;
+			max-width: 24px;
+		}
+
+		.skill-name {
+			font-size: 9px;
+		}
+	}
+
+	/* Compact: 180-220px */
+	@container (min-width: 180px) and (max-width: 220px) {
+		.ability-circle {
+			width: 34px;
+			height: 34px;
+		}
+
+		.ability-modifier {
+			font-size: 13px;
+		}
+
+		.ability-name {
+			font-size: 10px;
+			letter-spacing: 0.4px;
+		}
+
+		.save-label {
+			font-size: 8px;
+		}
+
+		.skill-name {
+			font-size: 9px;
+		}
+	}
+
+	/* Comfortable: 250px+ */
+	@container (min-width: 250px) {
+		.ability-save-row {
+			gap: 8px;
+			padding: 5px;
+		}
+
+		.skills-list {
+			gap: 2px;
+		}
+
+		.skill-row {
+			padding: 3px 6px;
+		}
 	}
 </style>

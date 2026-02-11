@@ -571,7 +571,7 @@
 
 	.character-sheet-layout {
 		display: grid;
-		grid-template-columns: 250px 1fr 300px;
+		grid-template-columns: 220px 1fr 300px;
 		gap: 16px;
 		max-width: 1600px;
 		margin: 0 auto;
@@ -612,7 +612,7 @@
 	/* Responsive breakpoints */
 	@media (max-width: 1200px) {
 		.character-sheet-layout {
-			grid-template-columns: 200px 1fr;
+			grid-template-columns: 180px 1fr;
 		}
 
 		.column-right {
