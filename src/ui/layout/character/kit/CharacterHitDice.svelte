@@ -63,7 +63,7 @@
 </script>
 
 <div class="hit-dice-container">
-	<div class="hit-dice-display">
+	<div class="hit-dice-header">
 		<div class="hit-dice-label">Кости Хитов</div>
 		<div class="hit-dice-value">
 			{hitDiceCurrent} / {hitDiceTotal} ({hitDieType})
@@ -95,28 +95,25 @@
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
-		padding: 12px;
-		background-color: var(--background-secondary);
-		border-radius: 6px;
-		border: 1px solid var(--background-modifier-border);
+		padding: 8px;
 	}
 
-	.hit-dice-display {
+	.hit-dice-header {
 		display: flex;
-		flex-direction: column;
+		justify-content: space-between;
 		align-items: center;
-		gap: 4px;
+		gap: 8px;
 	}
 
 	.hit-dice-label {
-		font-size: 11px;
+		font-size: 10px;
 		font-weight: 600;
 		text-transform: uppercase;
 		color: var(--text-muted);
 	}
 
 	.hit-dice-value {
-		font-size: 14px;
+		font-size: 12px;
 		font-weight: 700;
 		color: var(--text-normal);
 	}

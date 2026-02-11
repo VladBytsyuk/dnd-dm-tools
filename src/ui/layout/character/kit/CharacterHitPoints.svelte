@@ -138,6 +138,8 @@
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
+		padding-left: 8px;
+		padding-top: 8px;
 	}
 
 	.stat-label {

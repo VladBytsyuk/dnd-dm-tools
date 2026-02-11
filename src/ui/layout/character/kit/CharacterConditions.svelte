@@ -115,9 +115,6 @@
 		flex-direction: column;
 		gap: 8px;
 		padding: 12px;
-		background-color: var(--background-secondary);
-		border-radius: 6px;
-		border: 1px solid var(--background-modifier-border);
 	}
 
 	.conditions-header {

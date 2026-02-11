@@ -62,64 +62,59 @@
 </script>
 
 <div class="death-saves-container">
-	<div class="death-saves-circles">
-		{#each [0, 1, 2] as i}
-			<button
-				class="death-save-circle success"
-				class:filled={i < successCount}
-				onclick={() => toggleSuccess(i)}
-				disabled={isDisabled}
-				aria-label="Успех {i + 1}"
-				title="Успех {i + 1}"
-			>
-			</button>
-		{/each}
+	<div class="death-saves-circles-wrapper">
+		<div class="death-saves-circles">
+			{#each [0, 1, 2] as i}
+				<button
+					class="death-save-circle success"
+					class:filled={i < successCount}
+					onclick={() => toggleSuccess(i)}
+					disabled={isDisabled}
+					aria-label="Успех {i + 1}"
+					title="Успех {i + 1}"
+				>
+				</button>
+			{/each}
+		</div>
+
+		<div class="death-saves-circles">
+			{#each [0, 1, 2] as i}
+				<button
+					class="death-save-circle fail"
+					class:filled={i < failCount}
+					onclick={() => toggleFail(i)}
+					disabled={isDisabled}
+					aria-label="Провал {i + 1}"
+					title="Провал {i + 1}"
+				>
+				</button>
+			{/each}
+		</div>
 	</div>
 
 	<button class="death-save-roll-button" onclick={rollDeathSave} disabled={isDisabled} title="Бросить спасбросок от смерти (d20)">
 		<Dices size={16} />
 	</button>
-
-	<div class="death-saves-circles">
-		{#each [0, 1, 2] as i}
-			<button
-				class="death-save-circle fail"
-				class:filled={i < failCount}
-				onclick={() => toggleFail(i)}
-				disabled={isDisabled}
-				aria-label="Провал {i + 1}"
-				title="Провал {i + 1}"
-			>
-			</button>
-		{/each}
-	</div>
 </div>
 
 <style>
 	.death-saves-container {
-		display: grid;
-		grid-template-columns: auto 1fr;
-		grid-template-rows: auto auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
 		padding: 6px 8px;
-		background-color: var(--background-secondary);
-		border: 1px solid var(--background-modifier-border);
-		border-radius: 6px;
+		gap: 8px;
+	}
+
+	.death-saves-circles-wrapper {
+		display: flex;
+		flex-direction: column;
 		gap: 4px;
 	}
 
 	.death-saves-circles {
 		display: flex;
 		gap: 3px;
-	}
-
-	.death-saves-circles:first-child {
-		grid-column: 1;
-		grid-row: 1;
-	}
-
-	.death-saves-circles:last-child {
-		grid-column: 1;
-		grid-row: 2;
 	}
 
 	.death-save-circle {
@@ -179,8 +174,6 @@
 	}
 
 	.death-save-roll-button {
-		grid-column: 2;
-		grid-row: 1 / 3;
 		padding: 4px;
 		font-size: 12px;
 		font-weight: 600;
@@ -196,8 +189,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		align-self: center;
-		justify-self: end;
+		flex-shrink: 0;
 	}
 
 	.death-save-roll-button:hover:not(:disabled) {

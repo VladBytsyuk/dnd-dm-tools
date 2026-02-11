@@ -167,7 +167,6 @@
 
 <style>
 	.character-vitality-block {
-		padding: 16px;
 		background-color: var(--background-primary);
 		border: 2px solid var(--text-accent);
 		border-radius: 8px;

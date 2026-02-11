@@ -99,6 +99,8 @@
 		display: flex;
 		flex-direction: column;
 		gap: 12px;
+		padding-top: 8px;
+		padding-right: 8px;
 	}
 
 	.stats-grid {
