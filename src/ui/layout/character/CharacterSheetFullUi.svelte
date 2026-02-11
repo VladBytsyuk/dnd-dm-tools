@@ -470,6 +470,7 @@
 				name={data.name}
 				info={headerInfo}
 				avatar={data.avatar}
+				isDying={vitality.isDying ?? false}
 				onNameChange={handleNameChange}
 				onClassesChange={handleClassesChange}
 				onRaceChange={handleRaceChange}
