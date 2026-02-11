@@ -101,9 +101,8 @@
 	.death-saves-container {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
 		padding: 6px 8px;
-		gap: 8px;
+		gap: 16px;
 	}
 
 	.death-saves-circles-wrapper {

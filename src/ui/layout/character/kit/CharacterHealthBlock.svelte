@@ -94,7 +94,7 @@
 	<CharacterDeathSaves
 		successCount={deathSavesSuccess}
 		failCount={deathSavesFail}
-		isDisabled={hpCurrent !== 0 || isDying}
+		isDisabled={hpCurrent !== 0 || isDying || deathSavesSuccess >= 3 || deathSavesFail >= 3}
 		onChange={handleDeathSavesChange}
 		{onDeath}
 	/>
