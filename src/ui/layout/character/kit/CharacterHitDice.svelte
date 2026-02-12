@@ -3,76 +3,62 @@
 	import { Dices, Moon, Clock } from "lucide-svelte";
 	import { formatModifier } from "../../../../domain/modifier";
 	import { evalNumericExpression } from "../../../../domain/utils/mathExpression";
+	import { getSortedDieTypes, spendHitDie, recoverHitDiceOnLongRest, type HitDicePools } from "../../../../domain/utils/multiclassHitDice";
 
 	/**
 	 * Hit Dice and Rest management component
+	 * Supports multiclass characters with different hit die types
 	 */
 	interface Props {
-		hitDiceCurrent: number;
-		hitDiceTotal: number;
-		hitDieType: string; // e.g., "d8"
+		hitDiceCurrent: number; // Legacy - for backward compatibility
+		hitDiceTotal: number; // Legacy - for backward compatibility
+		hitDieType: string; // Legacy - for backward compatibility
+		hitDicePools: HitDicePools; // Multiclass hit dice pools
 		hpCurrent: number;
 		hpMax: number;
 		conModifier: number;
-		onChange: (updates: Record<string, number>) => void;
+		onChange: (updates: Record<string, number | HitDicePools>) => void;
 	}
 
-	let { hitDiceCurrent, hitDiceTotal, hitDieType, hpCurrent, hpMax, conModifier, onChange }: Props =
+	let { hitDiceCurrent, hitDiceTotal, hitDieType, hitDicePools, hpCurrent, hpMax, conModifier, onChange }: Props =
 		$props();
-
-	let diceInput = $state(String(hitDiceCurrent));
-
-	// Sync input when prop changes
-	$effect(() => {
-		diceInput = String(hitDiceCurrent);
-	});
 
 	const isHpFull = $derived(hpCurrent >= hpMax);
 
+	// Get sorted die types for display (d4, d6, d8, d10, d12)
+	const sortedDieTypes = $derived(getSortedDieTypes(hitDicePools));
+
 	// Convert dice type from Latin 'd' to Cyrillic 'к' (e.g., "d8" -> "к8")
-	const displayDiceType = $derived(hitDieType.replace(/^d/, 'к'));
-
-	function handleDiceInputChange() {
-		const result = evalNumericExpression(diceInput);
-		if (result !== null) {
-			const value = Math.floor(result);
-			const clamped = Math.max(0, Math.min(hitDiceTotal, value));
-			diceInput = String(clamped);
-			onChange({ "hp-dice-current": clamped });
-		} else {
-			diceInput = String(hitDiceCurrent); // Reset to current value
-		}
+	function displayDiceType(dieType: string): string {
+		return dieType.replace(/^d/, 'к');
 	}
 
-	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === "Enter") {
-			(e.target as HTMLInputElement).blur();
-		} else if (e.key === "Escape") {
-			diceInput = String(hitDiceCurrent);
-			(e.target as HTMLInputElement).blur();
-		}
-	}
+	function spendHitDieOfType(dieType: string) {
+		if (isHpFull) return;
 
-	function spendHitDie() {
-		if (hitDiceCurrent <= 0 || isHpFull) return;
+		const pool = hitDicePools[dieType];
+		if (!pool || pool.current <= 0) return;
 
 		// Roll hit die + CON modifier (D&D 5e: minimum 0 HP restored)
-		const roll = rollRaw(`1${hitDieType}`);
+		const roll = rollRaw(`1${dieType}`);
 		const healing = Math.max(0, roll + conModifier);
 
-		// Heal and decrement hit dice
+		// Heal and update pools
+		const newPools = spendHitDie(hitDicePools, dieType);
+		if (!newPools) return;
+
 		const newHp = Math.min(hpMax, hpCurrent + healing);
 
 		onChange({
 			"hp-current": newHp,
-			"hp-dice-current": hitDiceCurrent - 1,
+			"hp-dice-multi": newPools,
 		});
 	}
 
 	function shortRest() {
 		// Short rest: Players can spend hit dice to heal
 		// No automatic restoration of resources in standard D&D 5e
-		// Just enable spending hit dice (button is already available)
+		// Just enable spending hit dice (buttons are already available)
 	}
 
 	function longRest() {
@@ -81,46 +67,52 @@
 		// - Clear temp HP
 		// - Restore up to half of total hit dice (rounded down, minimum 1)
 		// - Clear death saves
-		const restoredDice = Math.max(1, Math.floor(hitDiceTotal / 2));
-		const newDiceCount = Math.min(hitDiceCurrent + restoredDice, hitDiceTotal);
+		const recoveredPools = recoverHitDiceOnLongRest(hitDicePools);
 
 		onChange({
 			"hp-current": hpMax,
 			"hp-temp": 0,
-			"hp-dice-current": newDiceCount,
+			"hp-dice-multi": recoveredPools,
 			"death-saves-success": 0,
 			"death-saves-fail": 0,
 		});
 	}
+
+	// Check if any hit dice are available
+	const hasAnyDice = $derived(
+		Object.values(hitDicePools).some((pool) => pool.current > 0)
+	);
 </script>
 
 <div class="hit-dice-container">
 	<div class="hit-dice-header">
 		<div class="hit-dice-label">Кости Хитов</div>
-		<div class="hit-dice-value">
-			<input
-				type="text"
-				class="hit-dice-input"
-				bind:value={diceInput}
-				onblur={handleDiceInputChange}
-				onkeydown={handleKeydown}
-			/>
-			<span class="hit-dice-separator">/</span>
-			<span class="hit-dice-total">{hitDiceTotal}</span>
-			<span class="hit-dice-type">({displayDiceType})</span>
-		</div>
+	</div>
+
+	<!-- Multiclass: Display multiple rows, one per die type -->
+	<div class="hit-dice-pools">
+		{#each sortedDieTypes as dieType}
+			{@const pool = hitDicePools[dieType]}
+			<div class="hit-dice-row">
+				<div class="hit-dice-value">
+					<span class="hit-dice-current">{pool.current}</span>
+					<span class="hit-dice-separator">/</span>
+					<span class="hit-dice-total">{pool.total}</span>
+					<span class="hit-dice-type">({displayDiceType(dieType)})</span>
+				</div>
+				<button
+					class="hit-dice-button spend-button"
+					onclick={() => spendHitDieOfType(dieType)}
+					disabled={pool.current <= 0 || isHpFull}
+					title="Потратить кость хитов (1{displayDiceType(dieType)}{formatModifier(conModifier)})"
+				>
+					<Dices size={14} />
+				</button>
+			</div>
+		{/each}
 	</div>
 
 	<div class="hit-dice-buttons">
-		<button
-			class="hit-dice-button"
-			onclick={spendHitDie}
-			disabled={hitDiceCurrent <= 0 || isHpFull}
-			title="Потратить кость хитов (1{displayDiceType}{formatModifier(conModifier)})"
-		>
-			<Dices size={16} />
-		</button>
-
 		<button class="hit-dice-button rest-button" onclick={shortRest} title="Короткий отдых">
 			<Clock size={16} />
 		</button>
@@ -153,6 +145,20 @@
 		color: var(--text-muted);
 	}
 
+	.hit-dice-pools {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.hit-dice-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 6px;
+		padding: 2px 0;
+	}
+
 	.hit-dice-value {
 		font-size: 12px;
 		font-weight: 700;
@@ -160,23 +166,11 @@
 		display: flex;
 		align-items: center;
 		gap: 4px;
+		flex: 1;
 	}
 
-	.hit-dice-input {
-		width: 32px;
-		padding: 2px 4px;
-		font-size: 12px;
-		font-weight: 700;
-		text-align: center;
-		border: 1px solid var(--background-modifier-border);
-		border-radius: 3px;
-		background: var(--background-primary);
+	.hit-dice-current {
 		color: var(--text-accent);
-	}
-
-	.hit-dice-input:focus {
-		outline: none;
-		border-color: var(--interactive-accent);
 	}
 
 	.hit-dice-separator {
@@ -199,6 +193,7 @@
 		gap: 4px;
 		justify-content: center;
 		flex-wrap: wrap;
+		margin-top: 4px;
 	}
 
 	.hit-dice-button {
@@ -230,6 +225,12 @@
 		cursor: not-allowed;
 	}
 
+	.spend-button {
+		flex: 0 0 auto;
+		min-width: 32px;
+		padding: 4px 6px;
+	}
+
 	.rest-button {
 		border-color: var(--interactive-accent);
 		background: var(--background-secondary);
@@ -239,5 +240,4 @@
 		background: var(--interactive-accent);
 		color: white;
 	}
-
 </style>

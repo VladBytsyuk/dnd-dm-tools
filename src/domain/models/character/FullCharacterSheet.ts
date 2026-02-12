@@ -92,7 +92,7 @@ export function EmptyFullCharacterSheet(): FullCharacterSheet {
 			"hp-max-bonus": { value: 0 },
 			"hit-die": { value: "" },
 			"hp-dice-current": { value: 0 },
-			"hp-dice-multi": {},
+			"hp-dice-multi": { value: {} },
 			ac: { value: 10 },
 			shield: { value: false, mod: 0 },
 			speed: { value: 30 },

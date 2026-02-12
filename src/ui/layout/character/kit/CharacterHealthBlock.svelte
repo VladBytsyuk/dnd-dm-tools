@@ -2,6 +2,7 @@
 	import CharacterHitPoints from "./CharacterHitPoints.svelte";
 	import CharacterHitDice from "./CharacterHitDice.svelte";
 	import CharacterDeathSaves from "./CharacterDeathSaves.svelte";
+	import type { HitDicePools } from "../../../../domain/utils/multiclassHitDice";
 
 	/**
 	 * Health Block - Left section of vitality block
@@ -11,15 +12,16 @@
 		hpCurrent: number;
 		hpTemp: number;
 		hpMax: number;
-		hitDiceCurrent: number;
-		hitDiceTotal: number;
-		hitDieType: string;
+		hitDiceCurrent: number; // Legacy - for backward compatibility
+		hitDiceTotal: number; // Legacy - for backward compatibility
+		hitDieType: string; // Legacy - for backward compatibility
+		hitDicePools: HitDicePools; // Multiclass hit dice pools
 		isDying: boolean;
 		deathSavesSuccess: number;
 		deathSavesFail: number;
 		conModifier: number;
-		onChange: (field: string, value: number) => void;
-		onBatchChange?: (updates: Record<string, number>) => void;
+		onChange: (field: string, value: number | HitDicePools) => void;
+		onBatchChange?: (updates: Record<string, number | HitDicePools>) => void;
 		onDeath: () => void;
 	}
 
@@ -30,6 +32,7 @@
 		hitDiceCurrent,
 		hitDiceTotal,
 		hitDieType,
+		hitDicePools,
 		isDying,
 		deathSavesSuccess,
 		deathSavesFail,
@@ -81,7 +84,7 @@
 		}
 	}
 
-	function handleHitDiceChange(updates: Record<string, number>) {
+	function handleHitDiceChange(updates: Record<string, number | HitDicePools>) {
 		// Pass the entire updates object as a batch update
 		if (onBatchChange) {
 			onBatchChange(updates);
@@ -135,9 +138,10 @@
 
 	<div class="dice-and-saves">
 		<CharacterHitDice
-			{hitDiceCurrent}
-			{hitDiceTotal}
-			{hitDieType}
+			hitDiceCurrent={hitDiceCurrent}
+			hitDiceTotal={hitDiceTotal}
+			hitDieType={hitDieType}
+			hitDicePools={hitDicePools}
 			{hpCurrent}
 			{hpMax}
 			{conModifier}

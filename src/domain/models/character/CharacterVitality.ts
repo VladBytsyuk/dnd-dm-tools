@@ -1,3 +1,5 @@
+import type { HitDicePools } from "../../utils/multiclassHitDice";
+
 /**
  * Character HP, AC, initiative, and related stats
  *
@@ -5,13 +7,13 @@
  * but `isDying` is a bare boolean. This is legacy structure for compatibility
  * with existing character sheets.
  *
- * TODO: Multi-class support - Currently uses single hit die type and level.
- * The `hp-dice-multi` field exists but is not yet implemented for multi-class
- * characters who have different hit dice per class.
+ * Multi-class hit dice: The `hp-dice-multi` field stores hit dice pools by die type
+ * (e.g., { "d8": { current: 2, total: 2 }, "d12": { current: 1, total: 1 } }).
+ * Legacy `hp-dice-current` and `hit-die` fields are kept for backward compatibility.
  */
 export interface CharacterVitality {
 	"hp-dice-current": { value: number };
-	"hp-dice-multi": Record<string, unknown>; // Reserved for multi-class hit dice
+	"hp-dice-multi": { value: HitDicePools }; // Multi-class hit dice pools
 	ac: { value: number };
 	shield: { mod: number; value: boolean };
 	speed: { value: number };

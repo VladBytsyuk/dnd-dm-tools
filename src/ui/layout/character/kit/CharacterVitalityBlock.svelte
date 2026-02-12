@@ -4,7 +4,9 @@
 	import type { CharacterVitality } from "../../../../domain/models/character/CharacterVitality";
 	import type { CharacterStats } from "../../../../domain/models/character/CharacterStats";
 	import type { CharacterSkills } from "../../../../domain/models/character/CharacterSkills";
+	import type { ClassEntry } from "../../../../domain/models/character/ClassEntry";
 	import { calculateModifier } from "../../../../domain/modifier";
+	import { calculateHitDicePools, syncHitDiceWithClasses, type HitDicePools } from "../../../../domain/utils/multiclassHitDice";
 
 	/**
 	 * Main Vitality Block - Orchestrates health and info sections
@@ -16,12 +18,13 @@
 		skills: CharacterSkills;
 		proficiency: number;
 		level: number;
+		classes: ClassEntry[];
 		conditions: string[];
 		onChange?: (vitality: CharacterVitality, conditions: string[]) => void;
 		onOpenConditionDetails?: (url: string) => void;
 	}
 
-	let { vitality, stats, skills, proficiency, level, conditions, onChange, onOpenConditionDetails }: Props =
+	let { vitality, stats, skills, proficiency, level, classes, conditions, onChange, onOpenConditionDetails }: Props =
 		$props();
 
 	let localVitality = $state({ ...vitality });
@@ -75,16 +78,48 @@
 
 	const darkvision = $derived(localVitality.darkvision?.value ?? 0);
 
-	// Hit dice total equals character level
-	// TODO: Multi-class support - Currently assumes single class.
-	// Multi-class characters should calculate hit dice from array of class levels,
-	// as each class contributes its own hit die type.
-	const hitDiceTotal = $derived(Math.max(1, level));
+	// Hit dice calculation with multiclass support
+	const hitDicePools = $derived.by(() => {
+		// Check if multiclass data exists and is non-empty
+		const existingPools = localVitality["hp-dice-multi"]?.value ?? {};
+		const hasMulticlassData = Object.keys(existingPools).length > 0;
 
-	function handleChange(field: string, value: number) {
+		if (hasMulticlassData && classes.length > 0) {
+			// Sync existing pools with current classes
+			return syncHitDiceWithClasses(existingPools, classes);
+		} else if (classes.length > 0) {
+			// Calculate fresh pools from classes
+			return calculateHitDicePools(classes);
+		} else {
+			// Fallback: Migration from legacy single die format
+			const legacyDieType = hitDieType;
+			const legacyCurrent = hitDiceCurrent;
+			const legacyTotal = Math.max(1, level);
+
+			return {
+				[legacyDieType]: {
+					current: Math.min(legacyCurrent, legacyTotal),
+					total: legacyTotal,
+				},
+			};
+		}
+	});
+
+	// For backward compatibility: extract single die values from pools (for components that haven't been updated yet)
+	const hitDiceTotal = $derived(
+		Object.values(hitDicePools).reduce((sum, pool) => sum + pool.total, 0) || Math.max(1, level)
+	);
+
+	function handleChange(field: string, value: number | HitDicePools) {
 		// Single field update
 		if (field === "isDying") {
 			localVitality = { ...localVitality, isDying: Boolean(value) };
+		} else if (field === "hp-dice-multi") {
+			// Handle hit dice pools update
+			localVitality = {
+				...localVitality,
+				"hp-dice-multi": { value: value as HitDicePools },
+			};
 		} else {
 			const numValue = Number(value);
 			if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
@@ -98,18 +133,23 @@
 		debouncedSave();
 	}
 
-	function handleBatchChange(updates: Record<string, number>) {
+	function handleBatchChange(updates: Record<string, number | HitDicePools>) {
 		// Batch update - apply all changes at once
 		for (const [key, val] of Object.entries(updates)) {
-			const numValue = Number(val);
-			if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
-				// Handle isDying specially - it's a bare boolean, not wrapped in {value:}
-				if (key === "isDying") {
-					localVitality = {
-						...localVitality,
-						isDying: Boolean(numValue),
-					};
-				} else {
+			if (key === "hp-dice-multi") {
+				// Handle hit dice pools update
+				localVitality = {
+					...localVitality,
+					"hp-dice-multi": { value: val as HitDicePools },
+				};
+			} else if (key === "isDying") {
+				localVitality = {
+					...localVitality,
+					isDying: Boolean(val),
+				};
+			} else {
+				const numValue = Number(val);
+				if (!Number.isNaN(numValue) && Number.isFinite(numValue)) {
 					localVitality = {
 						...localVitality,
 						[key]: { value: numValue },
@@ -150,9 +190,10 @@
 				{hpCurrent}
 				{hpTemp}
 				{hpMax}
-				{hitDiceCurrent}
-				{hitDiceTotal}
-				{hitDieType}
+				hitDiceCurrent={hitDiceCurrent}
+				hitDiceTotal={hitDiceTotal}
+				hitDieType={hitDieType}
+				hitDicePools={hitDicePools}
 				{isDying}
 				deathSavesSuccess={deathSavesSuccess}
 				deathSavesFail={deathSavesFail}

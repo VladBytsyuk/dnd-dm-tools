@@ -495,6 +495,7 @@
 				skills={data.skills}
 				{proficiency}
 				level={headerInfo.level}
+				classes={data.info.classes?.value || []}
 				{conditions}
 				onChange={handleVitalityChange}
 				onOpenConditionDetails={handleOpenConditionDetails}
