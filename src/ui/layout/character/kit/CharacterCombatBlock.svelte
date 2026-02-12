@@ -249,36 +249,36 @@
 						{/if}
 					</div>
 
-					<!-- Damage dice column -->
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div
-						class="attack-dmg-col dice-field"
-						class:clickable={!isEditing}
-						onclick={(e) => handleDamageRoll(weapon, e)}
-					>
-						{#if isEditing}
-							<input
-								type="text"
-								class="editable-field editing"
-								value={weapon.dmg.value}
-								oninput={(e) => updateWeaponField(weapon.id, 'dmg', { value: (e.target as HTMLInputElement).value })}
-								placeholder="1d6"
-							/>
-						{:else}
-							<span class="dice-value">{weapon.dmg.value}</span>
-							<span class="dice-icon">🎲</span>
-						{/if}
-					</div>
-
-					<!-- Damage type column -->
-					<div class="attack-dmgtype-col">
+					<!-- Damage column (dice + type) -->
+					<div class="attack-dmg-col">
+						<!-- Damage dice -->
+						<!-- svelte-ignore a11y_click_events_have_key_events -->
+						<!-- svelte-ignore a11y_no_static_element_interactions -->
+						<div
+							class="dice-field"
+							class:clickable={!isEditing}
+							onclick={(e) => handleDamageRoll(weapon, e)}
+						>
+							{#if isEditing}
+								<input
+									type="text"
+									class="editable-field editing"
+									value={weapon.dmg.value}
+									oninput={(e) => updateWeaponField(weapon.id, 'dmg', { value: (e.target as HTMLInputElement).value })}
+									placeholder="1d6"
+								/>
+							{:else}
+								<span class="dice-value">{weapon.dmg.value}</span>
+								<span class="dice-icon">🎲</span>
+							{/if}
+						</div>
+						<!-- Damage type -->
 						<input
 							type="text"
-							class="editable-field"
+							class="editable-field dmg-type-field"
 							value={weapon.dmgType?.value || ''}
 							oninput={(e) => updateWeaponField(weapon.id, 'dmgType', { value: (e.target as HTMLInputElement).value })}
-							placeholder="тип"
+							placeholder="тип урона"
 						/>
 					</div>
 
@@ -379,7 +379,7 @@
 
 	.attack-row {
 		display: grid;
-		grid-template-columns: 1fr 60px 70px 60px 24px 24px;
+		grid-template-columns: 1fr 60px 80px 24px 24px;
 		gap: 6px;
 		padding: 6px;
 		background-color: var(--background-secondary);
@@ -412,13 +412,18 @@
 	}
 
 	.attack-mod-col,
-	.attack-dmg-col,
-	.attack-dmgtype-col,
 	.attack-edit-col,
 	.attack-remove-col {
 		display: flex;
 		align-items: center;
 		justify-content: center;
+	}
+
+	.attack-dmg-col {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		align-items: stretch;
 	}
 
 	.dice-field {
@@ -485,6 +490,13 @@
 	.editable-field::placeholder {
 		color: var(--text-faint);
 		opacity: 0.5;
+	}
+
+	.dmg-type-field {
+		font-size: 10px;
+		text-align: center;
+		font-style: italic;
+		color: var(--text-muted);
 	}
 
 	/* Notes popup */
@@ -582,7 +594,7 @@
 		}
 
 		.attack-row {
-			grid-template-columns: 1fr 50px 60px 45px 20px 20px;
+			grid-template-columns: 1fr 50px 70px 20px 20px;
 			gap: 4px;
 			padding: 4px;
 		}
@@ -596,6 +608,10 @@
 			font-size: 11px;
 		}
 
+		.dmg-type-field {
+			font-size: 9px;
+		}
+
 		.combat-header h3 {
 			font-size: 12px;
 		}
@@ -604,7 +620,7 @@
 	/* Compact: 300-450px */
 	@container (min-width: 300px) and (max-width: 450px) {
 		.attack-row {
-			grid-template-columns: 1fr 55px 65px 50px 22px 22px;
+			grid-template-columns: 1fr 55px 75px 22px 22px;
 			gap: 5px;
 			padding: 5px;
 		}
@@ -612,12 +628,16 @@
 		.editable-field {
 			font-size: 12px;
 		}
+
+		.dmg-type-field {
+			font-size: 9px;
+		}
 	}
 
 	/* Comfortable: 450-600px */
 	@container (min-width: 450px) and (max-width: 600px) {
 		.attack-row {
-			grid-template-columns: 1.5fr 65px 75px 60px 24px 24px;
+			grid-template-columns: 1.5fr 65px 85px 24px 24px;
 			gap: 6px;
 			padding: 6px;
 		}
@@ -630,12 +650,16 @@
 		.dice-value {
 			font-size: 13px;
 		}
+
+		.dmg-type-field {
+			font-size: 10px;
+		}
 	}
 
 	/* Wide: > 600px */
 	@container (min-width: 600px) {
 		.attack-row {
-			grid-template-columns: 2fr 70px 80px 70px 28px 28px;
+			grid-template-columns: 2fr 70px 90px 28px 28px;
 			gap: 8px;
 			padding: 8px;
 		}
@@ -647,6 +671,10 @@
 
 		.dice-value {
 			font-size: 13px;
+		}
+
+		.dmg-type-field {
+			font-size: 10px;
 		}
 
 		.combat-header h3 {
