@@ -15,7 +15,7 @@
 	import CharacterHeader from "./kit/CharacterHeader.svelte";
 	import CharacterAbilityGroup from "./kit/CharacterAbilityGroup.svelte";
 	import CharacterVitalityBlock from "./kit/CharacterVitalityBlock.svelte";
-	import CharacterCombat from "./kit/CharacterCombat.svelte";
+	import CharacterCombatBlock from "./kit/CharacterCombatBlock.svelte";
 	import CharacterSpellbook from "./kit/CharacterSpellbook.svelte";
 	import CharacterEquipment from "./kit/CharacterEquipment.svelte";
 	import CharacterTextSection from "./kit/CharacterTextSection.svelte";
@@ -229,6 +229,11 @@
 		debouncedSave();
 	}
 
+	function handleWeaponsListChange(newWeaponsList: any[]) {
+		data.weaponsList = newWeaponsList;
+		debouncedSave();
+	}
+
 	function handleOpenConditionDetails(url: string) {
 		uiEventListener.onScreenItemClick(url);
 	}
@@ -303,15 +308,7 @@
 
 	const proficiency = $derived(data.proficiency || 2);
 
-	const weaponsList = $derived(
-		(data.weaponsList || []).map((w: any) => ({
-			name: w.name?.value || '',
-			mod: w.mod?.value || '',
-			dmg: w.dmg?.value || '',
-			ability: w.ability?.value,
-			isProf: w.isProf?.value || false
-		}))
-	);
+	const weaponsList = $derived(data.weaponsList || []);
 
 	const attunementsList = $derived(
 		(data.attunementsList || []).map((a: any) => ({
@@ -501,11 +498,19 @@
 				onOpenConditionDetails={handleOpenConditionDetails}
 			/>
 
-			<CharacterCombat
-				{proficiency}
+			<CharacterCombatBlock
 				{weaponsList}
-				attacksText={data.text?.attacks}
+				onChange={handleWeaponsListChange}
+				{uiEventListener}
 			/>
+
+			{#if data.text?.attacks && typeof data.text.attacks === 'string' && data.text.attacks.trim()}
+				<CharacterTextSection
+					title="Дополнительные атаки и заклинания"
+					content={data.text.attacks}
+					collapsible={true}
+				/>
+			{/if}
 
 			<CharacterEquipment
 				equipmentText={data.text?.equipment}

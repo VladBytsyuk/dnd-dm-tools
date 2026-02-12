@@ -4,6 +4,7 @@ export interface WeaponItem {
 	name: { value: string };
 	mod: { value: string };
 	dmg: { value: string };
+	dmgType?: { value: string };  // Damage type (e.g., "колющий", "рубящий")
 	isProf: boolean;
 	modBonus: { value: number };
 	notes: { value: string };
