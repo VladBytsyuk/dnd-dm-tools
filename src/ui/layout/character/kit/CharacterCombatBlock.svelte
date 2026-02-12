@@ -372,8 +372,8 @@
 	}
 
 	.attacks-table {
-		display: flex;
-		flex-direction: column;
+		display: grid;
+		grid-template-columns: 1fr;
 		gap: 4px;
 	}
 
@@ -651,6 +651,14 @@
 
 		.combat-header h3 {
 			font-size: 15px;
+		}
+	}
+
+	/* Extra wide: > 800px - 2 column grid */
+	@container (min-width: 800px) {
+		.attacks-table {
+			grid-template-columns: 1fr 1fr;
+			gap: 8px;
 		}
 	}
 </style>
