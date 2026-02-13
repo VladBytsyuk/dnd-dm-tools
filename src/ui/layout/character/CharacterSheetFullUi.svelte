@@ -15,7 +15,7 @@
 	import CharacterHeader from "./kit/CharacterHeader.svelte";
 	import CharacterAbilityGroup from "./kit/CharacterAbilityGroup.svelte";
 	import CharacterVitalityBlock from "./kit/CharacterVitalityBlock.svelte";
-	import CharacterCombat from "./kit/CharacterCombat.svelte";
+	import CharacterCombatBlock from "./kit/CharacterCombatBlock.svelte";
 	import CharacterSpellbook from "./kit/CharacterSpellbook.svelte";
 	import CharacterEquipment from "./kit/CharacterEquipment.svelte";
 	import CharacterTextSection from "./kit/CharacterTextSection.svelte";
@@ -229,6 +229,11 @@
 		debouncedSave();
 	}
 
+	function handleWeaponsListChange(newWeaponsList: any[]) {
+		data.weaponsList = newWeaponsList;
+		debouncedSave();
+	}
+
 	function handleOpenConditionDetails(url: string) {
 		uiEventListener.onScreenItemClick(url);
 	}
@@ -261,22 +266,25 @@
 		experience: parseInt(data.info?.experience?.value || '0') || 0
 	});
 
-	const stats = $derived({
-		str: { score: data.stats?.str?.score || 10, modifier: data.stats?.str?.modifier || 0 },
-		dex: { score: data.stats?.dex?.score || 10, modifier: data.stats?.dex?.modifier || 0 },
-		con: { score: data.stats?.con?.score || 10, modifier: data.stats?.con?.modifier || 0 },
-		int: { score: data.stats?.int?.score || 10, modifier: data.stats?.int?.modifier || 0 },
-		wis: { score: data.stats?.wis?.score || 10, modifier: data.stats?.wis?.modifier || 0 },
-		cha: { score: data.stats?.cha?.score || 10, modifier: data.stats?.cha?.modifier || 0 }
+	const stats = $derived.by(() => {
+		const calculateMod = (score: number) => Math.floor((score - 10) / 2);
+		return {
+			str: { name: 'str', score: data.stats?.str?.score || 10, modifier: calculateMod(data.stats?.str?.score || 10) },
+			dex: { name: 'dex', score: data.stats?.dex?.score || 10, modifier: calculateMod(data.stats?.dex?.score || 10) },
+			con: { name: 'con', score: data.stats?.con?.score || 10, modifier: calculateMod(data.stats?.con?.score || 10) },
+			int: { name: 'int', score: data.stats?.int?.score || 10, modifier: calculateMod(data.stats?.int?.score || 10) },
+			wis: { name: 'wis', score: data.stats?.wis?.score || 10, modifier: calculateMod(data.stats?.wis?.score || 10) },
+			cha: { name: 'cha', score: data.stats?.cha?.score || 10, modifier: calculateMod(data.stats?.cha?.score || 10) }
+		};
 	});
 
 	const saves = $derived({
-		str: { isProf: data.saves?.str?.isProf || false },
-		dex: { isProf: data.saves?.dex?.isProf || false },
-		con: { isProf: data.saves?.con?.isProf || false },
-		int: { isProf: data.saves?.int?.isProf || false },
-		wis: { isProf: data.saves?.wis?.isProf || false },
-		cha: { isProf: data.saves?.cha?.isProf || false }
+		str: { name: 'str', isProf: data.saves?.str?.isProf || false },
+		dex: { name: 'dex', isProf: data.saves?.dex?.isProf || false },
+		con: { name: 'con', isProf: data.saves?.con?.isProf || false },
+		int: { name: 'int', isProf: data.saves?.int?.isProf || false },
+		wis: { name: 'wis', isProf: data.saves?.wis?.isProf || false },
+		cha: { name: 'cha', isProf: data.saves?.cha?.isProf || false }
 	});
 
 	const vitality = $derived(data.vitality || {
@@ -303,15 +311,7 @@
 
 	const proficiency = $derived(data.proficiency || 2);
 
-	const weaponsList = $derived(
-		(data.weaponsList || []).map((w: any) => ({
-			name: w.name?.value || '',
-			mod: w.mod?.value || '',
-			dmg: w.dmg?.value || '',
-			ability: w.ability?.value,
-			isProf: w.isProf?.value || false
-		}))
-	);
+	const weaponsList = $derived(data.weaponsList || []);
 
 	const attunementsList = $derived(
 		(data.attunementsList || []).map((a: any) => ({
@@ -501,11 +501,21 @@
 				onOpenConditionDetails={handleOpenConditionDetails}
 			/>
 
-			<CharacterCombat
-				{proficiency}
+			<CharacterCombatBlock
 				{weaponsList}
-				attacksText={data.text?.attacks}
+				{stats}
+				{proficiency}
+				onChange={handleWeaponsListChange}
+				{uiEventListener}
 			/>
+
+			{#if data.text?.attacks && typeof data.text.attacks === 'string' && data.text.attacks.trim()}
+				<CharacterTextSection
+					title="Дополнительные атаки и заклинания"
+					content={data.text.attacks}
+					collapsible={true}
+				/>
+			{/if}
 
 			<CharacterEquipment
 				equipmentText={data.text?.equipment}
