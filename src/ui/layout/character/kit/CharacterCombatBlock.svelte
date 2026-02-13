@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Notice, parseYaml } from "obsidian";
-	import { Plus, X, Info, Clipboard, Edit3, Check } from "lucide-svelte";
+	import { Plus, X, Info, Clipboard, Edit3, Check, Trash2 } from "lucide-svelte";
 	import IconButton from "../../uikit/IconButton.svelte";
 	import { rollRawTrace } from "../../../../domain/dice";
 	import type { WeaponItem } from "../../../../domain/models/character/CharacterEquipment";
@@ -20,6 +20,23 @@
 	// Notes popup state
 	let showNotesPopup = $state<{ id: string; x: number; y: number } | null>(null);
 	let currentNotes = $state('');
+
+	// Damage types for autocomplete
+	const DAMAGE_TYPES = [
+		'дробящий',
+		'колющий',
+		'рубящий',
+		'кислотный',
+		'холод',
+		'огонь',
+		'силовое поле',
+		'молния',
+		'некротический',
+		'яд',
+		'психический',
+		'излучение',
+		'звук'
+	];
 
 	function handleAddAttack() {
 		const newWeapon: WeaponItem = {
@@ -220,7 +237,7 @@
 						<div class="notes-icon-wrapper" onclick={(e: MouseEvent) => handleNotesClick(weapon.id, e)}>
 							<IconButton
 								icon={Info}
-								hint="Заметки"
+								hint={weapon.notes?.value?.trim() || "Заметки"}
 								onClick={() => {}}
 								size={10}
 							/>
@@ -238,14 +255,13 @@
 						{#if isEditing}
 							<input
 								type="text"
-								class="editable-field editing"
+								class="editable-field editing centered-field"
 								value={weapon.mod.value}
 								oninput={(e) => updateWeaponField(weapon.id, 'mod', { value: (e.target as HTMLInputElement).value })}
 								placeholder="+0"
 							/>
 						{:else}
 							<span class="dice-value">{weapon.mod.value}</span>
-							<span class="dice-icon">🎲</span>
 						{/if}
 					</div>
 
@@ -262,14 +278,13 @@
 							{#if isEditing}
 								<input
 									type="text"
-									class="editable-field editing"
+									class="editable-field editing centered-field"
 									value={weapon.dmg.value}
 									oninput={(e) => updateWeaponField(weapon.id, 'dmg', { value: (e.target as HTMLInputElement).value })}
 									placeholder="1d6"
 								/>
 							{:else}
 								<span class="dice-value">{weapon.dmg.value}</span>
-								<span class="dice-icon">🎲</span>
 							{/if}
 						</div>
 						<!-- Damage type -->
@@ -279,11 +294,13 @@
 							value={weapon.dmgType?.value || ''}
 							oninput={(e) => updateWeaponField(weapon.id, 'dmgType', { value: (e.target as HTMLInputElement).value })}
 							placeholder="тип урона"
+							list="damage-types-list"
 						/>
 					</div>
 
-					<!-- Edit/Save button -->
-					<div class="attack-edit-col">
+					<!-- Combined button column -->
+					<div class="attack-buttons-col">
+						<IconButton icon={Trash2} hint="Удалить" onClick={() => handleRemoveAttack(weapon.id)} size={12} />
 						<IconButton
 							icon={isEditing ? Check : Edit3}
 							hint={isEditing ? "Сохранить" : "Редактировать"}
@@ -291,16 +308,18 @@
 							size={12}
 						/>
 					</div>
-
-					<!-- Remove button -->
-					<div class="attack-remove-col">
-						<IconButton icon={X} hint="Удалить" onClick={() => handleRemoveAttack(weapon.id)} size={12} />
-					</div>
 				</div>
 			{/each}
 		</div>
 	{/if}
 </div>
+
+<!-- Damage types datalist for autocomplete -->
+<datalist id="damage-types-list">
+	{#each DAMAGE_TYPES as damageType}
+		<option value={damageType}></option>
+	{/each}
+</datalist>
 
 <!-- Notes popup -->
 {#if showNotesPopup}
@@ -379,7 +398,7 @@
 
 	.attack-row {
 		display: grid;
-		grid-template-columns: 1fr 60px 80px 24px 24px;
+		grid-template-columns: 1fr 60px 80px 24px;
 		gap: 6px;
 		padding: 6px;
 		background-color: var(--background-secondary);
@@ -411,12 +430,18 @@
 		cursor: pointer;
 	}
 
-	.attack-mod-col,
-	.attack-edit-col,
-	.attack-remove-col {
+	.attack-mod-col {
 		display: flex;
 		align-items: center;
 		justify-content: center;
+	}
+
+	.attack-buttons-col {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		align-items: center;
+		min-height: 100%;
 	}
 
 	.attack-dmg-col {
@@ -432,6 +457,9 @@
 		transition: background-color 0.2s;
 		padding: 2px 4px;
 		min-height: 20px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
 	}
 
 	.dice-field.clickable {
@@ -446,17 +474,6 @@
 		font-size: 12px;
 		font-weight: 600;
 		color: var(--text-accent);
-	}
-
-	.dice-icon {
-		font-size: 10px;
-		opacity: 0;
-		transition: opacity 0.2s;
-		margin-left: 2px;
-	}
-
-	.dice-field.clickable:hover .dice-icon {
-		opacity: 0.6;
 	}
 
 	.editable-field {
@@ -492,11 +509,51 @@
 		opacity: 0.5;
 	}
 
+	.centered-field {
+		text-align: center;
+	}
+
 	.dmg-type-field {
 		font-size: 10px;
 		text-align: center;
 		font-style: italic;
 		color: var(--text-muted);
+		height: 12px;
+	}
+
+	/* Hide datalist dropdown arrow (including focused state) */
+	.dmg-type-field::-webkit-calendar-picker-indicator {
+		display: none !important;
+		opacity: 0 !important;
+		pointer-events: none !important;
+	}
+
+	.dmg-type-field:focus::-webkit-calendar-picker-indicator {
+		display: none !important;
+		opacity: 0 !important;
+	}
+
+	.dmg-type-field::-webkit-list-button {
+		display: none !important;
+		opacity: 0 !important;
+	}
+
+	.dmg-type-field:focus::-webkit-list-button {
+		display: none !important;
+		opacity: 0 !important;
+	}
+
+	/* Style datalist options - smaller and thinner font */
+	#damage-types-list {
+		font-size: 9px;
+		font-weight: 300;
+		font-style: italic;
+	}
+
+	#damage-types-list option {
+		font-size: 9px;
+		font-weight: 300;
+		font-style: italic;
 	}
 
 	/* Notes popup */
@@ -594,7 +651,7 @@
 		}
 
 		.attack-row {
-			grid-template-columns: 1fr 50px 70px 20px 20px;
+			grid-template-columns: 1fr 50px 70px 20px;
 			gap: 4px;
 			padding: 4px;
 		}
@@ -620,7 +677,7 @@
 	/* Compact: 300-450px */
 	@container (min-width: 300px) and (max-width: 450px) {
 		.attack-row {
-			grid-template-columns: 1fr 55px 75px 22px 22px;
+			grid-template-columns: 1fr 55px 75px 22px;
 			gap: 5px;
 			padding: 5px;
 		}
@@ -637,7 +694,7 @@
 	/* Comfortable: 450-600px */
 	@container (min-width: 450px) and (max-width: 600px) {
 		.attack-row {
-			grid-template-columns: 1.5fr 65px 85px 24px 24px;
+			grid-template-columns: 1.5fr 65px 85px 24px;
 			gap: 6px;
 			padding: 6px;
 		}
@@ -659,7 +716,7 @@
 	/* Wide: > 600px */
 	@container (min-width: 600px) {
 		.attack-row {
-			grid-template-columns: 2fr 70px 90px 28px 28px;
+			grid-template-columns: 2fr 70px 90px 28px;
 			gap: 8px;
 			padding: 8px;
 		}
