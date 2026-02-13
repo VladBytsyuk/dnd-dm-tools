@@ -7,6 +7,7 @@ export interface WeaponItem {
 	dmgType?: { value: string };  // Damage type (e.g., "колющий", "рубящий")
 	isProf: boolean;
 	modBonus: { value: number };
+	abilityMod?: string;  // Ability for attack calculation: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha' | undefined
 	notes: { value: string };
 	notesVisibility: boolean;
 }

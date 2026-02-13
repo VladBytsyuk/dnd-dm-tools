@@ -5,14 +5,17 @@
 	import { rollRawTrace } from "../../../../domain/dice";
 	import type { WeaponItem } from "../../../../domain/models/character/CharacterEquipment";
 	import type { IUiEventListener } from "../../../../domain/listeners/ui_event_listener";
+	import type { CharacterStats } from "../../../../domain/models/character/CharacterStats";
 
 	interface Props {
 		weaponsList: WeaponItem[];
+		stats: CharacterStats;
+		proficiency: number;
 		onChange: (newWeaponsList: WeaponItem[]) => void;
 		uiEventListener?: IUiEventListener;
 	}
 
-	let { weaponsList, onChange, uiEventListener }: Props = $props();
+	let { weaponsList, stats, proficiency, onChange, uiEventListener }: Props = $props();
 
 	// Track which weapon is in edit mode
 	let editingWeaponId = $state<string | null>(null);
@@ -38,6 +41,81 @@
 		'звук'
 	];
 
+	// Ability options for attack modifier calculation
+	const ABILITIES = [
+		{ value: '', label: 'Нет', shortLabel: '—' },
+		{ value: 'str', label: 'Сила', shortLabel: 'СИЛ' },
+		{ value: 'dex', label: 'Ловкость', shortLabel: 'ЛОВ' },
+		{ value: 'con', label: 'Телосложение', shortLabel: 'ТЕЛ' },
+		{ value: 'int', label: 'Интеллект', shortLabel: 'ИНТ' },
+		{ value: 'wis', label: 'Мудрость', shortLabel: 'МДР' },
+		{ value: 'cha', label: 'Харизма', shortLabel: 'ХАР' }
+	];
+
+	// Calculate attack modifier from ability, proficiency, and custom bonus
+	// All three fields are independent and additive
+	function calculateAttackModifier(weapon: WeaponItem): string {
+		// Get ability modifier (0 if none selected)
+		let abilityModifier = 0;
+		if (weapon.abilityMod) {
+			const abilityKey = weapon.abilityMod as keyof typeof stats;
+			abilityModifier = stats[abilityKey]?.modifier ?? 0;
+		}
+
+		// Add proficiency bonus if proficient
+		const profBonus = weapon.isProf ? proficiency : 0;
+
+		// Add custom bonus
+		const customBonus = weapon.modBonus?.value ?? 0;
+
+		// Calculate total (all three fields are independent)
+		const total = abilityModifier + profBonus + customBonus;
+
+		// Format with + or - sign
+		return total >= 0 ? `+${total}` : `${total}`;
+	}
+
+	// Toggle proficiency for a weapon
+	function toggleProficiency(id: string) {
+		const weapon = weaponsList.find(w => w.id === id);
+		if (!weapon) return;
+
+		const updated = weaponsList.map(w =>
+			w.id === id
+				? { ...w, isProf: !w.isProf, mod: { value: calculateAttackModifier({ ...w, isProf: !w.isProf }) } }
+				: w
+		);
+		onChange(updated);
+	}
+
+	// Update ability for a weapon
+	function updateAbility(id: string, ability: string) {
+		const weapon = weaponsList.find(w => w.id === id);
+		if (!weapon) return;
+
+		const newAbility = ability || undefined;
+		const updated = weaponsList.map(w =>
+			w.id === id
+				? { ...w, abilityMod: newAbility, mod: { value: calculateAttackModifier({ ...w, abilityMod: newAbility }) } }
+				: w
+		);
+		onChange(updated);
+	}
+
+	// Update custom bonus for a weapon
+	function updateCustomBonus(id: string, bonus: number) {
+		const weapon = weaponsList.find(w => w.id === id);
+		if (!weapon) return;
+
+		const newBonus = { value: bonus };
+		const updated = weaponsList.map(w =>
+			w.id === id
+				? { ...w, modBonus: newBonus, mod: { value: calculateAttackModifier({ ...w, modBonus: newBonus }) } }
+				: w
+		);
+		onChange(updated);
+	}
+
 	function handleAddAttack() {
 		const newWeapon: WeaponItem = {
 			id: `weapon-${Date.now()}`,
@@ -47,6 +125,7 @@
 			dmgType: { value: '' },
 			isProf: false,
 			modBonus: { value: 0 },
+			abilityMod: undefined,  // Start in manual mode
 			notes: { value: '' },
 			notesVisibility: false
 		};
@@ -152,6 +231,7 @@
 						dmgType: { value: weapon.damage?.type?.rus || '' },
 						isProf: false,
 						modBonus: { value: 0 },
+						abilityMod: undefined,
 						notes: { value: weapon.description?.rus || '' },
 						notesVisibility: !!(weapon.description?.rus)
 					};
@@ -178,6 +258,7 @@
 						dmgType: { value: '' },
 						isProf: false,
 						modBonus: { value: 0 },
+						abilityMod: undefined,
 						notes: { value: spell.description?.rus || '' },
 						notesVisibility: !!(spell.description?.rus)
 					};
@@ -250,16 +331,65 @@
 					<div
 						class="attack-mod-col dice-field"
 						class:clickable={!isEditing}
-						onclick={(e) => handleModifierRoll(weapon, e)}
+						onclick={(e) => !isEditing && handleModifierRoll(weapon, e)}
 					>
 						{#if isEditing}
-							<input
-								type="text"
-								class="editable-field editing centered-field"
-								value={weapon.mod.value}
-								oninput={(e) => updateWeaponField(weapon.id, 'mod', { value: (e.target as HTMLInputElement).value })}
-								placeholder="+0"
-							/>
+							<div class="mod-edit-container">
+								<!-- Display calculated modifier (read-only when ability is selected) -->
+								<div class="mod-display">{weapon.mod.value}</div>
+
+								<!-- Calculation fields -->
+								<div class="calc-fields">
+									<!-- Ability selector -->
+									<div class="calc-field-group">
+										<label class="calc-label" for="ability-{weapon.id}">Хар-ка</label>
+										<select
+											id="ability-{weapon.id}"
+											class="ability-select"
+											value={weapon.abilityMod || ''}
+											onchange={(e) => updateAbility(weapon.id, (e.target as HTMLSelectElement).value)}
+										>
+											{#each ABILITIES as ability}
+												<option value={ability.value}>{ability.shortLabel}</option>
+											{/each}
+										</select>
+									</div>
+
+									<!-- Proficiency toggle -->
+									<div class="calc-field-group">
+										<label class="calc-label" for="prof-{weapon.id}">Влд</label>
+										<!-- svelte-ignore a11y_click_events_have_key_events -->
+										<!-- svelte-ignore a11y_no_static_element_interactions -->
+										<div
+											id="prof-{weapon.id}"
+											class="prof-toggle"
+											class:active={weapon.isProf}
+											onclick={() => toggleProficiency(weapon.id)}
+											title="Владение"
+											role="checkbox"
+											aria-checked={weapon.isProf}
+											tabindex="0"
+										>
+											{#if weapon.isProf}
+												<div class="prof-dot"></div>
+											{/if}
+										</div>
+									</div>
+
+									<!-- Custom bonus input -->
+									<div class="calc-field-group">
+										<label class="calc-label" for="bonus-{weapon.id}">Бонус</label>
+										<input
+											id="bonus-{weapon.id}"
+											type="number"
+											class="bonus-input"
+											value={weapon.modBonus?.value ?? 0}
+											oninput={(e) => updateCustomBonus(weapon.id, parseInt((e.target as HTMLInputElement).value) || 0)}
+											placeholder="0"
+										/>
+									</div>
+								</div>
+							</div>
 						{:else}
 							<span class="dice-value">{weapon.mod.value}</span>
 						{/if}
@@ -398,7 +528,7 @@
 
 	.attack-row {
 		display: grid;
-		grid-template-columns: 1fr 60px 80px 24px;
+		grid-template-columns: 1fr 110px 80px 24px;
 		gap: 6px;
 		padding: 6px;
 		background-color: var(--background-secondary);
@@ -642,6 +772,136 @@
 		background-color: var(--background-modifier-hover);
 	}
 
+	/* Container for modifier editing with calculation fields */
+	.mod-edit-container {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		width: 100%;
+		align-items: center;
+	}
+
+	/* Display of calculated modifier (top of edit mode) */
+	.mod-display {
+		font-size: 14px;
+		font-weight: 700;
+		color: var(--text-accent);
+		text-align: center;
+		padding: 2px 4px;
+	}
+
+	/* Container for calculation fields */
+	.calc-fields {
+		display: flex;
+		gap: 3px;
+		justify-content: center;
+		align-items: flex-start;
+		width: 100%;
+	}
+
+	/* Individual field group (label + input) */
+	.calc-field-group {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 2px;
+	}
+
+	/* Field labels */
+	.calc-label {
+		font-size: 7px;
+		color: var(--text-faint);
+		text-transform: uppercase;
+		font-weight: 500;
+		letter-spacing: 0.3px;
+		white-space: nowrap;
+	}
+
+	/* Ability selector dropdown */
+	.ability-select {
+		font-size: 9px;
+		padding: 1px 2px;
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 2px;
+		background-color: var(--background-primary);
+		color: var(--text-normal);
+		width: 36px;
+		height: 16px;
+		cursor: pointer;
+	}
+
+	.ability-select:hover {
+		border-color: var(--text-normal);
+	}
+
+	.ability-select:focus {
+		outline: none;
+		border-color: var(--interactive-accent);
+	}
+
+	/* Proficiency toggle (circle with dot) */
+	.prof-toggle {
+		width: 14px;
+		height: 14px;
+		border: 1.5px solid var(--text-muted);
+		border-radius: 50%;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: all 0.2s;
+		flex-shrink: 0;
+	}
+
+	.prof-toggle:hover {
+		border-color: var(--text-normal);
+		transform: scale(1.05);
+	}
+
+	.prof-toggle.active {
+		border-color: var(--text-accent);
+	}
+
+	.prof-dot {
+		width: 6px;
+		height: 6px;
+		background-color: var(--text-accent);
+		border-radius: 50%;
+	}
+
+	/* Custom bonus number input */
+	.bonus-input {
+		width: 28px;
+		height: 16px;
+		font-size: 9px;
+		padding: 1px 2px;
+		text-align: center;
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 2px;
+		background-color: var(--background-primary);
+		color: var(--text-normal);
+	}
+
+	.bonus-input:hover {
+		border-color: var(--text-normal);
+	}
+
+	.bonus-input:focus {
+		outline: none;
+		border-color: var(--interactive-accent);
+	}
+
+	/* Remove number input spinners */
+	.bonus-input::-webkit-inner-spin-button,
+	.bonus-input::-webkit-outer-spin-button {
+		-webkit-appearance: none;
+		margin: 0;
+	}
+
+	.bonus-input[type=number] {
+		-moz-appearance: textfield;
+	}
+
 	/* Container query breakpoints */
 
 	/* Ultra-compact: < 300px */
@@ -651,7 +911,7 @@
 		}
 
 		.attack-row {
-			grid-template-columns: 1fr 50px 70px 20px;
+			grid-template-columns: 1fr 90px 70px 20px;
 			gap: 4px;
 			padding: 4px;
 		}
@@ -672,12 +932,47 @@
 		.combat-header h3 {
 			font-size: 12px;
 		}
+
+		.calc-fields {
+			gap: 2px;
+		}
+
+		.calc-label {
+			font-size: 6px;
+		}
+
+		.ability-select {
+			width: 30px;
+			font-size: 8px;
+			height: 14px;
+		}
+
+		.bonus-input {
+			width: 24px;
+			font-size: 8px;
+			height: 14px;
+		}
+
+		.prof-toggle {
+			width: 12px;
+			height: 12px;
+			border-width: 1px;
+		}
+
+		.prof-dot {
+			width: 5px;
+			height: 5px;
+		}
+
+		.mod-display {
+			font-size: 12px;
+		}
 	}
 
 	/* Compact: 300-450px */
 	@container (min-width: 300px) and (max-width: 450px) {
 		.attack-row {
-			grid-template-columns: 1fr 55px 75px 22px;
+			grid-template-columns: 1fr 100px 75px 22px;
 			gap: 5px;
 			padding: 5px;
 		}
@@ -689,12 +984,16 @@
 		.dmg-type-field {
 			font-size: 9px;
 		}
+
+		.calc-label {
+			font-size: 7px;
+		}
 	}
 
 	/* Comfortable: 450-600px */
 	@container (min-width: 450px) and (max-width: 600px) {
 		.attack-row {
-			grid-template-columns: 1.5fr 65px 85px 24px;
+			grid-template-columns: 1.5fr 115px 85px 24px;
 			gap: 6px;
 			padding: 6px;
 		}
@@ -711,12 +1010,30 @@
 		.dmg-type-field {
 			font-size: 10px;
 		}
+
+		.calc-fields {
+			gap: 4px;
+		}
+
+		.ability-select {
+			width: 40px;
+			font-size: 10px;
+		}
+
+		.bonus-input {
+			width: 32px;
+			font-size: 10px;
+		}
+
+		.mod-display {
+			font-size: 16px;
+		}
 	}
 
 	/* Wide: > 600px */
 	@container (min-width: 600px) {
 		.attack-row {
-			grid-template-columns: 2fr 70px 90px 28px;
+			grid-template-columns: 2fr 120px 90px 28px;
 			gap: 8px;
 			padding: 8px;
 		}
@@ -736,6 +1053,24 @@
 
 		.combat-header h3 {
 			font-size: 15px;
+		}
+
+		.calc-fields {
+			gap: 5px;
+		}
+
+		.ability-select {
+			width: 40px;
+			font-size: 10px;
+		}
+
+		.bonus-input {
+			width: 32px;
+			font-size: 10px;
+		}
+
+		.mod-display {
+			font-size: 16px;
 		}
 	}
 

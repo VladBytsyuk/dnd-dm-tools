@@ -266,13 +266,16 @@
 		experience: parseInt(data.info?.experience?.value || '0') || 0
 	});
 
-	const stats = $derived({
-		str: { score: data.stats?.str?.score || 10, modifier: data.stats?.str?.modifier || 0 },
-		dex: { score: data.stats?.dex?.score || 10, modifier: data.stats?.dex?.modifier || 0 },
-		con: { score: data.stats?.con?.score || 10, modifier: data.stats?.con?.modifier || 0 },
-		int: { score: data.stats?.int?.score || 10, modifier: data.stats?.int?.modifier || 0 },
-		wis: { score: data.stats?.wis?.score || 10, modifier: data.stats?.wis?.modifier || 0 },
-		cha: { score: data.stats?.cha?.score || 10, modifier: data.stats?.cha?.modifier || 0 }
+	const stats = $derived.by(() => {
+		const calculateMod = (score: number) => Math.floor((score - 10) / 2);
+		return {
+			str: { score: data.stats?.str?.score || 10, modifier: calculateMod(data.stats?.str?.score || 10) },
+			dex: { score: data.stats?.dex?.score || 10, modifier: calculateMod(data.stats?.dex?.score || 10) },
+			con: { score: data.stats?.con?.score || 10, modifier: calculateMod(data.stats?.con?.score || 10) },
+			int: { score: data.stats?.int?.score || 10, modifier: calculateMod(data.stats?.int?.score || 10) },
+			wis: { score: data.stats?.wis?.score || 10, modifier: calculateMod(data.stats?.wis?.score || 10) },
+			cha: { score: data.stats?.cha?.score || 10, modifier: calculateMod(data.stats?.cha?.score || 10) }
+		};
 	});
 
 	const saves = $derived({
@@ -500,6 +503,8 @@
 
 			<CharacterCombatBlock
 				{weaponsList}
+				{stats}
+				{proficiency}
 				onChange={handleWeaponsListChange}
 				{uiEventListener}
 			/>
