@@ -269,22 +269,22 @@
 	const stats = $derived.by(() => {
 		const calculateMod = (score: number) => Math.floor((score - 10) / 2);
 		return {
-			str: { score: data.stats?.str?.score || 10, modifier: calculateMod(data.stats?.str?.score || 10) },
-			dex: { score: data.stats?.dex?.score || 10, modifier: calculateMod(data.stats?.dex?.score || 10) },
-			con: { score: data.stats?.con?.score || 10, modifier: calculateMod(data.stats?.con?.score || 10) },
-			int: { score: data.stats?.int?.score || 10, modifier: calculateMod(data.stats?.int?.score || 10) },
-			wis: { score: data.stats?.wis?.score || 10, modifier: calculateMod(data.stats?.wis?.score || 10) },
-			cha: { score: data.stats?.cha?.score || 10, modifier: calculateMod(data.stats?.cha?.score || 10) }
+			str: { name: 'str', score: data.stats?.str?.score || 10, modifier: calculateMod(data.stats?.str?.score || 10) },
+			dex: { name: 'dex', score: data.stats?.dex?.score || 10, modifier: calculateMod(data.stats?.dex?.score || 10) },
+			con: { name: 'con', score: data.stats?.con?.score || 10, modifier: calculateMod(data.stats?.con?.score || 10) },
+			int: { name: 'int', score: data.stats?.int?.score || 10, modifier: calculateMod(data.stats?.int?.score || 10) },
+			wis: { name: 'wis', score: data.stats?.wis?.score || 10, modifier: calculateMod(data.stats?.wis?.score || 10) },
+			cha: { name: 'cha', score: data.stats?.cha?.score || 10, modifier: calculateMod(data.stats?.cha?.score || 10) }
 		};
 	});
 
 	const saves = $derived({
-		str: { isProf: data.saves?.str?.isProf || false },
-		dex: { isProf: data.saves?.dex?.isProf || false },
-		con: { isProf: data.saves?.con?.isProf || false },
-		int: { isProf: data.saves?.int?.isProf || false },
-		wis: { isProf: data.saves?.wis?.isProf || false },
-		cha: { isProf: data.saves?.cha?.isProf || false }
+		str: { name: 'str', isProf: data.saves?.str?.isProf || false },
+		dex: { name: 'dex', isProf: data.saves?.dex?.isProf || false },
+		con: { name: 'con', isProf: data.saves?.con?.isProf || false },
+		int: { name: 'int', isProf: data.saves?.int?.isProf || false },
+		wis: { name: 'wis', isProf: data.saves?.wis?.isProf || false },
+		cha: { name: 'cha', isProf: data.saves?.cha?.isProf || false }
 	});
 
 	const vitality = $derived(data.vitality || {

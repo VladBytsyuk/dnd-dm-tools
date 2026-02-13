@@ -3,7 +3,7 @@
 	import { Plus, X, Info, Clipboard, Edit3, Check, Trash2 } from "lucide-svelte";
 	import IconButton from "../../uikit/IconButton.svelte";
 	import { rollRawTrace } from "../../../../domain/dice";
-	import type { WeaponItem } from "../../../../domain/models/character/CharacterEquipment";
+	import type { WeaponItem, AdditionalDamageSource } from "../../../../domain/models/character/CharacterEquipment";
 	import type { IUiEventListener } from "../../../../domain/listeners/ui_event_listener";
 	import type { CharacterStats } from "../../../../domain/models/character/CharacterStats";
 
@@ -16,6 +16,18 @@
 	}
 
 	let { weaponsList, stats, proficiency, onChange, uiEventListener }: Props = $props();
+
+	// Debounce utility
+	function debounce<T extends (...args: any[]) => any>(
+		fn: T,
+		delay: number
+	): (...args: Parameters<T>) => void {
+		let timeoutId: ReturnType<typeof setTimeout> | null = null;
+		return (...args: Parameters<T>) => {
+			if (timeoutId) clearTimeout(timeoutId);
+			timeoutId = setTimeout(() => fn(...args), delay);
+		};
+	}
 
 	// Track which weapon is in edit mode
 	let editingWeaponId = $state<string | null>(null);
@@ -55,8 +67,23 @@
 		{ value: 'cha', label: 'Харизма', shortLabel: 'ХАР' }
 	];
 
-	// Calculate attack modifier from ability, proficiency, and custom bonus
-	// All three fields are independent and additive
+	// Constants
+	const DEFAULT_DICE_RUSSIAN = '1к6';
+	const DEFAULT_DAMAGE_SPELL = '0';
+	const DEFAULT_MODIFIER = '+0';
+	const WEAPON_ID_PREFIX = 'weapon-';
+	const SPELL_ID_PREFIX = 'spell-';
+	const DAMAGE_SOURCE_ID_PREFIX = 'dmg-';
+	const DEBOUNCE_DELAY_MS = 300;
+	const DICE_NOTATION_REGEX = /d/g;
+	const DICE_NOTATION_REGEX_UPPER = /D/g;
+
+	/**
+	 * Calculate attack modifier from ability, proficiency, and custom bonus.
+	 * All three fields are independent and additive.
+	 * @param weapon - The weapon item to calculate modifier for
+	 * @returns Formatted modifier string (e.g., "+5" or "-2")
+	 */
 	function calculateAttackModifier(weapon: WeaponItem): string {
 		// Get ability modifier (0 if none selected)
 		let abilityModifier = 0;
@@ -78,7 +105,11 @@
 		return total >= 0 ? `+${total}` : `${total}`;
 	}
 
-	// Toggle proficiency for a weapon
+	/**
+	 * Toggle proficiency bonus for a weapon.
+	 * Recalculates the attack modifier when toggled.
+	 * @param id - The weapon ID
+	 */
 	function toggleProficiency(id: string) {
 		const weapon = weaponsList.find(w => w.id === id);
 		if (!weapon) return;
@@ -91,7 +122,12 @@
 		onChange(updated);
 	}
 
-	// Update ability for a weapon
+	/**
+	 * Update the ability modifier used for attack calculation.
+	 * Recalculates the attack modifier when changed.
+	 * @param id - The weapon ID
+	 * @param ability - The ability key ('str', 'dex', etc.) or empty string for none
+	 */
 	function updateAbility(id: string, ability: string) {
 		const weapon = weaponsList.find(w => w.id === id);
 		if (!weapon) return;
@@ -105,7 +141,12 @@
 		onChange(updated);
 	}
 
-	// Update custom bonus for a weapon
+	/**
+	 * Update the custom bonus modifier for a weapon.
+	 * Recalculates the attack modifier when changed.
+	 * @param id - The weapon ID
+	 * @param bonus - The numeric bonus to add (can be positive or negative)
+	 */
 	function updateCustomBonus(id: string, bonus: number) {
 		const weapon = weaponsList.find(w => w.id === id);
 		if (!weapon) return;
@@ -119,12 +160,19 @@
 		onChange(updated);
 	}
 
+	// Debounced version to prevent excessive updates
+	const debouncedUpdateCustomBonus = debounce(updateCustomBonus, DEBOUNCE_DELAY_MS);
+
+	/**
+	 * Add a new attack to the weapons list.
+	 * Creates a new weapon with default values.
+	 */
 	function handleAddAttack() {
 		const newWeapon: WeaponItem = {
-			id: `weapon-${Date.now()}`,
+			id: `${WEAPON_ID_PREFIX}${Date.now()}`,
 			name: { value: 'Новая атака' },
-			mod: { value: '+0' },
-			dmg: { value: '1d6' },
+			mod: { value: DEFAULT_MODIFIER },
+			dmg: { value: DEFAULT_DICE_RUSSIAN },
 			dmgType: { value: '' },
 			additionalDamage: [],  // Initialize empty array
 			isProf: false,
@@ -136,14 +184,28 @@
 		onChange([...weaponsList, newWeapon]);
 	}
 
+	/**
+	 * Remove an attack from the weapons list.
+	 * @param id - The weapon ID to remove
+	 */
 	function handleRemoveAttack(id: string) {
 		onChange(weaponsList.filter(w => w.id !== id));
 	}
 
+	/**
+	 * Toggle edit mode for a weapon.
+	 * @param id - The weapon ID to toggle edit mode for
+	 */
 	function toggleEditMode(id: string) {
 		editingWeaponId = editingWeaponId === id ? null : id;
 	}
 
+	/**
+	 * Roll attack modifier (d20 + modifier).
+	 * Displays the result in a Notice.
+	 * @param weapon - The weapon to roll for
+	 * @param e - Mouse event
+	 */
 	function handleModifierRoll(weapon: WeaponItem, e: MouseEvent) {
 		// Don't roll if in edit mode or clicking on input
 		if (editingWeaponId === weapon.id) return;
@@ -154,10 +216,18 @@
 			const result = rollRawTrace(formula);
 			new Notice(`${weapon.name.value} (атака): ${result.total}\n\n${result.resolvedFormula}`);
 		} catch (e) {
-			new Notice(`Ошибка при броске: ${e}`);
+			const errorMsg = e instanceof Error ? e.message : String(e);
+			new Notice(`Ошибка при броске: ${errorMsg}`);
 		}
 	}
 
+	/**
+	 * Roll damage for a weapon including all damage sources.
+	 * Validates dice formulas before rolling.
+	 * Displays breakdown by damage type in a Notice.
+	 * @param weapon - The weapon to roll damage for
+	 * @param e - Mouse event
+	 */
 	function handleDamageRoll(weapon: WeaponItem, e: MouseEvent) {
 		// Don't roll if in edit mode
 		if (editingWeaponId === weapon.id) return;
@@ -165,19 +235,36 @@
 		e.stopPropagation();
 		try {
 			// Collect all damage sources with their types
-			const damageSources: Array<{ formula: string; type: string }> = [
-				{ formula: weapon.dmg.value, type: weapon.dmgType?.value || 'урон' }
-			];
+			const damageSources: Array<{ formula: string; type: string }> = [];
 
+			// Validate and add primary damage
+			if (weapon.dmg.value && isValidDiceFormula(weapon.dmg.value)) {
+				damageSources.push({ formula: weapon.dmg.value, type: weapon.dmgType?.value || 'урон' });
+			} else if (weapon.dmg.value) {
+				new Notice(`Неверная формула урона: ${weapon.dmg.value}`);
+				return;
+			}
+
+			// Validate and add additional damage sources
 			if (weapon.additionalDamage && weapon.additionalDamage.length > 0) {
-				weapon.additionalDamage.forEach(d => {
+				for (const d of weapon.additionalDamage) {
 					if (d.dice.value.trim()) {
-						damageSources.push({
-							formula: d.dice.value,
-							type: d.type.value || 'урон'
-						});
+						if (isValidDiceFormula(d.dice.value)) {
+							damageSources.push({
+								formula: d.dice.value,
+								type: d.type.value || 'урон'
+							});
+						} else {
+							new Notice(`Неверная формула дополнительного урона: ${d.dice.value}`);
+							return;
+						}
 					}
-				});
+				}
+			}
+
+			if (damageSources.length === 0) {
+				new Notice('Нет формул урона для броска');
+				return;
 			}
 
 			// Roll each damage source individually to get separate totals
@@ -210,18 +297,23 @@
 
 			new Notice(damageBreakdown);
 		} catch (e) {
-			new Notice(`Ошибка при броске урона: ${e}`);
+			const errorMsg = e instanceof Error ? e.message : String(e);
+			new Notice(`Ошибка при броске урона: ${errorMsg}`);
 		}
 	}
 
-	// Add new additional damage source to weapon
+	/**
+	 * Add a new additional damage source to a weapon.
+	 * Creates a new damage source with default values.
+	 * @param weaponId - The weapon ID to add damage source to
+	 */
 	function handleAddDamageSource(weaponId: string) {
 		const updated = weaponsList.map(w => {
 			if (w.id !== weaponId) return w;
 
-			const newSource: import('../../../../domain/models/character/CharacterEquipment').AdditionalDamageSource = {
-				id: `dmg-${Date.now()}`,
-				dice: { value: '1d6' },
+			const newSource: AdditionalDamageSource = {
+				id: `${DAMAGE_SOURCE_ID_PREFIX}${Date.now()}`,
+				dice: { value: DEFAULT_DICE_RUSSIAN },
 				type: { value: '' }
 			};
 
@@ -235,7 +327,11 @@
 		onChange(updated);
 	}
 
-	// Remove additional damage source from weapon
+	/**
+	 * Remove an additional damage source from a weapon.
+	 * @param weaponId - The weapon ID
+	 * @param damageId - The damage source ID to remove
+	 */
 	function handleRemoveDamageSource(weaponId: string, damageId: string) {
 		const updated = weaponsList.map(w => {
 			if (w.id !== weaponId) return w;
@@ -249,7 +345,13 @@
 		onChange(updated);
 	}
 
-	// Update additional damage source field
+	/**
+	 * Update a field in an additional damage source.
+	 * @param weaponId - The weapon ID
+	 * @param damageId - The damage source ID
+	 * @param field - The field to update ('dice' or 'type')
+	 * @param value - The new value
+	 */
 	function updateAdditionalDamageField(
 		weaponId: string,
 		damageId: string,
@@ -272,6 +374,11 @@
 		onChange(updated);
 	}
 
+	/**
+	 * Open the notes popup for editing weapon notes.
+	 * @param id - The weapon ID
+	 * @param e - Mouse event for positioning the popup
+	 */
 	function handleNotesClick(id: string, e: MouseEvent) {
 		e.stopPropagation();
 		const weapon = weaponsList.find(w => w.id === id);
@@ -286,6 +393,10 @@
 		};
 	}
 
+	/**
+	 * Save the notes from the popup and close it.
+	 * Updates the weapon's notes and visibility flag.
+	 */
 	function handleSaveNotes() {
 		if (showNotesPopup) {
 			const updatedList = weaponsList.map(w =>
@@ -302,23 +413,46 @@
 		showNotesPopup = null;
 	}
 
+	/**
+	 * Close the notes popup without saving.
+	 * @param e - Optional mouse event
+	 */
 	function handleCloseNotes(e?: MouseEvent) {
 		if (e) e.stopPropagation();
 		showNotesPopup = null;
 	}
 
-	function updateWeaponField(id: string, field: keyof WeaponItem, value: any) {
+	/**
+	 * Update a specific field in a weapon item.
+	 * Generic type ensures type safety for field values.
+	 * @param id - The weapon ID
+	 * @param field - The field name to update
+	 * @param value - The new value for the field
+	 */
+	function updateWeaponField<K extends keyof WeaponItem>(
+		id: string,
+		field: K,
+		value: WeaponItem[K]
+	) {
 		const updatedList = weaponsList.map(w =>
 			w.id === id ? { ...w, [field]: value } : w
 		);
 		onChange(updatedList);
 	}
 
-	// Determine if weapon is ranged based on type name
-	function isRangedWeapon(weapon: any): boolean {
+	/**
+	 * Determine if a weapon is ranged based on its type name or properties.
+	 * Used to auto-select appropriate ability modifier (STR for melee, DEX for ranged).
+	 * @param weapon - Weapon data with type and properties
+	 * @returns True if ranged weapon, false if melee
+	 */
+	function isRangedWeapon(weapon: {
+		type?: { name?: string };
+		properties?: Array<{ name: string }>
+	}): boolean {
 		// Check weapon type
 		if (weapon.type?.name) {
-			const typeName = weapon.type.name as string;
+			const typeName = weapon.type.name;
 			// Ranged weapon types
 			if (typeName.includes('дальнобойное')) return true;
 			// Melee weapon types
@@ -327,7 +461,7 @@
 
 		// Fallback: check properties for ammunition (indicates ranged)
 		if (weapon.properties && Array.isArray(weapon.properties)) {
-			return weapon.properties.some((prop: any) =>
+			return weapon.properties.some(prop =>
 				prop.name === 'Боеприпас' || prop.name === 'Ammunition'
 			);
 		}
@@ -336,14 +470,38 @@
 		return false;
 	}
 
-	// Normalize dice formula to Russian "к" notation
+	/**
+	 * Normalize dice formula to Russian "к" notation.
+	 * Converts English "d" or "D" to Russian "к".
+	 * @param formula - Dice formula (e.g., "1d6", "2D8+3")
+	 * @returns Normalized formula (e.g., "1к6", "2к8+3")
+	 */
 	function normalizeDiceFormula(formula: string): string {
 		if (!formula) return '';
 		// Replace English "d" with Russian "к"
 		// Also handle uppercase D
-		return formula.replace(/d/g, 'к').replace(/D/g, 'к');
+		return formula.replace(DICE_NOTATION_REGEX, 'к').replace(DICE_NOTATION_REGEX_UPPER, 'к');
 	}
 
+	/**
+	 * Validate dice formula in Russian notation.
+	 * Accepts patterns like: к6, 1к6, 2к8, 1к6+3, 2к20-1
+	 * @param formula - Dice formula to validate
+	 * @returns True if valid, false otherwise
+	 */
+	function isValidDiceFormula(formula: string): boolean {
+		if (!formula || typeof formula !== 'string') return false;
+		// Pattern: optional number, 'к', number, optional +/- and number
+		// Examples: к6, 1к6, 2к8, 1к6+3, 2к20-1
+		const pattern = /^\d*к\d+([+-]\d+)?$/;
+		return pattern.test(formula.trim());
+	}
+
+	/**
+	 * Import a weapon or spell from clipboard.
+	 * Supports both ```weapon and ```spell YAML formats.
+	 * Auto-detects weapon type and sets appropriate ability modifier.
+	 */
 	async function handlePasteAttack() {
 		try {
 			const clipboard = await navigator.clipboard.readText();
@@ -356,9 +514,20 @@
 					.join('\n');
 				const weapon = parseYaml(yaml) as any;
 
+				// Validate weapon structure
+				if (!weapon || typeof weapon !== 'object') {
+					new Notice('Неверный формат: объект оружия не найден');
+					return;
+				}
+
+				if (!weapon.name || (typeof weapon.name !== 'string' && typeof weapon.name !== 'object')) {
+					new Notice('Неверный формат: отсутствует название оружия');
+					return;
+				}
+
 				if (weapon && weapon.name) {
 					// Normalize damage formula (d → к)
-					const normalizedDamage = normalizeDiceFormula(weapon.damage?.dice || '1к6');
+					const normalizedDamage = normalizeDiceFormula(weapon.damage?.dice || DEFAULT_DICE_RUSSIAN);
 
 					// Determine weapon type and set appropriate ability
 					const isRanged = isRangedWeapon(weapon);
@@ -366,9 +535,9 @@
 
 					// Create weapon with proper defaults
 					const newWeapon: WeaponItem = {
-						id: `weapon-${Date.now()}`,
+						id: `${WEAPON_ID_PREFIX}${Date.now()}`,
 						name: { value: weapon.name.rus || weapon.name || 'Оружие' },
-						mod: { value: '+0' },  // Will be recalculated below
+						mod: { value: DEFAULT_MODIFIER },  // Will be recalculated below
 						dmg: { value: normalizedDamage },
 						dmgType: { value: weapon.damage?.type || '' },
 						additionalDamage: [],  // Initialize empty array
@@ -396,14 +565,25 @@
 					.join('\n');
 				const spell = parseYaml(yaml) as any;
 
+				// Validate spell structure
+				if (!spell || typeof spell !== 'object') {
+					new Notice('Неверный формат: объект заклинания не найден');
+					return;
+				}
+
+				if (!spell.name || (typeof spell.name !== 'string' && typeof spell.name !== 'object')) {
+					new Notice('Неверный формат: отсутствует название заклинания');
+					return;
+				}
+
 				if (spell && spell.name) {
 					// Normalize damage formula (d → к) for spells too
-					const normalizedDamage = normalizeDiceFormula(spell.damage || '0');
+					const normalizedDamage = normalizeDiceFormula(spell.damage || DEFAULT_DAMAGE_SPELL);
 
 					const newWeapon: WeaponItem = {
-						id: `spell-${Date.now()}`,
+						id: `${SPELL_ID_PREFIX}${Date.now()}`,
 						name: { value: spell.name.rus || spell.name || 'Заклинание' },
-						mod: { value: '+0' },
+						mod: { value: DEFAULT_MODIFIER },
 						dmg: { value: normalizedDamage },
 						dmgType: { value: '' },
 						additionalDamage: [],  // Initialize empty array
@@ -421,11 +601,15 @@
 
 			new Notice('Не удалось распознать оружие или заклинание');
 		} catch (e) {
-			new Notice(`Ошибка при вставке: ${e}`);
+			const errorMsg = e instanceof Error ? e.message : String(e);
+			new Notice(`Ошибка при вставке: ${errorMsg}`);
 		}
 	}
 
-	// Close popup when clicking outside
+	/**
+	 * Close the notes popup when clicking outside of it.
+	 * @param e - Mouse event
+	 */
 	function handleClickOutside(e: MouseEvent) {
 		if (showNotesPopup) {
 			const target = e.target as HTMLElement;
@@ -467,14 +651,21 @@
 							oninput={(e) => updateWeaponField(weapon.id, 'name', { value: (e.target as HTMLInputElement).value })}
 							placeholder="Название атаки"
 						/>
-						<!-- svelte-ignore a11y_click_events_have_key_events -->
-						<!-- svelte-ignore a11y_no_static_element_interactions -->
 						<div
 							class="notes-icon-wrapper"
 							class:visible={shouldShow}
 							onclick={(e: MouseEvent) => handleNotesClick(weapon.id, e)}
+							onkeydown={(e: KeyboardEvent) => {
+								if (e.key === 'Enter' || e.key === ' ') {
+									e.preventDefault();
+									handleNotesClick(weapon.id, e as any);
+								}
+							}}
 							onmouseenter={() => hoveredInfoIconId = weapon.id}
 							onmouseleave={() => hoveredInfoIconId = null}
+							role="button"
+							tabindex="0"
+							aria-label="Редактировать заметки"
 						>
 							<IconButton
 								icon={Info}
@@ -486,12 +677,20 @@
 					</div>
 
 					<!-- Attack modifier column -->
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 					<div
 						class="attack-mod-col dice-field"
 						class:clickable={!isEditing}
 						onclick={(e) => !isEditing && handleModifierRoll(weapon, e)}
+						onkeydown={(e) => {
+							if (!isEditing && (e.key === 'Enter' || e.key === ' ')) {
+								e.preventDefault();
+								handleModifierRoll(weapon, e as any);
+							}
+						}}
+						role={!isEditing ? "button" : undefined}
+						tabindex={!isEditing ? 0 : undefined}
+						aria-label={!isEditing ? `Бросить атаку для ${weapon.name.value}` : undefined}
 					>
 						{#if isEditing}
 							<div class="mod-edit-container">
@@ -518,16 +717,21 @@
 									<!-- Proficiency toggle -->
 									<div class="calc-field-group">
 										<label class="calc-label" for="prof-{weapon.id}">Влд</label>
-										<!-- svelte-ignore a11y_click_events_have_key_events -->
-										<!-- svelte-ignore a11y_no_static_element_interactions -->
 										<div
 											id="prof-{weapon.id}"
 											class="prof-toggle"
 											class:active={weapon.isProf}
 											onclick={() => toggleProficiency(weapon.id)}
+											onkeydown={(e) => {
+												if (e.key === 'Enter' || e.key === ' ') {
+													e.preventDefault();
+													toggleProficiency(weapon.id);
+												}
+											}}
 											title="Владение"
 											role="checkbox"
 											aria-checked={weapon.isProf}
+											aria-label="Владение оружием"
 											tabindex="0"
 										>
 											{#if weapon.isProf}
@@ -544,7 +748,7 @@
 											type="number"
 											class="bonus-input"
 											value={weapon.modBonus?.value ?? 0}
-											oninput={(e) => updateCustomBonus(weapon.id, parseInt((e.target as HTMLInputElement).value) || 0)}
+											oninput={(e) => debouncedUpdateCustomBonus(weapon.id, parseInt((e.target as HTMLInputElement).value) || 0)}
 											placeholder="0"
 										/>
 									</div>
@@ -556,9 +760,20 @@
 					</div>
 
 					<!-- Damage column (dice + type) -->
-					<!-- svelte-ignore a11y_click_events_have_key_events -->
-					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div class="attack-dmg-col" onclick={(e) => !isEditing && handleDamageRoll(weapon, e)}>
+					<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+					<div
+						class="attack-dmg-col"
+						onclick={(e) => !isEditing && handleDamageRoll(weapon, e)}
+						onkeydown={(e) => {
+							if (!isEditing && (e.key === 'Enter' || e.key === ' ')) {
+								e.preventDefault();
+								handleDamageRoll(weapon, e as any);
+							}
+						}}
+						role={!isEditing ? "button" : undefined}
+						tabindex={!isEditing ? 0 : undefined}
+						aria-label={!isEditing ? `Бросить урон для ${weapon.name.value}` : undefined}
+					>
 						{#if isEditing}
 							<!-- EDIT MODE: Show all damage sources separately -->
 							<!-- PRIMARY DAMAGE (always present) -->
@@ -624,9 +839,19 @@
 							{/if}
 
 							<!-- ADD DAMAGE BUTTON (edit mode) -->
-							<!-- svelte-ignore a11y_click_events_have_key_events -->
-							<!-- svelte-ignore a11y_no_static_element_interactions -->
-							<div class="add-damage-btn" onclick={() => handleAddDamageSource(weapon.id)}>
+							<div
+								class="add-damage-btn"
+								onclick={() => handleAddDamageSource(weapon.id)}
+								onkeydown={(e) => {
+									if (e.key === 'Enter' || e.key === ' ') {
+										e.preventDefault();
+										handleAddDamageSource(weapon.id);
+									}
+								}}
+								role="button"
+								tabindex="0"
+								aria-label="Добавить дополнительный урон"
+							>
 								<Plus size={12} />
 								<span>Добавить урон</span>
 							</div>
@@ -684,15 +909,19 @@
 	<div
 		class="notes-popup"
 		style="left: {showNotesPopup.x}px; top: {showNotesPopup.y}px;"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="notes-popup-title"
 	>
 		<div class="notes-popup-header">
-			<h4>Заметки</h4>
+			<h4 id="notes-popup-title">Заметки</h4>
 			<IconButton icon={X} hint="Закрыть" onClick={handleCloseNotes} size={12} />
 		</div>
 		<textarea
 			class="notes-textarea"
 			bind:value={currentNotes}
 			placeholder="Введите заметки..."
+			aria-label="Текст заметки"
 		></textarea>
 		<div class="notes-popup-footer">
 			<button class="save-button" onclick={handleSaveNotes}>Сохранить</button>
@@ -1245,11 +1474,13 @@
 	/* Remove number input spinners */
 	.bonus-input::-webkit-inner-spin-button,
 	.bonus-input::-webkit-outer-spin-button {
+		appearance: none;
 		-webkit-appearance: none;
 		margin: 0;
 	}
 
 	.bonus-input[type=number] {
+		appearance: textfield;
 		-moz-appearance: textfield;
 	}
 
