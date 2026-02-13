@@ -17,7 +17,7 @@
 	import CharacterVitalityBlock from "./kit/CharacterVitalityBlock.svelte";
 	import CharacterCombatBlock from "./kit/CharacterCombatBlock.svelte";
 	import CharacterSpellbook from "./kit/CharacterSpellbook.svelte";
-	import CharacterEquipment from "./kit/CharacterEquipment.svelte";
+	import CharacterEquipmentBlock from "./kit/CharacterEquipmentBlock.svelte";
 	import CharacterTextSection from "./kit/CharacterTextSection.svelte";
 	import CharacterInfoBox from "./kit/CharacterInfoBox.svelte";
 
@@ -38,6 +38,7 @@
 		await tick();
 		diceRollersManager.onMount();
 		migrateToMulticlass();
+		migrateEquipmentList();
 	});
 	onDestroy(() => {
 		diceRollersManager.onDestroy();
@@ -136,6 +137,28 @@
 		}
 	}
 
+	// Migrate old attunementsList to new equipmentList structure
+	function migrateEquipmentList() {
+		if (!data.equipmentList && data.attunementsList?.length > 0) {
+			data.equipmentList = data.attunementsList.map((att: any) => ({
+				id: crypto.randomUUID(),
+				name: { value: att.value || '' },
+				onCharacter: true,
+				isMagic: true,
+				isAttuned: att.checked || false,
+				notes: { value: '' },
+				notesVisibility: false
+			}));
+			// Save the migration
+			if (repository) {
+				debouncedSave();
+			}
+		} else if (!data.equipmentList) {
+			// Initialize empty equipment list
+			data.equipmentList = [];
+		}
+	}
+
 	// Auto-save functionality
 	let saveTimeout: NodeJS.Timeout | null = null;
 	let isSaving = $state(false);
@@ -231,6 +254,12 @@
 
 	function handleWeaponsListChange(newWeaponsList: any[]) {
 		data.weaponsList = newWeaponsList;
+		debouncedSave();
+	}
+
+	function handleEquipmentChange(newCoins: any, newEquipmentList: any[]) {
+		data.coins = newCoins;
+		data.equipmentList = newEquipmentList;
 		debouncedSave();
 	}
 
@@ -517,11 +546,13 @@
 				/>
 			{/if}
 
-			<CharacterEquipment
-				equipmentText={data.text?.equipment}
-				proficienciesText={data.text?.prof}
+			<CharacterEquipmentBlock
 				{coins}
-				{attunementsList}
+				equipmentList={data.equipmentList || []}
+				equipmentText={data.text?.equipment}
+				{entityLinkService}
+				{uiEventListener}
+				onChange={handleEquipmentChange}
 			/>
 
 			{#if data.text?.personality}

@@ -115,7 +115,7 @@ export async function getClassFromClipboard(ignoreNotice: boolean = false): Prom
     return undefined;
 }
 
-async function getFromClipboard<T>(blockName: string): Promise<T | undefined> {
+export async function getFromClipboard<T>(blockName: string): Promise<T | undefined> {
     try {
         const clipboard = await navigator.clipboard.readText();
         if (!clipboard.startsWith(`\`\`\`${blockName}`)) {
