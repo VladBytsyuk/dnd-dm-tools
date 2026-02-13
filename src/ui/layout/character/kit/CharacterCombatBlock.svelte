@@ -24,6 +24,9 @@
 	let showNotesPopup = $state<{ id: string; x: number; y: number } | null>(null);
 	let currentNotes = $state('');
 
+	// Track which weapon's info icon is being hovered
+	let hoveredInfoIconId = $state<string | null>(null);
+
 	// Damage types for autocomplete
 	const DAMAGE_TYPES = [
 		'дробящий',
@@ -452,6 +455,9 @@
 		<div class="attacks-table">
 			{#each weaponsList as weapon (weapon.id)}
 				{@const isEditing = editingWeaponId === weapon.id}
+				{@const hasNotes = !!(weapon.notes?.value?.trim())}
+				{@const isHovered = hoveredInfoIconId === weapon.id}
+				{@const shouldShow = hasNotes || isHovered}
 				<div class="attack-row">
 					<div class="attack-name-col">
 						<input
@@ -463,7 +469,13 @@
 						/>
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
 						<!-- svelte-ignore a11y_no_static_element_interactions -->
-						<div class="notes-icon-wrapper" onclick={(e: MouseEvent) => handleNotesClick(weapon.id, e)}>
+						<div
+							class="notes-icon-wrapper"
+							class:visible={shouldShow}
+							onclick={(e: MouseEvent) => handleNotesClick(weapon.id, e)}
+							onmouseenter={() => hoveredInfoIconId = weapon.id}
+							onmouseleave={() => hoveredInfoIconId = null}
+						>
 							<IconButton
 								icon={Info}
 								hint={weapon.notes?.value?.trim() || "Заметки"}
@@ -739,14 +751,14 @@
 	.attacks-table {
 		display: grid;
 		grid-template-columns: 1fr;
-		gap: 4px;
+		gap: 2px;
 	}
 
 	.attack-row {
 		display: grid;
 		grid-template-columns: 1fr 110px 80px 24px;
-		gap: 6px;
-		padding: 6px;
+		gap: 4px;
+		padding: 4px;
 		background-color: var(--background-secondary);
 		border-radius: 4px;
 		transition: background-color 0.2s;
@@ -762,11 +774,15 @@
 		align-items: center;
 		gap: 4px;
 		min-width: 0;
+		overflow: hidden;
 	}
 
 	.attack-name-col input {
 		flex: 1;
 		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.notes-icon-wrapper {
@@ -774,12 +790,24 @@
 		display: flex;
 		align-items: center;
 		cursor: pointer;
+		/* Increased hitbox */
+		padding: 4px 6px;
+		margin: -4px -6px;
+		/* Visibility control */
+		opacity: 0;
+		transition: opacity 0.15s ease-in-out;
+	}
+
+	.notes-icon-wrapper.visible {
+		opacity: 1;
 	}
 
 	.attack-mod-col {
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		min-width: 0;
+		overflow: hidden;
 	}
 
 	.attack-buttons-col {
@@ -796,6 +824,8 @@
 		gap: 2px;
 		align-items: stretch;
 		cursor: pointer;
+		min-width: 0;
+		overflow: hidden;
 	}
 
 	.attack-dmg-col:not(:has(.editing)):hover .dice-field {
@@ -806,20 +836,20 @@
 	.damage-row {
 		display: flex;
 		align-items: center;
-		gap: 2px;
+		gap: 1px;
 	}
 
 	/* Primary damage - full vertical layout like before */
 	.primary-damage {
 		flex-direction: column;
-		gap: 2px;
+		gap: 1px;
 	}
 
 	/* Additional damage - vertical layout like primary */
 	.additional-damage {
 		flex-direction: column;
-		gap: 2px;
-		padding: 4px;
+		gap: 1px;
+		padding: 2px;
 		background-color: var(--background-modifier-hover);
 		border-radius: 2px;
 		align-items: stretch;
@@ -830,7 +860,7 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-bottom: 2px;
+		margin-bottom: 1px;
 	}
 
 	/* Plus separator between damage sources */
@@ -845,7 +875,7 @@
 	.additional-damage-fields {
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
+		gap: 1px;
 	}
 
 	/* Damage dice field in additional damage */
@@ -886,11 +916,13 @@
 		position: relative;
 		border-radius: 3px;
 		transition: background-color 0.2s;
-		padding: 2px 4px;
-		min-height: 20px;
+		padding: 1px 4px;
+		min-height: 18px;
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		overflow: hidden;
+		max-width: 100%;
 	}
 
 	.dice-field.clickable {
@@ -905,11 +937,15 @@
 		font-size: 12px;
 		font-weight: 600;
 		color: var(--text-accent);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		max-width: 100%;
 	}
 
 	.editable-field {
 		width: 100%;
-		padding: 2px 4px;
+		padding: 1px 4px;
 		border: 1px solid transparent;
 		border-radius: 2px;
 		background: transparent;
@@ -942,6 +978,8 @@
 
 	.centered-field {
 		text-align: center;
+		max-width: 100%;
+		overflow: hidden;
 	}
 
 	.dmg-type-field {
@@ -1089,7 +1127,7 @@
 	.mod-edit-container {
 		display: flex;
 		flex-direction: column;
-		gap: 4px;
+		gap: 2px;
 		width: 100%;
 		align-items: center;
 	}
@@ -1100,7 +1138,7 @@
 		font-weight: 700;
 		color: var(--text-accent);
 		text-align: center;
-		padding: 2px 4px;
+		padding: 0px 4px;
 	}
 
 	/* Container for calculation fields */
@@ -1117,7 +1155,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 2px;
+		gap: 1px;
 	}
 
 	/* Field labels */
@@ -1217,16 +1255,99 @@
 
 	/* Container query breakpoints */
 
-	/* Ultra-compact: < 300px */
-	@container (max-width: 300px) {
+	/* Very narrow: < 250px */
+	@container (max-width: 250px) {
 		.notes-icon-wrapper {
 			display: none;
 		}
 
 		.attack-row {
-			grid-template-columns: 1fr 90px 70px 20px;
-			gap: 4px;
-			padding: 4px;
+			grid-template-columns: 1fr 58px 48px 18px;
+			gap: 2px;
+			padding: 2px;
+		}
+
+		.attack-name-col {
+			gap: 2px;
+		}
+
+		.editable-field {
+			font-size: 10px;
+			padding: 1px 2px;
+		}
+
+		.dice-value {
+			font-size: 10px;
+			max-width: 48px;
+		}
+
+		.dice-field {
+			padding: 0px 2px;
+			min-height: 16px;
+		}
+
+		.dmg-type-field {
+			font-size: 7px;
+		}
+
+		.dmg-type-display {
+			font-size: 7px;
+		}
+
+		.dmg-dice-field {
+			font-size: 8px;
+		}
+
+		.mod-display {
+			font-size: 10px;
+		}
+
+		.calc-fields {
+			gap: 1px;
+		}
+
+		.ability-select {
+			width: 22px;
+			font-size: 7px;
+			height: 12px;
+			padding: 0px 1px;
+		}
+
+		.bonus-input {
+			width: 18px;
+			font-size: 7px;
+			height: 12px;
+		}
+
+		.prof-toggle {
+			width: 10px;
+			height: 10px;
+		}
+
+		.prof-dot {
+			width: 4px;
+			height: 4px;
+		}
+
+		.mod-edit-container {
+			gap: 1px;
+		}
+
+		.attack-buttons-col {
+			gap: 1px;
+		}
+	}
+
+	/* Ultra-compact: 250-300px */
+	@container (min-width: 250px) and (max-width: 300px) {
+		.notes-icon-wrapper {
+			display: none;
+		}
+
+		.attack-row {
+			grid-template-columns: 1fr 80px 65px 20px;
+			gap: 3px;
+			padding: 3px;
 		}
 
 		.editable-field {
