@@ -273,16 +273,19 @@
 				return {
 					type: source.type,
 					total: result.total,
-					formula: source.formula
+					formula: source.formula,
+					resolvedFormula: result.resolvedFormula
 				};
 			});
 
 			// Calculate overall total
 			const overallTotal = rolledSources.reduce((sum, source) => sum + source.total, 0);
 
-			// Combine formulas for full breakdown
-			const combinedFormula = damageSources.map(s => s.formula).join('+');
-			const combinedResult = rollRawTrace(combinedFormula);
+			// Combine resolved formulas from already-rolled results
+			const combinedResolvedFormula = rolledSources
+				.map(s => s.resolvedFormula)
+				.join(' + ')
+				.replace(/\+\s-\s?/g, '- ');
 
 			// Build damage breakdown for notice
 			let damageBreakdown = `${weapon.name.value} (урон): ${overallTotal}\n\n`;
@@ -292,8 +295,8 @@
 				damageBreakdown += `${source.type}: ${source.total}\n`;
 			});
 
-			// Add full breakdown
-			damageBreakdown += `\nБросок: ${combinedResult.resolvedFormula}`;
+			// Add full breakdown using already-rolled results
+			damageBreakdown += `\nБросок: ${combinedResolvedFormula}`;
 
 			new Notice(damageBreakdown);
 		} catch (e) {
@@ -484,17 +487,19 @@
 	}
 
 	/**
-	 * Validate dice formula in Russian notation.
-	 * Accepts patterns like: к6, 1к6, 2к8, 1к6+3, 2к20-1
+	 * Validate dice formula in Russian or English notation.
+	 * Accepts patterns like: к6, 1к6, 2к8, 1к6+3, 2к20-1 (and d variants)
 	 * @param formula - Dice formula to validate
 	 * @returns True if valid, false otherwise
 	 */
 	function isValidDiceFormula(formula: string): boolean {
 		if (!formula || typeof formula !== 'string') return false;
+		// Normalize to Russian notation first to handle both d and к
+		const normalized = normalizeDiceFormula(formula.trim());
 		// Pattern: optional number, 'к', number, optional +/- and number
 		// Examples: к6, 1к6, 2к8, 1к6+3, 2к20-1
 		const pattern = /^\d*к\d+([+-]\d+)?$/;
-		return pattern.test(formula.trim());
+		return pattern.test(normalized);
 	}
 
 	/**
@@ -580,6 +585,11 @@
 					// Normalize damage formula (d → к) for spells too
 					const normalizedDamage = normalizeDiceFormula(spell.damage || DEFAULT_DAMAGE_SPELL);
 
+					// Handle description - can be string (FullSpell) or object with rus property
+					const spellDescription = typeof spell.description === 'string'
+						? spell.description
+						: spell.description?.rus || '';
+
 					const newWeapon: WeaponItem = {
 						id: `${SPELL_ID_PREFIX}${Date.now()}`,
 						name: { value: spell.name.rus || spell.name || 'Заклинание' },
@@ -590,8 +600,8 @@
 						isProf: false,
 						modBonus: { value: 0 },
 						abilityMod: undefined,  // Spells require manual ability selection
-						notes: { value: spell.description?.rus || '' },
-						notesVisibility: !!(spell.description?.rus)
+						notes: { value: spellDescription },
+						notesVisibility: !!spellDescription
 					};
 					onChange([...weaponsList, newWeapon]);
 					new Notice(`${newWeapon.name.value} добавлено`);
