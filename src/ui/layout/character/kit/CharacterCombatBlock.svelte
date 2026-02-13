@@ -123,6 +123,7 @@
 			mod: { value: '+0' },
 			dmg: { value: '1d6' },
 			dmgType: { value: '' },
+			additionalDamage: [],  // Initialize empty array
 			isProf: false,
 			modBonus: { value: 0 },
 			abilityMod: undefined,  // Start in manual mode
@@ -160,12 +161,112 @@
 
 		e.stopPropagation();
 		try {
-			const result = rollRawTrace(weapon.dmg.value);
-			const damageType = weapon.dmgType?.value ? ` (${weapon.dmgType.value})` : '';
-			new Notice(`${weapon.name.value} (урон)${damageType}: ${result.total}\n\n${result.resolvedFormula}`);
+			// Collect all damage sources with their types
+			const damageSources: Array<{ formula: string; type: string }> = [
+				{ formula: weapon.dmg.value, type: weapon.dmgType?.value || 'урон' }
+			];
+
+			if (weapon.additionalDamage && weapon.additionalDamage.length > 0) {
+				weapon.additionalDamage.forEach(d => {
+					if (d.dice.value.trim()) {
+						damageSources.push({
+							formula: d.dice.value,
+							type: d.type.value || 'урон'
+						});
+					}
+				});
+			}
+
+			// Roll each damage source individually to get separate totals
+			const rolledSources = damageSources.map(source => {
+				const result = rollRawTrace(source.formula);
+				return {
+					type: source.type,
+					total: result.total,
+					formula: source.formula
+				};
+			});
+
+			// Calculate overall total
+			const overallTotal = rolledSources.reduce((sum, source) => sum + source.total, 0);
+
+			// Combine formulas for full breakdown
+			const combinedFormula = damageSources.map(s => s.formula).join('+');
+			const combinedResult = rollRawTrace(combinedFormula);
+
+			// Build damage breakdown for notice
+			let damageBreakdown = `${weapon.name.value} (урон): ${overallTotal}\n\n`;
+
+			// Show individual totals per damage type
+			rolledSources.forEach(source => {
+				damageBreakdown += `${source.type}: ${source.total}\n`;
+			});
+
+			// Add full breakdown
+			damageBreakdown += `\nБросок: ${combinedResult.resolvedFormula}`;
+
+			new Notice(damageBreakdown);
 		} catch (e) {
 			new Notice(`Ошибка при броске урона: ${e}`);
 		}
+	}
+
+	// Add new additional damage source to weapon
+	function handleAddDamageSource(weaponId: string) {
+		const updated = weaponsList.map(w => {
+			if (w.id !== weaponId) return w;
+
+			const newSource: import('../../../../domain/models/character/CharacterEquipment').AdditionalDamageSource = {
+				id: `dmg-${Date.now()}`,
+				dice: { value: '1d6' },
+				type: { value: '' }
+			};
+
+			const currentAdditional = w.additionalDamage || [];
+			return {
+				...w,
+				additionalDamage: [...currentAdditional, newSource]
+			};
+		});
+
+		onChange(updated);
+	}
+
+	// Remove additional damage source from weapon
+	function handleRemoveDamageSource(weaponId: string, damageId: string) {
+		const updated = weaponsList.map(w => {
+			if (w.id !== weaponId) return w;
+
+			return {
+				...w,
+				additionalDamage: (w.additionalDamage || []).filter(d => d.id !== damageId)
+			};
+		});
+
+		onChange(updated);
+	}
+
+	// Update additional damage source field
+	function updateAdditionalDamageField(
+		weaponId: string,
+		damageId: string,
+		field: 'dice' | 'type',
+		value: string
+	) {
+		const updated = weaponsList.map(w => {
+			if (w.id !== weaponId) return w;
+
+			return {
+				...w,
+				additionalDamage: (w.additionalDamage || []).map(d =>
+					d.id === damageId
+						? { ...d, [field]: { value } }
+						: d
+				)
+			};
+		});
+
+		onChange(updated);
 	}
 
 	function handleNotesClick(id: string, e: MouseEvent) {
@@ -229,6 +330,7 @@
 						mod: { value: '+0' },
 						dmg: { value: weapon.damage?.formula || '1d6' },
 						dmgType: { value: weapon.damage?.type?.rus || '' },
+						additionalDamage: [],  // Initialize empty array
 						isProf: false,
 						modBonus: { value: 0 },
 						abilityMod: undefined,
@@ -256,6 +358,7 @@
 						mod: { value: '+0' },
 						dmg: { value: spell.damage || '0' },
 						dmgType: { value: '' },
+						additionalDamage: [],  // Initialize empty array
 						isProf: false,
 						modBonus: { value: 0 },
 						abilityMod: undefined,
@@ -396,36 +499,104 @@
 					</div>
 
 					<!-- Damage column (dice + type) -->
-					<div class="attack-dmg-col">
-						<!-- Damage dice -->
-						<!-- svelte-ignore a11y_click_events_have_key_events -->
-						<!-- svelte-ignore a11y_no_static_element_interactions -->
-						<div
-							class="dice-field"
-							class:clickable={!isEditing}
-							onclick={(e) => handleDamageRoll(weapon, e)}
-						>
-							{#if isEditing}
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<div class="attack-dmg-col" onclick={(e) => !isEditing && handleDamageRoll(weapon, e)}>
+						{#if isEditing}
+							<!-- EDIT MODE: Show all damage sources separately -->
+							<!-- PRIMARY DAMAGE (always present) -->
+							<div class="damage-row primary-damage">
+								<!-- Damage dice -->
+								<div class="dice-field">
+									<input
+										type="text"
+										class="editable-field editing centered-field"
+										value={weapon.dmg.value}
+										oninput={(e) => updateWeaponField(weapon.id, 'dmg', { value: (e.target as HTMLInputElement).value })}
+										placeholder="1d6"
+									/>
+								</div>
+								<!-- Damage type -->
 								<input
 									type="text"
-									class="editable-field editing centered-field"
-									value={weapon.dmg.value}
-									oninput={(e) => updateWeaponField(weapon.id, 'dmg', { value: (e.target as HTMLInputElement).value })}
-									placeholder="1d6"
+									class="editable-field dmg-type-field"
+									value={weapon.dmgType?.value || ''}
+									oninput={(e) => updateWeaponField(weapon.id, 'dmgType', { value: (e.target as HTMLInputElement).value })}
+									placeholder="тип урона"
+									list="damage-types-list"
 								/>
-							{:else}
-								<span class="dice-value">{weapon.dmg.value}</span>
+							</div>
+
+							<!-- ADDITIONAL DAMAGE SOURCES (edit mode) -->
+							{#if weapon.additionalDamage && weapon.additionalDamage.length > 0}
+							{#each weapon.additionalDamage as damageSource (damageSource.id)}
+								<div class="damage-row additional-damage">
+									<div class="additional-damage-header">
+										<span class="damage-separator">+</span>
+										<!-- Remove button -->
+										<IconButton
+											icon={X}
+											hint="Удалить урон"
+											onClick={() => handleRemoveDamageSource(weapon.id, damageSource.id)}
+											size={10}
+										/>
+									</div>
+
+									<div class="additional-damage-fields">
+										<!-- Additional dice -->
+										<input
+											type="text"
+											class="editable-field editing centered-field dmg-dice-field"
+											value={damageSource.dice.value}
+											oninput={(e) => updateAdditionalDamageField(weapon.id, damageSource.id, 'dice', (e.target as HTMLInputElement).value)}
+											placeholder="1d4"
+										/>
+
+										<!-- Additional type -->
+										<input
+											type="text"
+											class="editable-field dmg-type-field"
+											value={damageSource.type.value}
+											oninput={(e) => updateAdditionalDamageField(weapon.id, damageSource.id, 'type', (e.target as HTMLInputElement).value)}
+											placeholder="тип урона"
+											list="damage-types-list"
+										/>
+									</div>
+								</div>
+							{/each}
 							{/if}
-						</div>
-						<!-- Damage type -->
-						<input
-							type="text"
-							class="editable-field dmg-type-field"
-							value={weapon.dmgType?.value || ''}
-							oninput={(e) => updateWeaponField(weapon.id, 'dmgType', { value: (e.target as HTMLInputElement).value })}
-							placeholder="тип урона"
-							list="damage-types-list"
-						/>
+
+							<!-- ADD DAMAGE BUTTON (edit mode) -->
+							<!-- svelte-ignore a11y_click_events_have_key_events -->
+							<!-- svelte-ignore a11y_no_static_element_interactions -->
+							<div class="add-damage-btn" onclick={() => handleAddDamageSource(weapon.id)}>
+								<Plus size={12} />
+								<span>Добавить урон</span>
+							</div>
+						{:else}
+							<!-- NON-EDIT MODE: Show all damage combined -->
+							{@const allDamageFormulas = [
+								weapon.dmg.value,
+								...(weapon.additionalDamage || []).filter(d => d.dice.value.trim()).map(d => d.dice.value)
+							]}
+							{@const combinedDamage = allDamageFormulas.join(' + ')}
+							{@const allTypes = [
+								weapon.dmgType?.value || '',
+								...(weapon.additionalDamage || []).filter(d => d.type.value.trim()).map(d => d.type.value)
+							].filter(t => t)}
+							{@const typeDisplay = allTypes.length > 0 ? allTypes.join(', ') : ''}
+
+							<div class="damage-row primary-damage">
+								<!-- Combined damage dice -->
+								<div class="dice-field clickable">
+									<span class="dice-value">{combinedDamage}</span>
+								</div>
+								<!-- Combined damage types -->
+								{#if typeDisplay}
+									<div class="dmg-type-display">{typeDisplay}</div>
+								{/if}
+							</div>
+						{/if}
 					</div>
 
 					<!-- Combined button column -->
@@ -579,6 +750,91 @@
 		flex-direction: column;
 		gap: 2px;
 		align-items: stretch;
+		cursor: pointer;
+	}
+
+	.attack-dmg-col:not(:has(.editing)):hover .dice-field {
+		background-color: var(--background-modifier-hover);
+	}
+
+	/* Individual damage row (primary or additional) */
+	.damage-row {
+		display: flex;
+		align-items: center;
+		gap: 2px;
+	}
+
+	/* Primary damage - full vertical layout like before */
+	.primary-damage {
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	/* Additional damage - vertical layout like primary */
+	.additional-damage {
+		flex-direction: column;
+		gap: 2px;
+		padding: 4px;
+		background-color: var(--background-modifier-hover);
+		border-radius: 2px;
+		align-items: stretch;
+	}
+
+	/* Header with + separator and remove button */
+	.additional-damage-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 2px;
+	}
+
+	/* Plus separator between damage sources */
+	.damage-separator {
+		font-size: 10px;
+		font-weight: 600;
+		color: var(--text-muted);
+		padding: 0 2px;
+	}
+
+	/* Container for dice and type fields */
+	.additional-damage-fields {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	/* Damage dice field in additional damage */
+	.dmg-dice-field {
+		width: 100%;
+		font-size: 10px;
+		text-align: center;
+	}
+
+	/* Add damage button */
+	.add-damage-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 3px;
+		padding: 2px 4px;
+		font-size: 9px;
+		background-color: var(--background-secondary);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 2px;
+		cursor: pointer;
+		color: var(--text-muted);
+		transition: all 0.2s;
+		margin-top: 2px;
+	}
+
+	.add-damage-btn:hover {
+		background-color: var(--background-modifier-hover);
+		border-color: var(--text-normal);
+		color: var(--text-normal);
+	}
+
+	.add-damage-btn:active {
+		transform: scale(0.95);
 	}
 
 	.dice-field {
@@ -649,6 +905,18 @@
 		font-style: italic;
 		color: var(--text-muted);
 		height: 12px;
+	}
+
+	/* Damage type display in non-edit mode */
+	.dmg-type-display {
+		font-size: 10px;
+		text-align: center;
+		font-style: italic;
+		color: var(--text-muted);
+		padding: 2px 4px;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	/* Hide datalist dropdown arrow (including focused state) */
@@ -929,6 +1197,27 @@
 			font-size: 9px;
 		}
 
+		.dmg-type-display {
+			font-size: 9px;
+		}
+
+		.dmg-dice-field {
+			font-size: 9px;
+		}
+
+		.add-damage-btn {
+			font-size: 8px;
+			padding: 1px 3px;
+		}
+
+		.damage-separator {
+			font-size: 9px;
+		}
+
+		.additional-damage {
+			padding: 3px;
+		}
+
 		.combat-header h3 {
 			font-size: 12px;
 		}
@@ -1011,6 +1300,10 @@
 			font-size: 10px;
 		}
 
+		.dmg-type-display {
+			font-size: 10px;
+		}
+
 		.calc-fields {
 			gap: 4px;
 		}
@@ -1049,6 +1342,18 @@
 
 		.dmg-type-field {
 			font-size: 10px;
+		}
+
+		.dmg-type-display {
+			font-size: 10px;
+		}
+
+		.dmg-dice-field {
+			font-size: 11px;
+		}
+
+		.additional-damage {
+			padding: 5px;
 		}
 
 		.combat-header h3 {

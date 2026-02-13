@@ -1,10 +1,23 @@
+// Additional damage source entry
+export interface AdditionalDamageSource {
+	id: string;                          // Unique identifier
+	dice: { value: string };             // Dice formula (e.g., "1d4")
+	type: { value: string };             // Damage type (e.g., "fire")
+}
+
 // Weapon entry in weaponsList
 export interface WeaponItem {
 	id: string;
 	name: { value: string };
 	mod: { value: string };
+
+	// PRIMARY DAMAGE (backward compatible)
 	dmg: { value: string };
 	dmgType?: { value: string };  // Damage type (e.g., "колющий", "рубящий")
+
+	// ADDITIONAL DAMAGE SOURCES (optional)
+	additionalDamage?: AdditionalDamageSource[];  // Optional, defaults to []
+
 	isProf: boolean;
 	modBonus: { value: number };
 	abilityMod?: string;  // Ability for attack calculation: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha' | undefined
