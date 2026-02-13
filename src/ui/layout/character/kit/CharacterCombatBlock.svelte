@@ -311,6 +311,36 @@
 		onChange(updatedList);
 	}
 
+	// Determine if weapon is ranged based on type name
+	function isRangedWeapon(weapon: any): boolean {
+		// Check weapon type
+		if (weapon.type?.name) {
+			const typeName = weapon.type.name as string;
+			// Ranged weapon types
+			if (typeName.includes('дальнобойное')) return true;
+			// Melee weapon types
+			if (typeName.includes('рукопашное')) return false;
+		}
+
+		// Fallback: check properties for ammunition (indicates ranged)
+		if (weapon.properties && Array.isArray(weapon.properties)) {
+			return weapon.properties.some((prop: any) =>
+				prop.name === 'Боеприпас' || prop.name === 'Ammunition'
+			);
+		}
+
+		// Default to melee if unclear
+		return false;
+	}
+
+	// Normalize dice formula to Russian "к" notation
+	function normalizeDiceFormula(formula: string): string {
+		if (!formula) return '';
+		// Replace English "d" with Russian "к"
+		// Also handle uppercase D
+		return formula.replace(/d/g, 'к').replace(/D/g, 'к');
+	}
+
 	async function handlePasteAttack() {
 		try {
 			const clipboard = await navigator.clipboard.readText();
@@ -324,19 +354,31 @@
 				const weapon = parseYaml(yaml) as any;
 
 				if (weapon && weapon.name) {
+					// Normalize damage formula (d → к)
+					const normalizedDamage = normalizeDiceFormula(weapon.damage?.dice || '1к6');
+
+					// Determine weapon type and set appropriate ability
+					const isRanged = isRangedWeapon(weapon);
+					const defaultAbility = isRanged ? 'dex' : 'str';
+
+					// Create weapon with proper defaults
 					const newWeapon: WeaponItem = {
 						id: `weapon-${Date.now()}`,
 						name: { value: weapon.name.rus || weapon.name || 'Оружие' },
-						mod: { value: '+0' },
-						dmg: { value: weapon.damage?.formula || '1d6' },
-						dmgType: { value: weapon.damage?.type?.rus || '' },
+						mod: { value: '+0' },  // Will be recalculated below
+						dmg: { value: normalizedDamage },
+						dmgType: { value: weapon.damage?.type || '' },
 						additionalDamage: [],  // Initialize empty array
 						isProf: false,
 						modBonus: { value: 0 },
-						abilityMod: undefined,
-						notes: { value: weapon.description?.rus || '' },
-						notesVisibility: !!(weapon.description?.rus)
+						abilityMod: defaultAbility,  // Set based on weapon type
+						notes: { value: weapon.description || '' },
+						notesVisibility: !!(weapon.description)
 					};
+
+					// Recalculate attack modifier with the selected ability
+					newWeapon.mod = { value: calculateAttackModifier(newWeapon) };
+
 					onChange([...weaponsList, newWeapon]);
 					new Notice(`${newWeapon.name.value} добавлено`);
 					return;
@@ -352,16 +394,19 @@
 				const spell = parseYaml(yaml) as any;
 
 				if (spell && spell.name) {
+					// Normalize damage formula (d → к) for spells too
+					const normalizedDamage = normalizeDiceFormula(spell.damage || '0');
+
 					const newWeapon: WeaponItem = {
 						id: `spell-${Date.now()}`,
 						name: { value: spell.name.rus || spell.name || 'Заклинание' },
 						mod: { value: '+0' },
-						dmg: { value: spell.damage || '0' },
+						dmg: { value: normalizedDamage },
 						dmgType: { value: '' },
 						additionalDamage: [],  // Initialize empty array
 						isProf: false,
 						modBonus: { value: 0 },
-						abilityMod: undefined,
+						abilityMod: undefined,  // Spells require manual ability selection
 						notes: { value: spell.description?.rus || '' },
 						notesVisibility: !!(spell.description?.rus)
 					};
