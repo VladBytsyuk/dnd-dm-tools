@@ -12,6 +12,7 @@ import type { ArtifactoryFeature } from "src/ui/components/feature/ArtifactoryFe
 import type { BackgroundFeature } from "src/ui/components/feature/BackgroundFeature";
 import type { RaceFeature } from "src/ui/components/feature/RaceFeature";
 import type { ClassesFeature } from "src/ui/components/feature/ClassesFeature";
+import type { CharacterSheetFeature } from "src/ui/components/feature/CharacterSheetFeature";
 import type { RollTraceResult } from "../domain/dice";
 
 export class UiEventListener implements IUiEventListener {
@@ -29,6 +30,7 @@ export class UiEventListener implements IUiEventListener {
         private featFeatureProvider: () => BaseFeature<any, any, any>,
         private raceFeatureProvider: () => RaceFeature,
         private classesFeatureProvider: () => ClassesFeature,
+        private characterSheetFeatureProvider: () => CharacterSheetFeature,
         private dmScreenFeatureProvider: () => DmScreenFeature,
     ) {
         this.onBeastClick = this.onBeastClick.bind(this);
@@ -42,6 +44,7 @@ export class UiEventListener implements IUiEventListener {
         this.onFeatClick = this.onFeatClick.bind(this);
         this.onRaceClick = this.onRaceClick.bind(this);
         this.onClassClick = this.onClassClick.bind(this);
+        this.onCharacterSheetClick = this.onCharacterSheetClick.bind(this);
     }
 
     // ---- methods ----
@@ -87,6 +90,10 @@ export class UiEventListener implements IUiEventListener {
 
     async onClassClick(url: string): Promise<void> {
         this.onClick(this.classesFeatureProvider, url);
+    }
+
+    async onCharacterSheetClick(url: string): Promise<void> {
+        this.onClick(this.characterSheetFeatureProvider, url);
     }
 
     onDiceRoll(label: string, value: RollTraceResult): void {
