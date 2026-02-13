@@ -203,4 +203,97 @@ export class EntityLinkService {
 			return { exists: false };
 		}
 	}
+
+	/**
+	 * Searches for armor by name in the armor database.
+	 * @param armorName The armor name to search for (case-insensitive)
+	 * @returns EntityLinkResult with existence status and details
+	 */
+	async findArmor(armorName: string): Promise<EntityLinkResult> {
+		if (!armorName || !armorName.trim()) {
+			return { exists: false };
+		}
+
+		try {
+			const allArmor = await this.getCached(
+				'armor',
+				() => this.database.smallArmorDao.readAllItems('', null)
+			);
+			const normalizedSearch = armorName.toLowerCase().trim();
+
+			const match = allArmor.find(a =>
+				a.name.rus.toLowerCase().trim() === normalizedSearch ||
+				a.name.eng.toLowerCase().trim() === normalizedSearch
+			);
+
+			return match
+				? { exists: true, url: match.url, name: match.name }
+				: { exists: false };
+		} catch (error) {
+			console.error('Error finding armor:', error);
+			return { exists: false };
+		}
+	}
+
+	/**
+	 * Searches for an item by name in the items database.
+	 * @param itemName The item name to search for (case-insensitive)
+	 * @returns EntityLinkResult with existence status and details
+	 */
+	async findItem(itemName: string): Promise<EntityLinkResult> {
+		if (!itemName || !itemName.trim()) {
+			return { exists: false };
+		}
+
+		try {
+			const allItems = await this.getCached(
+				'items',
+				() => this.database.smallItemDao.readAllItems('', null)
+			);
+			const normalizedSearch = itemName.toLowerCase().trim();
+
+			const match = allItems.find(i =>
+				i.name.rus.toLowerCase().trim() === normalizedSearch ||
+				i.name.eng.toLowerCase().trim() === normalizedSearch
+			);
+
+			return match
+				? { exists: true, url: match.url, name: match.name }
+				: { exists: false };
+		} catch (error) {
+			console.error('Error finding item:', error);
+			return { exists: false };
+		}
+	}
+
+	/**
+	 * Searches for an artifact by name in the artifacts database.
+	 * @param artifactName The artifact name to search for (case-insensitive)
+	 * @returns EntityLinkResult with existence status and details
+	 */
+	async findArtifact(artifactName: string): Promise<EntityLinkResult> {
+		if (!artifactName || !artifactName.trim()) {
+			return { exists: false };
+		}
+
+		try {
+			const allArtifacts = await this.getCached(
+				'artifacts',
+				() => this.database.smallArtifactDao.readAllItems('', null)
+			);
+			const normalizedSearch = artifactName.toLowerCase().trim();
+
+			const match = allArtifacts.find(a =>
+				a.name.rus.toLowerCase().trim() === normalizedSearch ||
+				a.name.eng.toLowerCase().trim() === normalizedSearch
+			);
+
+			return match
+				? { exists: true, url: match.url, name: match.name }
+				: { exists: false };
+		} catch (error) {
+			console.error('Error finding artifact:', error);
+			return { exists: false };
+		}
+	}
 }
