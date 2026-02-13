@@ -1,10 +1,14 @@
 <script lang="ts">
 	import { Notice } from "obsidian";
-	import { Plus, X, Link, PackageOpen, Backpack, Info, Sparkles, Zap } from "lucide-svelte";
+	import { Plus, X, Link, PackageOpen, Backpack, Info, Sparkles, Zap, Clipboard } from "lucide-svelte";
 	import IconButton from "../../uikit/IconButton.svelte";
 	import type { EquipmentItem, CharacterCoins } from "../../../../domain/models/character/CharacterEquipment";
 	import type { EntityLinkService } from "../../../../domain/services/EntityLinkService";
 	import type { IUiEventListener } from "../../../../domain/listeners/ui_event_listener";
+	import { getFromClipboard } from "../../../../data/clipboard";
+	import type { FullItem } from "../../../../domain/models/items/FullItem";
+	import type { FullArtifact } from "../../../../domain/models/artifact/FullArtifact";
+	import type { FullArmor } from "../../../../domain/models/armor/FullArmor";
 
 	interface Props {
 		coins?: CharacterCoins;
@@ -26,9 +30,12 @@
 		cp: coins?.cp?.value?.toString() || '0'
 	});
 
-	// Notes popup state
+	// Notes popup state (for editing)
 	let showNotesPopup = $state<{ id: string; x: number; y: number } | null>(null);
 	let currentNotes = $state('');
+
+	// Notes hover preview state
+	let showNotesPreview = $state<{ id: string; x: number; y: number; content: string } | null>(null);
 
 	// Track which item's info icon is being hovered
 	let hoveredInfoIconId = $state<string | null>(null);
@@ -226,6 +233,123 @@
 	}
 
 	/**
+	 * Check if item requires attunement based on customization field.
+	 * Only artifacts have the customization field; items and armor don't require attunement.
+	 */
+	function requiresAttunement(
+		item: FullItem | FullArtifact | FullArmor,
+		type: 'item' | 'artifact' | 'armor'
+	): boolean {
+		if (type === 'artifact') {
+			const artifact = item as FullArtifact;
+			return artifact.customization === true;
+		}
+		// Regular items and armor don't have customization field
+		return false;
+	}
+
+	/**
+	 * Detect if an item is magical based on its type and properties.
+	 */
+	function isMagicalItem(
+		item: FullItem | FullArtifact | FullArmor,
+		type: 'item' | 'artifact' | 'armor'
+	): boolean {
+		// Artifacts are always considered for magic check based on rarity
+		if (type === 'artifact') {
+			const artifact = item as FullArtifact;
+			// If rarity exists and is not "common", it's magical
+			if (artifact.rarity && artifact.rarity.type !== 'common') {
+				return true;
+			}
+		}
+
+		// For items and armor, check description for magic keywords
+		const desc = item.description?.toLowerCase() || '';
+		if (desc.includes('magic')) return true;
+		if (desc.includes('магический')) return true;
+		if (desc.includes('волшебн')) return true;
+
+		// Also check if it requires attunement (attunement implies magic)
+		if (requiresAttunement(item, type)) return true;
+
+		return false;
+	}
+
+	/**
+	 * Handle paste from clipboard - try to paste equipment/artifact/armor.
+	 */
+	async function handlePasteItem() {
+		try {
+			// Try to get data from clipboard in order of priority
+			let pastedItem: FullItem | FullArtifact | FullArmor | undefined;
+			let itemType: 'item' | 'artifact' | 'armor' | undefined;
+
+			// Try artifact first (most likely to be magical)
+			pastedItem = await getFromClipboard<FullArtifact>('artifact');
+			if (pastedItem) {
+				itemType = 'artifact';
+			} else {
+				// Try regular item
+				pastedItem = await getFromClipboard<FullItem>('equip');
+				if (pastedItem) {
+					itemType = 'item';
+				} else {
+					// Try armor
+					pastedItem = await getFromClipboard<FullArmor>('armor');
+					if (pastedItem) {
+						itemType = 'armor';
+					}
+				}
+			}
+
+			if (!pastedItem || !itemType) {
+				new Notice('В буфере обмена нет данных предмета');
+				return;
+			}
+
+			// Detect if item is magical
+			const isMagic = isMagicalItem(pastedItem, itemType);
+
+			// Detect if requires attunement (from customization field)
+			const needsAttunement = requiresAttunement(pastedItem, itemType);
+
+			// Check if we can attune (only if magical, needs attunement, and slots available)
+			const canAutoAttune = isMagic && needsAttunement && attunedCount < 3;
+
+			// Create new equipment item
+			const newItem: EquipmentItem = {
+				id: crypto.randomUUID(),
+				name: { value: pastedItem.name.rus },
+				onCharacter: true,
+				isMagic: isMagic,
+				isAttuned: canAutoAttune,  // Auto-attune if possible
+				linkedUrl: pastedItem.url,
+				linkedType: itemType,
+				notes: { value: pastedItem.description || '' },
+				notesVisibility: !!(pastedItem.description?.trim())
+			};
+
+			// Add to list
+			equipmentList.push(newItem);
+			triggerChange();
+
+			// Show success message
+			let message = `Предмет "${pastedItem.name.rus}" добавлен`;
+			if (canAutoAttune) {
+				message += ' и настроен';
+			} else if (needsAttunement && attunedCount >= 3) {
+				message += ' (нет доступных слотов настройки)';
+			}
+			new Notice(message);
+
+		} catch (error) {
+			console.error('Error pasting item:', error);
+			new Notice('Ошибка при вставке предмета из буфера обмена');
+		}
+	}
+
+	/**
 	 * Remove equipment item
 	 */
 	function handleRemoveItem(itemId: string) {
@@ -368,6 +492,35 @@
 		}
 	}
 
+	/**
+	 * Show notes preview on hover
+	 */
+	function handleNotesHoverEnter(id: string, e: MouseEvent) {
+		hoveredInfoIconId = id;
+		const item = equipmentList.find(i => i.id === id);
+		const notesContent = item?.notes?.value?.trim();
+
+		if (notesContent) {
+			const target = e.currentTarget as HTMLElement;
+			const rect = target.getBoundingClientRect();
+
+			showNotesPreview = {
+				id,
+				x: rect.left,
+				y: rect.bottom + 5,
+				content: notesContent
+			};
+		}
+	}
+
+	/**
+	 * Hide notes preview on mouse leave
+	 */
+	function handleNotesHoverLeave() {
+		hoveredInfoIconId = null;
+		showNotesPreview = null;
+	}
+
 	// Auto-find links for items when component loads
 	$effect(() => {
 		if (entityLinkService && equipmentList.length > 0) {
@@ -453,15 +606,15 @@
 											handleNotesClick(item.id, e);
 										}
 									}}
-									onmouseenter={() => hoveredInfoIconId = item.id}
-									onmouseleave={() => hoveredInfoIconId = null}
+									onmouseenter={(e) => handleNotesHoverEnter(item.id, e)}
+									onmouseleave={handleNotesHoverLeave}
 									role="button"
 									tabindex="0"
 									aria-label="Открыть заметки"
 								>
 									<IconButton
 										icon={Info}
-										hint={item.notes?.value?.trim() || "Заметки"}
+										hint="Заметки"
 										onClick={() => {}}
 										size={14}
 									/>
@@ -549,6 +702,11 @@
 				<span>Добавить предмет</span>
 			</button>
 
+			<!-- Paste button -->
+			<button class="paste-button" onclick={handlePasteItem} aria-label="Вставить предмет из буфера обмена" title="Вставить">
+				<Clipboard size={18} />
+			</button>
+
 			{#if attunedCount > 0}
 				<div class="attunement-counter" aria-live="polite">
 					Настройка: {attunedCount}/3
@@ -577,6 +735,27 @@
 		</div>
 	{/if}
 </div>
+
+<!-- Notes hover preview -->
+{#if showNotesPreview}
+	<div
+		class="notes-preview"
+		style="left: {showNotesPreview.x}px; top: {showNotesPreview.y}px;"
+		onmouseenter={() => {
+			// Keep preview open when hovering over it
+			if (showNotesPreview) {
+				hoveredInfoIconId = showNotesPreview.id;
+			}
+		}}
+		onmouseleave={handleNotesHoverLeave}
+		role="tooltip"
+		aria-live="polite"
+	>
+		<div class="notes-preview-content">
+			{@html showNotesPreview.content}
+		</div>
+	</div>
+{/if}
 
 <!-- Notes popup -->
 {#if showNotesPopup}
@@ -874,6 +1053,7 @@
 		display: flex;
 		align-items: center;
 		gap: 12px;
+		flex-wrap: wrap;  /* Allow wrapping on very narrow screens */
 	}
 
 	.add-item-button {
@@ -904,6 +1084,33 @@
 		outline-offset: 2px;
 	}
 
+	.paste-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 12px;
+		background-color: var(--background-secondary);
+		border: 2px solid var(--background-modifier-border);
+		border-radius: 4px;
+		color: var(--text-muted);
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		flex-shrink: 0;
+	}
+
+	.paste-button:hover {
+		background-color: var(--background-modifier-hover);
+		border-color: var(--text-accent);
+		color: var(--text-accent);
+	}
+
+	.paste-button:focus-visible {
+		outline: 2px solid var(--text-accent);
+		outline-offset: 2px;
+	}
+
 	/* Equipment Notes Section */
 	.equipment-notes {
 		margin-top: 12px;
@@ -926,6 +1133,63 @@
 	.notes-textarea-readonly:focus {
 		outline: none;
 		border-color: var(--text-accent);
+	}
+
+	/* Notes hover preview */
+	.notes-preview {
+		position: fixed;
+		z-index: 999;
+		background-color: var(--background-primary);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 4px;
+		padding: 8px 12px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+		max-width: 300px;
+		font-size: 13px;
+		color: var(--text-normal);
+		pointer-events: auto;
+	}
+
+	.notes-preview-content {
+		overflow-wrap: break-word;
+		word-wrap: break-word;
+		line-height: 1.5;
+	}
+
+	/* Style HTML content in preview */
+	.notes-preview-content :global(p) {
+		margin: 0 0 8px 0;
+	}
+
+	.notes-preview-content :global(p:last-child) {
+		margin-bottom: 0;
+	}
+
+	.notes-preview-content :global(strong) {
+		font-weight: 600;
+		color: var(--text-normal);
+	}
+
+	.notes-preview-content :global(em) {
+		font-style: italic;
+	}
+
+	.notes-preview-content :global(ul),
+	.notes-preview-content :global(ol) {
+		margin: 0 0 8px 0;
+		padding-left: 20px;
+	}
+
+	.notes-preview-content :global(li) {
+		margin-bottom: 4px;
+	}
+
+	.notes-preview-content :global(code) {
+		background-color: var(--background-secondary);
+		padding: 2px 4px;
+		border-radius: 3px;
+		font-family: var(--font-monospace);
+		font-size: 0.9em;
 	}
 
 	/* Notes popup */
