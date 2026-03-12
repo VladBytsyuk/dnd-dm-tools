@@ -44,6 +44,17 @@ describe("characterSpellcasting", () => {
 		expect(progression.slots[2]).toBe(2);
 	});
 
+	it("should recognize the Russian Arcane Trickster subclass name", () => {
+		const progression = calculateSpellSlotProgression([
+			{ className: "Плут", subclassName: "Мистический Ловкач", level: 6 },
+			{ className: "Волшебник", level: 3 }
+		]);
+
+		expect(progression.slots[1]).toBe(4);
+		expect(progression.slots[2]).toBe(3);
+		expect(progression.slots[3]).toBe(2);
+	});
+
 	it("should track warlock pact slots separately", () => {
 		const progression = calculateSpellSlotProgression([
 			{ className: "Колдун", level: 5 },

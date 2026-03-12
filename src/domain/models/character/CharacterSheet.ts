@@ -160,7 +160,7 @@ function normalizeSpellLevelState(
 }
 
 function normalizeSpellEntries(rawEntries: unknown, level: number, legacyText: string): CharacterSpellEntry[] {
-	if (Array.isArray(rawEntries) && rawEntries.length > 0) {
+	if (Array.isArray(rawEntries)) {
 		return rawEntries
 			.map((entry, index) => normalizeSpellEntry(entry, level, index))
 			.filter((entry): entry is CharacterSpellEntry => entry !== null);

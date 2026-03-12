@@ -193,5 +193,5 @@ function isEldritchKnight(subclassName: string): boolean {
 }
 
 function isArcaneTrickster(subclassName: string): boolean {
-	return subclassName === "arcane trickster" || subclassName === "магический трикстер";
+	return subclassName === "arcane trickster" || subclassName === "мистический ловкач";
 }

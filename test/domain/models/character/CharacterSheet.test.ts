@@ -183,6 +183,23 @@ describe("CharacterSheet interfaces", () => {
 		expect(parsed.data.spells.levels["1"].spells[1].name).toBe("Shield");
 	});
 
+	it("should preserve an explicit empty structured spell list over legacy spell text", () => {
+		const withEmptyStructuredList = {
+			...mockCharacterSheet,
+			data: mockCharacterSheet.data.replace(
+				'"spells":{}',
+				'"spells":{"levels":{"1":{"level":1,"slotCountOverride":null,"slotsUsed":[],"spells":[]}}}'
+			).replace(
+				'"prof":{"value":{"id":"prof-1","data":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"All armor, shields, martial weapons"}]}]}}}',
+				'"spells-level-1":{"value":{"id":"spells-level-1","data":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Magic Missile"}]}]}}},"prof":{"value":{"id":"prof-1","data":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"All armor, shields, martial weapons"}]}]}}}'
+			)
+		};
+
+		const parsed = parseCharacterData(withEmptyStructuredList);
+
+		expect(parsed.data.spells.levels["1"].spells).toEqual([]);
+	});
+
 	it("should not convert legacy spell save and attack values into overrides", () => {
 		const withLegacySpellInfo = {
 			...mockCharacterSheet,
