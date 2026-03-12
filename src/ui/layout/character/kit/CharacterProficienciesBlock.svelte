@@ -82,7 +82,7 @@
 		<label class="text-field">
 			<span class="field-label">Оружие</span>
 			<textarea
-				rows="2"
+				rows="3"
 				value={proficiencies.weapons.value}
 				oninput={(event) => updateTextField("weapons", (event.currentTarget as HTMLTextAreaElement).value)}
 			></textarea>
@@ -91,7 +91,7 @@
 		<label class="text-field">
 			<span class="field-label">Языки</span>
 			<textarea
-				rows="2"
+				rows="3"
 				value={proficiencies.languages.value}
 				oninput={(event) => updateTextField("languages", (event.currentTarget as HTMLTextAreaElement).value)}
 			></textarea>
@@ -100,7 +100,7 @@
 		<label class="text-field">
 			<span class="field-label">Инструменты</span>
 			<textarea
-				rows="2"
+				rows="3"
 				value={proficiencies.tools.value}
 				oninput={(event) => updateTextField("tools", (event.currentTarget as HTMLTextAreaElement).value)}
 			></textarea>
@@ -119,7 +119,7 @@
 
 <style>
 	.proficiencies-block {
-		padding: 12px;
+		padding: 10px;
 		background-color: var(--background-primary);
 		border: 1px solid var(--background-modifier-border);
 		border-radius: 6px;
@@ -127,49 +127,49 @@
 	}
 
 	.section-title {
-		margin: 0 0 12px 0;
-		font-size: 14px;
+		margin: 0 0 8px 0;
+		font-size: 13px;
 		font-weight: 600;
 		text-transform: uppercase;
-		letter-spacing: 0.5px;
+		letter-spacing: 0.4px;
 		color: var(--text-normal);
 		text-align: center;
 		border-bottom: 1px solid var(--background-modifier-border);
-		padding-bottom: 8px;
+		padding-bottom: 6px;
 	}
 
 	.armor-section,
 	.text-fields {
 		display: flex;
 		flex-direction: column;
-		gap: 10px;
+		gap: 6px;
 	}
 
 	.text-fields {
-		margin-top: 12px;
+		margin-top: 8px;
 	}
 
 	.field-label {
-		font-size: 11px;
+		font-size: 10px;
 		font-weight: 700;
 		text-transform: uppercase;
-		letter-spacing: 0.4px;
+		letter-spacing: 0.3px;
 		color: var(--text-muted);
 	}
 
 	.armor-toggles {
 		display: grid;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 8px;
+		gap: 6px;
 	}
 
 	.armor-toggle {
-		padding: 8px 10px;
+		padding: 6px 8px;
 		border: 1px solid var(--background-modifier-border);
 		border-radius: 4px;
 		background-color: var(--background-secondary);
 		color: var(--text-normal);
-		font-size: 12px;
+		font-size: 11px;
 		font-weight: 500;
 		cursor: pointer;
 		transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
@@ -188,19 +188,19 @@
 	.text-field {
 		display: flex;
 		flex-direction: column;
-		gap: 6px;
+		gap: 4px;
 	}
 
 	textarea {
 		width: 100%;
-		min-height: 52px;
-		padding: 8px 10px;
+		min-height: 36px;
+		padding: 6px 8px;
 		border: 1px solid var(--background-modifier-border);
 		border-radius: 4px;
 		background-color: var(--background-secondary);
 		color: var(--text-normal);
-		font-size: 13px;
-		line-height: 1.4;
+		font-size: 12px;
+		line-height: 1.3;
 		resize: vertical;
 		font-family: var(--font-text);
 		box-sizing: border-box;
