@@ -235,6 +235,7 @@
 		if (!legacyProfText) return;
 
 		data.proficiencies.other.value = legacyProfText;
+		data.text.prof = createPlainTextField("");
 		if (repository) {
 			debouncedSave();
 		}
