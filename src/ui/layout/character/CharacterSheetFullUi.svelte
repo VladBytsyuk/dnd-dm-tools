@@ -5,8 +5,6 @@
 	import type { IUiEventListener } from "../../../domain/listeners/ui_event_listener";
 	import type { CharacterSheetRepository } from "../../../data/repositories/CharacterSheetRepository";
 	import type { ClassEntry } from "../../../domain/models/character/ClassEntry";
-	import type { CharacterCoins } from "../../../domain/models/character/CharacterEquipment";
-	import type { CharacterTextSections } from "../../../domain/models/character/CharacterText";
 	import { EntityLinkService } from "../../../domain/services/EntityLinkService";
 	import type DndStatblockPlugin from "../../../main";
 	import type { SmallRace } from "../../../domain/models/race/SmallRace";
@@ -29,9 +27,20 @@
 	import CharacterEditableTextBlock from "./kit/CharacterEditableTextBlock.svelte";
 	import CharacterEditableInfoField from "./kit/CharacterEditableInfoField.svelte";
 	import CharacterProficienciesBlock from "./kit/CharacterProficienciesBlock.svelte";
-	import { canSafelyEditAsPlainText, createTextFieldFromPlainText } from "./kit/characterTextBlockUtils";
-	import { createEmptyCharacterSubInfo, ensureCharacterSubInfo } from "./kit/characterSubInfoUtils";
-	import type { CharacterSubInfo } from "../../../domain/models/character/CharacterInfo";
+	import { CharacterSheetEditorController } from "./characterSheetEditorController";
+	import {
+		CHARACTER_ABILITY_GROUPS,
+		getCharacterCoins,
+		getCharacterConditions,
+		getCharacterHeaderInfo,
+		getCharacterProficiencies,
+		getCharacterProficiency,
+		getCharacterSaves,
+		getCharacterStats,
+		getCharacterVitality,
+		getCharacterWeaponsList,
+	} from "./characterSheetSelectors";
+	import type { CharacterEditorTextSection, CharacterSubInfoField } from "../../../data/repositories/characterSheetTypes";
 
 	let {
 		currentItem,
@@ -51,16 +60,25 @@
 		diceRollersManager.onMount();
 	});
 	onDestroy(() => {
+		editorController.destroy();
 		diceRollersManager.onDestroy();
 	});
 
+	const editorController = new CharacterSheetEditorController({
+		repository,
+		onSavingChange: (value) => {
+			isSaving = value;
+		},
+	});
+	editorController.bind(currentItem);
+
 	let data = $derived(currentItem.data);
+	let isSaving = $state(false);
 
 	$effect(() => {
+		editorController.bind(currentItem);
 		currentItem.url;
-		migrateToMulticlass();
-		migrateEquipmentList();
-		migrateLegacyProficiencies();
+		editorController.applyLegacyMigrations();
 	});
 
 	// Create EntityLinkService if repository is available
@@ -158,253 +176,69 @@
 		}
 	});
 
-	// Migration logic: Convert old single-class format to new multiclass format
-	function migrateToMulticlass() {
-		if (!data.info?.classes || data.info.classes.value.length === 0) {
-			const legacyClass = data.info?.charClass?.value || '';
-			const legacySubclass = data.info?.charSubclass?.value || '';
-			const legacyLevel = data.info?.level?.value || 1;
-
-			if (legacyClass) {
-				data.info.classes = {
-					name: 'classes',
-					value: [{
-						className: legacyClass,
-						subclassName: legacySubclass || undefined,
-						level: legacyLevel
-					}]
-				};
-			} else {
-				// No class at all, create empty array
-				data.info.classes = {
-					name: 'classes',
-					value: []
-				};
-			}
-		}
-	}
-
-	// Migrate old attunementsList to new equipmentList structure
-	function migrateEquipmentList() {
-		if (!data.equipmentList && data.attunementsList?.length > 0) {
-			data.equipmentList = data.attunementsList.map((att: any) => ({
-				id: crypto.randomUUID(),
-				name: { value: att.value || '' },
-				onCharacter: true,
-				isMagic: true,
-				isAttuned: att.checked || false,
-				notes: { value: '' },
-				notesVisibility: false
-			}));
-			// Save the migration
-			if (repository) {
-				debouncedSave();
-			}
-		} else if (!data.equipmentList) {
-			// Initialize empty equipment list
-			data.equipmentList = [];
-		}
-	}
-
-	function hasMeaningfulProficienciesData() {
-		const proficiencies = data.proficiencies;
-		if (!proficiencies) return false;
-
-		return Boolean(
-			proficiencies.armor?.light ||
-			proficiencies.armor?.medium ||
-			proficiencies.armor?.heavy ||
-			proficiencies.armor?.shield ||
-			proficiencies.weapons?.value?.trim() ||
-			proficiencies.languages?.value?.trim() ||
-			proficiencies.tools?.value?.trim() ||
-			proficiencies.other?.value?.trim()
-		);
-	}
-
-	function extractLegacyProfText(): string {
-		const legacyProf = data.text?.prof;
-		if (!legacyProf) return "";
-		if (typeof legacyProf === "string") return legacyProf.trim();
-
-		const lines: string[] = [];
-
-		const visitNode = (node: any): string => {
-			if (!node || typeof node !== "object") return "";
-			if (node.type === "text") return node.text || "";
-
-			const content = Array.isArray(node.content) ? node.content.map(visitNode).join("") : "";
-			if (node.type === "paragraph") {
-				lines.push(content);
-				return "";
-			}
-
-			return content;
-		};
-
-		visitNode(legacyProf.value?.data);
-		return lines.join("\n").trim();
-	}
-
-	function migrateLegacyProficiencies() {
-		if (hasMeaningfulProficienciesData()) return;
-
-		const legacyProfText = extractLegacyProfText();
-		if (!legacyProfText) return;
-
-		data.proficiencies.other.value = legacyProfText;
-		data.text.prof = createTextFieldFromPlainText("", "prof-text");
-		if (repository) {
-			debouncedSave();
-		}
-	}
-
-	// Auto-save functionality
-	let saveTimeout: NodeJS.Timeout | null = null;
-	let isSaving = $state(false);
-
-	async function debouncedSave(itemToSave: FullCharacterSheet = currentItem) {
-		if (!repository) return;
-
-		if (saveTimeout) clearTimeout(saveTimeout);
-		saveTimeout = setTimeout(async () => {
-			isSaving = true;
-			try {
-				await repository.putItem(itemToSave);
-				console.log('Character saved');
-			} catch (error) {
-				console.error('Failed to save character:', error);
-			} finally {
-				isSaving = false;
-			}
-		}, 1000); // 1 second debounce
-	}
-
 	// Event handlers for character header
 	function handleNameChange(newName: string) {
-		data.name.value = newName;
-		currentItem.name.rus = newName;
-		currentItem.name.eng = newName;
-		debouncedSave();
+		editorController.updateName(newName);
 	}
 
 	function handleClassesChange(newClasses: ClassEntry[]) {
-		// Validation: at least one class required
-		if (newClasses.length === 0) return;
-
-		// Validation: total level cannot exceed 20
-		const totalLevel = newClasses.reduce((sum, c) => sum + (c.level || 0), 0);
-		if (totalLevel > 20) return;
-
-		// Validation: each class level must be 1-20
-		const invalidLevel = newClasses.some(c => !c.level || c.level < 1 || c.level > 20);
-		if (invalidLevel) return;
-
-		// Update multiclass array
-		data.info.classes.value = newClasses;
-
-		// Update legacy fields for backward compatibility
-		if (newClasses.length > 0) {
-			data.info.charClass.value = newClasses[0].className;
-			data.info.charSubclass.value = newClasses[0].subclassName || '';
-			currentItem.charClass = newClasses[0].className;
-		}
-
-		// Update total level
-		data.info.level.value = totalLevel;
-		currentItem.level = totalLevel;
-
-		debouncedSave();
+		editorController.updateClasses(newClasses);
 	}
 
 	function handleRaceChange(newRace: string) {
-		data.info.race.value = newRace;
-		currentItem.race = newRace;
-		debouncedSave();
+		editorController.updateRace(newRace);
 	}
 
 	function handleBackgroundChange(newBackground: string) {
-		data.info.background.value = newBackground;
-		debouncedSave();
+		editorController.updateBackground(newBackground);
 	}
 
 	function handlePlayerNameChange(newPlayerName: string) {
-		data.info.playerName.value = newPlayerName;
-		currentItem.playerName = newPlayerName;
-		debouncedSave();
+		editorController.updatePlayerName(newPlayerName);
 	}
 
 	function handleAlignmentChange(newAlignment: string) {
-		data.info.alignment.value = newAlignment;
-		debouncedSave();
+		editorController.updateAlignment(newAlignment);
 	}
 
 	function handleExperienceAdd(additionalXp: number) {
-		const currentXp = parseInt(data.info.experience.value || '0') || 0;
-		const newXp = currentXp + additionalXp;
-		data.info.experience.value = newXp.toString();
-		debouncedSave();
+		editorController.addExperience(additionalXp);
 	}
 
-	function handleVitalityChange(newVitality: any, newConditions: string[]) {
-		data.vitality = newVitality;
-		data.conditions = newConditions;
-		debouncedSave();
+	function handleVitalityChange(newVitality: typeof data.vitality, newConditions: string[]) {
+		editorController.updateVitality({ vitality: newVitality, conditions: newConditions });
 	}
 
-	function handleWeaponsListChange(newWeaponsList: any[]) {
-		data.weaponsList = newWeaponsList;
-		debouncedSave();
+	function handleWeaponsListChange(newWeaponsList: typeof data.weaponsList) {
+		editorController.updateWeaponsList(newWeaponsList);
 	}
 
-	function handleEquipmentChange(newCoins: any, newEquipmentList: any[], newEquipmentText: string) {
-		data.coins = newCoins;
-		data.equipmentList = newEquipmentList;
-		data.text = data.text || {};
-		data.text.equipment = createTextFieldFromPlainText(newEquipmentText, "equipment-text");
-		debouncedSave();
+	function handleEquipmentChange(newCoins: typeof data.coins, newEquipmentList: NonNullable<typeof data.equipmentList>, newEquipmentText: string) {
+		editorController.updateEquipment({
+			coins: newCoins,
+			equipmentList: newEquipmentList,
+			equipmentText: newEquipmentText,
+		});
 	}
 
-	function ensureSubInfo(): CharacterSubInfo {
-		data.subInfo = ensureCharacterSubInfo(data.subInfo);
-
-		return data.subInfo;
+	function handleSubInfoChange(field: CharacterSubInfoField, value: string) {
+		editorController.updateSubInfo(field, value);
 	}
 
-	function handleSubInfoChange(field: keyof CharacterSubInfo, value: string) {
-		const subInfo = ensureSubInfo();
-		subInfo[field] = subInfo[field] ?? createEmptyCharacterSubInfo()[field];
-		subInfo[field].value = value;
-		debouncedSave();
+	function handleTextSectionChange(section: CharacterEditorTextSection, newText: string) {
+		editorController.updateTextSection(section, newText);
 	}
 
-	function handleTextSectionChange(section: keyof CharacterTextSections, newText: string) {
-		data.text = data.text || {};
-		data.text[section] = createTextFieldFromPlainText(newText, `${section}-text`);
-		debouncedSave();
-	}
-
-	function canEditRoleplaySection(section: keyof CharacterTextSections): boolean {
-		return canSafelyEditAsPlainText(data.text?.[section]);
+	function canEditRoleplaySection(section: CharacterEditorTextSection): boolean {
+		return editorController.canEditRoleplaySection(section);
 	}
 
 	function handleProficienciesChange(newProficiencies: typeof data.proficiencies) {
-		data.proficiencies = newProficiencies;
-		debouncedSave();
+		editorController.updateProficiencies(newProficiencies);
 	}
 
 	function handleSpellbookChange(newSpellbook: typeof data.spells) {
-		const baseAbilityCode = newSpellbook.baseAbilityCode;
-		const baseAbilityModifier = baseAbilityCode ? (data.stats?.[baseAbilityCode]?.modifier ?? Math.floor(((data.stats?.[baseAbilityCode]?.score ?? 10) - 10) / 2)) : 0;
-		const calculatedSaveDc = 8 + (data.proficiency || 0) + baseAbilityModifier;
-		const calculatedAttackBonus = (data.proficiency || 0) + baseAbilityModifier;
-
-		data.spells = newSpellbook;
-		data.spellsInfo.base.code = newSpellbook.baseAbilityCode;
-		data.spellsInfo.base.value = newSpellbook.baseAbilityCode;
-		data.spellsInfo.save.value = (newSpellbook.saveDcOverride ?? calculatedSaveDc).toString();
-		data.spellsInfo.mod.value = (newSpellbook.attackBonusOverride ?? calculatedAttackBonus).toString();
-		debouncedSave();
+		editorController.updateSpellbook(newSpellbook);
 	}
 
 	function handleOpenConditionDetails(url: string) {
@@ -429,143 +263,16 @@
 	}
 
 	// Transform data for components
-	const headerInfo = $derived({
-		classes: data.info?.classes?.value || [],
-		level: data.info?.level?.value || 1,
-		race: data.info?.race?.value || '',
-		background: data.info?.background?.value,
-		playerName: data.info?.playerName?.value,
-		alignment: data.info?.alignment?.value,
-		experience: parseInt(data.info?.experience?.value || '0') || 0
-	});
-
-	const stats = $derived.by(() => {
-		const calculateMod = (score: number) => Math.floor((score - 10) / 2);
-		return {
-			str: { name: 'str', score: data.stats?.str?.score || 10, modifier: calculateMod(data.stats?.str?.score || 10) },
-			dex: { name: 'dex', score: data.stats?.dex?.score || 10, modifier: calculateMod(data.stats?.dex?.score || 10) },
-			con: { name: 'con', score: data.stats?.con?.score || 10, modifier: calculateMod(data.stats?.con?.score || 10) },
-			int: { name: 'int', score: data.stats?.int?.score || 10, modifier: calculateMod(data.stats?.int?.score || 10) },
-			wis: { name: 'wis', score: data.stats?.wis?.score || 10, modifier: calculateMod(data.stats?.wis?.score || 10) },
-			cha: { name: 'cha', score: data.stats?.cha?.score || 10, modifier: calculateMod(data.stats?.cha?.score || 10) }
-		};
-	});
-
-	const saves = $derived({
-		str: { name: 'str', isProf: data.saves?.str?.isProf || false },
-		dex: { name: 'dex', isProf: data.saves?.dex?.isProf || false },
-		con: { name: 'con', isProf: data.saves?.con?.isProf || false },
-		int: { name: 'int', isProf: data.saves?.int?.isProf || false },
-		wis: { name: 'wis', isProf: data.saves?.wis?.isProf || false },
-		cha: { name: 'cha', isProf: data.saves?.cha?.isProf || false }
-	});
-
-	const vitality = $derived(data.vitality || {
-		"hp-max": { value: 0 },
-		"hp-max-bonus": { value: 0 },
-		"hit-die": { value: "d8" },
-		"hp-dice-current": { value: 0 },
-		"hp-dice-multi": {},
-		ac: { value: 10 },
-		shield: { value: false, mod: 0 },
-		speed: { value: 30 },
-		initiative: { value: 0 },
-		isDying: false,
-		"hp-current": { value: 0 },
-		"hp-temp": { value: 0 },
-		"death-saves-success": { value: 0 },
-		"death-saves-fail": { value: 0 },
-		"proficiency-bonus": { value: 2 },
-		"passive-perception": { value: 10 },
-		"darkvision": { value: 0 },
-	});
-
-	const conditions = $derived(data.conditions || []);
-
-	const proficiency = $derived(data.proficiency || 2);
-
-	const weaponsList = $derived(data.weaponsList || []);
-
-	const proficiencies = $derived(data.proficiencies);
-
-	const attunementsList = $derived(
-		(data.attunementsList || []).map((a: any) => ({
-			value: a.value || '',
-			checked: a.checked || false
-		}))
-	);
-
-	const coins = $derived<CharacterCoins | undefined>(data.coins ? {
-		gp: { value: data.coins.gp?.value || 0 },
-		sp: { value: data.coins.sp?.value || 0 },
-		cp: { value: data.coins.cp?.value || 0 },
-		pp: { value: data.coins.pp?.value || 0 },
-		ep: { value: data.coins.ep?.value || 0 },
-		total: { value: data.coins.total?.value || 0 }
-	} : undefined);
-
-	// Ability groups with their associated skills
-	const abilityGroups = [
-		{
-			key: 'str',
-			label: 'СИЛ',
-			fullName: 'Сила',
-			skills: [
-				{ key: 'athletics', label: 'Атлетика' }
-			]
-		},
-		{
-			key: 'dex',
-			label: 'ЛОВ',
-			fullName: 'Ловкость',
-			skills: [
-				{ key: 'acrobatics', label: 'Акробатика' },
-				{ key: 'sleight of hand', label: 'Ловкость рук' },
-				{ key: 'stealth', label: 'Скрытность' }
-			]
-		},
-		{
-			key: 'con',
-			label: 'ТЕЛ',
-			fullName: 'Телосложение',
-			skills: []
-		},
-		{
-			key: 'int',
-			label: 'ИНТ',
-			fullName: 'Интеллект',
-			skills: [
-				{ key: 'investigation', label: 'Анализ' },
-				{ key: 'history', label: 'История' },
-				{ key: 'arcana', label: 'Магия' },
-				{ key: 'nature', label: 'Природа' },
-				{ key: 'religion', label: 'Религия' }
-			]
-		},
-		{
-			key: 'wis',
-			label: 'МДР',
-			fullName: 'Мудрость',
-			skills: [
-				{ key: 'perception', label: 'Восприятие' },
-				{ key: 'survival', label: 'Выживание' },
-				{ key: 'medicine', label: 'Медицина' },
-				{ key: 'animal handling', label: 'Обращение с животными' },
-				{ key: 'insight', label: 'Проницательность' }
-			]
-		},
-		{
-			key: 'cha',
-			label: 'ХАР',
-			fullName: 'Харизма',
-			skills: [
-				{ key: 'performance', label: 'Выступление' },
-				{ key: 'intimidation', label: 'Запугивание' },
-				{ key: 'deception', label: 'Обман' },
-				{ key: 'persuasion', label: 'Убеждение' }
-			]
-		}
-	];
+	const headerInfo = $derived(getCharacterHeaderInfo(data));
+	const stats = $derived(getCharacterStats(data));
+	const saves = $derived(getCharacterSaves(data));
+	const vitality = $derived(getCharacterVitality(data));
+	const conditions = $derived(getCharacterConditions(data));
+	const proficiency = $derived(getCharacterProficiency(data));
+	const weaponsList = $derived(getCharacterWeaponsList(data));
+	const proficiencies = $derived(getCharacterProficiencies(data));
+	const coins = $derived(getCharacterCoins(data));
+	const abilityGroups = CHARACTER_ABILITY_GROUPS;
 
 </script>
 

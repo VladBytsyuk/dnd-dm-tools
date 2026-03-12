@@ -4,16 +4,18 @@ import type DB from "../database/DB";
 import { BaseRepository } from "./BaseRepository";
 import { createFilters } from "src/domain/models/common/Filters";
 import { EmptyFullCharacterSheet } from "src/domain/models/character/FullCharacterSheet";
-import type { CharacterSheet } from "src/domain/models/character/CharacterSheet";
-import { parseCharacterData } from "src/domain/models/character/CharacterSheet";
+import { CharacterSheetImportService } from "./CharacterSheetImportService";
 
 export class CharacterSheetRepository
 	extends BaseRepository<SmallCharacterSheet, FullCharacterSheet, CharacterSheetFilters>
 	implements Repository<SmallCharacterSheet, FullCharacterSheet, CharacterSheetFilters>
 {
+	private readonly importService;
+
 	constructor(database: DB) {
 		// Pass the same DAO for both small and full items
 		super(database, database.characterSheetDao, database.characterSheetDao);
+		this.importService = new CharacterSheetImportService(database.characterSheetDao);
 	}
 
 	/**
@@ -82,107 +84,9 @@ export class CharacterSheetRepository
 	 * @throws {Error} If JSON is malformed or required fields are missing
 	 */
 	async importFromJson(jsonContent: string): Promise<FullCharacterSheet> {
-		try {
-			// Validate JSON is parseable
-			if (!jsonContent || typeof jsonContent !== 'string') {
-				throw new Error('Invalid input: expected non-empty string');
-			}
-
-			const rawSheet = JSON.parse(jsonContent) as Partial<CharacterSheet>;
-
-			// Basic structure validation
-			if (typeof rawSheet !== 'object' || rawSheet === null) {
-				throw new Error('Invalid character sheet: expected JSON object');
-			}
-
-			// Validate jsonType if present
-			if (rawSheet.jsonType && rawSheet.jsonType !== 'character') {
-				throw new Error(`Invalid jsonType: expected "character", got "${rawSheet.jsonType}"`);
-			}
-
-			// Provide default disabledBlocks if missing (riardon.json format)
-			const completeSheet: CharacterSheet = {
-				tags: Array.isArray(rawSheet.tags) ? rawSheet.tags : [],
-				disabledBlocks: rawSheet.disabledBlocks || {
-					"info-left": [],
-					"info-right": [],
-					"subinfo-left": [],
-					"subinfo-right": [],
-					"notes-left": [],
-					"notes-right": [],
-					_id: "",
-				},
-				edition: rawSheet.edition || "2024",
-				spells: rawSheet.spells || { mode: "cards", prepared: [], book: [] },
-				data: rawSheet.data || "{}",
-				jsonType: "character",
-				version: rawSheet.version || "2",
-			};
-
-			const parsedSheet = parseCharacterData(completeSheet);
-
-			// Extract fields for SmallCharacterSheet
-			const charClass = parsedSheet.data.info.charClass?.value || "";
-			const level = parsedSheet.data.info.level?.value || 1;
-			const race = parsedSheet.data.info.race?.value || "";
-			const name = parsedSheet.data.name?.value || "Unnamed Character";
-			const playerName = parsedSheet.data.info.playerName?.value || "";
-
-			// Validate extracted name
-			if (!name.trim()) {
-				throw new Error('Invalid character sheet: character name is required');
-			}
-
-			const fullSheet: FullCharacterSheet = {
-				...parsedSheet,
-				name: { rus: name, eng: name },
-				url: await this.generateUniqueUrl(name),
-				charClass,
-				level,
-				race,
-				playerName,
-			};
-
-			await this.putItem(fullSheet);
-			return fullSheet;
-		} catch (error) {
-			// Enhance error messages for common issues
-			if (error instanceof SyntaxError) {
-				throw new Error(`Failed to parse JSON: ${error.message}`);
-			}
-			if (error instanceof Error) {
-				throw new Error(`Failed to import character sheet: ${error.message}`);
-			}
-			throw new Error('Failed to import character sheet: Unknown error');
-		}
-	}
-
-	/**
-	 * Generate URL from character name (lowercase with hyphens).
-	 * Handles edge cases like consecutive special characters.
-	 */
-	private generateUrl(name: string): string {
-		const normalized = name
-			.toLowerCase()
-			.replace(/\s+/g, "-")              // Replace spaces with hyphens
-			.replace(/[^a-zа-я0-9-]/gi, "")   // Remove special characters
-			.replace(/-+/g, "-")               // Collapse consecutive hyphens
-			.replace(/^-|-$/g, "");            // Remove leading/trailing hyphens
-
-		return normalized || "character";
-	}
-
-	private async generateUniqueUrl(name: string): Promise<string> {
-		const baseUrl = this.generateUrl(name);
-		let candidate = baseUrl;
-		let suffix = 2;
-
-		while (await this.database.characterSheetDao.readItemByUrl(candidate)) {
-			candidate = `${baseUrl}-${suffix}`;
-			suffix += 1;
-		}
-
-		return candidate;
+		const fullSheet = await this.importService.importFromJson(jsonContent);
+		await this.putItem(fullSheet);
+		return fullSheet;
 	}
 
 	/**
