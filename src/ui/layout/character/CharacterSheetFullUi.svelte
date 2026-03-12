@@ -49,15 +49,19 @@
 	onMount(async () => {
 		await tick();
 		diceRollersManager.onMount();
-		migrateToMulticlass();
-		migrateEquipmentList();
-		migrateLegacyProficiencies();
 	});
 	onDestroy(() => {
 		diceRollersManager.onDestroy();
 	});
 
-	const { data } = currentItem;
+	let data = $derived(currentItem.data);
+
+	$effect(() => {
+		currentItem.url;
+		migrateToMulticlass();
+		migrateEquipmentList();
+		migrateLegacyProficiencies();
+	});
 
 	// Create EntityLinkService if repository is available
 	const entityLinkService = $derived(
@@ -259,14 +263,14 @@
 	let saveTimeout: NodeJS.Timeout | null = null;
 	let isSaving = $state(false);
 
-	async function debouncedSave() {
+	async function debouncedSave(itemToSave: FullCharacterSheet = currentItem) {
 		if (!repository) return;
 
 		if (saveTimeout) clearTimeout(saveTimeout);
 		saveTimeout = setTimeout(async () => {
 			isSaving = true;
 			try {
-				await repository.putItem(currentItem);
+				await repository.putItem(itemToSave);
 				console.log('Character saved');
 			} catch (error) {
 				console.error('Failed to save character:', error);

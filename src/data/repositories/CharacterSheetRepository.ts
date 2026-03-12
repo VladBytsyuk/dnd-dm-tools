@@ -136,7 +136,7 @@ export class CharacterSheetRepository
 			const fullSheet: FullCharacterSheet = {
 				...parsedSheet,
 				name: { rus: name, eng: name },
-				url: this.generateUrl(name),
+				url: await this.generateUniqueUrl(name),
 				charClass,
 				level,
 				race,
@@ -162,12 +162,27 @@ export class CharacterSheetRepository
 	 * Handles edge cases like consecutive special characters.
 	 */
 	private generateUrl(name: string): string {
-		return name
+		const normalized = name
 			.toLowerCase()
 			.replace(/\s+/g, "-")              // Replace spaces with hyphens
 			.replace(/[^a-zа-я0-9-]/gi, "")   // Remove special characters
 			.replace(/-+/g, "-")               // Collapse consecutive hyphens
 			.replace(/^-|-$/g, "");            // Remove leading/trailing hyphens
+
+		return normalized || "character";
+	}
+
+	private async generateUniqueUrl(name: string): Promise<string> {
+		const baseUrl = this.generateUrl(name);
+		let candidate = baseUrl;
+		let suffix = 2;
+
+		while (await this.database.characterSheetDao.readItemByUrl(candidate)) {
+			candidate = `${baseUrl}-${suffix}`;
+			suffix += 1;
+		}
+
+		return candidate;
 	}
 
 	/**
