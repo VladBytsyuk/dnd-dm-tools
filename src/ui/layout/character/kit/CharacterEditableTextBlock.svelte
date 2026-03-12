@@ -6,13 +6,17 @@
 		title: string;
 		content?: TextField;
 		minHeight?: string;
+		maxHeight?: string;
+		resize?: "none" | "vertical";
 		onChange: (value: string) => void;
 	}
 
 	let {
 		title,
 		content,
-		minHeight = "160px",
+		minHeight = "132px",
+		maxHeight,
+		resize = "vertical",
 		onChange
 	}: Props = $props();
 
@@ -39,6 +43,8 @@
 	<textarea
 		class="block-textarea"
 		style:min-height={minHeight}
+		style:max-height={maxHeight}
+		style:resize={resize}
 		value={textValue}
 		oninput={handleInput}
 		spellcheck="false"
@@ -56,14 +62,14 @@
 	}
 
 	.block-header {
-		padding: 12px 16px;
+		padding: 8px 12px;
 		border-bottom: 1px solid var(--background-modifier-border);
 		background-color: var(--background-secondary);
 	}
 
 	.block-title {
 		margin: 0;
-		font-size: 14px;
+		font-size: 12px;
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.5px;
@@ -72,14 +78,13 @@
 
 	.block-textarea {
 		width: 100%;
-		padding: 12px 16px;
+		padding: 8px 12px;
 		border: 0;
-		resize: vertical;
 		background-color: var(--background-primary);
 		color: var(--text-normal);
 		font-family: var(--font-text);
-		font-size: 13px;
-		line-height: 1.6;
+		font-size: 12px;
+		line-height: 1.45;
 		box-sizing: border-box;
 	}
 

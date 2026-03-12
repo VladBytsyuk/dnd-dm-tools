@@ -93,3 +93,38 @@ function getPlainTextFromHtml(html: string): string {
 		.replace(/\n{3,}/g, "\n\n")
 		.trim();
 }
+
+export function canSafelyEditAsPlainText(field?: TextField | string | null): boolean {
+	if (!field) return true;
+
+	if (typeof field === "string") {
+		return !/<[a-z][\s\S]*>/i.test(field);
+	}
+
+	const data = field.value?.data;
+	if (!data) return true;
+
+	if (typeof data === "string") {
+		return !/<[a-z][\s\S]*>/i.test(data);
+	}
+
+	function isSafeNode(node: any): boolean {
+		if (!node || typeof node !== "object") return true;
+		if (Array.isArray(node.marks) && node.marks.length > 0) return false;
+
+		switch (node.type) {
+			case "doc":
+			case "paragraph":
+				return Array.isArray(node.content)
+					? node.content.every((child: any) => isSafeNode(child))
+					: true;
+			case "text":
+			case "hardBreak":
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	return isSafeNode(data);
+}
