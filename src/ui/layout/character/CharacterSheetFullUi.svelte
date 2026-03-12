@@ -5,6 +5,7 @@
 	import type { IUiEventListener } from "../../../domain/listeners/ui_event_listener";
 	import type { CharacterSheetRepository } from "../../../data/repositories/CharacterSheetRepository";
 	import type { ClassEntry } from "../../../domain/models/character/ClassEntry";
+	import type { CharacterCoins } from "../../../domain/models/character/CharacterEquipment";
 	import { EntityLinkService } from "../../../domain/services/EntityLinkService";
 	import type DndStatblockPlugin from "../../../main";
 	import type { SmallRace } from "../../../domain/models/race/SmallRace";
@@ -47,11 +48,9 @@
 	const { data } = currentItem;
 
 	// Create EntityLinkService if repository is available
-	let entityLinkService: EntityLinkService | undefined;
-	if (repository) {
-		const database = repository.getDatabase();
-		entityLinkService = new EntityLinkService(database);
-	}
+	const entityLinkService = $derived(
+		repository ? new EntityLinkService(repository.getDatabase()) : undefined
+	);
 
 	// Autocomplete data state
 	let raceOptions = $state<Array<{ name: { rus: string; eng: string }; url: string }>>([]);
@@ -349,12 +348,13 @@
 		}))
 	);
 
-	const coins = $derived(data.coins ? {
-		gp: data.coins.gp?.value || 0,
-		sp: data.coins.sp?.value || 0,
-		cp: data.coins.cp?.value || 0,
-		pp: data.coins.pp?.value || 0,
-		ep: data.coins.ep?.value || 0
+	const coins = $derived<CharacterCoins | undefined>(data.coins ? {
+		gp: { value: data.coins.gp?.value || 0 },
+		sp: { value: data.coins.sp?.value || 0 },
+		cp: { value: data.coins.cp?.value || 0 },
+		pp: { value: data.coins.pp?.value || 0 },
+		ep: { value: data.coins.ep?.value || 0 },
+		total: { value: data.coins.total?.value || 0 }
 	} : undefined);
 
 	const spellsInfo = $derived(data.spellsInfo ? {

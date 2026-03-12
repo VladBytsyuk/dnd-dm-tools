@@ -443,7 +443,7 @@
 	/**
 	 * Open the notes popup for editing item notes.
 	 */
-	function handleNotesClick(id: string, e: MouseEvent) {
+	function handleNotesClick(id: string, e: MouseEvent | KeyboardEvent) {
 		e.stopPropagation();
 		const item = equipmentList.find(i => i.id === id);
 		const target = e.currentTarget as HTMLElement;
@@ -715,7 +715,7 @@
 		</div>
 
 		<!-- Equipment Notes Section -->
-		{#if equipmentText}
+		{#if equipmentText && typeof equipmentText === 'string' && equipmentText.trim()}
 			<div class="equipment-notes">
 				<textarea
 					id="equipment-notes"

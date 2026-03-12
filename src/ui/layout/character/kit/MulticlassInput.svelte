@@ -31,6 +31,8 @@
 	// Use Maps keyed by className to avoid index desync issues when classes are removed
 	let classLinksMap = $state<Map<string, EntityLinkResult>>(new Map());
 	let subclassLinksMap = $state<Map<string, EntityLinkResult>>(new Map());
+	let failedClassLookups = $state<Set<string>>(new Set());
+	let failedSubclassLookups = $state<Set<string>>(new Set());
 
 	// Debounce timeouts for entity lookups
 	let classLookupTimeouts = new Map<string, NodeJS.Timeout>();
@@ -49,7 +51,7 @@
 		if (onLookupClass) {
 			classes.forEach((classEntry) => {
 				const className = classEntry.className.trim();
-				if (className && !classLinksMap.has(className)) {
+				if (className && !classLinksMap.has(className) && !failedClassLookups.has(className)) {
 					checkClassLink(className);
 				}
 			});
@@ -60,7 +62,7 @@
 		if (onLookupSubclass) {
 			classes.forEach((classEntry) => {
 				const subclassName = classEntry.subclassName?.trim();
-				if (subclassName && !subclassLinksMap.has(subclassName)) {
+				if (subclassName && !subclassLinksMap.has(subclassName) && !failedSubclassLookups.has(subclassName)) {
 					checkSubclassLink(subclassName, classEntry.className);
 				}
 			});
@@ -82,12 +84,16 @@
 			const result = await onLookupClass(key);
 			// Create new Map to trigger Svelte 5 reactivity
 			const newMap = new Map(classLinksMap);
+			const newFailedLookups = new Set(failedClassLookups);
 			if (result.exists) {
 				newMap.set(key, result);
+				newFailedLookups.delete(key);
 			} else {
 				newMap.delete(key);
+				newFailedLookups.add(key);
 			}
 			classLinksMap = newMap;
+			failedClassLookups = newFailedLookups;
 			classLookupTimeouts.delete(key);
 		};
 
@@ -114,12 +120,16 @@
 			const result = await onLookupSubclass(key, parentClassName);
 			// Create new Map to trigger Svelte 5 reactivity
 			const newMap = new Map(subclassLinksMap);
+			const newFailedLookups = new Set(failedSubclassLookups);
 			if (result.exists) {
 				newMap.set(key, result);
+				newFailedLookups.delete(key);
 			} else {
 				newMap.delete(key);
+				newFailedLookups.add(key);
 			}
 			subclassLinksMap = newMap;
+			failedSubclassLookups = newFailedLookups;
 			subclassLookupTimeouts.delete(key);
 		};
 
@@ -188,8 +198,28 @@
 		onchange?.(updated);
 
 		if (field === 'className' && value) {
+			const key = String(value).trim();
+			if (key) {
+				const newMap = new Map(classLinksMap);
+				newMap.delete(key);
+				classLinksMap = newMap;
+
+				const newFailedLookups = new Set(failedClassLookups);
+				newFailedLookups.delete(key);
+				failedClassLookups = newFailedLookups;
+			}
 			checkClassLink(value, debounce);
 		} else if (field === 'subclassName' && value) {
+			const key = String(value).trim();
+			if (key) {
+				const newMap = new Map(subclassLinksMap);
+				newMap.delete(key);
+				subclassLinksMap = newMap;
+
+				const newFailedLookups = new Set(failedSubclassLookups);
+				newFailedLookups.delete(key);
+				failedSubclassLookups = newFailedLookups;
+			}
 			checkSubclassLink(value, classes[index].className, debounce);
 		}
 	}
