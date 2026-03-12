@@ -291,13 +291,15 @@
 		updateSpellbook((draft) => {
 			const spell = findSpell(draft, levelKey, spellId);
 			if (!spell) return;
-			if (!spell.prepared && levelKey !== "0") {
+
+			if (spell.preparationState === "none" && levelKey !== "0") {
 				const preparedLimit = draft.preparedSpellLimitOverride ?? calculatedPreparedLimit;
 				if (preparedLimit !== null && countPreparedSpells(draft) >= preparedLimit) {
 					return;
 				}
 			}
-			spell.prepared = !spell.prepared;
+
+			spell.preparationState = getNextPreparationState(spell.preparationState);
 		});
 	}
 
@@ -363,7 +365,7 @@
 			id: crypto.randomUUID(),
 			name,
 			level,
-			prepared: false,
+			preparationState: "none",
 			...(spell?.url ? { linkedSpellUrl: spell.url } : {}),
 		};
 	}
@@ -402,8 +404,20 @@
 			if (levelKey === "0") {
 				return sum;
 			}
-			return sum + levelState.spells.filter((spell) => spell.prepared).length;
+			return sum + levelState.spells.filter((spell) => spell.preparationState === "prepared").length;
 		}, 0);
+	}
+
+	function getNextPreparationState(current: CharacterSpellEntry["preparationState"]) {
+		switch (current) {
+			case "none":
+				return "prepared";
+			case "prepared":
+				return "always";
+			case "always":
+			default:
+				return "none";
+		}
 	}
 </script>
 
@@ -541,10 +555,11 @@
 								<button
 									type="button"
 									class="prepared-toggle"
-									class:active={spell.prepared}
-									disabled={!spell.prepared && !canPrepareMoreSpells}
+									class:active={spell.preparationState === "prepared"}
+									class:always={spell.preparationState === "always"}
+									disabled={spell.preparationState === "none" && !canPrepareMoreSpells}
 									onclick={() => togglePrepared(typedLevelKey, spell.id)}
-									aria-label={`Подготовлено: ${spell.name || "заклинание"}`}
+									aria-label={`Подготовка: ${spell.name || "заклинание"}`}
 								></button>
 							{/if}
 
@@ -765,6 +780,12 @@
 	.prepared-toggle.active {
 		background: var(--text-accent);
 		border-color: var(--text-accent);
+	}
+
+	.prepared-toggle.always {
+		background: color-mix(in srgb, var(--text-accent) 18%, var(--background-primary));
+		border-color: var(--text-accent);
+		box-shadow: inset 0 0 0 2px var(--background-primary);
 	}
 
 	.spells-list {

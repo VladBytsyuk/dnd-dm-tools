@@ -182,4 +182,18 @@ describe("CharacterSheet interfaces", () => {
 		expect(parsed.data.spells.levels["1"].spells[0].name).toBe("Magic Missile");
 		expect(parsed.data.spells.levels["1"].spells[1].name).toBe("Shield");
 	});
+
+	it("should migrate legacy prepared boolean to preparation state", () => {
+		const withPreparedSpell = {
+			...mockCharacterSheet,
+			data: mockCharacterSheet.data.replace(
+				'"spells":{}',
+				'"spells":{"levels":{"1":{"level":1,"slotCountOverride":null,"slotsUsed":[],"spells":[{"id":"spell-1","name":"Magic Missile","level":1,"prepared":true}]}}}'
+			)
+		};
+
+		const parsed = parseCharacterData(withPreparedSpell);
+
+		expect(parsed.data.spells.levels["1"].spells[0].preparationState).toBe("prepared");
+	});
 });

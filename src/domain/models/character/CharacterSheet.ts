@@ -181,7 +181,7 @@ function normalizeSpellEntries(rawEntries: unknown, level: number, legacyText: s
 			id: `legacy-${level}-${index}-${slugifySpellName(name)}`,
 			name,
 			level,
-			prepared: false,
+			preparationState: "none" as const,
 		}));
 }
 
@@ -213,7 +213,7 @@ function normalizeSpellEntry(rawEntry: unknown, level: number, index: number): C
 			: `spell-${level}-${index}-${slugifySpellName(name)}`,
 		name,
 		level: normalizeOptionalNumber(candidate.level) ?? level,
-		prepared: Boolean(candidate.prepared),
+		preparationState: normalizePreparationState(candidate.preparationState, candidate.prepared),
 		...(linkedSpellUrl ? { linkedSpellUrl } : {}),
 	};
 }
@@ -300,6 +300,16 @@ function normalizeOptionalNumber(value: unknown): number | null {
 		return Number.isNaN(parsed) ? null : parsed;
 	}
 	return null;
+}
+
+function normalizePreparationState(
+	preparationState: unknown,
+	legacyPrepared: unknown
+): "none" | "prepared" | "always" {
+	if (preparationState === "none" || preparationState === "prepared" || preparationState === "always") {
+		return preparationState;
+	}
+	return legacyPrepared ? "prepared" : "none";
 }
 
 function slugifySpellName(name: string): string {
