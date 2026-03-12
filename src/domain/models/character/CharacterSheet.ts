@@ -116,21 +116,18 @@ function normalizeArmorProficiencies(
 function normalizeCharacterSpellbook(data: CharacterData): CharacterSpellbookState {
 	const defaults = createEmptyCharacterSpellbook();
 	const legacySpells = data.spells as any;
+	const legacyPact = data.spellsPact as any;
 	const normalized: CharacterSpellbookState = {
 		baseAbilityCode: normalizeAbilityCode(
 			legacySpells?.baseAbilityCode ?? data.spellsInfo?.base?.code ?? ""
 		),
-		saveDcOverride: normalizeOptionalNumber(
-			legacySpells?.saveDcOverride ?? data.spellsInfo?.save?.value
-		),
-		attackBonusOverride: normalizeOptionalNumber(
-			legacySpells?.attackBonusOverride ?? data.spellsInfo?.mod?.value
-		),
+		saveDcOverride: normalizeOptionalNumber(legacySpells?.saveDcOverride),
+		attackBonusOverride: normalizeOptionalNumber(legacySpells?.attackBonusOverride),
 		preparedSpellLimitOverride: normalizeOptionalNumber(
 			legacySpells?.preparedSpellLimitOverride
 		),
 		levels: { ...defaults.levels },
-		pact: normalizePactState(legacySpells?.pact),
+		pact: normalizePactState(legacySpells?.pact ?? legacyPact),
 	};
 
 	for (const levelKey of SPELL_LEVEL_KEYS) {
@@ -223,12 +220,16 @@ function normalizePactState(rawPact: any): CharacterSpellPactState | null {
 		return null;
 	}
 
-	const slotLevel = normalizeOptionalNumber(rawPact.slotLevel) ?? 1;
-	const slotCountOverride = normalizeOptionalNumber(rawPact.slotCountOverride);
+	const slotLevel = normalizeOptionalNumber(
+		rawPact.slotLevel ?? rawPact.level ?? rawPact["slot-level"]
+	) ?? 1;
+	const slotCountOverride = normalizeOptionalNumber(
+		rawPact.slotCountOverride ?? rawPact.slotCount ?? rawPact.slots ?? rawPact.count
+	);
 	return {
 		slotLevel,
 		slotCountOverride,
-		slotsUsed: normalizeSlotsUsed(rawPact.slotsUsed, slotCountOverride ?? 0),
+		slotsUsed: normalizeSlotsUsed(rawPact.slotsUsed ?? rawPact.used ?? rawPact.state, slotCountOverride ?? 0),
 	};
 }
 

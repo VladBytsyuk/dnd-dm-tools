@@ -183,6 +183,45 @@ describe("CharacterSheet interfaces", () => {
 		expect(parsed.data.spells.levels["1"].spells[1].name).toBe("Shield");
 	});
 
+	it("should not convert legacy spell save and attack values into overrides", () => {
+		const withLegacySpellInfo = {
+			...mockCharacterSheet,
+			data: mockCharacterSheet.data.replace(
+				'"save":{"name":"save","value":""},"mod":{"name":"mod","value":""}',
+				'"save":{"name":"save","value":"15"},"mod":{"name":"mod","value":"7"}'
+			)
+		};
+
+		const parsed = parseCharacterData(withLegacySpellInfo);
+
+		expect(parsed.data.spells.saveDcOverride).toBe(null);
+		expect(parsed.data.spells.attackBonusOverride).toBe(null);
+	});
+
+	it("should migrate legacy pact slot state from spellsPact", () => {
+		const parsedData = JSON.parse(mockCharacterSheet.data);
+		parsedData.info.charClass.value = "Warlock";
+		parsedData.info.charSubclass.value = "";
+		parsedData.spellsPact = {
+			slotLevel: 3,
+			slotCountOverride: 2,
+			slotsUsed: [true, false],
+		};
+
+		const withLegacyPact = {
+			...mockCharacterSheet,
+			data: JSON.stringify(parsedData)
+			};
+
+		const parsed = parseCharacterData(withLegacyPact);
+
+		expect(parsed.data.spells.pact).toEqual({
+			slotLevel: 3,
+			slotCountOverride: 2,
+			slotsUsed: [true, false],
+		});
+	});
+
 	it("should migrate legacy prepared boolean to preparation state", () => {
 		const withPreparedSpell = {
 			...mockCharacterSheet,

@@ -140,12 +140,13 @@
 	}
 
 	function getDisplayedPactSlots(): boolean[] {
-		const pact = spellbook.pact;
-		if (!pact || !slotProgression.pact) {
+		if (!slotProgression.pact) {
 			return [];
 		}
-		const effectiveCount = pact.slotCountOverride ?? slotProgression.pact.slotCount;
-		return Array.from({ length: effectiveCount }, (_, index) => Boolean(pact.slotsUsed[index]));
+		const pact = spellbook.pact;
+		const effectiveCount = pact?.slotCountOverride ?? slotProgression.pact.slotCount;
+		const used = pact?.slotsUsed ?? [];
+		return Array.from({ length: effectiveCount }, (_, index) => Boolean(used[index]));
 	}
 
 	function handleSlotOverrideInput(levelKey: SpellLevelKey, event: Event) {
