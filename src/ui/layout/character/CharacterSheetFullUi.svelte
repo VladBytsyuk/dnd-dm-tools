@@ -6,7 +6,7 @@
 	import type { CharacterSheetRepository } from "../../../data/repositories/CharacterSheetRepository";
 	import type { ClassEntry } from "../../../domain/models/character/ClassEntry";
 	import type { CharacterCoins } from "../../../domain/models/character/CharacterEquipment";
-	import type { TextField } from "../../../domain/models/character/CharacterText";
+	import type { CharacterTextSections } from "../../../domain/models/character/CharacterText";
 	import { EntityLinkService } from "../../../domain/services/EntityLinkService";
 	import type DndStatblockPlugin from "../../../main";
 	import type { SmallRace } from "../../../domain/models/race/SmallRace";
@@ -25,8 +25,10 @@
 	import CharacterSpellbook from "./kit/CharacterSpellbook.svelte";
 	import CharacterEquipmentBlock from "./kit/CharacterEquipmentBlock.svelte";
 	import CharacterTextSection from "./kit/CharacterTextSection.svelte";
+	import CharacterEditableTextBlock from "./kit/CharacterEditableTextBlock.svelte";
 	import CharacterInfoBox from "./kit/CharacterInfoBox.svelte";
 	import CharacterProficienciesBlock from "./kit/CharacterProficienciesBlock.svelte";
+	import { createTextFieldFromPlainText } from "./kit/characterTextBlockUtils";
 
 	let {
 		currentItem,
@@ -235,7 +237,7 @@
 		if (!legacyProfText) return;
 
 		data.proficiencies.other.value = legacyProfText;
-		data.text.prof = createPlainTextField("");
+		data.text.prof = createTextFieldFromPlainText("", "prof-text");
 		if (repository) {
 			debouncedSave();
 		}
@@ -339,33 +341,17 @@
 		debouncedSave();
 	}
 
-	function createPlainTextField(text: string): TextField {
-		const lines = text.split('\n');
-		const content = lines.length > 0
-			? lines.map((line) => line.trim()
-				? {
-					type: 'paragraph',
-					content: [{ type: 'text', text: line }]
-				}
-				: { type: 'paragraph' })
-			: [{ type: 'paragraph' }];
-
-		return {
-			value: {
-				id: `equipment-text-${crypto.randomUUID()}`,
-				data: {
-					type: 'doc',
-					content
-				}
-			}
-		};
-	}
-
 	function handleEquipmentChange(newCoins: any, newEquipmentList: any[], newEquipmentText: string) {
 		data.coins = newCoins;
 		data.equipmentList = newEquipmentList;
 		data.text = data.text || {};
-		data.text.equipment = createPlainTextField(newEquipmentText);
+		data.text.equipment = createTextFieldFromPlainText(newEquipmentText, "equipment-text");
+		debouncedSave();
+	}
+
+	function handleTextSectionChange(section: keyof CharacterTextSections, newText: string) {
+		data.text = data.text || {};
+		data.text[section] = createTextFieldFromPlainText(newText, `${section}-text`);
 		debouncedSave();
 	}
 
@@ -675,6 +661,27 @@
 				onChange={handleEquipmentChange}
 			/>
 
+			<div class="character-reference-blocks">
+				<div class="character-reference-blocks-row">
+					<CharacterEditableTextBlock
+						title="Расовые особенности"
+						content={data.text?.traits}
+						onChange={(value) => handleTextSectionChange("traits", value)}
+					/>
+					<CharacterEditableTextBlock
+						title="Черты"
+						content={data.text?.feats}
+						onChange={(value) => handleTextSectionChange("feats", value)}
+					/>
+				</div>
+				<CharacterEditableTextBlock
+					title="Особенности класса"
+					content={data.text?.features}
+					minHeight="200px"
+					onChange={(value) => handleTextSectionChange("features", value)}
+				/>
+			</div>
+
 			{#if data.text?.personality}
 				<CharacterTextSection title="Личность" content={data.text.personality} collapsible={true} />
 			{/if}
@@ -711,14 +718,6 @@
 				spells={data.spells}
 				{spellTexts}
 			/>
-
-			{#if data.text?.features}
-				<CharacterTextSection title="Умения и особенности" content={data.text.features} collapsible={true} />
-			{/if}
-
-			{#if data.text?.traits}
-				<CharacterTextSection title="Расовые особенности" content={data.text.traits} collapsible={true} />
-			{/if}
 		</div>
 	</div>
 </div>
@@ -743,6 +742,19 @@
 	.column {
 		display: flex;
 		flex-direction: column;
+	}
+
+	.character-reference-blocks {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		margin-bottom: 16px;
+	}
+
+	.character-reference-blocks-row {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 16px;
 	}
 
 	.physical-info-section {
@@ -798,6 +810,10 @@
 		.column-right {
 			display: flex;
 			flex-direction: column;
+		}
+
+		.character-reference-blocks-row {
+			grid-template-columns: 1fr;
 		}
 	}
 </style>
