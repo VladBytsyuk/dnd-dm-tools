@@ -37,4 +37,58 @@ describe("characterTextBlockUtils", () => {
 			}
 		})).toBe("Second Wind\n\nAction Surge");
 	});
+
+	it("preserves text from headings, lists, blockquotes, and hard breaks", () => {
+		expect(getPlainTextFromTextField({
+			value: {
+				id: "traits-1",
+				data: {
+					type: "doc",
+					content: [
+						{
+							type: "heading",
+							attrs: { level: 2 },
+							content: [{ type: "text", text: "Эльф" }]
+						},
+						{
+							type: "bulletList",
+							content: [
+								{
+									type: "listItem",
+									content: [
+										{
+											type: "paragraph",
+											content: [{ type: "text", text: "Темное зрение" }]
+										}
+									]
+								},
+								{
+									type: "listItem",
+									content: [
+										{
+											type: "paragraph",
+											content: [
+												{ type: "text", text: "Фейское" },
+												{ type: "hardBreak" },
+												{ type: "text", text: "происхождение" }
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							type: "blockquote",
+							content: [
+								{
+									type: "paragraph",
+									content: [{ type: "text", text: "Преимущество против очарования" }]
+								}
+							]
+						}
+					]
+				}
+			}
+		})).toBe("Эльф\n- Темное зрение\n- Фейское\nпроисхождение\nПреимущество против очарования");
+	});
 });
