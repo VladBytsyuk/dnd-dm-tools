@@ -3,6 +3,7 @@
 	import { Plus, X, Link, PackageOpen, Backpack, Info, Sparkles, Zap, Clipboard } from "lucide-svelte";
 	import IconButton from "../../uikit/IconButton.svelte";
 	import type { EquipmentItem, CharacterCoins } from "../../../../domain/models/character/CharacterEquipment";
+	import type { TextField } from "../../../../domain/models/character/CharacterText";
 	import type { EntityLinkService } from "../../../../domain/services/EntityLinkService";
 	import type { IUiEventListener } from "../../../../domain/listeners/ui_event_listener";
 	import { getFromClipboard } from "../../../../data/clipboard";
@@ -13,10 +14,10 @@
 	interface Props {
 		coins?: CharacterCoins;
 		equipmentList: EquipmentItem[];
-		equipmentText?: string;
+		equipmentText?: string | TextField;
 		entityLinkService?: EntityLinkService;
 		uiEventListener?: IUiEventListener;
-		onChange?: (coins: CharacterCoins, equipmentList: EquipmentItem[]) => void;
+		onChange?: (coins: CharacterCoins, equipmentList: EquipmentItem[], equipmentText: string) => void;
 	}
 
 	let { coins, equipmentList, equipmentText = '', entityLinkService, uiEventListener, onChange }: Props = $props();
@@ -39,6 +40,8 @@
 
 	// Track which item's info icon is being hovered
 	let hoveredInfoIconId = $state<string | null>(null);
+	let plainEquipmentText = $state('');
+	let blockElement: HTMLDivElement | undefined = $state();
 
 	// Debounce utility
 	function debounce<T extends (...args: any[]) => any>(
@@ -53,6 +56,47 @@
 	}
 
 	const DEBOUNCE_DELAY_MS = 300;
+
+	function getRelativePosition(target: HTMLElement) {
+		const rect = target.getBoundingClientRect();
+		const containerRect = blockElement?.getBoundingClientRect();
+
+		if (!containerRect) {
+			return { x: rect.left, y: rect.bottom + 5 };
+		}
+
+		return {
+			x: rect.left - containerRect.left,
+			y: rect.bottom - containerRect.top + 5
+		};
+	}
+
+	function extractEquipmentText(value: string | TextField | undefined): string {
+		if (!value) return '';
+		if (typeof value === 'string') return value;
+
+		const lines: string[] = [];
+
+		const visitNode = (node: any): string => {
+			if (!node || typeof node !== 'object') return '';
+			if (node.type === 'text') return node.text || '';
+
+			const content = Array.isArray(node.content) ? node.content.map(visitNode).join('') : '';
+			if (node.type === 'paragraph') {
+				lines.push(content);
+				return '';
+			}
+
+			return content;
+		};
+
+		visitNode(value.value?.data);
+		return lines.join('\n').trim();
+	}
+
+	$effect(() => {
+		plainEquipmentText = extractEquipmentText(equipmentText);
+	});
 
 	// Calculate attuned items count
 	const attunedCount = $derived(
@@ -157,7 +201,7 @@
 		};
 
 		if (onChange) {
-			onChange(newCoins, equipmentList);
+			onChange(newCoins, equipmentList, plainEquipmentText);
 		}
 	}
 
@@ -168,11 +212,16 @@
 	 */
 	function triggerChange() {
 		if (onChange && coins) {
-			onChange(coins, equipmentList);
+			onChange(coins, equipmentList, plainEquipmentText);
 		}
 	}
 
 	const debouncedTriggerChange = debounce(triggerChange, DEBOUNCE_DELAY_MS);
+
+	function handleEquipmentTextInput(value: string) {
+		plainEquipmentText = value;
+		debouncedTriggerChange();
+	}
 
 	/**
 	 * Auto-search for item link in database
@@ -447,13 +496,13 @@
 		e.stopPropagation();
 		const item = equipmentList.find(i => i.id === id);
 		const target = e.currentTarget as HTMLElement;
-		const rect = target.getBoundingClientRect();
+		const position = getRelativePosition(target);
 
 		currentNotes = item?.notes?.value || '';
 		showNotesPopup = {
 			id,
-			x: rect.left,
-			y: rect.bottom + 5
+			x: position.x,
+			y: position.y
 		};
 	}
 
@@ -502,12 +551,12 @@
 
 		if (notesContent) {
 			const target = e.currentTarget as HTMLElement;
-			const rect = target.getBoundingClientRect();
+			const position = getRelativePosition(target);
 
 			showNotesPreview = {
 				id,
-				x: rect.left,
-				y: rect.bottom + 5,
+				x: position.x,
+				y: position.y,
 				content: notesContent
 			};
 		}
@@ -543,7 +592,7 @@
 
 <svelte:window onclick={handleClickOutside} />
 
-<div class="character-equipment-block">
+<div class="character-equipment-block" bind:this={blockElement}>
 	<!-- Money Tracker Section -->
 	<div class="money-section">
 		<div class="money-tracker">
@@ -714,18 +763,16 @@
 			{/if}
 		</div>
 
-		<!-- Equipment Notes Section -->
-		{#if equipmentText && typeof equipmentText === 'string' && equipmentText.trim()}
-			<div class="equipment-notes">
-				<textarea
-					id="equipment-notes"
-					class="notes-textarea-readonly"
-					readonly
-					value={equipmentText}
-					aria-label="Импортированное снаряжение"
-				></textarea>
-			</div>
-		{/if}
+		<div class="equipment-notes">
+			<textarea
+				id="equipment-notes"
+				class="equipment-notes-textarea"
+				value={plainEquipmentText}
+				oninput={(e) => handleEquipmentTextInput(e.currentTarget.value)}
+				placeholder="Опишите снаряжение обычным текстом"
+				aria-label="Снаряжение обычным текстом"
+			></textarea>
+		</div>
 	</div>
 
 	<!-- Screen Reader Announcement for Attunement Limit -->
@@ -734,57 +781,54 @@
 			Достигнут лимит настройки на предметы (3 из 3)
 		</div>
 	{/if}
+	{#if showNotesPreview}
+		<div
+			class="notes-preview"
+			style="left: {showNotesPreview.x}px; top: {showNotesPreview.y}px;"
+			onmouseenter={() => {
+				if (showNotesPreview) {
+					hoveredInfoIconId = showNotesPreview.id;
+				}
+			}}
+			onmouseleave={handleNotesHoverLeave}
+			role="tooltip"
+			aria-live="polite"
+		>
+			<div class="notes-preview-content">
+				{@html showNotesPreview.content}
+			</div>
+		</div>
+	{/if}
+
+	{#if showNotesPopup}
+		<div
+			class="notes-popup"
+			style="left: {showNotesPopup.x}px; top: {showNotesPopup.y}px;"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="notes-popup-title"
+		>
+			<div class="notes-popup-header">
+				<h4 id="notes-popup-title">Заметки</h4>
+				<IconButton icon={X} hint="Закрыть" onClick={handleCloseNotes} size={12} />
+			</div>
+			<textarea
+				class="notes-textarea"
+				bind:value={currentNotes}
+				placeholder="Введите заметки..."
+				aria-label="Текст заметки"
+			></textarea>
+			<div class="notes-popup-footer">
+				<button class="save-button" onclick={handleSaveNotes}>Сохранить</button>
+				<button class="cancel-button" onclick={handleCloseNotes}>Отмена</button>
+			</div>
+		</div>
+	{/if}
 </div>
-
-<!-- Notes hover preview -->
-{#if showNotesPreview}
-	<div
-		class="notes-preview"
-		style="left: {showNotesPreview.x}px; top: {showNotesPreview.y}px;"
-		onmouseenter={() => {
-			// Keep preview open when hovering over it
-			if (showNotesPreview) {
-				hoveredInfoIconId = showNotesPreview.id;
-			}
-		}}
-		onmouseleave={handleNotesHoverLeave}
-		role="tooltip"
-		aria-live="polite"
-	>
-		<div class="notes-preview-content">
-			{@html showNotesPreview.content}
-		</div>
-	</div>
-{/if}
-
-<!-- Notes popup -->
-{#if showNotesPopup}
-	<div
-		class="notes-popup"
-		style="left: {showNotesPopup.x}px; top: {showNotesPopup.y}px;"
-		role="dialog"
-		aria-modal="true"
-		aria-labelledby="notes-popup-title"
-	>
-		<div class="notes-popup-header">
-			<h4 id="notes-popup-title">Заметки</h4>
-			<IconButton icon={X} hint="Закрыть" onClick={handleCloseNotes} size={12} />
-		</div>
-		<textarea
-			class="notes-textarea"
-			bind:value={currentNotes}
-			placeholder="Введите заметки..."
-			aria-label="Текст заметки"
-		></textarea>
-		<div class="notes-popup-footer">
-			<button class="save-button" onclick={handleSaveNotes}>Сохранить</button>
-			<button class="cancel-button" onclick={handleCloseNotes}>Отмена</button>
-		</div>
-	</div>
-{/if}
 
 <style>
 	.character-equipment-block {
+		position: relative;
 		container-type: inline-size;
 		padding: 16px;
 		background-color: var(--background-primary);
@@ -1116,9 +1160,9 @@
 		margin-top: 12px;
 	}
 
-	.notes-textarea-readonly {
+	.equipment-notes-textarea {
 		width: 100%;
-		min-height: 80px;
+		min-height: 96px;
 		padding: 8px;
 		background-color: var(--background-secondary);
 		border: 1px solid var(--background-modifier-border);
@@ -1130,14 +1174,14 @@
 		box-sizing: border-box;
 	}
 
-	.notes-textarea-readonly:focus {
+	.equipment-notes-textarea:focus {
 		outline: none;
 		border-color: var(--text-accent);
 	}
 
 	/* Notes hover preview */
 	.notes-preview {
-		position: fixed;
+		position: absolute;
 		z-index: 999;
 		background-color: var(--background-primary);
 		border: 1px solid var(--background-modifier-border);
@@ -1194,7 +1238,7 @@
 
 	/* Notes popup */
 	.notes-popup {
-		position: fixed;
+		position: absolute;
 		z-index: 1000;
 		background-color: var(--background-primary);
 		border: 1px solid var(--background-modifier-border);

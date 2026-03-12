@@ -6,6 +6,7 @@
 	import type { CharacterSheetRepository } from "../../../data/repositories/CharacterSheetRepository";
 	import type { ClassEntry } from "../../../domain/models/character/ClassEntry";
 	import type { CharacterCoins } from "../../../domain/models/character/CharacterEquipment";
+	import type { TextField } from "../../../domain/models/character/CharacterText";
 	import { EntityLinkService } from "../../../domain/services/EntityLinkService";
 	import type DndStatblockPlugin from "../../../main";
 	import type { SmallRace } from "../../../domain/models/race/SmallRace";
@@ -256,9 +257,33 @@
 		debouncedSave();
 	}
 
-	function handleEquipmentChange(newCoins: any, newEquipmentList: any[]) {
+	function createPlainTextField(text: string): TextField {
+		const lines = text.split('\n');
+		const content = lines.length > 0
+			? lines.map((line) => line.trim()
+				? {
+					type: 'paragraph',
+					content: [{ type: 'text', text: line }]
+				}
+				: { type: 'paragraph' })
+			: [{ type: 'paragraph' }];
+
+		return {
+			value: {
+				id: `equipment-text-${crypto.randomUUID()}`,
+				data: {
+					type: 'doc',
+					content
+				}
+			}
+		};
+	}
+
+	function handleEquipmentChange(newCoins: any, newEquipmentList: any[], newEquipmentText: string) {
 		data.coins = newCoins;
 		data.equipmentList = newEquipmentList;
+		data.text = data.text || {};
+		data.text.equipment = createPlainTextField(newEquipmentText);
 		debouncedSave();
 	}
 
