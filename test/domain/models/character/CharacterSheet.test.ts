@@ -84,6 +84,13 @@ describe("CharacterSheet interfaces", () => {
 		// Check proficiency bonus
 		expect(parsed.data.proficiency).toBe(3);
 
+		// Check spellbook normalization
+		expect(parsed.data.spells.baseAbilityCode).toBe("int");
+		expect(parsed.data.spells.saveDcOverride).toBe(null);
+		expect(parsed.data.spells.attackBonusOverride).toBe(null);
+		expect(parsed.data.spells.levels["1"].slotCountOverride).toBe(null);
+		expect(parsed.data.spells.levels["1"].spells).toEqual([]);
+
 		// Check proficiencies defaults for legacy JSON
 		expect(parsed.data.proficiencies.armor.light).toBe(false);
 		expect(parsed.data.proficiencies.armor.medium).toBe(false);
@@ -154,5 +161,95 @@ describe("CharacterSheet interfaces", () => {
 			tools: { value: "" },
 			other: { value: "" },
 		});
+	});
+
+	it("should migrate legacy spell text and slot overrides into typed spellbook", () => {
+		const withLegacySpells = {
+			...mockCharacterSheet,
+			data: mockCharacterSheet.data.replace(
+				'"spells":{}',
+				'"spells":{"slots-1":4}'
+			).replace(
+				'"prof":{"value":{"id":"prof-1","data":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"All armor, shields, martial weapons"}]}]}}}',
+				'"spells-level-1":{"value":{"id":"spells-level-1","data":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Magic Missile"}]},{"type":"paragraph","content":[{"type":"text","text":"Shield"}]}]}}},"prof":{"value":{"id":"prof-1","data":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"All armor, shields, martial weapons"}]}]}}}'
+			)
+		};
+
+		const parsed = parseCharacterData(withLegacySpells);
+
+		expect(parsed.data.spells.levels["1"].slotCountOverride).toBe(4);
+		expect(parsed.data.spells.levels["1"].spells).toHaveLength(2);
+		expect(parsed.data.spells.levels["1"].spells[0].name).toBe("Magic Missile");
+		expect(parsed.data.spells.levels["1"].spells[1].name).toBe("Shield");
+	});
+
+	it("should preserve an explicit empty structured spell list over legacy spell text", () => {
+		const withEmptyStructuredList = {
+			...mockCharacterSheet,
+			data: mockCharacterSheet.data.replace(
+				'"spells":{}',
+				'"spells":{"levels":{"1":{"level":1,"slotCountOverride":null,"slotsUsed":[],"spells":[]}}}'
+			).replace(
+				'"prof":{"value":{"id":"prof-1","data":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"All armor, shields, martial weapons"}]}]}}}',
+				'"spells-level-1":{"value":{"id":"spells-level-1","data":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Magic Missile"}]}]}}},"prof":{"value":{"id":"prof-1","data":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"All armor, shields, martial weapons"}]}]}}}'
+			)
+		};
+
+		const parsed = parseCharacterData(withEmptyStructuredList);
+
+		expect(parsed.data.spells.levels["1"].spells).toEqual([]);
+	});
+
+	it("should not convert legacy spell save and attack values into overrides", () => {
+		const withLegacySpellInfo = {
+			...mockCharacterSheet,
+			data: mockCharacterSheet.data.replace(
+				'"save":{"name":"save","value":""},"mod":{"name":"mod","value":""}',
+				'"save":{"name":"save","value":"15"},"mod":{"name":"mod","value":"7"}'
+			)
+		};
+
+		const parsed = parseCharacterData(withLegacySpellInfo);
+
+		expect(parsed.data.spells.saveDcOverride).toBe(null);
+		expect(parsed.data.spells.attackBonusOverride).toBe(null);
+	});
+
+	it("should migrate legacy pact slot state from spellsPact", () => {
+		const parsedData = JSON.parse(mockCharacterSheet.data);
+		parsedData.info.charClass.value = "Warlock";
+		parsedData.info.charSubclass.value = "";
+		parsedData.spellsPact = {
+			slotLevel: 3,
+			slotCountOverride: 2,
+			slotsUsed: [true, false],
+		};
+
+		const withLegacyPact = {
+			...mockCharacterSheet,
+			data: JSON.stringify(parsedData)
+			};
+
+		const parsed = parseCharacterData(withLegacyPact);
+
+		expect(parsed.data.spells.pact).toEqual({
+			slotLevel: 3,
+			slotCountOverride: 2,
+			slotsUsed: [true, false],
+		});
+	});
+
+	it("should migrate legacy prepared boolean to preparation state", () => {
+		const withPreparedSpell = {
+			...mockCharacterSheet,
+			data: mockCharacterSheet.data.replace(
+				'"spells":{}',
+				'"spells":{"levels":{"1":{"level":1,"slotCountOverride":null,"slotsUsed":[],"spells":[{"id":"spell-1","name":"Magic Missile","level":1,"prepared":true}]}}}'
+			)
+		};
+
+		const parsed = parseCharacterData(withPreparedSpell);
+
+		expect(parsed.data.spells.levels["1"].spells[0].preparationState).toBe("prepared");
 	});
 });

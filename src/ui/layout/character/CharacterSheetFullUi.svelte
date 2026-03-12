@@ -15,6 +15,7 @@
 	import type { SmallItem } from "../../../domain/models/items/SmallItem";
 	import type { SmallArtifact } from "../../../domain/models/artifact/SmallArtifact";
 	import type { SmallArmor } from "../../../domain/models/armor/SmallArmor";
+	import type { SmallSpell } from "../../../domain/models/spell/SmallSpell";
 	import type { EquipmentAutocompleteItem } from "./kit/characterEquipmentUtils";
 
 	// Import kit components
@@ -67,6 +68,7 @@
 	let classOptions = $state<Array<{ name: { rus: string; eng: string }; url: string }>>([]);
 	let archetypeOptions = $state<Array<{ name: { rus: string; eng: string }; url: string; parentClassUrl: string }>>([]);
 	let equipmentAutocompleteItems = $state<EquipmentAutocompleteItem[]>([]);
+	let spellAutocompleteItems = $state<Array<{ name: { rus: string; eng: string }; url: string; level: number }>>([]);
 
 	// Fetch autocomplete data from database
 	$effect(() => {
@@ -80,9 +82,10 @@
 				database.smallClassDao.readAllItems(null, null),
 				database.smallItemDao.readAllItems(null, null),
 				database.smallArtifactDao.readAllItems(null, null),
-				database.smallArmorDao.readAllItems(null, null)
+				database.smallArmorDao.readAllItems(null, null),
+				database.smallSpellDao.readAllItems(null, null)
 			])
-				.then(([races, backgrounds, classes, items, artifacts, armor]) => {
+				.then(([races, backgrounds, classes, items, artifacts, armor, spells]) => {
 					// Map races
 					raceOptions = races.map((r: SmallRace) => ({
 						name: r.name,
@@ -129,6 +132,12 @@
 							linkedType: 'armor' as const
 						}))
 					];
+
+					spellAutocompleteItems = spells.map((spell: SmallSpell) => ({
+						name: spell.name,
+						url: spell.url,
+						level: spell.level
+					}));
 				})
 				.catch((error) => {
 					console.error('Failed to load autocomplete data:', error);
@@ -138,6 +147,7 @@
 					classOptions = [];
 					archetypeOptions = [];
 					equipmentAutocompleteItems = [];
+					spellAutocompleteItems = [];
 				});
 		}
 	});
@@ -360,6 +370,20 @@
 		debouncedSave();
 	}
 
+	function handleSpellbookChange(newSpellbook: typeof data.spells) {
+		const baseAbilityCode = newSpellbook.baseAbilityCode;
+		const baseAbilityModifier = baseAbilityCode ? (data.stats?.[baseAbilityCode]?.modifier ?? Math.floor(((data.stats?.[baseAbilityCode]?.score ?? 10) - 10) / 2)) : 0;
+		const calculatedSaveDc = 8 + (data.proficiency || 0) + baseAbilityModifier;
+		const calculatedAttackBonus = (data.proficiency || 0) + baseAbilityModifier;
+
+		data.spells = newSpellbook;
+		data.spellsInfo.base.code = newSpellbook.baseAbilityCode;
+		data.spellsInfo.base.value = newSpellbook.baseAbilityCode;
+		data.spellsInfo.save.value = (newSpellbook.saveDcOverride ?? calculatedSaveDc).toString();
+		data.spellsInfo.mod.value = (newSpellbook.attackBonusOverride ?? calculatedAttackBonus).toString();
+		debouncedSave();
+	}
+
 	function handleOpenConditionDetails(url: string) {
 		uiEventListener.onScreenItemClick(url);
 	}
@@ -456,25 +480,6 @@
 		ep: { value: data.coins.ep?.value || 0 },
 		total: { value: data.coins.total?.value || 0 }
 	} : undefined);
-
-	const spellsInfo = $derived(data.spellsInfo ? {
-		base: data.spellsInfo.base?.value,
-		save: parseInt(data.spellsInfo.save?.value?.toString() || '0') || undefined,
-		mod: parseInt(data.spellsInfo.mod?.value?.toString() || '0') || undefined
-	} : undefined);
-
-	const spellTexts = $derived({
-		'spells-level-0': data.text?.['spells-level-0'] || '',
-		'spells-level-1': data.text?.['spells-level-1'] || '',
-		'spells-level-2': data.text?.['spells-level-2'] || '',
-		'spells-level-3': data.text?.['spells-level-3'] || '',
-		'spells-level-4': data.text?.['spells-level-4'] || '',
-		'spells-level-5': data.text?.['spells-level-5'] || '',
-		'spells-level-6': data.text?.['spells-level-6'] || '',
-		'spells-level-7': data.text?.['spells-level-7'] || '',
-		'spells-level-8': data.text?.['spells-level-8'] || '',
-		'spells-level-9': data.text?.['spells-level-9'] || ''
-	});
 
 	// Ability groups with their associated skills
 	const abilityGroups = [
@@ -718,9 +723,14 @@
 		<!-- Right Column: Spellcasting, Features, Traits -->
 		<div class="column column-right">
 			<CharacterSpellbook
-				{spellsInfo}
-				spells={data.spells}
-				{spellTexts}
+				spellbook={data.spells}
+				stats={stats}
+				classes={data.info.classes?.value || []}
+				{proficiency}
+				{spellAutocompleteItems}
+				{entityLinkService}
+				{uiEventListener}
+				onChange={handleSpellbookChange}
 			/>
 		</div>
 	</div>

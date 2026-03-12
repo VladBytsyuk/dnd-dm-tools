@@ -7,6 +7,7 @@ export * from "./CharacterSkills";
 export * from "./CharacterVitality";
 export * from "./CharacterEquipment";
 export * from "./CharacterProficiencies";
+export * from "./CharacterSpellbook";
 export * from "./CharacterText";
 export * from "./SmallCharacterSheet";
 export * from "./FullCharacterSheet";
