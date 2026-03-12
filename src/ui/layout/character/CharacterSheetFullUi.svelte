@@ -662,24 +662,28 @@
 			/>
 
 			<div class="character-reference-blocks">
-				<div class="character-reference-blocks-row">
+				<div class="character-reference-block character-reference-block-half">
 					<CharacterEditableTextBlock
 						title="Расовые особенности"
 						content={data.text?.traits}
 						onChange={(value) => handleTextSectionChange("traits", value)}
 					/>
+				</div>
+				<div class="character-reference-block character-reference-block-half">
 					<CharacterEditableTextBlock
 						title="Черты"
 						content={data.text?.feats}
 						onChange={(value) => handleTextSectionChange("feats", value)}
 					/>
 				</div>
-				<CharacterEditableTextBlock
-					title="Особенности класса"
-					content={data.text?.features}
-					minHeight="200px"
-					onChange={(value) => handleTextSectionChange("features", value)}
-				/>
+				<div class="character-reference-block character-reference-block-full">
+					<CharacterEditableTextBlock
+						title="Особенности класса"
+						content={data.text?.features}
+						minHeight="200px"
+						onChange={(value) => handleTextSectionChange("features", value)}
+					/>
+				</div>
 			</div>
 
 			{#if data.text?.personality}
@@ -746,15 +750,21 @@
 
 	.character-reference-blocks {
 		display: flex;
-		flex-direction: column;
+		flex-wrap: wrap;
 		gap: 16px;
 		margin-bottom: 16px;
 	}
 
-	.character-reference-blocks-row {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 16px;
+	.character-reference-block {
+		min-width: 0;
+	}
+
+	.character-reference-block-half {
+		flex: 1 1 280px;
+	}
+
+	.character-reference-block-full {
+		flex: 1 1 100%;
 	}
 
 	.physical-info-section {
@@ -810,10 +820,6 @@
 		.column-right {
 			display: flex;
 			flex-direction: column;
-		}
-
-		.character-reference-blocks-row {
-			grid-template-columns: 1fr;
 		}
 	}
 </style>
