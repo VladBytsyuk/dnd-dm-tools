@@ -25,6 +25,9 @@ export function createTextFieldFromPlainText(text: string, idPrefix = "character
 export function getPlainTextFromTextField(field?: TextField | string | null): string {
 	if (!field) return "";
 	if (typeof field === "string") return field;
+	if (typeof field.value?.data === "string") {
+		return getPlainTextFromHtml(field.value.data);
+	}
 
 	function getInlineText(node: any): string {
 		if (!node || typeof node !== "object") return "";
@@ -78,4 +81,15 @@ export function getPlainTextFromTextField(field?: TextField | string | null): st
 	}
 
 	return getBlockLines(field.value?.data).join("\n").trimEnd();
+}
+
+function getPlainTextFromHtml(html: string): string {
+	const normalizedHtml = html
+		.replace(/<br\s*\/?>/gi, "\n")
+		.replace(/<\/(p|div|li|blockquote|h[1-6]|pre)>/gi, "\n");
+
+	const parsed = new DOMParser().parseFromString(normalizedHtml, "text/html");
+	return (parsed.body.textContent ?? "")
+		.replace(/\n{3,}/g, "\n\n")
+		.trim();
 }

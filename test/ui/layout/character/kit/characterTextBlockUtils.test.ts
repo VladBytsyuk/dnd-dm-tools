@@ -91,4 +91,13 @@ describe("characterTextBlockUtils", () => {
 			}
 		})).toBe("Эльф\n- Темное зрение\n- Фейское\nпроисхождение\nПреимущество против очарования");
 	});
+
+	it("extracts plain text from legacy html editor payloads", () => {
+		expect(getPlainTextFromTextField({
+			value: {
+				id: "legacy-1",
+				data: "<h2>Эльф</h2><p>Темное зрение</p><blockquote>Преимущество против очарования</blockquote><div>Фейское происхождение<br>Доп. строка</div>"
+			}
+		})).toBe("Эльф\nТемное зрение\nПреимущество против очарования\nФейское происхождение\nДоп. строка");
+	});
 });
