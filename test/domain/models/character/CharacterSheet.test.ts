@@ -84,6 +84,13 @@ describe("CharacterSheet interfaces", () => {
 		// Check proficiency bonus
 		expect(parsed.data.proficiency).toBe(3);
 
+		// Check spellbook normalization
+		expect(parsed.data.spells.baseAbilityCode).toBe("int");
+		expect(parsed.data.spells.saveDcOverride).toBe(null);
+		expect(parsed.data.spells.attackBonusOverride).toBe(null);
+		expect(parsed.data.spells.levels["1"].slotCountOverride).toBe(null);
+		expect(parsed.data.spells.levels["1"].spells).toEqual([]);
+
 		// Check proficiencies defaults for legacy JSON
 		expect(parsed.data.proficiencies.armor.light).toBe(false);
 		expect(parsed.data.proficiencies.armor.medium).toBe(false);
@@ -154,5 +161,25 @@ describe("CharacterSheet interfaces", () => {
 			tools: { value: "" },
 			other: { value: "" },
 		});
+	});
+
+	it("should migrate legacy spell text and slot overrides into typed spellbook", () => {
+		const withLegacySpells = {
+			...mockCharacterSheet,
+			data: mockCharacterSheet.data.replace(
+				'"spells":{}',
+				'"spells":{"slots-1":4}'
+			).replace(
+				'"prof":{"value":{"id":"prof-1","data":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"All armor, shields, martial weapons"}]}]}}}',
+				'"spells-level-1":{"value":{"id":"spells-level-1","data":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Magic Missile"}]},{"type":"paragraph","content":[{"type":"text","text":"Shield"}]}]}}},"prof":{"value":{"id":"prof-1","data":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"All armor, shields, martial weapons"}]}]}}}'
+			)
+		};
+
+		const parsed = parseCharacterData(withLegacySpells);
+
+		expect(parsed.data.spells.levels["1"].slotCountOverride).toBe(4);
+		expect(parsed.data.spells.levels["1"].spells).toHaveLength(2);
+		expect(parsed.data.spells.levels["1"].spells[0].name).toBe("Magic Missile");
+		expect(parsed.data.spells.levels["1"].spells[1].name).toBe("Shield");
 	});
 });

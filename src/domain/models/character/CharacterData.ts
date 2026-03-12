@@ -5,6 +5,7 @@ import type { CharacterVitality } from "./CharacterVitality";
 import type { WeaponItem, AttunementItem, CharacterCoins, EquipmentItem } from "./CharacterEquipment";
 import type { CharacterTextSections } from "./CharacterText";
 import type { CharacterProficiencies } from "./CharacterProficiencies";
+import type { CharacterSpellbookState } from "./CharacterSpellbook";
 
 // Name field (simpler than full Field interface)
 export interface NameField {
@@ -26,7 +27,7 @@ export interface CharacterData {
 	info: CharacterInfo;
 	subInfo: CharacterSubInfo;
 	spellsInfo: SpellsInfo;
-	spells: Record<string, unknown>;
+	spells: CharacterSpellbookState;
 	spellsPact: Record<string, unknown>;
 	proficiency: number;
 	stats: CharacterStats;

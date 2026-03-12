@@ -4,6 +4,15 @@ import {
 	type CharacterArmorProficiencies,
 	type CharacterProficiencies,
 } from "./CharacterProficiencies";
+import {
+	createEmptyCharacterSpellbook,
+	type CharacterSpellEntry,
+	type CharacterSpellLevelState,
+	type CharacterSpellPactState,
+	type CharacterSpellbookState,
+	type SpellLevelKey,
+	SPELL_LEVEL_KEYS,
+} from "./CharacterSpellbook";
 
 // Disabled UI blocks configuration
 export interface DisabledBlocks {
@@ -74,6 +83,7 @@ export function normalizeCharacterData(data: CharacterData): CharacterData {
 	return {
 		...data,
 		proficiencies: normalizeCharacterProficiencies(data.proficiencies),
+		spells: normalizeCharacterSpellbook(data),
 	};
 }
 
@@ -101,4 +111,199 @@ function normalizeArmorProficiencies(
 		heavy: armor?.heavy ?? defaults.heavy,
 		shield: armor?.shield ?? defaults.shield,
 	};
+}
+
+function normalizeCharacterSpellbook(data: CharacterData): CharacterSpellbookState {
+	const defaults = createEmptyCharacterSpellbook();
+	const legacySpells = data.spells as any;
+	const normalized: CharacterSpellbookState = {
+		baseAbilityCode: normalizeAbilityCode(
+			legacySpells?.baseAbilityCode ?? data.spellsInfo?.base?.code ?? ""
+		),
+		saveDcOverride: normalizeOptionalNumber(
+			legacySpells?.saveDcOverride ?? data.spellsInfo?.save?.value
+		),
+		attackBonusOverride: normalizeOptionalNumber(
+			legacySpells?.attackBonusOverride ?? data.spellsInfo?.mod?.value
+		),
+		levels: { ...defaults.levels },
+		pact: normalizePactState(legacySpells?.pact),
+	};
+
+	for (const levelKey of SPELL_LEVEL_KEYS) {
+		const level = parseInt(levelKey, 10);
+		const rawLevel = legacySpells?.levels?.[levelKey];
+		const slotFallback = level > 0 ? legacySpells?.[`slots-${level}`] : undefined;
+		const legacyText = readLegacySpellText(data, level);
+		normalized.levels[levelKey] = normalizeSpellLevelState(level, rawLevel, slotFallback, legacyText);
+	}
+
+	return normalized;
+}
+
+function normalizeSpellLevelState(
+	level: number,
+	rawLevel: any,
+	slotFallback: unknown,
+	legacyText: string
+): CharacterSpellLevelState {
+	const slotCountOverride = normalizeOptionalNumber(rawLevel?.slotCountOverride ?? slotFallback);
+	const slotsUsed = normalizeSlotsUsed(rawLevel?.slotsUsed, slotCountOverride ?? 0);
+	const spells = normalizeSpellEntries(rawLevel?.spells, level, legacyText);
+
+	return {
+		level,
+		slotCountOverride,
+		slotsUsed,
+		spells,
+	};
+}
+
+function normalizeSpellEntries(rawEntries: unknown, level: number, legacyText: string): CharacterSpellEntry[] {
+	if (Array.isArray(rawEntries) && rawEntries.length > 0) {
+		return rawEntries
+			.map((entry, index) => normalizeSpellEntry(entry, level, index))
+			.filter((entry): entry is CharacterSpellEntry => entry !== null);
+	}
+
+	if (!legacyText.trim()) {
+		return [];
+	}
+
+	return legacyText
+		.split("\n")
+		.map((line) => line.trim())
+		.filter(Boolean)
+		.map((name, index) => ({
+			id: `legacy-${level}-${index}-${slugifySpellName(name)}`,
+			name,
+			level,
+			prepared: false,
+		}));
+}
+
+function normalizeSpellEntry(rawEntry: unknown, level: number, index: number): CharacterSpellEntry | null {
+	if (!rawEntry || typeof rawEntry !== "object") {
+		return null;
+	}
+
+	const candidate = rawEntry as Record<string, unknown>;
+	const name = typeof candidate.name === "string"
+		? candidate.name
+		: typeof candidate.title === "string"
+			? candidate.title
+			: "";
+
+	if (!name.trim()) {
+		return null;
+	}
+
+	const linkedSpellUrl = typeof candidate.linkedSpellUrl === "string"
+		? candidate.linkedSpellUrl
+		: typeof candidate.url === "string"
+			? candidate.url
+			: undefined;
+
+	return {
+		id: typeof candidate.id === "string" && candidate.id.trim()
+			? candidate.id
+			: `spell-${level}-${index}-${slugifySpellName(name)}`,
+		name,
+		level: normalizeOptionalNumber(candidate.level) ?? level,
+		prepared: Boolean(candidate.prepared),
+		...(linkedSpellUrl ? { linkedSpellUrl } : {}),
+	};
+}
+
+function normalizePactState(rawPact: any): CharacterSpellPactState | null {
+	if (!rawPact || typeof rawPact !== "object") {
+		return null;
+	}
+
+	const slotLevel = normalizeOptionalNumber(rawPact.slotLevel) ?? 1;
+	const slotCountOverride = normalizeOptionalNumber(rawPact.slotCountOverride);
+	return {
+		slotLevel,
+		slotCountOverride,
+		slotsUsed: normalizeSlotsUsed(rawPact.slotsUsed, slotCountOverride ?? 0),
+	};
+}
+
+function normalizeSlotsUsed(rawSlotsUsed: unknown, fallbackLength: number): boolean[] {
+	if (Array.isArray(rawSlotsUsed)) {
+		return rawSlotsUsed.map(Boolean);
+	}
+
+	if (!fallbackLength || fallbackLength < 1) {
+		return [];
+	}
+
+	return Array.from({ length: fallbackLength }, () => false);
+}
+
+function readLegacySpellText(data: CharacterData, level: number): string {
+	const legacyText = (data.text as unknown as Record<string, unknown> | undefined)?.[`spells-level-${level}`];
+	if (!legacyText) {
+		return "";
+	}
+	if (typeof legacyText === "string") {
+		return legacyText.trim();
+	}
+	if (typeof legacyText !== "object") {
+		return "";
+	}
+
+	const lines: string[] = [];
+	const visitNode = (node: any): string => {
+		if (!node || typeof node !== "object") return "";
+		if (node.type === "text") return node.text || "";
+
+		const content = Array.isArray(node.content) ? node.content.map(visitNode).join("") : "";
+		if (node.type === "paragraph") {
+			if (content.trim()) {
+				lines.push(content.trim());
+			}
+			return "";
+		}
+
+		return content;
+	};
+
+	visitNode((legacyText as any).value?.data);
+	return lines.join("\n").trim();
+}
+
+function normalizeAbilityCode(value: unknown): CharacterSpellbookState["baseAbilityCode"] {
+	const normalized = typeof value === "string" ? value.trim().toLowerCase() : "";
+	switch (normalized) {
+		case "str":
+		case "dex":
+		case "con":
+		case "int":
+		case "wis":
+		case "cha":
+			return normalized;
+		default:
+			return "";
+	}
+}
+
+function normalizeOptionalNumber(value: unknown): number | null {
+	if (typeof value === "number" && Number.isFinite(value)) {
+		return value;
+	}
+	if (typeof value === "string" && value.trim() !== "") {
+		const parsed = parseInt(value, 10);
+		return Number.isNaN(parsed) ? null : parsed;
+	}
+	return null;
+}
+
+function slugifySpellName(name: string): string {
+	return name
+		.toLowerCase()
+		.replace(/\s+/g, "-")
+		.replace(/[^a-zа-я0-9-]/gi, "")
+		.replace(/-+/g, "-")
+		.replace(/^-|-$/g, "");
 }

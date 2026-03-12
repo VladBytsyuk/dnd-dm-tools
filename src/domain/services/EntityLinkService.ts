@@ -2,6 +2,7 @@ import type DB from "src/data/database/DB";
 import type { FullItem } from "src/domain/models/items/FullItem";
 import type { FullArtifact } from "src/domain/models/artifact/FullArtifact";
 import type { FullArmor } from "src/domain/models/armor/FullArmor";
+import type { FullSpell } from "src/domain/models/spell/FullSpell";
 
 /**
  * Result of an entity lookup in the database.
@@ -77,6 +78,19 @@ export class EntityLinkService {
 			return await this.database.fullItemDao.readItemByUrl(url);
 		} catch (error) {
 			console.error(`Error loading linked equipment ${url}:`, error);
+			return null;
+		}
+	}
+
+	async getSpellByUrl(url: string): Promise<FullSpell | null> {
+		if (!url) {
+			return null;
+		}
+
+		try {
+			return await this.database.fullSpellDao.readItemByUrl(url);
+		} catch (error) {
+			console.error(`Error loading spell ${url}:`, error);
 			return null;
 		}
 	}
@@ -318,6 +332,32 @@ export class EntityLinkService {
 				: { exists: false };
 		} catch (error) {
 			console.error('Error finding artifact:', error);
+			return { exists: false };
+		}
+	}
+
+	async findSpell(spellName: string): Promise<EntityLinkResult> {
+		if (!spellName || !spellName.trim()) {
+			return { exists: false };
+		}
+
+		try {
+			const allSpells = await this.getCached(
+				'spells',
+				() => this.database.smallSpellDao.readAllItems('', null)
+			);
+			const normalizedSearch = spellName.toLowerCase().trim();
+
+			const match = allSpells.find(spell =>
+				spell.name.rus.toLowerCase().trim() === normalizedSearch ||
+				spell.name.eng.toLowerCase().trim() === normalizedSearch
+			);
+
+			return match
+				? { exists: true, url: match.url, name: match.name }
+				: { exists: false };
+		} catch (error) {
+			console.error('Error finding spell:', error);
 			return { exists: false };
 		}
 	}

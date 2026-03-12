@@ -4,6 +4,7 @@ import { EmptySmallCharacterSheet } from "./SmallCharacterSheet";
 import type { CharacterData } from "./CharacterData";
 import type { CharacterSkills } from "./CharacterSkills";
 import { createEmptyCharacterProficiencies } from "./CharacterProficiencies";
+import { createEmptyCharacterSpellbook } from "./CharacterSpellbook";
 
 export interface FullCharacterSheet extends SmallCharacterSheet, CharacterSheetParsed {
 	id?: number; // Database auto-increment ID
@@ -49,7 +50,7 @@ export function EmptyFullCharacterSheet(): FullCharacterSheet {
 			save: { name: "save", value: "" },
 			mod: { name: "mod", value: "" },
 		},
-		spells: {},
+		spells: createEmptyCharacterSpellbook(),
 		spellsPact: {},
 		proficiency: 2,
 		stats: {
