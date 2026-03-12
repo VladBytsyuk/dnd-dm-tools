@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Notice } from "obsidian";
-	import { Plus, X, Link, PackageOpen, Backpack, Info, Sparkles, Zap, Clipboard } from "lucide-svelte";
+	import { Plus, X, PackageOpen, Backpack, Info, Sparkles, Zap, Clipboard } from "lucide-svelte";
 	import IconButton from "../../uikit/IconButton.svelte";
 	import type { EquipmentItem, CharacterCoins } from "../../../../domain/models/character/CharacterEquipment";
 	import type { TextField } from "../../../../domain/models/character/CharacterText";
@@ -224,33 +224,15 @@
 	}
 
 	/**
-	 * Auto-search for item link in database
+	 * Auto-search for item link in magic items and regular items databases.
 	 */
 	async function autoFindItemLink(itemId: string) {
 		const item = equipmentList.find(i => i.id === itemId);
 		if (!item || !entityLinkService) return;
-		if (item.linkedUrl) return; // Already linked
+		if (item.linkedUrl && (item.linkedType === 'item' || item.linkedType === 'artifact')) return;
 
 		const itemName = item.name.value.trim();
 		if (!itemName) return;
-
-		// Try armor first
-		const armorResult = await entityLinkService.findArmor(itemName);
-		if (armorResult.exists && armorResult.url) {
-			item.linkedUrl = armorResult.url;
-			item.linkedType = 'armor';
-			triggerChange();
-			return;
-		}
-
-		// Try items
-		const itemResult = await entityLinkService.findItem(itemName);
-		if (itemResult.exists && itemResult.url) {
-			item.linkedUrl = itemResult.url;
-			item.linkedType = 'item';
-			triggerChange();
-			return;
-		}
 
 		// Try artifacts
 		const artifactResult = await entityLinkService.findArtifact(itemName);
@@ -260,6 +242,18 @@
 			triggerChange();
 			return;
 		}
+
+		// Try regular items
+		const itemResult = await entityLinkService.findItem(itemName);
+		if (itemResult.exists && itemResult.url) {
+			item.linkedUrl = itemResult.url;
+			item.linkedType = 'item';
+			triggerChange();
+			return;
+		}
+
+		item.linkedUrl = undefined;
+		item.linkedType = undefined;
 	}
 
 	const debouncedAutoFindItemLink = debounce(autoFindItemLink, 500);
@@ -631,16 +625,33 @@
 					<div class="equipment-item" role="group" aria-labelledby="item-name-{item.id}">
 						<!-- Item Name and Actions Row -->
 						<div class="item-main-row">
-							<!-- Item Name Input -->
-							<input
-								id="item-name-{item.id}"
-								type="text"
-								class="item-name-input"
-								value={item.name.value}
-								oninput={(e) => handleNameChange(item.id, e.currentTarget.value)}
-								placeholder="Название предмета"
-								aria-label="Название предмета"
-							/>
+							<div class="item-name-wrapper">
+								<input
+									id="item-name-{item.id}"
+									type="text"
+									class="item-name-input"
+									class:has-link={item.linkedUrl && (item.linkedType === 'item' || item.linkedType === 'artifact')}
+									value={item.name.value}
+									oninput={(e) => handleNameChange(item.id, e.currentTarget.value)}
+									placeholder="Название предмета"
+									aria-label="Название предмета"
+								/>
+								{#if item.linkedUrl && (item.linkedType === 'item' || item.linkedType === 'artifact')}
+									<span
+										class="item-link-indicator"
+										title="Найдено в базе данных: {item.name.value}"
+										onclick={() => handleLinkClick(item.id)}
+										onkeydown={(e) => {
+											if (e.key === 'Enter' || e.key === ' ') {
+												e.preventDefault();
+												handleLinkClick(item.id);
+											}
+										}}
+										role="button"
+										tabindex="0"
+									>🔗</span>
+								{/if}
+							</div>
 
 							<!-- Action Buttons -->
 							<div class="item-actions">
@@ -685,18 +696,6 @@
 										<Backpack size={14} />
 									{/if}
 								</button>
-
-								<!-- Link Button (only show if linked) -->
-								{#if item.linkedUrl}
-									<button
-										class="link-button linked"
-										onclick={() => handleLinkClick(item.id)}
-										aria-label="Открыть в базе данных"
-										title="Открыть в базе данных"
-									>
-										<Link size={14} />
-									</button>
-								{/if}
 
 								<!-- Magic Toggle Icon -->
 								<button
@@ -950,6 +949,18 @@
 		transition: border-color 0.2s;
 	}
 
+	.item-name-wrapper {
+		position: relative;
+		flex: 1;
+		display: flex;
+		align-items: center;
+		min-width: 0;
+	}
+
+	.item-name-input.has-link {
+		padding-right: 28px;
+	}
+
 	.item-name-input:focus {
 		outline: none;
 		border-color: var(--text-accent);
@@ -957,6 +968,26 @@
 
 	.item-name-input::placeholder {
 		color: var(--text-faint);
+	}
+
+	.item-link-indicator {
+		position: absolute;
+		right: 8px;
+		font-size: 12px;
+		opacity: 0.75;
+		cursor: pointer;
+		transition: transform 0.2s, opacity 0.2s;
+	}
+
+	.item-link-indicator:hover {
+		opacity: 1;
+		transform: scale(1.1);
+	}
+
+	.item-link-indicator:focus-visible {
+		outline: 2px solid var(--text-accent);
+		outline-offset: 2px;
+		border-radius: 3px;
 	}
 
 	.item-actions {
@@ -1005,40 +1036,6 @@
 	}
 
 	.location-toggle:focus-visible {
-		outline: 2px solid var(--text-accent);
-		outline-offset: 2px;
-	}
-
-	.link-button {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 4px;
-		background-color: var(--background-primary);
-		border: 1px solid var(--background-modifier-border);
-		border-radius: 4px;
-		color: var(--text-muted);
-		cursor: pointer;
-		transition: all 0.2s ease;
-		flex-shrink: 0;
-	}
-
-	.link-button:hover:not(:disabled) {
-		background-color: var(--background-modifier-hover);
-	}
-
-	.link-button.linked {
-		color: var(--text-accent);
-		border-color: var(--text-accent);
-		cursor: pointer;
-	}
-
-	.link-button:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-
-	.link-button:focus-visible {
 		outline: 2px solid var(--text-accent);
 		outline-offset: 2px;
 	}
