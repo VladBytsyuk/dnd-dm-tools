@@ -1,4 +1,6 @@
 import type DB from "src/data/database/DB";
+import type { FullItem } from "src/domain/models/items/FullItem";
+import type { FullArtifact } from "src/domain/models/artifact/FullArtifact";
 
 /**
  * Result of an entity lookup in the database.
@@ -54,6 +56,25 @@ export class EntityLinkService {
 	 */
 	clearCache(): void {
 		this.cache.clear();
+	}
+
+	async getLinkedEquipmentByUrl(
+		url: string,
+		type: 'item' | 'artifact'
+	): Promise<FullItem | FullArtifact | null> {
+		if (!url) {
+			return null;
+		}
+
+		try {
+			if (type === 'artifact') {
+				return await this.database.fullArtifactDao.readItemByUrl(url);
+			}
+			return await this.database.fullItemDao.readItemByUrl(url);
+		} catch (error) {
+			console.error(`Error loading linked equipment ${url}:`, error);
+			return null;
+		}
 	}
 
 	/**

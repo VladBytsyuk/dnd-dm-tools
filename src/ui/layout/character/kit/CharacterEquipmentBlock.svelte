@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Notice } from "obsidian";
 	import { Plus, X, PackageOpen, Backpack, Info, Sparkles, Zap, Clipboard } from "lucide-svelte";
+	import AutocompleteInput from "../../uikit/AutocompleteInput.svelte";
 	import IconButton from "../../uikit/IconButton.svelte";
 	import type { EquipmentItem, CharacterCoins } from "../../../../domain/models/character/CharacterEquipment";
 	import type { TextField } from "../../../../domain/models/character/CharacterText";
@@ -15,12 +16,13 @@
 		coins?: CharacterCoins;
 		equipmentList: EquipmentItem[];
 		equipmentText?: string | TextField;
+		equipmentAutocompleteItems?: Array<{ name: { rus: string; eng: string }; url: string; linkedType: 'item' | 'artifact' }>;
 		entityLinkService?: EntityLinkService;
 		uiEventListener?: IUiEventListener;
 		onChange?: (coins: CharacterCoins, equipmentList: EquipmentItem[], equipmentText: string) => void;
 	}
 
-	let { coins, equipmentList, equipmentText = '', entityLinkService, uiEventListener, onChange }: Props = $props();
+	let { coins, equipmentList, equipmentText = '', equipmentAutocompleteItems = [], entityLinkService, uiEventListener, onChange }: Props = $props();
 
 	// Local state for coins (to handle edit expressions)
 	let coinInputs = $state({
@@ -258,6 +260,24 @@
 
 	const debouncedAutoFindItemLink = debounce(autoFindItemLink, 500);
 
+	function applyDatabaseItemToEquipmentEntry(
+		entry: EquipmentItem,
+		sourceItem: FullItem | FullArtifact | FullArmor,
+		sourceType: 'item' | 'artifact' | 'armor'
+	) {
+		const isMagic = isMagicalItem(sourceItem, sourceType);
+		const needsAttunement = requiresAttunement(sourceItem, sourceType);
+		const canAutoAttune = isMagic && needsAttunement && attunedCount < 3;
+
+		entry.name.value = sourceItem.name.rus;
+		entry.isMagic = isMagic;
+		entry.isAttuned = canAutoAttune;
+		entry.linkedUrl = sourceItem.url;
+		entry.linkedType = sourceType;
+		entry.notes = { value: sourceItem.description || '' };
+		entry.notesVisibility = !!(sourceItem.description?.trim());
+	}
+
 	/**
 	 * Add new equipment item
 	 */
@@ -351,27 +371,17 @@
 				return;
 			}
 
-			// Detect if item is magical
-			const isMagic = isMagicalItem(pastedItem, itemType);
-
-			// Detect if requires attunement (from customization field)
-			const needsAttunement = requiresAttunement(pastedItem, itemType);
-
-			// Check if we can attune (only if magical, needs attunement, and slots available)
-			const canAutoAttune = isMagic && needsAttunement && attunedCount < 3;
-
 			// Create new equipment item
 			const newItem: EquipmentItem = {
 				id: crypto.randomUUID(),
-				name: { value: pastedItem.name.rus },
+				name: { value: '' },
 				onCharacter: true,
-				isMagic: isMagic,
-				isAttuned: canAutoAttune,  // Auto-attune if possible
-				linkedUrl: pastedItem.url,
-				linkedType: itemType,
-				notes: { value: pastedItem.description || '' },
-				notesVisibility: !!(pastedItem.description?.trim())
+				isMagic: false,
+				isAttuned: false,
+				notes: { value: '' },
+				notesVisibility: false
 			};
+			applyDatabaseItemToEquipmentEntry(newItem, pastedItem, itemType);
 
 			// Add to list
 			equipmentList.push(newItem);
@@ -379,9 +389,9 @@
 
 			// Show success message
 			let message = `Предмет "${pastedItem.name.rus}" добавлен`;
-			if (canAutoAttune) {
+			if (newItem.isAttuned) {
 				message += ' и настроен';
-			} else if (needsAttunement && attunedCount >= 3) {
+			} else if (requiresAttunement(pastedItem, itemType) && attunedCount >= 3) {
 				message += ' (нет доступных слотов настройки)';
 			}
 			new Notice(message);
@@ -419,6 +429,36 @@
 			// Auto-search for link after name change
 			debouncedAutoFindItemLink(itemId);
 		}
+	}
+
+	function handleNameAutocompleteSelect(
+		itemId: string,
+		selectedItem: { name: { rus: string; eng: string }; url: string; linkedType: 'item' | 'artifact' }
+	) {
+		const item = equipmentList.find(i => i.id === itemId);
+		if (!item || !entityLinkService) return;
+
+		entityLinkService
+			.getLinkedEquipmentByUrl(selectedItem.url, selectedItem.linkedType)
+			.then((fullItem) => {
+				if (!fullItem) {
+					item.name.value = selectedItem.name.rus;
+					item.linkedUrl = selectedItem.url;
+					item.linkedType = selectedItem.linkedType;
+					triggerChange();
+					return;
+				}
+
+				applyDatabaseItemToEquipmentEntry(item, fullItem, selectedItem.linkedType);
+				triggerChange();
+			})
+			.catch((error) => {
+				console.error('Failed to apply autocomplete equipment item:', error);
+				item.name.value = selectedItem.name.rus;
+				item.linkedUrl = selectedItem.url;
+				item.linkedType = selectedItem.linkedType;
+				triggerChange();
+			});
 	}
 
 	/**
@@ -625,20 +665,20 @@
 					<div class="equipment-item" role="group" aria-labelledby="item-name-{item.id}">
 						<!-- Item Name and Actions Row -->
 						<div class="item-main-row">
-							<div class="item-name-wrapper">
-								<input
-									id="item-name-{item.id}"
-									type="text"
-									class="item-name-input"
+								<div
+									class="item-name-wrapper"
 									class:has-link={item.linkedUrl && (item.linkedType === 'item' || item.linkedType === 'artifact')}
-									value={item.name.value}
-									oninput={(e) => handleNameChange(item.id, e.currentTarget.value)}
-									placeholder="Название предмета"
-									aria-label="Название предмета"
-								/>
-								{#if item.linkedUrl && (item.linkedType === 'item' || item.linkedType === 'artifact')}
-									<span
-										class="item-link-indicator"
+								>
+									<AutocompleteInput
+										value={item.name.value}
+										placeholder="Название предмета"
+										items={equipmentAutocompleteItems}
+										onchange={(value) => handleNameChange(item.id, value)}
+										onSelect={(selectedItem) => handleNameAutocompleteSelect(item.id, selectedItem)}
+									/>
+									{#if item.linkedUrl && (item.linkedType === 'item' || item.linkedType === 'artifact')}
+										<span
+											class="item-link-indicator"
 										title="Найдено в базе данных: {item.name.value}"
 										onclick={() => handleLinkClick(item.id)}
 										onkeydown={(e) => {
@@ -937,18 +977,6 @@
 		gap: 8px;
 	}
 
-	.item-name-input {
-		flex: 1;
-		padding: 6px 8px;
-		background-color: var(--background-primary);
-		border: 1px solid var(--background-modifier-border);
-		border-radius: 4px;
-		font-size: 13px;
-		font-weight: 500;
-		color: var(--text-normal);
-		transition: border-color 0.2s;
-	}
-
 	.item-name-wrapper {
 		position: relative;
 		flex: 1;
@@ -957,16 +985,35 @@
 		min-width: 0;
 	}
 
-	.item-name-input.has-link {
+	.item-name-wrapper :global(.autocomplete-container) {
+		width: 100%;
+	}
+
+	.item-name-wrapper :global(.autocomplete-input) {
+		padding: 6px 8px;
+		background-color: var(--background-primary);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 4px;
+		font-size: 13px;
+		font-weight: 500;
+		color: var(--text-normal);
+		line-height: normal;
+	}
+
+	.item-name-wrapper.has-link :global(.autocomplete-input) {
 		padding-right: 28px;
 	}
 
-	.item-name-input:focus {
-		outline: none;
-		border-color: var(--text-accent);
+	.item-name-wrapper :global(.autocomplete-input:hover) {
+		background-color: var(--background-primary);
 	}
 
-	.item-name-input::placeholder {
+	.item-name-wrapper :global(.autocomplete-input:focus) {
+		border-color: var(--text-accent);
+		box-shadow: none;
+	}
+
+	.item-name-wrapper :global(.autocomplete-input::placeholder) {
 		color: var(--text-faint);
 	}
 

@@ -12,6 +12,8 @@
 	import type { SmallRace } from "../../../domain/models/race/SmallRace";
 	import type { SmallBackground } from "../../../domain/models/background/SmallBackground";
 	import type { SmallClass } from "../../../domain/models/class/SmallClass";
+	import type { SmallItem } from "../../../domain/models/items/SmallItem";
+	import type { SmallArtifact } from "../../../domain/models/artifact/SmallArtifact";
 
 	// Import kit components
 	import CharacterHeader from "./kit/CharacterHeader.svelte";
@@ -58,6 +60,7 @@
 	let backgroundOptions = $state<Array<{ name: { rus: string; eng: string }; url: string }>>([]);
 	let classOptions = $state<Array<{ name: { rus: string; eng: string }; url: string }>>([]);
 	let archetypeOptions = $state<Array<{ name: { rus: string; eng: string }; url: string; parentClassUrl: string }>>([]);
+	let equipmentAutocompleteItems = $state<Array<{ name: { rus: string; eng: string }; url: string; linkedType: 'item' | 'artifact' }>>([]);
 
 	// Fetch autocomplete data from database
 	$effect(() => {
@@ -68,9 +71,11 @@
 			Promise.all([
 				database.smallRaceDao.readAllItems(null, null),
 				database.smallBackgroundDao.readAllItems(null, null),
-				database.smallClassDao.readAllItems(null, null)
+				database.smallClassDao.readAllItems(null, null),
+				database.smallItemDao.readAllItems(null, null),
+				database.smallArtifactDao.readAllItems(null, null)
 			])
-				.then(([races, backgrounds, classes]) => {
+				.then(([races, backgrounds, classes, items, artifacts]) => {
 					// Map races
 					raceOptions = races.map((r: SmallRace) => ({
 						name: r.name,
@@ -99,6 +104,19 @@
 							url: c.url,
 							parentClassUrl: c.parentClassUrl || ''
 						}));
+
+					equipmentAutocompleteItems = [
+						...items.map((item: SmallItem) => ({
+							name: item.name,
+							url: item.url,
+							linkedType: 'item' as const
+						})),
+						...artifacts.map((artifact: SmallArtifact) => ({
+							name: artifact.name,
+							url: artifact.url,
+							linkedType: 'artifact' as const
+						}))
+					];
 				})
 				.catch((error) => {
 					console.error('Failed to load autocomplete data:', error);
@@ -107,6 +125,7 @@
 					backgroundOptions = [];
 					classOptions = [];
 					archetypeOptions = [];
+					equipmentAutocompleteItems = [];
 				});
 		}
 	});
@@ -575,6 +594,7 @@
 				{coins}
 				equipmentList={data.equipmentList || []}
 				equipmentText={data.text?.equipment}
+				{equipmentAutocompleteItems}
 				{entityLinkService}
 				{uiEventListener}
 				onChange={handleEquipmentChange}
