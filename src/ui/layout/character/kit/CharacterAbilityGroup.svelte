@@ -239,11 +239,11 @@
 
 <style>
 	.ability-group {
-		margin-bottom: 8px;
+		margin-bottom: 12px;
 		padding: 0;
 		background-color: var(--background-primary);
 		border: 1px solid var(--background-modifier-border);
-		border-radius: 4px;
+		border-radius: 6px;
 		container-type: inline-size;
 	}
 
@@ -251,16 +251,16 @@
 	.ability-save-row {
 		display: flex;
 		align-items: center;
-		gap: 6px;
-		padding: 4px;
-		margin-bottom: 4px;
+		gap: 8px;
+		padding: 6px;
+		margin-bottom: 6px;
 		background-color: var(--background-secondary);
-		border-radius: 3px;
+		border-radius: 5px;
 	}
 
 	.ability-circle {
-		width: 36px;
-		height: 36px;
+		width: 42px;
+		height: 42px;
 		border-radius: 50%;
 		background-color: var(--background-primary);
 		border: 2px solid var(--text-accent);
@@ -277,7 +277,7 @@
 	}
 
 	.ability-modifier {
-		font-size: 14px;
+		font-size: 16px;
 		font-weight: 700;
 		color: var(--text-accent);
 		line-height: 1;
@@ -286,14 +286,14 @@
 	.ability-info {
 		display: flex;
 		flex-direction: column;
-		gap: 1px;
+		gap: 3px;
 		flex: 1;
 		min-width: 0;
 		transition: opacity 0.2s;
 	}
 
 	.ability-name {
-		font-size: 11px;
+		font-size: 12px;
 		font-weight: 700;
 		text-transform: uppercase;
 		color: var(--text-normal);
@@ -302,13 +302,13 @@
 	}
 
 	.ability-score {
-		font-size: 9px;
+		font-size: 11px;
 		font-weight: 500;
 		color: var(--text-muted);
 		line-height: 1;
-		height: 12px;
-		width: 24px;
-		max-width: 24px;
+		height: 18px;
+		width: 32px;
+		max-width: 32px;
 		text-align: center;
 		background: transparent;
 		border: 1px solid transparent;
@@ -329,8 +329,8 @@
 	}
 
 	.save-indicator {
-		width: 12px;
-		height: 12px;
+		width: 14px;
+		height: 14px;
 		border: 2px solid var(--background-modifier-border);
 		border-radius: 50%;
 		display: flex;
@@ -351,14 +351,14 @@
 	}
 
 	.prof-dot {
-		width: 6px;
-		height: 6px;
+		width: 7px;
+		height: 7px;
 		background-color: var(--text-accent);
 		border-radius: 50%;
 	}
 
 	.save-label {
-		font-size: 9px;
+		font-size: 10px;
 		font-weight: 600;
 		color: var(--text-muted);
 		text-transform: uppercase;
@@ -367,13 +367,13 @@
 	}
 
 	.save-bonus {
-		font-size: 12px;
+		font-size: 13px;
 		font-weight: 700;
 		color: var(--text-accent);
 		line-height: 1;
-		height: 14px;
-		width: 28px;
-		max-width: 28px;
+		height: 18px;
+		width: 34px;
+		max-width: 34px;
 		text-align: right;
 		background: transparent;
 		border: 1px solid transparent;
@@ -403,17 +403,17 @@
 	.skills-list {
 		display: flex;
 		flex-direction: column;
-		gap: 1px;
-		margin-top: 2px;
+		gap: 2px;
+		margin-top: 4px;
 	}
 
 	.skill-row {
 		display: flex;
 		align-items: center;
-		gap: 6px;
-		padding: 2px 4px;
+		gap: 8px;
+		padding: 4px 6px;
 		background-color: var(--background-secondary);
-		border-radius: 2px;
+		border-radius: 4px;
 		transition: background-color 0.2s;
 	}
 
@@ -422,8 +422,8 @@
 	}
 
 	.skill-indicator {
-		width: 10px;
-		height: 10px;
+		width: 12px;
+		height: 12px;
 		border: 1px solid var(--background-modifier-border);
 		border-radius: 50%;
 		display: flex;
@@ -466,20 +466,20 @@
 
 	.skill-name {
 		flex: 1;
-		font-size: 10px;
+		font-size: 11px;
 		font-weight: 500;
 		color: var(--text-normal);
 		line-height: 1.2;
 	}
 
 	.skill-bonus {
-		font-size: 11px;
+		font-size: 12px;
 		font-weight: 700;
 		color: var(--text-accent);
 		line-height: 1;
-		height: 13px;
-		width: 26px;
-		max-width: 26px;
+		height: 18px;
+		width: 32px;
+		max-width: 32px;
 		text-align: right;
 		background: transparent;
 		border: 1px solid transparent;

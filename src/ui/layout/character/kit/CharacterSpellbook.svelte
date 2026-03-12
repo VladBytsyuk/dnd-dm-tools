@@ -692,7 +692,7 @@
 	}
 
 	.summary-label {
-		font-size: 11px;
+		font-size: 10px;
 		font-weight: 700;
 		color: var(--text-muted);
 		text-transform: uppercase;
@@ -701,19 +701,20 @@
 	.summary-select,
 	.summary-input,
 	.slot-override {
-		height: 28px;
+		height: 30px;
 		padding: 4px 6px;
 		border-radius: 4px;
 		border: 1px solid var(--background-modifier-border);
 		background: var(--background-secondary);
 		color: var(--text-normal);
 		box-sizing: border-box;
+		font-size: 12px;
 	}
 
 	.slot-override {
-		width: 36px;
-		min-width: 36px;
-		max-width: 36px;
+		width: 34px;
+		min-width: 34px;
+		max-width: 34px;
 		text-align: center;
 	}
 
@@ -801,8 +802,8 @@
 
 	.slot-circle,
 	.prepared-toggle {
-		width: 16px;
-		height: 16px;
+		width: 18px;
+		height: 18px;
 		border-radius: 999px;
 		padding: 0;
 	}
@@ -833,9 +834,9 @@
 	.spell-row {
 		display: grid;
 		grid-template-columns: auto minmax(0, 1fr) auto;
-		gap: 3px;
+		gap: 4px;
 		align-items: center;
-		min-height: 18px;
+		min-height: 24px;
 	}
 
 	.spell-row.cantrip-row {
@@ -847,10 +848,10 @@
 	}
 
 	.spell-name-field :global(.autocomplete-input) {
-		padding: 0 1px;
-		line-height: 1;
-		font-size: 11px;
-		height: 11px;
+		padding: 0 2px;
+		line-height: 1.2;
+		font-size: 12px;
+		height: 18px;
 	}
 
 	.spell-name-field :global(.dropdown-item) {
@@ -861,18 +862,18 @@
 	.spell-actions {
 		display: flex;
 		align-items: center;
-		gap: 2px;
+		gap: 3px;
 	}
 
 	.spell-actions :global(.icon-button) {
-		width: 16px;
-		height: 16px;
+		width: 18px;
+		height: 18px;
 		border-radius: 3px;
 	}
 
 	.prepared-toggle {
-		width: 14px;
-		height: 14px;
+		width: 16px;
+		height: 16px;
 	}
 
 	.slot-circle:hover,

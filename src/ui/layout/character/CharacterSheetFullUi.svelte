@@ -567,112 +567,116 @@
 
 <div class="character-sheet-full">
 	<div class="character-sheet-layout">
-		<!-- Left Column: Abilities with Saves and Skills -->
-		<div class="column column-left">
-			{#each abilityGroups as group}
-				<CharacterAbilityGroup
-					abilityKey={group.key}
-					abilityLabel={group.label}
-					abilityFullName={group.fullName}
-					stat={stats[group.key as keyof typeof stats]}
-					save={saves[group.key as keyof typeof saves]}
-					skills={group.skills}
-					allSkills={data.skills || {}}
-					{proficiency}
-				/>
-			{/each}
+		<div class="main-stack">
+			<div class="main-primary">
+			<!-- Left Column: Abilities with Saves and Skills -->
+				<div class="column column-left">
+					{#each abilityGroups as group}
+						<CharacterAbilityGroup
+							abilityKey={group.key}
+							abilityLabel={group.label}
+							abilityFullName={group.fullName}
+							stat={stats[group.key as keyof typeof stats]}
+							save={saves[group.key as keyof typeof saves]}
+							skills={group.skills}
+							allSkills={data.skills || {}}
+							{proficiency}
+						/>
+					{/each}
 
-			<CharacterProficienciesBlock
-				{proficiencies}
-				onChange={handleProficienciesChange}
-			/>
-		</div>
-
-		<!-- Center Column: Header, Vitality, Combat, Equipment, Description -->
-		<div class="column column-center">
-			<CharacterHeader
-				name={data.name}
-				info={headerInfo}
-				avatar={data.avatar}
-				isDying={vitality.isDying ?? false}
-				onNameChange={handleNameChange}
-				onClassesChange={handleClassesChange}
-				onRaceChange={handleRaceChange}
-				onBackgroundChange={handleBackgroundChange}
-				onPlayerNameChange={handlePlayerNameChange}
-				onAlignmentChange={handleAlignmentChange}
-				onExperienceAdd={handleExperienceAdd}
-				onLookupRace={lookupRace}
-				onLookupClass={lookupClass}
-				onLookupSubclass={lookupSubclass}
-				onLookupBackground={lookupBackground}
-				uiEventListener={uiEventListener}
-				{raceOptions}
-				{backgroundOptions}
-				{classOptions}
-				{archetypeOptions}
-			/>
-
-			<CharacterVitalityBlock
-				{vitality}
-				stats={data.stats}
-				skills={data.skills}
-				{proficiency}
-				level={headerInfo.level}
-				classes={data.info.classes?.value || []}
-				{conditions}
-				onChange={handleVitalityChange}
-				onOpenConditionDetails={handleOpenConditionDetails}
-			/>
-
-			<CharacterCombatBlock
-				{weaponsList}
-				{stats}
-				{proficiency}
-				onChange={handleWeaponsListChange}
-				{uiEventListener}
-			/>
-
-			{#if data.text?.attacks && typeof data.text.attacks === 'string' && data.text.attacks.trim()}
-				<CharacterTextSection
-					title="Дополнительные атаки и заклинания"
-					content={data.text.attacks}
-					collapsible={true}
-				/>
-			{/if}
-
-			<CharacterEquipmentBlock
-				{coins}
-				equipmentList={data.equipmentList || []}
-				equipmentText={data.text?.equipment}
-				{equipmentAutocompleteItems}
-				{entityLinkService}
-				{uiEventListener}
-				onChange={handleEquipmentChange}
-			/>
-
-			<div class="character-reference-blocks">
-				<div class="character-reference-block character-reference-block-half">
-					<CharacterEditableTextBlock
-						title="Расовые особенности"
-						content={data.text?.traits}
-						onChange={(value) => handleTextSectionChange("traits", value)}
+					<CharacterProficienciesBlock
+						{proficiencies}
+						onChange={handleProficienciesChange}
 					/>
 				</div>
-				<div class="character-reference-block character-reference-block-half">
-					<CharacterEditableTextBlock
-						title="Черты"
-						content={data.text?.feats}
-						onChange={(value) => handleTextSectionChange("feats", value)}
+
+				<!-- Center Column: Header, Vitality, Combat, Equipment, Description -->
+				<div class="column column-center">
+					<CharacterHeader
+						name={data.name}
+						info={headerInfo}
+						avatar={data.avatar}
+						isDying={vitality.isDying ?? false}
+						onNameChange={handleNameChange}
+						onClassesChange={handleClassesChange}
+						onRaceChange={handleRaceChange}
+						onBackgroundChange={handleBackgroundChange}
+						onPlayerNameChange={handlePlayerNameChange}
+						onAlignmentChange={handleAlignmentChange}
+						onExperienceAdd={handleExperienceAdd}
+						onLookupRace={lookupRace}
+						onLookupClass={lookupClass}
+						onLookupSubclass={lookupSubclass}
+						onLookupBackground={lookupBackground}
+						uiEventListener={uiEventListener}
+						{raceOptions}
+						{backgroundOptions}
+						{classOptions}
+						{archetypeOptions}
 					/>
-				</div>
-				<div class="character-reference-block character-reference-block-full">
-					<CharacterEditableTextBlock
-						title="Особенности класса"
-						content={data.text?.features}
-						minHeight="200px"
-						onChange={(value) => handleTextSectionChange("features", value)}
+
+					<CharacterVitalityBlock
+						{vitality}
+						stats={data.stats}
+						skills={data.skills}
+						{proficiency}
+						level={headerInfo.level}
+						classes={data.info.classes?.value || []}
+						{conditions}
+						onChange={handleVitalityChange}
+						onOpenConditionDetails={handleOpenConditionDetails}
 					/>
+
+					<CharacterCombatBlock
+						{weaponsList}
+						{stats}
+						{proficiency}
+						onChange={handleWeaponsListChange}
+						{uiEventListener}
+					/>
+
+					{#if data.text?.attacks && typeof data.text.attacks === 'string' && data.text.attacks.trim()}
+						<CharacterTextSection
+							title="Дополнительные атаки и заклинания"
+							content={data.text.attacks}
+							collapsible={true}
+						/>
+					{/if}
+
+					<CharacterEquipmentBlock
+						{coins}
+						equipmentList={data.equipmentList || []}
+						equipmentText={data.text?.equipment}
+						{equipmentAutocompleteItems}
+						{entityLinkService}
+						{uiEventListener}
+						onChange={handleEquipmentChange}
+					/>
+
+					<div class="character-reference-blocks">
+						<div class="character-reference-block character-reference-block-half">
+							<CharacterEditableTextBlock
+								title="Расовые особенности"
+								content={data.text?.traits}
+								onChange={(value) => handleTextSectionChange("traits", value)}
+							/>
+						</div>
+						<div class="character-reference-block character-reference-block-half">
+							<CharacterEditableTextBlock
+								title="Черты"
+								content={data.text?.feats}
+								onChange={(value) => handleTextSectionChange("feats", value)}
+							/>
+						</div>
+						<div class="character-reference-block character-reference-block-full">
+							<CharacterEditableTextBlock
+								title="Особенности класса"
+								content={data.text?.features}
+								minHeight="200px"
+								onChange={(value) => handleTextSectionChange("features", value)}
+							/>
+						</div>
+					</div>
 				</div>
 			</div>
 
@@ -853,15 +857,31 @@
 
 	.character-sheet-layout {
 		display: grid;
-		grid-template-columns: 220px 1fr 300px;
+		grid-template-columns: minmax(0, 1fr) 300px;
 		gap: 16px;
 		max-width: 1600px;
 		margin: 0 auto;
+		align-items: start;
+	}
+
+	.main-stack {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		min-width: 0;
+	}
+
+	.main-primary {
+		display: grid;
+		grid-template-columns: 220px minmax(0, 1fr);
+		gap: 16px;
+		min-width: 0;
 	}
 
 	.column {
 		display: flex;
 		flex-direction: column;
+		min-width: 0;
 	}
 
 	.character-reference-blocks {
@@ -885,7 +905,7 @@
 
 	.roleplay-section {
 		width: 100%;
-		margin: 0 0 16px;
+		margin: 0;
 		border: 1px solid var(--background-modifier-border);
 		border-radius: 6px;
 		background-color: var(--background-primary);
@@ -948,18 +968,26 @@
 	/* Responsive breakpoints */
 	@media (max-width: 1200px) {
 		.character-sheet-layout {
-			grid-template-columns: 180px 1fr;
+			grid-template-columns: 1fr;
+		}
+
+		.main-stack {
+			display: contents;
+		}
+
+		.main-primary {
+			grid-template-columns: 180px minmax(0, 1fr);
+			order: 1;
 		}
 
 		.column-right {
-			grid-column: 1 / -1;
-			display: grid;
-			grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-			gap: 16px;
+			display: flex;
+			flex-direction: column;
+			order: 2;
 		}
 
 		.roleplay-section {
-			margin-bottom: 16px;
+			order: 3;
 		}
 	}
 
@@ -968,7 +996,8 @@
 			padding: 8px;
 		}
 
-		.character-sheet-layout {
+		.character-sheet-layout,
+		.main-primary {
 			grid-template-columns: 1fr;
 			gap: 12px;
 		}
