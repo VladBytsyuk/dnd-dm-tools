@@ -5,11 +5,17 @@
 	import type { IUiEventListener } from "../../../domain/listeners/ui_event_listener";
 	import type { CharacterSheetRepository } from "../../../data/repositories/CharacterSheetRepository";
 	import type { ClassEntry } from "../../../domain/models/character/ClassEntry";
+	import type { CharacterCoins } from "../../../domain/models/character/CharacterEquipment";
+	import type { TextField } from "../../../domain/models/character/CharacterText";
 	import { EntityLinkService } from "../../../domain/services/EntityLinkService";
 	import type DndStatblockPlugin from "../../../main";
 	import type { SmallRace } from "../../../domain/models/race/SmallRace";
 	import type { SmallBackground } from "../../../domain/models/background/SmallBackground";
 	import type { SmallClass } from "../../../domain/models/class/SmallClass";
+	import type { SmallItem } from "../../../domain/models/items/SmallItem";
+	import type { SmallArtifact } from "../../../domain/models/artifact/SmallArtifact";
+	import type { SmallArmor } from "../../../domain/models/armor/SmallArmor";
+	import type { EquipmentAutocompleteItem } from "./kit/characterEquipmentUtils";
 
 	// Import kit components
 	import CharacterHeader from "./kit/CharacterHeader.svelte";
@@ -17,7 +23,7 @@
 	import CharacterVitalityBlock from "./kit/CharacterVitalityBlock.svelte";
 	import CharacterCombatBlock from "./kit/CharacterCombatBlock.svelte";
 	import CharacterSpellbook from "./kit/CharacterSpellbook.svelte";
-	import CharacterEquipment from "./kit/CharacterEquipment.svelte";
+	import CharacterEquipmentBlock from "./kit/CharacterEquipmentBlock.svelte";
 	import CharacterTextSection from "./kit/CharacterTextSection.svelte";
 	import CharacterInfoBox from "./kit/CharacterInfoBox.svelte";
 
@@ -38,6 +44,7 @@
 		await tick();
 		diceRollersManager.onMount();
 		migrateToMulticlass();
+		migrateEquipmentList();
 	});
 	onDestroy(() => {
 		diceRollersManager.onDestroy();
@@ -46,17 +53,16 @@
 	const { data } = currentItem;
 
 	// Create EntityLinkService if repository is available
-	let entityLinkService: EntityLinkService | undefined;
-	if (repository) {
-		const database = repository.getDatabase();
-		entityLinkService = new EntityLinkService(database);
-	}
+	const entityLinkService = $derived(
+		repository ? new EntityLinkService(repository.getDatabase()) : undefined
+	);
 
 	// Autocomplete data state
 	let raceOptions = $state<Array<{ name: { rus: string; eng: string }; url: string }>>([]);
 	let backgroundOptions = $state<Array<{ name: { rus: string; eng: string }; url: string }>>([]);
 	let classOptions = $state<Array<{ name: { rus: string; eng: string }; url: string }>>([]);
 	let archetypeOptions = $state<Array<{ name: { rus: string; eng: string }; url: string; parentClassUrl: string }>>([]);
+	let equipmentAutocompleteItems = $state<EquipmentAutocompleteItem[]>([]);
 
 	// Fetch autocomplete data from database
 	$effect(() => {
@@ -67,9 +73,12 @@
 			Promise.all([
 				database.smallRaceDao.readAllItems(null, null),
 				database.smallBackgroundDao.readAllItems(null, null),
-				database.smallClassDao.readAllItems(null, null)
+				database.smallClassDao.readAllItems(null, null),
+				database.smallItemDao.readAllItems(null, null),
+				database.smallArtifactDao.readAllItems(null, null),
+				database.smallArmorDao.readAllItems(null, null)
 			])
-				.then(([races, backgrounds, classes]) => {
+				.then(([races, backgrounds, classes, items, artifacts, armor]) => {
 					// Map races
 					raceOptions = races.map((r: SmallRace) => ({
 						name: r.name,
@@ -98,6 +107,24 @@
 							url: c.url,
 							parentClassUrl: c.parentClassUrl || ''
 						}));
+
+					equipmentAutocompleteItems = [
+						...items.map((item: SmallItem) => ({
+							name: item.name,
+							url: item.url,
+							linkedType: 'item' as const
+						})),
+						...artifacts.map((artifact: SmallArtifact) => ({
+							name: artifact.name,
+							url: artifact.url,
+							linkedType: 'artifact' as const
+						})),
+						...armor.map((armorItem: SmallArmor) => ({
+							name: armorItem.name,
+							url: armorItem.url,
+							linkedType: 'armor' as const
+						}))
+					];
 				})
 				.catch((error) => {
 					console.error('Failed to load autocomplete data:', error);
@@ -106,6 +133,7 @@
 					backgroundOptions = [];
 					classOptions = [];
 					archetypeOptions = [];
+					equipmentAutocompleteItems = [];
 				});
 		}
 	});
@@ -133,6 +161,28 @@
 					value: []
 				};
 			}
+		}
+	}
+
+	// Migrate old attunementsList to new equipmentList structure
+	function migrateEquipmentList() {
+		if (!data.equipmentList && data.attunementsList?.length > 0) {
+			data.equipmentList = data.attunementsList.map((att: any) => ({
+				id: crypto.randomUUID(),
+				name: { value: att.value || '' },
+				onCharacter: true,
+				isMagic: true,
+				isAttuned: att.checked || false,
+				notes: { value: '' },
+				notesVisibility: false
+			}));
+			// Save the migration
+			if (repository) {
+				debouncedSave();
+			}
+		} else if (!data.equipmentList) {
+			// Initialize empty equipment list
+			data.equipmentList = [];
 		}
 	}
 
@@ -234,6 +284,36 @@
 		debouncedSave();
 	}
 
+	function createPlainTextField(text: string): TextField {
+		const lines = text.split('\n');
+		const content = lines.length > 0
+			? lines.map((line) => line.trim()
+				? {
+					type: 'paragraph',
+					content: [{ type: 'text', text: line }]
+				}
+				: { type: 'paragraph' })
+			: [{ type: 'paragraph' }];
+
+		return {
+			value: {
+				id: `equipment-text-${crypto.randomUUID()}`,
+				data: {
+					type: 'doc',
+					content
+				}
+			}
+		};
+	}
+
+	function handleEquipmentChange(newCoins: any, newEquipmentList: any[], newEquipmentText: string) {
+		data.coins = newCoins;
+		data.equipmentList = newEquipmentList;
+		data.text = data.text || {};
+		data.text.equipment = createPlainTextField(newEquipmentText);
+		debouncedSave();
+	}
+
 	function handleOpenConditionDetails(url: string) {
 		uiEventListener.onScreenItemClick(url);
 	}
@@ -320,12 +400,13 @@
 		}))
 	);
 
-	const coins = $derived(data.coins ? {
-		gp: data.coins.gp?.value || 0,
-		sp: data.coins.sp?.value || 0,
-		cp: data.coins.cp?.value || 0,
-		pp: data.coins.pp?.value || 0,
-		ep: data.coins.ep?.value || 0
+	const coins = $derived<CharacterCoins | undefined>(data.coins ? {
+		gp: { value: data.coins.gp?.value || 0 },
+		sp: { value: data.coins.sp?.value || 0 },
+		cp: { value: data.coins.cp?.value || 0 },
+		pp: { value: data.coins.pp?.value || 0 },
+		ep: { value: data.coins.ep?.value || 0 },
+		total: { value: data.coins.total?.value || 0 }
 	} : undefined);
 
 	const spellsInfo = $derived(data.spellsInfo ? {
@@ -517,11 +598,14 @@
 				/>
 			{/if}
 
-			<CharacterEquipment
-				equipmentText={data.text?.equipment}
-				proficienciesText={data.text?.prof}
+			<CharacterEquipmentBlock
 				{coins}
-				{attunementsList}
+				equipmentList={data.equipmentList || []}
+				equipmentText={data.text?.equipment}
+				{equipmentAutocompleteItems}
+				{entityLinkService}
+				{uiEventListener}
+				onChange={handleEquipmentChange}
 			/>
 
 			{#if data.text?.personality}

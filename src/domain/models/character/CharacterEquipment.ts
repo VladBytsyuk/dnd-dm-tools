@@ -32,6 +32,19 @@ export interface AttunementItem {
 	value: string;
 }
 
+// Equipment entry in equipmentList
+export interface EquipmentItem {
+	id: string;                    // Unique ID (crypto.randomUUID())
+	name: { value: string };       // Item name (editable)
+	onCharacter: boolean;          // true = on character, false = in backpack
+	isMagic: boolean;              // Is this a magic item?
+	isAttuned: boolean;            // Is character attuned to this item?
+	linkedUrl?: string;            // URL if found in armor/items/artifacts
+	linkedType?: 'armor' | 'item' | 'artifact';  // Type of linked entity
+	notes: { value: string };      // Item notes/description
+	notesVisibility: boolean;      // Whether notes should be visible
+}
+
 // Character coins/currency
 export interface CharacterCoins {
 	gp: { value: number };

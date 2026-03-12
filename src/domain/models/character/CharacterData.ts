@@ -2,7 +2,7 @@ import type { Field, CharacterInfo, CharacterSubInfo, SpellsInfo } from "./Chara
 import type { CharacterStats, CharacterSaves } from "./CharacterStats";
 import type { CharacterSkills } from "./CharacterSkills";
 import type { CharacterVitality } from "./CharacterVitality";
-import type { WeaponItem, AttunementItem, CharacterCoins } from "./CharacterEquipment";
+import type { WeaponItem, AttunementItem, CharacterCoins, EquipmentItem } from "./CharacterEquipment";
 import type { CharacterTextSections } from "./CharacterText";
 
 // Name field (simpler than full Field interface)
@@ -33,6 +33,7 @@ export interface CharacterData {
 	skills: CharacterSkills;
 	vitality: CharacterVitality;
 	attunementsList: AttunementItem[];
+	equipmentList?: EquipmentItem[]; // New structured equipment
 	weaponsList: WeaponItem[];
 	weapons: Record<string, unknown>;
 	text: CharacterTextSections;
