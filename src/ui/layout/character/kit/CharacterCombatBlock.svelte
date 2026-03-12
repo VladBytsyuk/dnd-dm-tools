@@ -1315,7 +1315,7 @@
 		background-color: var(--background-primary);
 		color: var(--text-normal);
 		font-family: inherit;
-		font-size: 12px;
+		font-size: 13px;
 		resize: vertical;
 	}
 

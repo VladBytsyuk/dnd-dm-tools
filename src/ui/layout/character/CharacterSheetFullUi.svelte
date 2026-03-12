@@ -567,6 +567,20 @@
 
 <div class="character-sheet-full">
 	<div class="character-sheet-layout">
+		<!-- Right Column: Spellcasting, Features, Traits -->
+		<div class="column column-right">
+			<CharacterSpellbook
+				spellbook={data.spells}
+				stats={stats}
+				classes={data.info.classes?.value || []}
+				{proficiency}
+				{spellAutocompleteItems}
+				{entityLinkService}
+				{uiEventListener}
+				onChange={handleSpellbookChange}
+			/>
+		</div>
+
 		<div class="main-stack">
 			<div class="main-primary">
 			<!-- Left Column: Abilities with Saves and Skills -->
@@ -831,19 +845,6 @@
 			</div>
 		</div>
 
-		<!-- Right Column: Spellcasting, Features, Traits -->
-		<div class="column column-right">
-			<CharacterSpellbook
-				spellbook={data.spells}
-				stats={stats}
-				classes={data.info.classes?.value || []}
-				{proficiency}
-				{spellAutocompleteItems}
-				{entityLinkService}
-				{uiEventListener}
-				onChange={handleSpellbookChange}
-			/>
-		</div>
 	</div>
 </div>
 
@@ -865,6 +866,8 @@
 	}
 
 	.main-stack {
+		grid-column: 1;
+		grid-row: 1;
 		display: flex;
 		flex-direction: column;
 		gap: 16px;
@@ -882,6 +885,11 @@
 		display: flex;
 		flex-direction: column;
 		min-width: 0;
+	}
+
+	.column-right {
+		grid-column: 2;
+		grid-row: 1;
 	}
 
 	.character-reference-blocks {
@@ -981,6 +989,8 @@
 		}
 
 		.column-right {
+			grid-column: auto;
+			grid-row: auto;
 			display: flex;
 			flex-direction: column;
 			order: 2;

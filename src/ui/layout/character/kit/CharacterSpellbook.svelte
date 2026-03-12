@@ -634,7 +634,7 @@
 
 	.spellcasting-summary {
 		display: grid;
-		grid-template-columns: 40% 15% 15% 25%;
+		grid-template-columns: minmax(0, 40fr) minmax(0, 15fr) minmax(0, 15fr) minmax(0, 25fr);
 		gap: 6px;
 		align-items: start;
 		width: 100%;

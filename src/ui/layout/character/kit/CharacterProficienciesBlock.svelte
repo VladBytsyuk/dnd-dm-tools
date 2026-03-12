@@ -199,7 +199,7 @@
 		border-radius: 4px;
 		background-color: var(--background-secondary);
 		color: var(--text-normal);
-		font-size: 12px;
+		font-size: 13px;
 		line-height: 1.3;
 		resize: vertical;
 		font-family: var(--font-text);
