@@ -727,7 +727,6 @@
 							/>
 						{:else}
 							<div class="roleplay-readonly-block compact">
-								<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
 								<CharacterTextSection title="Черты" content={data.text?.personality} />
 							</div>
 						{/if}
@@ -742,7 +741,6 @@
 							/>
 						{:else}
 							<div class="roleplay-readonly-block compact">
-								<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
 								<CharacterTextSection title="Идеалы" content={data.text?.ideals} />
 							</div>
 						{/if}
@@ -757,7 +755,6 @@
 							/>
 						{:else}
 							<div class="roleplay-readonly-block compact">
-								<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
 								<CharacterTextSection title="Привязанности" content={data.text?.bonds} />
 							</div>
 						{/if}
@@ -772,7 +769,6 @@
 							/>
 						{:else}
 							<div class="roleplay-readonly-block compact">
-								<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
 								<CharacterTextSection title="Слабости" content={data.text?.flaws} />
 							</div>
 						{/if}
@@ -787,7 +783,6 @@
 							/>
 						{:else}
 							<div class="roleplay-readonly-block">
-								<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
 								<CharacterTextSection title="Внешность" content={data.text?.appearance} />
 							</div>
 						{/if}
@@ -800,7 +795,6 @@
 							/>
 						{:else}
 							<div class="roleplay-readonly-block">
-								<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
 								<CharacterTextSection title="История персонажа" content={data.text?.background} />
 							</div>
 						{/if}
@@ -813,7 +807,6 @@
 							/>
 						{:else}
 							<div class="roleplay-readonly-block">
-								<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
 								<CharacterTextSection title="Союзники и организации" content={data.text?.allies} />
 							</div>
 						{/if}
@@ -826,7 +819,6 @@
 							/>
 						{:else}
 							<div class="roleplay-readonly-block">
-								<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
 								<CharacterTextSection title="Цели" content={data.text?.quests} />
 							</div>
 						{/if}
@@ -946,12 +938,6 @@
 		flex-direction: column;
 		gap: 6px;
 		min-width: 0;
-	}
-
-	.roleplay-readonly-note {
-		padding: 0 2px;
-		font-size: 11px;
-		color: var(--text-muted);
 	}
 
 	.roleplay-readonly-block.compact :global(.character-text-section .section-content) {
