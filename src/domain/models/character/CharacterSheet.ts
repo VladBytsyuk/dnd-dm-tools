@@ -126,6 +126,9 @@ function normalizeCharacterSpellbook(data: CharacterData): CharacterSpellbookSta
 		attackBonusOverride: normalizeOptionalNumber(
 			legacySpells?.attackBonusOverride ?? data.spellsInfo?.mod?.value
 		),
+		preparedSpellLimitOverride: normalizeOptionalNumber(
+			legacySpells?.preparedSpellLimitOverride
+		),
 		levels: { ...defaults.levels },
 		pact: normalizePactState(legacySpells?.pact),
 	};

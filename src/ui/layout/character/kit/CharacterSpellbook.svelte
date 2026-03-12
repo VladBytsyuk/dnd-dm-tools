@@ -10,7 +10,7 @@
 	import AutocompleteInput from "../../uikit/AutocompleteInput.svelte";
 	import IconButton from "../../uikit/IconButton.svelte";
 	import { getFromClipboard } from "../../../../data/clipboard";
-	import { calculateSpellSlotProgression } from "../../../../domain/utils/characterSpellcasting";
+	import { calculatePreparedSpellLimit, calculateSpellSlotProgression } from "../../../../domain/utils/characterSpellcasting";
 
 	type AbilityStats = Record<Exclude<SpellcastingAbilityCode, "">, { score: number; modifier: number }>;
 	type SpellAutocompleteItem = { name: { rus: string; eng: string }; url: string; level: number };
@@ -68,6 +68,16 @@
 	const calculatedAttackBonus = $derived((proficiency || 0) + selectedAbilityModifier);
 	const displayedSaveDc = $derived(spellbook.saveDcOverride ?? calculatedSaveDc);
 	const displayedAttackBonus = $derived(spellbook.attackBonusOverride ?? calculatedAttackBonus);
+	const calculatedPreparedLimit = $derived(
+		calculatePreparedSpellLimit(classes || [], spellbook.baseAbilityCode, stats)
+	);
+	const displayedPreparedLimit = $derived(
+		spellbook.preparedSpellLimitOverride ?? calculatedPreparedLimit
+	);
+	const preparedSpellCount = $derived(countPreparedSpells(spellbook));
+	const canPrepareMoreSpells = $derived(
+		displayedPreparedLimit === null ? true : preparedSpellCount < displayedPreparedLimit
+	);
 
 	function updateSpellbook(mutator: (draft: CharacterSpellbookState) => void) {
 		const draft = cloneSpellbook(spellbook);
@@ -99,6 +109,15 @@
 		const parsed = parseNullableNumber((event.target as HTMLInputElement).value);
 		updateSpellbook((draft) => {
 			draft.attackBonusOverride = parsed === null || parsed === calculatedAttackBonus ? null : parsed;
+		});
+	}
+
+	function handlePreparedLimitInput(event: Event) {
+		const parsed = parseNullableNumber((event.target as HTMLInputElement).value);
+		updateSpellbook((draft) => {
+			draft.preparedSpellLimitOverride = parsed === null || parsed === calculatedPreparedLimit
+				? null
+				: Math.max(0, parsed);
 		});
 	}
 
@@ -272,6 +291,12 @@
 		updateSpellbook((draft) => {
 			const spell = findSpell(draft, levelKey, spellId);
 			if (!spell) return;
+			if (!spell.prepared && levelKey !== "0") {
+				const preparedLimit = draft.preparedSpellLimitOverride ?? calculatedPreparedLimit;
+				if (preparedLimit !== null && countPreparedSpells(draft) >= preparedLimit) {
+					return;
+				}
+			}
 			spell.prepared = !spell.prepared;
 		});
 	}
@@ -319,6 +344,7 @@
 					slotsUsed: [...source.pact.slotsUsed],
 				}
 				: null,
+			preparedSpellLimitOverride: source.preparedSpellLimitOverride,
 		};
 	}
 
@@ -370,6 +396,15 @@
 		const normalized = value.trim().toLowerCase();
 		return normalized === item.name.rus.toLowerCase() || normalized === item.name.eng.toLowerCase();
 	}
+
+	function countPreparedSpells(sourceSpellbook: CharacterSpellbookState): number {
+		return Object.entries(sourceSpellbook.levels).reduce((sum, [levelKey, levelState]) => {
+			if (levelKey === "0") {
+				return sum;
+			}
+			return sum + levelState.spells.filter((spell) => spell.prepared).length;
+		}, 0);
+	}
 </script>
 
 <div class="character-spellbook">
@@ -407,6 +442,20 @@
 				value={formatModifier(displayedAttackBonus)}
 				oninput={handleAttackBonusInput}
 			/>
+		</label>
+
+		<label class="summary-field">
+			<span class="summary-label">Подготовка</span>
+			<div class="prepared-counter">
+				<span class="prepared-count">{preparedSpellCount}/</span>
+				<input
+					type="number"
+					class="summary-input"
+					class:overridden={spellbook.preparedSpellLimitOverride !== null}
+					value={displayedPreparedLimit ?? ""}
+					oninput={handlePreparedLimitInput}
+				/>
+			</div>
 		</label>
 	</div>
 
@@ -487,14 +536,17 @@
 
 				<div class="spells-list">
 					{#each levelState.spells as spell}
-						<div class="spell-row">
-							<button
-								type="button"
-								class="prepared-toggle"
-								class:active={spell.prepared}
-								onclick={() => togglePrepared(typedLevelKey, spell.id)}
-								aria-label={`Подготовлено: ${spell.name || "заклинание"}`}
-							></button>
+						<div class="spell-row" class:cantrip-row={typedLevelKey === "0"}>
+							{#if typedLevelKey !== "0"}
+								<button
+									type="button"
+									class="prepared-toggle"
+									class:active={spell.prepared}
+									disabled={!spell.prepared && !canPrepareMoreSpells}
+									onclick={() => togglePrepared(typedLevelKey, spell.id)}
+									aria-label={`Подготовлено: ${spell.name || "заклинание"}`}
+								></button>
+							{/if}
 
 							<div class="spell-name-field">
 								<AutocompleteInput
@@ -559,10 +611,32 @@
 	}
 
 	.spellcasting-summary {
-		display: grid;
-		grid-template-columns: minmax(0, 1.6fr) repeat(2, minmax(72px, 1fr));
+		display: flex;
+		flex-wrap: nowrap;
 		gap: 8px;
 		align-items: end;
+	}
+
+	.prepared-counter {
+		display: flex;
+		align-items: center;
+		gap: 3px;
+	}
+
+	.prepared-count {
+		font-size: 11px;
+		font-weight: 700;
+		color: var(--text-muted);
+		white-space: nowrap;
+	}
+
+	.prepared-counter .summary-input {
+		width: 4ch;
+		min-width: 4ch;
+		max-width: 4ch;
+		padding-left: 1px;
+		padding-right: 1px;
+		text-align: center;
 	}
 
 	.summary-field {
@@ -570,10 +644,12 @@
 		flex-direction: column;
 		gap: 4px;
 		min-width: 0;
+		flex: 0 0 auto;
 	}
 
 	.summary-field-wide {
-		min-width: 120px;
+		flex: 1 1 auto;
+		min-width: 0;
 	}
 
 	.summary-label {
@@ -592,6 +668,13 @@
 		border: 1px solid var(--background-modifier-border);
 		background: var(--background-primary);
 		color: var(--text-normal);
+	}
+
+	.summary-field:not(.summary-field-wide) .summary-input {
+		width: 4ch;
+		min-width: 4ch;
+		max-width: 4ch;
+		text-align: center;
 	}
 
 	.summary-input.overridden,
@@ -673,6 +756,11 @@
 		padding: 0;
 	}
 
+	.prepared-toggle:disabled {
+		opacity: 0.35;
+		cursor: not-allowed;
+	}
+
 	.slot-circle.used,
 	.prepared-toggle.active {
 		background: var(--text-accent);
@@ -691,6 +779,10 @@
 		gap: 3px;
 		align-items: center;
 		min-height: 18px;
+	}
+
+	.spell-row.cantrip-row {
+		grid-template-columns: minmax(0, 1fr) auto;
 	}
 
 	.spell-name-field {
@@ -733,7 +825,7 @@
 
 	@media (max-width: 900px) {
 		.spellcasting-summary {
-			grid-template-columns: 1fr;
+			gap: 6px;
 		}
 
 		.pact-row {
@@ -747,6 +839,10 @@
 
 		.spell-row {
 			grid-template-columns: auto minmax(0, 1fr) auto;
+		}
+
+		.spell-row.cantrip-row {
+			grid-template-columns: minmax(0, 1fr) auto;
 		}
 	}
 </style>

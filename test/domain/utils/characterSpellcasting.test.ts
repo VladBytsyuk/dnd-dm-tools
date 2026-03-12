@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateSpellSlotProgression } from "src/domain/utils/characterSpellcasting";
+import { calculatePreparedSpellLimit, calculateSpellSlotProgression } from "src/domain/utils/characterSpellcasting";
 
 describe("characterSpellcasting", () => {
 	it("should calculate full caster slots", () => {
@@ -56,5 +56,45 @@ describe("characterSpellcasting", () => {
 			slotLevel: 3,
 			slotCount: 2,
 		});
+	});
+
+	it("should calculate prepared spell limit for prepared casters", () => {
+		const limit = calculatePreparedSpellLimit(
+			[
+				{ className: "Wizard", level: 4 },
+				{ className: "Paladin", level: 4 }
+			],
+			"int",
+			{
+				str: { modifier: 0 },
+				dex: { modifier: 1 },
+				con: { modifier: 2 },
+				int: { modifier: 3 },
+				wis: { modifier: 1 },
+				cha: { modifier: 2 },
+			}
+		);
+
+		expect(limit).toBe(12);
+	});
+
+	it("should return null for classes without spell preparation", () => {
+		const limit = calculatePreparedSpellLimit(
+			[
+				{ className: "Bard", level: 5 },
+				{ className: "Warlock", level: 3 }
+			],
+			"cha",
+			{
+				str: { modifier: 0 },
+				dex: { modifier: 1 },
+				con: { modifier: 2 },
+				int: { modifier: 3 },
+				wis: { modifier: 1 },
+				cha: { modifier: 4 },
+			}
+		);
+
+		expect(limit).toBeNull();
 	});
 });

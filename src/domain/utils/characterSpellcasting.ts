@@ -1,4 +1,5 @@
 import type { ClassEntry } from "src/domain/models/character/ClassEntry";
+import type { SpellcastingAbilityCode } from "src/domain/models/character/CharacterSpellbook";
 
 export interface SpellSlotProgression {
 	slots: Record<number, number>;
@@ -7,6 +8,8 @@ export interface SpellSlotProgression {
 		slotCount: number;
 	} | null;
 }
+
+export type PreparedSpellStats = Record<Exclude<SpellcastingAbilityCode, "">, { modifier: number }>;
 
 const STANDARD_SLOTS: Record<number, number[]> = {
 	0: [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -97,6 +100,27 @@ export function calculateSpellSlotProgression(classes: ClassEntry[]): SpellSlotP
 	};
 }
 
+export function calculatePreparedSpellLimit(
+	classes: ClassEntry[],
+	baseAbilityCode: SpellcastingAbilityCode,
+	stats: PreparedSpellStats
+): number | null {
+	const abilityModifier = baseAbilityCode ? (stats[baseAbilityCode]?.modifier ?? 0) : 0;
+	let limit = 0;
+	let hasPreparedCaster = false;
+
+	for (const classEntry of classes) {
+		const classLimit = getPreparedSpellLimitForClass(classEntry, abilityModifier);
+		if (classLimit === null) {
+			continue;
+		}
+		hasPreparedCaster = true;
+		limit += classLimit;
+	}
+
+	return hasPreparedCaster ? Math.max(1, limit) : null;
+}
+
 function resolveCasterKind(className: string, subclassName?: string): CasterKind {
 	const normalized = normalizeClassName(className);
 	const normalizedSubclass = normalizeClassName(subclassName ?? "");
@@ -131,6 +155,32 @@ function resolveCasterKind(className: string, subclassName?: string): CasterKind
 			return "warlock";
 		default:
 			return "none";
+	}
+}
+
+function getPreparedSpellLimitForClass(
+	classEntry: ClassEntry,
+	abilityModifier: number
+): number | null {
+	const normalized = normalizeClassName(classEntry.className);
+	const level = Math.max(0, Math.min(20, classEntry.level || 0));
+
+	switch (normalized) {
+		case "cleric":
+		case "жрец":
+		case "druid":
+		case "друид":
+		case "wizard":
+		case "волшебник":
+			return Math.max(1, level + abilityModifier);
+		case "paladin":
+		case "паладин":
+			return Math.max(1, Math.floor(level / 2) + abilityModifier);
+		case "artificer":
+		case "изобретатель":
+			return Math.max(1, Math.floor(level / 2) + abilityModifier);
+		default:
+			return null;
 	}
 }
 

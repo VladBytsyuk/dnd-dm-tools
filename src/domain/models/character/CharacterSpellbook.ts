@@ -27,6 +27,7 @@ export interface CharacterSpellbookState {
 	baseAbilityCode: SpellcastingAbilityCode;
 	saveDcOverride: number | null;
 	attackBonusOverride: number | null;
+	preparedSpellLimitOverride: number | null;
 	levels: Record<SpellLevelKey, CharacterSpellLevelState>;
 	pact: CharacterSpellPactState | null;
 }
@@ -49,6 +50,7 @@ export function createEmptyCharacterSpellbook(): CharacterSpellbookState {
 		baseAbilityCode: "",
 		saveDcOverride: null,
 		attackBonusOverride: null,
+		preparedSpellLimitOverride: null,
 		levels: {
 			"0": createSpellLevelState(0),
 			"1": createSpellLevelState(1),
