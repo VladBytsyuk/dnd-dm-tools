@@ -675,6 +675,164 @@
 					/>
 				</div>
 			</div>
+
+			<div class="roleplay-section">
+				<div class="roleplay-section-header">
+					<h2 class="roleplay-section-title">Ролевая информация</h2>
+				</div>
+
+				<div class="roleplay-physical-grid">
+					<CharacterEditableInfoField
+						label="Возраст"
+						value={data.subInfo?.age?.value || ""}
+						onChange={(value) => handleSubInfoChange("age", value)}
+					/>
+					<CharacterEditableInfoField
+						label="Рост"
+						value={data.subInfo?.height?.value || ""}
+						onChange={(value) => handleSubInfoChange("height", value)}
+					/>
+					<CharacterEditableInfoField
+						label="Вес"
+						value={data.subInfo?.weight?.value || ""}
+						onChange={(value) => handleSubInfoChange("weight", value)}
+					/>
+					<CharacterEditableInfoField
+						label="Глаза"
+						value={data.subInfo?.eyes?.value || ""}
+						onChange={(value) => handleSubInfoChange("eyes", value)}
+					/>
+					<CharacterEditableInfoField
+						label="Кожа"
+						value={data.subInfo?.skin?.value || ""}
+						onChange={(value) => handleSubInfoChange("skin", value)}
+					/>
+					<CharacterEditableInfoField
+						label="Волосы"
+						value={data.subInfo?.hair?.value || ""}
+						onChange={(value) => handleSubInfoChange("hair", value)}
+					/>
+				</div>
+
+				<div class="roleplay-text-grid">
+					<div class="roleplay-traits-row">
+						{#if canEditRoleplaySection("personality")}
+							<CharacterEditableTextBlock
+								title="Черты"
+								content={data.text?.personality}
+								minHeight="68px"
+								maxHeight="68px"
+								resize="none"
+								onChange={(value) => handleTextSectionChange("personality", value)}
+							/>
+						{:else}
+							<div class="roleplay-readonly-block compact">
+								<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
+								<CharacterTextSection title="Черты" content={data.text?.personality} />
+							</div>
+						{/if}
+						{#if canEditRoleplaySection("ideals")}
+							<CharacterEditableTextBlock
+								title="Идеалы"
+								content={data.text?.ideals}
+								minHeight="68px"
+								maxHeight="68px"
+								resize="none"
+								onChange={(value) => handleTextSectionChange("ideals", value)}
+							/>
+						{:else}
+							<div class="roleplay-readonly-block compact">
+								<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
+								<CharacterTextSection title="Идеалы" content={data.text?.ideals} />
+							</div>
+						{/if}
+						{#if canEditRoleplaySection("bonds")}
+							<CharacterEditableTextBlock
+								title="Привязанности"
+								content={data.text?.bonds}
+								minHeight="68px"
+								maxHeight="68px"
+								resize="none"
+								onChange={(value) => handleTextSectionChange("bonds", value)}
+							/>
+						{:else}
+							<div class="roleplay-readonly-block compact">
+								<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
+								<CharacterTextSection title="Привязанности" content={data.text?.bonds} />
+							</div>
+						{/if}
+						{#if canEditRoleplaySection("flaws")}
+							<CharacterEditableTextBlock
+								title="Слабости"
+								content={data.text?.flaws}
+								minHeight="68px"
+								maxHeight="68px"
+								resize="none"
+								onChange={(value) => handleTextSectionChange("flaws", value)}
+							/>
+						{:else}
+							<div class="roleplay-readonly-block compact">
+								<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
+								<CharacterTextSection title="Слабости" content={data.text?.flaws} />
+							</div>
+						{/if}
+					</div>
+
+					<div class="roleplay-text-grid-main">
+						{#if canEditRoleplaySection("appearance")}
+							<CharacterEditableTextBlock
+								title="Внешность"
+								content={data.text?.appearance}
+								onChange={(value) => handleTextSectionChange("appearance", value)}
+							/>
+						{:else}
+							<div class="roleplay-readonly-block">
+								<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
+								<CharacterTextSection title="Внешность" content={data.text?.appearance} />
+							</div>
+						{/if}
+						{#if canEditRoleplaySection("background")}
+							<CharacterEditableTextBlock
+								title="История персонажа"
+								content={data.text?.background}
+								minHeight="180px"
+								onChange={(value) => handleTextSectionChange("background", value)}
+							/>
+						{:else}
+							<div class="roleplay-readonly-block">
+								<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
+								<CharacterTextSection title="История персонажа" content={data.text?.background} />
+							</div>
+						{/if}
+						{#if canEditRoleplaySection("allies")}
+							<CharacterEditableTextBlock
+								title="Союзники и организации"
+								content={data.text?.allies}
+								minHeight="180px"
+								onChange={(value) => handleTextSectionChange("allies", value)}
+							/>
+						{:else}
+							<div class="roleplay-readonly-block">
+								<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
+								<CharacterTextSection title="Союзники и организации" content={data.text?.allies} />
+							</div>
+						{/if}
+						{#if canEditRoleplaySection("quests")}
+							<CharacterEditableTextBlock
+								title="Цели"
+								content={data.text?.quests}
+								minHeight="180px"
+								onChange={(value) => handleTextSectionChange("quests", value)}
+							/>
+						{:else}
+							<div class="roleplay-readonly-block">
+								<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
+								<CharacterTextSection title="Цели" content={data.text?.quests} />
+							</div>
+						{/if}
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<!-- Right Column: Spellcasting, Features, Traits -->
@@ -689,164 +847,6 @@
 				{uiEventListener}
 				onChange={handleSpellbookChange}
 			/>
-		</div>
-	</div>
-
-	<div class="roleplay-section">
-		<div class="roleplay-section-header">
-			<h2 class="roleplay-section-title">Ролевая информация</h2>
-		</div>
-
-		<div class="roleplay-physical-grid">
-			<CharacterEditableInfoField
-				label="Возраст"
-				value={data.subInfo?.age?.value || ""}
-				onChange={(value) => handleSubInfoChange("age", value)}
-			/>
-			<CharacterEditableInfoField
-				label="Рост"
-				value={data.subInfo?.height?.value || ""}
-				onChange={(value) => handleSubInfoChange("height", value)}
-			/>
-			<CharacterEditableInfoField
-				label="Вес"
-				value={data.subInfo?.weight?.value || ""}
-				onChange={(value) => handleSubInfoChange("weight", value)}
-			/>
-			<CharacterEditableInfoField
-				label="Глаза"
-				value={data.subInfo?.eyes?.value || ""}
-				onChange={(value) => handleSubInfoChange("eyes", value)}
-			/>
-			<CharacterEditableInfoField
-				label="Кожа"
-				value={data.subInfo?.skin?.value || ""}
-				onChange={(value) => handleSubInfoChange("skin", value)}
-			/>
-			<CharacterEditableInfoField
-				label="Волосы"
-				value={data.subInfo?.hair?.value || ""}
-				onChange={(value) => handleSubInfoChange("hair", value)}
-			/>
-		</div>
-
-		<div class="roleplay-text-grid">
-			<div class="roleplay-traits-row">
-				{#if canEditRoleplaySection("personality")}
-					<CharacterEditableTextBlock
-						title="Черты"
-						content={data.text?.personality}
-						minHeight="68px"
-						maxHeight="68px"
-						resize="none"
-						onChange={(value) => handleTextSectionChange("personality", value)}
-					/>
-				{:else}
-					<div class="roleplay-readonly-block compact">
-						<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
-						<CharacterTextSection title="Черты" content={data.text?.personality} />
-					</div>
-				{/if}
-				{#if canEditRoleplaySection("ideals")}
-					<CharacterEditableTextBlock
-						title="Идеалы"
-						content={data.text?.ideals}
-						minHeight="68px"
-						maxHeight="68px"
-						resize="none"
-						onChange={(value) => handleTextSectionChange("ideals", value)}
-					/>
-				{:else}
-					<div class="roleplay-readonly-block compact">
-						<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
-						<CharacterTextSection title="Идеалы" content={data.text?.ideals} />
-					</div>
-				{/if}
-				{#if canEditRoleplaySection("bonds")}
-					<CharacterEditableTextBlock
-						title="Привязанности"
-						content={data.text?.bonds}
-						minHeight="68px"
-						maxHeight="68px"
-						resize="none"
-						onChange={(value) => handleTextSectionChange("bonds", value)}
-					/>
-				{:else}
-					<div class="roleplay-readonly-block compact">
-						<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
-						<CharacterTextSection title="Привязанности" content={data.text?.bonds} />
-					</div>
-				{/if}
-				{#if canEditRoleplaySection("flaws")}
-					<CharacterEditableTextBlock
-						title="Слабости"
-						content={data.text?.flaws}
-						minHeight="68px"
-						maxHeight="68px"
-						resize="none"
-						onChange={(value) => handleTextSectionChange("flaws", value)}
-					/>
-				{:else}
-					<div class="roleplay-readonly-block compact">
-						<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
-						<CharacterTextSection title="Слабости" content={data.text?.flaws} />
-					</div>
-				{/if}
-			</div>
-
-			<div class="roleplay-text-grid-main">
-				{#if canEditRoleplaySection("appearance")}
-					<CharacterEditableTextBlock
-						title="Внешность"
-						content={data.text?.appearance}
-						onChange={(value) => handleTextSectionChange("appearance", value)}
-					/>
-				{:else}
-					<div class="roleplay-readonly-block">
-						<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
-						<CharacterTextSection title="Внешность" content={data.text?.appearance} />
-					</div>
-				{/if}
-				{#if canEditRoleplaySection("background")}
-					<CharacterEditableTextBlock
-						title="История персонажа"
-						content={data.text?.background}
-						minHeight="180px"
-						onChange={(value) => handleTextSectionChange("background", value)}
-					/>
-				{:else}
-					<div class="roleplay-readonly-block">
-						<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
-						<CharacterTextSection title="История персонажа" content={data.text?.background} />
-					</div>
-				{/if}
-				{#if canEditRoleplaySection("allies")}
-					<CharacterEditableTextBlock
-						title="Союзники и организации"
-						content={data.text?.allies}
-						minHeight="180px"
-						onChange={(value) => handleTextSectionChange("allies", value)}
-					/>
-				{:else}
-					<div class="roleplay-readonly-block">
-						<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
-						<CharacterTextSection title="Союзники и организации" content={data.text?.allies} />
-					</div>
-				{/if}
-				{#if canEditRoleplaySection("quests")}
-					<CharacterEditableTextBlock
-						title="Цели"
-						content={data.text?.quests}
-						minHeight="180px"
-						onChange={(value) => handleTextSectionChange("quests", value)}
-					/>
-				{:else}
-					<div class="roleplay-readonly-block">
-						<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
-						<CharacterTextSection title="Цели" content={data.text?.quests} />
-					</div>
-				{/if}
-			</div>
 		</div>
 	</div>
 </div>
@@ -892,8 +892,8 @@
 	}
 
 	.roleplay-section {
-		max-width: 1600px;
-		margin: 12px auto 0;
+		width: 100%;
+		margin: 0 0 16px;
 		border: 1px solid var(--background-modifier-border);
 		border-radius: 6px;
 		background-color: var(--background-primary);
@@ -973,7 +973,7 @@
 		}
 
 		.roleplay-section {
-			margin-top: 12px;
+			margin-bottom: 16px;
 		}
 	}
 
