@@ -1,6 +1,7 @@
 import type DB from "src/data/database/DB";
 import type { FullItem } from "src/domain/models/items/FullItem";
 import type { FullArtifact } from "src/domain/models/artifact/FullArtifact";
+import type { FullArmor } from "src/domain/models/armor/FullArmor";
 
 /**
  * Result of an entity lookup in the database.
@@ -60,13 +61,16 @@ export class EntityLinkService {
 
 	async getLinkedEquipmentByUrl(
 		url: string,
-		type: 'item' | 'artifact'
-	): Promise<FullItem | FullArtifact | null> {
+		type: 'armor' | 'item' | 'artifact'
+	): Promise<FullItem | FullArtifact | FullArmor | null> {
 		if (!url) {
 			return null;
 		}
 
 		try {
+			if (type === 'armor') {
+				return await this.database.fullArmorDao.readItemByUrl(url);
+			}
 			if (type === 'artifact') {
 				return await this.database.fullArtifactDao.readItemByUrl(url);
 			}

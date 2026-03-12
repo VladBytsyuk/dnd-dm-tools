@@ -14,6 +14,8 @@
 	import type { SmallClass } from "../../../domain/models/class/SmallClass";
 	import type { SmallItem } from "../../../domain/models/items/SmallItem";
 	import type { SmallArtifact } from "../../../domain/models/artifact/SmallArtifact";
+	import type { SmallArmor } from "../../../domain/models/armor/SmallArmor";
+	import type { EquipmentAutocompleteItem } from "./kit/characterEquipmentUtils";
 
 	// Import kit components
 	import CharacterHeader from "./kit/CharacterHeader.svelte";
@@ -60,7 +62,7 @@
 	let backgroundOptions = $state<Array<{ name: { rus: string; eng: string }; url: string }>>([]);
 	let classOptions = $state<Array<{ name: { rus: string; eng: string }; url: string }>>([]);
 	let archetypeOptions = $state<Array<{ name: { rus: string; eng: string }; url: string; parentClassUrl: string }>>([]);
-	let equipmentAutocompleteItems = $state<Array<{ name: { rus: string; eng: string }; url: string; linkedType: 'item' | 'artifact' }>>([]);
+	let equipmentAutocompleteItems = $state<EquipmentAutocompleteItem[]>([]);
 
 	// Fetch autocomplete data from database
 	$effect(() => {
@@ -73,9 +75,10 @@
 				database.smallBackgroundDao.readAllItems(null, null),
 				database.smallClassDao.readAllItems(null, null),
 				database.smallItemDao.readAllItems(null, null),
-				database.smallArtifactDao.readAllItems(null, null)
+				database.smallArtifactDao.readAllItems(null, null),
+				database.smallArmorDao.readAllItems(null, null)
 			])
-				.then(([races, backgrounds, classes, items, artifacts]) => {
+				.then(([races, backgrounds, classes, items, artifacts, armor]) => {
 					// Map races
 					raceOptions = races.map((r: SmallRace) => ({
 						name: r.name,
@@ -115,6 +118,11 @@
 							name: artifact.name,
 							url: artifact.url,
 							linkedType: 'artifact' as const
+						})),
+						...armor.map((armorItem: SmallArmor) => ({
+							name: armorItem.name,
+							url: armorItem.url,
+							linkedType: 'armor' as const
 						}))
 					];
 				})

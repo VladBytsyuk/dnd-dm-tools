@@ -11,12 +11,17 @@
 	import type { FullItem } from "../../../../domain/models/items/FullItem";
 	import type { FullArtifact } from "../../../../domain/models/artifact/FullArtifact";
 	import type { FullArmor } from "../../../../domain/models/armor/FullArmor";
+	import {
+		hasLinkedEquipment,
+		sanitizeNotesPreviewText,
+		type EquipmentAutocompleteItem
+	} from "./characterEquipmentUtils";
 
 	interface Props {
 		coins?: CharacterCoins;
 		equipmentList: EquipmentItem[];
 		equipmentText?: string | TextField;
-		equipmentAutocompleteItems?: Array<{ name: { rus: string; eng: string }; url: string; linkedType: 'item' | 'artifact' }>;
+		equipmentAutocompleteItems?: EquipmentAutocompleteItem[];
 		entityLinkService?: EntityLinkService;
 		uiEventListener?: IUiEventListener;
 		onChange?: (coins: CharacterCoins, equipmentList: EquipmentItem[], equipmentText: string) => void;
@@ -231,7 +236,7 @@
 	async function autoFindItemLink(itemId: string) {
 		const item = equipmentList.find(i => i.id === itemId);
 		if (!item || !entityLinkService) return;
-		if (item.linkedUrl && (item.linkedType === 'item' || item.linkedType === 'artifact')) return;
+		if (hasLinkedEquipment(item)) return;
 
 		const itemName = item.name.value.trim();
 		if (!itemName) return;
@@ -250,6 +255,15 @@
 		if (itemResult.exists && itemResult.url) {
 			item.linkedUrl = itemResult.url;
 			item.linkedType = 'item';
+			triggerChange();
+			return;
+		}
+
+		// Try armor
+		const armorResult = await entityLinkService.findArmor(itemName);
+		if (armorResult.exists && armorResult.url) {
+			item.linkedUrl = armorResult.url;
+			item.linkedType = 'armor';
 			triggerChange();
 			return;
 		}
@@ -433,7 +447,7 @@
 
 	function handleNameAutocompleteSelect(
 		itemId: string,
-		selectedItem: { name: { rus: string; eng: string }; url: string; linkedType: 'item' | 'artifact' }
+		selectedItem: EquipmentAutocompleteItem
 	) {
 		const item = equipmentList.find(i => i.id === itemId);
 		if (!item || !entityLinkService) return;
@@ -591,7 +605,7 @@
 				id,
 				x: position.x,
 				y: position.y,
-				content: notesContent
+				content: sanitizeNotesPreviewText(notesContent)
 			};
 		}
 	}
@@ -667,7 +681,7 @@
 						<div class="item-main-row">
 								<div
 									class="item-name-wrapper"
-									class:has-link={item.linkedUrl && (item.linkedType === 'item' || item.linkedType === 'artifact')}
+									class:has-link={hasLinkedEquipment(item)}
 								>
 									<AutocompleteInput
 										value={item.name.value}
@@ -676,7 +690,7 @@
 										onchange={(value) => handleNameChange(item.id, value)}
 										onSelect={(selectedItem) => handleNameAutocompleteSelect(item.id, selectedItem)}
 									/>
-									{#if item.linkedUrl && (item.linkedType === 'item' || item.linkedType === 'artifact')}
+									{#if hasLinkedEquipment(item)}
 										<span
 											class="item-link-indicator"
 										title="Найдено в базе данных: {item.name.value}"
@@ -834,7 +848,7 @@
 			aria-live="polite"
 		>
 			<div class="notes-preview-content">
-				{@html showNotesPreview.content}
+				{showNotesPreview.content}
 			</div>
 		</div>
 	{/if}
@@ -1242,42 +1256,7 @@
 		overflow-wrap: break-word;
 		word-wrap: break-word;
 		line-height: 1.5;
-	}
-
-	/* Style HTML content in preview */
-	.notes-preview-content :global(p) {
-		margin: 0 0 8px 0;
-	}
-
-	.notes-preview-content :global(p:last-child) {
-		margin-bottom: 0;
-	}
-
-	.notes-preview-content :global(strong) {
-		font-weight: 600;
-		color: var(--text-normal);
-	}
-
-	.notes-preview-content :global(em) {
-		font-style: italic;
-	}
-
-	.notes-preview-content :global(ul),
-	.notes-preview-content :global(ol) {
-		margin: 0 0 8px 0;
-		padding-left: 20px;
-	}
-
-	.notes-preview-content :global(li) {
-		margin-bottom: 4px;
-	}
-
-	.notes-preview-content :global(code) {
-		background-color: var(--background-secondary);
-		padding: 2px 4px;
-		border-radius: 3px;
-		font-family: var(--font-monospace);
-		font-size: 0.9em;
+		white-space: pre-wrap;
 	}
 
 	/* Notes popup */
