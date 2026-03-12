@@ -428,7 +428,7 @@
 	</div>
 
 	<div class="spellcasting-summary">
-		<label class="summary-field summary-field-wide">
+		<label class="summary-field summary-field-ability">
 			<span class="summary-label">Базовая</span>
 			<select class="summary-select" value={spellbook.baseAbilityCode} onchange={handleBaseAbilityChange}>
 				{#each abilityOptions as option}
@@ -437,7 +437,7 @@
 			</select>
 		</label>
 
-		<label class="summary-field">
+		<label class="summary-field summary-field-dc">
 			<span class="summary-label">СЛ</span>
 			<input
 				type="number"
@@ -448,7 +448,7 @@
 			/>
 		</label>
 
-		<label class="summary-field">
+		<label class="summary-field summary-field-attack">
 			<span class="summary-label">Атака</span>
 			<input
 				type="text"
@@ -459,7 +459,7 @@
 			/>
 		</label>
 
-		<label class="summary-field">
+		<label class="summary-field summary-field-prepared">
 			<span class="summary-label">Подготовка</span>
 			<div class="prepared-counter">
 				<span class="prepared-count">{preparedSpellCount}/</span>
@@ -610,33 +610,41 @@
 	.character-spellbook {
 		display: flex;
 		flex-direction: column;
-		gap: 10px;
+		gap: 8px;
+		padding: 12px;
+		background-color: var(--background-primary);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 6px;
+		margin-bottom: 16px;
+		container-type: inline-size;
 	}
 
 	.spellbook-header {
-		padding-bottom: 4px;
+		padding-bottom: 6px;
 		border-bottom: 1px solid var(--background-modifier-border);
 	}
 
 	.section-title {
 		margin: 0;
-		font-size: 13px;
-		font-weight: 700;
+		font-size: 14px;
+		font-weight: 600;
 		text-transform: uppercase;
-		letter-spacing: 0.04em;
+		letter-spacing: 0.5px;
 	}
 
 	.spellcasting-summary {
-		display: flex;
-		flex-wrap: nowrap;
-		gap: 8px;
-		align-items: end;
+		display: grid;
+		grid-template-columns: minmax(0, 40fr) minmax(0, 15fr) minmax(0, 15fr) minmax(0, 25fr);
+		gap: 6px;
+		align-items: start;
+		width: 100%;
 	}
 
 	.prepared-counter {
 		display: flex;
 		align-items: center;
 		gap: 3px;
+		min-width: 0;
 	}
 
 	.prepared-count {
@@ -647,9 +655,7 @@
 	}
 
 	.prepared-counter .summary-input {
-		width: 4ch;
-		min-width: 4ch;
-		max-width: 4ch;
+		flex: 1 1 auto;
 		padding-left: 1px;
 		padding-right: 1px;
 		text-align: center;
@@ -660,16 +666,33 @@
 		flex-direction: column;
 		gap: 4px;
 		min-width: 0;
-		flex: 0 0 auto;
 	}
 
-	.summary-field-wide {
-		flex: 1 1 auto;
+	.summary-field-ability,
+	.summary-field-dc,
+	.summary-field-attack,
+	.summary-field-prepared {
 		min-width: 0;
 	}
 
+	.summary-field-ability {
+		grid-column: 1;
+	}
+
+	.summary-field-dc {
+		grid-column: 2;
+	}
+
+	.summary-field-attack {
+		grid-column: 3;
+	}
+
+	.summary-field-prepared {
+		grid-column: 4;
+	}
+
 	.summary-label {
-		font-size: 11px;
+		font-size: 10px;
 		font-weight: 700;
 		color: var(--text-muted);
 		text-transform: uppercase;
@@ -678,18 +701,31 @@
 	.summary-select,
 	.summary-input,
 	.slot-override {
-		height: 28px;
+		height: 30px;
 		padding: 4px 6px;
 		border-radius: 4px;
 		border: 1px solid var(--background-modifier-border);
-		background: var(--background-primary);
+		background: var(--background-secondary);
 		color: var(--text-normal);
+		box-sizing: border-box;
+		font-size: 12px;
 	}
 
-	.summary-field:not(.summary-field-wide) .summary-input {
-		width: 4ch;
-		min-width: 4ch;
-		max-width: 4ch;
+	.slot-override {
+		width: 34px;
+		min-width: 34px;
+		max-width: 34px;
+		text-align: center;
+	}
+
+	.summary-select,
+	.summary-input {
+		width: 100%;
+		min-width: 0;
+	}
+
+	.summary-field-dc .summary-input,
+	.summary-field-attack .summary-input {
 		text-align: center;
 	}
 
@@ -697,15 +733,15 @@
 	.slot-override.overridden {
 		color: var(--text-accent);
 		border-color: var(--text-accent);
-		background: color-mix(in srgb, var(--text-accent) 10%, var(--background-primary));
+		background: color-mix(in srgb, var(--text-accent) 10%, var(--background-secondary));
 	}
 
 	.pact-row,
 	.spell-level-group {
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
-		padding: 8px 0;
+		gap: 6px;
+		padding: 6px 0;
 		border-bottom: 1px solid var(--background-modifier-border);
 	}
 
@@ -737,7 +773,7 @@
 	.spell-level-actions {
 		display: flex;
 		align-items: center;
-		gap: 8px;
+		gap: 6px;
 	}
 
 	.spell-level-header {
@@ -766,8 +802,8 @@
 
 	.slot-circle,
 	.prepared-toggle {
-		width: 16px;
-		height: 16px;
+		width: 18px;
+		height: 18px;
 		border-radius: 999px;
 		padding: 0;
 	}
@@ -798,9 +834,9 @@
 	.spell-row {
 		display: grid;
 		grid-template-columns: auto minmax(0, 1fr) auto;
-		gap: 3px;
+		gap: 4px;
 		align-items: center;
-		min-height: 18px;
+		min-height: 24px;
 	}
 
 	.spell-row.cantrip-row {
@@ -812,10 +848,10 @@
 	}
 
 	.spell-name-field :global(.autocomplete-input) {
-		padding: 0 1px;
-		line-height: 1;
-		font-size: 11px;
-		height: 11px;
+		padding: 0 2px;
+		line-height: 1.2;
+		font-size: 12px;
+		height: 18px;
 	}
 
 	.spell-name-field :global(.dropdown-item) {
@@ -826,18 +862,18 @@
 	.spell-actions {
 		display: flex;
 		align-items: center;
-		gap: 2px;
+		gap: 3px;
 	}
 
 	.spell-actions :global(.icon-button) {
-		width: 16px;
-		height: 16px;
+		width: 18px;
+		height: 18px;
 		border-radius: 3px;
 	}
 
 	.prepared-toggle {
-		width: 14px;
-		height: 14px;
+		width: 16px;
+		height: 16px;
 	}
 
 	.slot-circle:hover,
@@ -867,4 +903,5 @@
 			grid-template-columns: minmax(0, 1fr) auto;
 		}
 	}
+
 </style>

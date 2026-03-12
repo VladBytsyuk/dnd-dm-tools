@@ -83,7 +83,7 @@
 		background-color: var(--background-primary);
 		color: var(--text-normal);
 		font-family: var(--font-text);
-		font-size: 12px;
+		font-size: 13px;
 		line-height: 1.45;
 		box-sizing: border-box;
 	}

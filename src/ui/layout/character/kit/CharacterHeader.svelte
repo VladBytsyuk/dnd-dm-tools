@@ -350,11 +350,10 @@
 <style>
 	.character-header {
 		padding: 0;
-		background: linear-gradient(135deg, var(--background-secondary) 0%, var(--background-primary) 100%);
-		border: 2px solid var(--background-modifier-border);
+		background-color: var(--background-primary);
+		border: 1px solid var(--background-modifier-border);
 		border-radius: 6px;
-		margin-bottom: 12px;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		margin-bottom: 16px;
 		overflow: visible;
 		container-type: inline-size;
 	}
@@ -382,8 +381,8 @@
 		min-width: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 2px;
-		padding: 6px;
+		gap: 6px;
+		padding: 10px;
 		overflow: visible;
 	}
 
@@ -406,8 +405,8 @@
 		width: 100%;
 		height: 100%;
 		border-radius: 6px 0 0 6px;
-		background: linear-gradient(135deg, var(--background-secondary-alt) 0%, var(--background-secondary) 100%);
-		border-right: 2px dashed var(--background-modifier-border);
+		background: var(--background-secondary);
+		border-right: 1px solid var(--background-modifier-border);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -427,7 +426,7 @@
 	.name-level-row {
 		display: flex;
 		align-items: center;
-		gap: 8px;
+		gap: 10px;
 		margin-bottom: 0;
 	}
 
@@ -440,13 +439,13 @@
 	}
 
 	.level-badge {
-		padding: 1px 8px;
-		font-size: 13px;
+		padding: 2px 8px;
+		font-size: 12px;
 		font-weight: 700;
 		color: var(--text-accent);
-		background-color: var(--background-primary-alt);
+		background-color: var(--background-secondary);
 		border: 1px solid var(--background-modifier-border);
-		border-radius: 10px;
+		border-radius: 999px;
 		white-space: nowrap;
 	}
 
@@ -454,9 +453,9 @@
 	.race-background-row {
 		display: flex;
 		align-items: center;
-		gap: 4px;
+		gap: 6px;
 		font-size: 12px;
-		margin-bottom: 2px;
+		margin-bottom: 0;
 	}
 
 	.race-background-row :global(.linked-input-container):first-child {
@@ -477,15 +476,15 @@
 
 	/* Classes Section */
 	.classes-section {
-		margin: 2px 0;
+		margin: 0;
 	}
 
 	/* Bottom Row */
 	.bottom-row {
 		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 6px;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 10px 14px;
 		font-size: 11px;
 		color: var(--text-muted);
 		margin-top: 2px;
@@ -495,8 +494,9 @@
 	.bottom-item {
 		display: flex;
 		align-items: center;
-		gap: 4px;
-		width: 100%;
+		gap: 6px;
+		flex: 1 1 180px;
+		min-width: 0;
 	}
 
 	.label {
@@ -671,7 +671,7 @@
 
 	.text-input {
 		font-size: 11px;
-		min-width: 60px;
+		min-width: 80px;
 	}
 
 	/* Alignment Picker Styling */
@@ -682,7 +682,7 @@
 		background-color: transparent;
 		color: var(--text-normal);
 		line-height: 1.3;
-		min-width: 140px;
+		min-width: 130px;
 	}
 
 	.bottom-item :global(.alignment-picker:hover) {
@@ -786,37 +786,16 @@
 		}
 
 		.header-info {
-			padding: 8px;
-			gap: 3px;
-		}
-
-		.bottom-row {
-			display: grid;
-			grid-template-columns: 1fr 1fr;
-			gap: 8px;
-		}
-
-		.bottom-item {
-			width: auto;
-		}
-
-		.bottom-item:last-child {
-			grid-column: 1 / -1;
+			padding: 10px;
+			gap: 6px;
 		}
 	}
 
 	/* Wide (600px+): Horizontal bottom row */
 	@container (min-width: 600px) {
-		.bottom-row {
-			display: flex;
-			flex-direction: row;
-			flex-wrap: wrap;
-			gap: 12px;
-		}
-
 		.bottom-item:last-child {
-			grid-column: auto;
 			margin-left: auto;
+			flex: 0 1 auto;
 		}
 	}
 
