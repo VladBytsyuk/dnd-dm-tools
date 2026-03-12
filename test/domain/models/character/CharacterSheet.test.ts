@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { CharacterSheet } from "@/domain/models/character";
-import { parseCharacterData, stringifyCharacterData } from "@/domain/models/character";
+import { EmptyFullCharacterSheet, parseCharacterData, stringifyCharacterData } from "@/domain/models/character";
 
 // Sample character JSON data (based on tes-character.json)
 const mockCharacterSheet: CharacterSheet = {
@@ -83,10 +83,22 @@ describe("CharacterSheet interfaces", () => {
 
 		// Check proficiency bonus
 		expect(parsed.data.proficiency).toBe(3);
+
+		// Check proficiencies defaults for legacy JSON
+		expect(parsed.data.proficiencies.armor.light).toBe(false);
+		expect(parsed.data.proficiencies.armor.medium).toBe(false);
+		expect(parsed.data.proficiencies.armor.heavy).toBe(false);
+		expect(parsed.data.proficiencies.armor.shield).toBe(false);
+		expect(parsed.data.proficiencies.weapons.value).toBe("");
+		expect(parsed.data.proficiencies.languages.value).toBe("");
+		expect(parsed.data.proficiencies.tools.value).toBe("");
+		expect(parsed.data.proficiencies.other.value).toBe("");
 	});
 
 	it("should stringify character data correctly", () => {
 		const parsed = parseCharacterData(mockCharacterSheet);
+		parsed.data.proficiencies.armor.light = true;
+		parsed.data.proficiencies.weapons.value = "Простое оружие";
 		const stringified = stringifyCharacterData(parsed);
 
 		// Should be valid JSON string
@@ -96,6 +108,8 @@ describe("CharacterSheet interfaces", () => {
 		const reparsed = JSON.parse(stringified.data);
 		expect(reparsed.name.value).toBe("Test Character");
 		expect(reparsed.stats.str.score).toBe(16);
+		expect(reparsed.proficiencies.armor.light).toBe(true);
+		expect(reparsed.proficiencies.weapons.value).toBe("Простое оружие");
 	});
 
 	it("should handle text sections with editor state", () => {
@@ -123,5 +137,22 @@ describe("CharacterSheet interfaces", () => {
 		expect(reParsed.data.stats.str.score).toBe(parsed.data.stats.str.score);
 		expect(reParsed.data.vitality.ac.value).toBe(parsed.data.vitality.ac.value);
 		expect(reParsed.data.weaponsList[0].name.value).toBe(parsed.data.weaponsList[0].name.value);
+	});
+
+	it("should create empty proficiencies in default character sheet", () => {
+		const emptySheet = EmptyFullCharacterSheet();
+
+		expect(emptySheet.data.proficiencies).toEqual({
+			armor: {
+				light: false,
+				medium: false,
+				heavy: false,
+				shield: false,
+			},
+			weapons: { value: "" },
+			languages: { value: "" },
+			tools: { value: "" },
+			other: { value: "" },
+		});
 	});
 });

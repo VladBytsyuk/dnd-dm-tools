@@ -7,6 +7,7 @@ import type {
 	CharacterSheetFilters,
 	CharacterSheetParsed,
 } from "../../domain/models/character";
+import { normalizeCharacterData } from "../../domain/models/character";
 
 /**
  * Single DAO for character sheets that stores full data.
@@ -273,7 +274,7 @@ export class CharacterSheetSqlTableDao extends Dao<FullCharacterSheet, Character
 	 */
 	async mapSqlValues(sqlValues: SqlValue[]): Promise<FullCharacterSheet> {
 		try {
-			const characterData = JSON.parse(sqlValues[13] as string);
+			const characterData = normalizeCharacterData(JSON.parse(sqlValues[13] as string));
 			const parsed: CharacterSheetParsed = {
 				tags: JSON.parse(sqlValues[9] as string),
 				disabledBlocks: JSON.parse(sqlValues[10] as string),

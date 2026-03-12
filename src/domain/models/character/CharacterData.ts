@@ -4,6 +4,7 @@ import type { CharacterSkills } from "./CharacterSkills";
 import type { CharacterVitality } from "./CharacterVitality";
 import type { WeaponItem, AttunementItem, CharacterCoins, EquipmentItem } from "./CharacterEquipment";
 import type { CharacterTextSections } from "./CharacterText";
+import type { CharacterProficiencies } from "./CharacterProficiencies";
 
 // Name field (simpler than full Field interface)
 export interface NameField {
@@ -36,6 +37,7 @@ export interface CharacterData {
 	equipmentList?: EquipmentItem[]; // New structured equipment
 	weaponsList: WeaponItem[];
 	weapons: Record<string, unknown>;
+	proficiencies: CharacterProficiencies;
 	text: CharacterTextSections;
 	coins: CharacterCoins;
 	resources: Record<string, unknown>;

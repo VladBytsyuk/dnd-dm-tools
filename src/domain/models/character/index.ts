@@ -6,6 +6,7 @@ export * from "./CharacterStats";
 export * from "./CharacterSkills";
 export * from "./CharacterVitality";
 export * from "./CharacterEquipment";
+export * from "./CharacterProficiencies";
 export * from "./CharacterText";
 export * from "./SmallCharacterSheet";
 export * from "./FullCharacterSheet";

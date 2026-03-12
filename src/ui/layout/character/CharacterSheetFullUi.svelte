@@ -26,6 +26,7 @@
 	import CharacterEquipmentBlock from "./kit/CharacterEquipmentBlock.svelte";
 	import CharacterTextSection from "./kit/CharacterTextSection.svelte";
 	import CharacterInfoBox from "./kit/CharacterInfoBox.svelte";
+	import CharacterProficienciesBlock from "./kit/CharacterProficienciesBlock.svelte";
 
 	let {
 		currentItem,
@@ -45,6 +46,7 @@
 		diceRollersManager.onMount();
 		migrateToMulticlass();
 		migrateEquipmentList();
+		migrateLegacyProficiencies();
 	});
 	onDestroy(() => {
 		diceRollersManager.onDestroy();
@@ -186,6 +188,58 @@
 		}
 	}
 
+	function hasMeaningfulProficienciesData() {
+		const proficiencies = data.proficiencies;
+		if (!proficiencies) return false;
+
+		return Boolean(
+			proficiencies.armor?.light ||
+			proficiencies.armor?.medium ||
+			proficiencies.armor?.heavy ||
+			proficiencies.armor?.shield ||
+			proficiencies.weapons?.value?.trim() ||
+			proficiencies.languages?.value?.trim() ||
+			proficiencies.tools?.value?.trim() ||
+			proficiencies.other?.value?.trim()
+		);
+	}
+
+	function extractLegacyProfText(): string {
+		const legacyProf = data.text?.prof;
+		if (!legacyProf) return "";
+		if (typeof legacyProf === "string") return legacyProf.trim();
+
+		const lines: string[] = [];
+
+		const visitNode = (node: any): string => {
+			if (!node || typeof node !== "object") return "";
+			if (node.type === "text") return node.text || "";
+
+			const content = Array.isArray(node.content) ? node.content.map(visitNode).join("") : "";
+			if (node.type === "paragraph") {
+				lines.push(content);
+				return "";
+			}
+
+			return content;
+		};
+
+		visitNode(legacyProf.value?.data);
+		return lines.join("\n").trim();
+	}
+
+	function migrateLegacyProficiencies() {
+		if (hasMeaningfulProficienciesData()) return;
+
+		const legacyProfText = extractLegacyProfText();
+		if (!legacyProfText) return;
+
+		data.proficiencies.other.value = legacyProfText;
+		if (repository) {
+			debouncedSave();
+		}
+	}
+
 	// Auto-save functionality
 	let saveTimeout: NodeJS.Timeout | null = null;
 	let isSaving = $state(false);
@@ -314,6 +368,11 @@
 		debouncedSave();
 	}
 
+	function handleProficienciesChange(newProficiencies: typeof data.proficiencies) {
+		data.proficiencies = newProficiencies;
+		debouncedSave();
+	}
+
 	function handleOpenConditionDetails(url: string) {
 		uiEventListener.onScreenItemClick(url);
 	}
@@ -392,6 +451,8 @@
 	const proficiency = $derived(data.proficiency || 2);
 
 	const weaponsList = $derived(data.weaponsList || []);
+
+	const proficiencies = $derived(data.proficiencies);
 
 	const attunementsList = $derived(
 		(data.attunementsList || []).map((a: any) => ({
@@ -517,6 +578,11 @@
 					{proficiency}
 				/>
 			{/each}
+
+			<CharacterProficienciesBlock
+				{proficiencies}
+				onChange={handleProficienciesChange}
+			/>
 
 			{#if hasPhysicalInfo}
 				<div class="physical-info-section">

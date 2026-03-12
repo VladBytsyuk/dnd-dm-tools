@@ -3,6 +3,7 @@ import type { CharacterSheetParsed } from "./CharacterSheet";
 import { EmptySmallCharacterSheet } from "./SmallCharacterSheet";
 import type { CharacterData } from "./CharacterData";
 import type { CharacterSkills } from "./CharacterSkills";
+import { createEmptyCharacterProficiencies } from "./CharacterProficiencies";
 
 export interface FullCharacterSheet extends SmallCharacterSheet, CharacterSheetParsed {
 	id?: number; // Database auto-increment ID
@@ -110,6 +111,7 @@ export function EmptyFullCharacterSheet(): FullCharacterSheet {
 		attunementsList: [],
 		weaponsList: [],
 		weapons: {},
+		proficiencies: createEmptyCharacterProficiencies(),
 		text: {
 			attacks: { value: emptyEditorState },
 			traits: { value: emptyEditorState },
