@@ -27,9 +27,11 @@
 	import CharacterEquipmentBlock from "./kit/CharacterEquipmentBlock.svelte";
 	import CharacterTextSection from "./kit/CharacterTextSection.svelte";
 	import CharacterEditableTextBlock from "./kit/CharacterEditableTextBlock.svelte";
-	import CharacterInfoBox from "./kit/CharacterInfoBox.svelte";
+	import CharacterEditableInfoField from "./kit/CharacterEditableInfoField.svelte";
 	import CharacterProficienciesBlock from "./kit/CharacterProficienciesBlock.svelte";
-	import { createTextFieldFromPlainText } from "./kit/characterTextBlockUtils";
+	import { canSafelyEditAsPlainText, createTextFieldFromPlainText } from "./kit/characterTextBlockUtils";
+	import { createEmptyCharacterSubInfo, ensureCharacterSubInfo } from "./kit/characterSubInfoUtils";
+	import type { CharacterSubInfo } from "../../../domain/models/character/CharacterInfo";
 
 	let {
 		currentItem,
@@ -359,10 +361,27 @@
 		debouncedSave();
 	}
 
+	function ensureSubInfo(): CharacterSubInfo {
+		data.subInfo = ensureCharacterSubInfo(data.subInfo);
+
+		return data.subInfo;
+	}
+
+	function handleSubInfoChange(field: keyof CharacterSubInfo, value: string) {
+		const subInfo = ensureSubInfo();
+		subInfo[field] = subInfo[field] ?? createEmptyCharacterSubInfo()[field];
+		subInfo[field].value = value;
+		debouncedSave();
+	}
+
 	function handleTextSectionChange(section: keyof CharacterTextSections, newText: string) {
 		data.text = data.text || {};
 		data.text[section] = createTextFieldFromPlainText(newText, `${section}-text`);
 		debouncedSave();
+	}
+
+	function canEditRoleplaySection(section: keyof CharacterTextSections): boolean {
+		return canSafelyEditAsPlainText(data.text?.[section]);
 	}
 
 	function handleProficienciesChange(newProficiencies: typeof data.proficiencies) {
@@ -544,14 +563,6 @@
 		}
 	];
 
-	const hasPhysicalInfo = $derived(
-		data.subInfo?.age?.value ||
-		data.subInfo?.height?.value ||
-		data.subInfo?.weight?.value ||
-		data.subInfo?.eyes?.value ||
-		data.subInfo?.skin?.value ||
-		data.subInfo?.hair?.value
-	);
 </script>
 
 <div class="character-sheet-full">
@@ -575,32 +586,6 @@
 				{proficiencies}
 				onChange={handleProficienciesChange}
 			/>
-
-			{#if hasPhysicalInfo}
-				<div class="physical-info-section">
-					<h3 class="section-title">Физические характеристики</h3>
-					<div class="physical-info-list">
-						{#if data.subInfo?.age?.value}
-							<CharacterInfoBox label="Возраст" value={data.subInfo.age.value} />
-						{/if}
-						{#if data.subInfo?.height?.value}
-							<CharacterInfoBox label="Рост" value={data.subInfo.height.value} />
-						{/if}
-						{#if data.subInfo?.weight?.value}
-							<CharacterInfoBox label="Вес" value={data.subInfo.weight.value} />
-						{/if}
-						{#if data.subInfo?.eyes?.value}
-							<CharacterInfoBox label="Глаза" value={data.subInfo.eyes.value} />
-						{/if}
-						{#if data.subInfo?.skin?.value}
-							<CharacterInfoBox label="Кожа" value={data.subInfo.skin.value} />
-						{/if}
-						{#if data.subInfo?.hair?.value}
-							<CharacterInfoBox label="Волосы" value={data.subInfo.hair.value} />
-						{/if}
-					</div>
-				</div>
-			{/if}
 		</div>
 
 		<!-- Center Column: Header, Vitality, Combat, Equipment, Description -->
@@ -690,34 +675,6 @@
 					/>
 				</div>
 			</div>
-
-			{#if data.text?.personality}
-				<CharacterTextSection title="Личность" content={data.text.personality} collapsible={true} />
-			{/if}
-
-			{#if data.text?.ideals}
-				<CharacterTextSection title="Идеалы" content={data.text.ideals} collapsible={true} />
-			{/if}
-
-			{#if data.text?.bonds}
-				<CharacterTextSection title="Привязанности" content={data.text.bonds} collapsible={true} />
-			{/if}
-
-			{#if data.text?.flaws}
-				<CharacterTextSection title="Слабости" content={data.text.flaws} collapsible={true} />
-			{/if}
-
-			{#if data.text?.background}
-				<CharacterTextSection title="История персонажа" content={data.text.background} collapsible={true} />
-			{/if}
-
-			{#if data.text?.allies}
-				<CharacterTextSection title="Союзники и организации" content={data.text.allies} collapsible={true} />
-			{/if}
-
-			{#if data.text?.quests}
-				<CharacterTextSection title="Задания" content={data.text.quests} collapsible={true} />
-			{/if}
 		</div>
 
 		<!-- Right Column: Spellcasting, Features, Traits -->
@@ -732,6 +689,164 @@
 				{uiEventListener}
 				onChange={handleSpellbookChange}
 			/>
+		</div>
+	</div>
+
+	<div class="roleplay-section">
+		<div class="roleplay-section-header">
+			<h2 class="roleplay-section-title">Ролевая информация</h2>
+		</div>
+
+		<div class="roleplay-physical-grid">
+			<CharacterEditableInfoField
+				label="Возраст"
+				value={data.subInfo?.age?.value || ""}
+				onChange={(value) => handleSubInfoChange("age", value)}
+			/>
+			<CharacterEditableInfoField
+				label="Рост"
+				value={data.subInfo?.height?.value || ""}
+				onChange={(value) => handleSubInfoChange("height", value)}
+			/>
+			<CharacterEditableInfoField
+				label="Вес"
+				value={data.subInfo?.weight?.value || ""}
+				onChange={(value) => handleSubInfoChange("weight", value)}
+			/>
+			<CharacterEditableInfoField
+				label="Глаза"
+				value={data.subInfo?.eyes?.value || ""}
+				onChange={(value) => handleSubInfoChange("eyes", value)}
+			/>
+			<CharacterEditableInfoField
+				label="Кожа"
+				value={data.subInfo?.skin?.value || ""}
+				onChange={(value) => handleSubInfoChange("skin", value)}
+			/>
+			<CharacterEditableInfoField
+				label="Волосы"
+				value={data.subInfo?.hair?.value || ""}
+				onChange={(value) => handleSubInfoChange("hair", value)}
+			/>
+		</div>
+
+		<div class="roleplay-text-grid">
+			<div class="roleplay-traits-row">
+				{#if canEditRoleplaySection("personality")}
+					<CharacterEditableTextBlock
+						title="Черты"
+						content={data.text?.personality}
+						minHeight="68px"
+						maxHeight="68px"
+						resize="none"
+						onChange={(value) => handleTextSectionChange("personality", value)}
+					/>
+				{:else}
+					<div class="roleplay-readonly-block compact">
+						<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
+						<CharacterTextSection title="Черты" content={data.text?.personality} />
+					</div>
+				{/if}
+				{#if canEditRoleplaySection("ideals")}
+					<CharacterEditableTextBlock
+						title="Идеалы"
+						content={data.text?.ideals}
+						minHeight="68px"
+						maxHeight="68px"
+						resize="none"
+						onChange={(value) => handleTextSectionChange("ideals", value)}
+					/>
+				{:else}
+					<div class="roleplay-readonly-block compact">
+						<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
+						<CharacterTextSection title="Идеалы" content={data.text?.ideals} />
+					</div>
+				{/if}
+				{#if canEditRoleplaySection("bonds")}
+					<CharacterEditableTextBlock
+						title="Привязанности"
+						content={data.text?.bonds}
+						minHeight="68px"
+						maxHeight="68px"
+						resize="none"
+						onChange={(value) => handleTextSectionChange("bonds", value)}
+					/>
+				{:else}
+					<div class="roleplay-readonly-block compact">
+						<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
+						<CharacterTextSection title="Привязанности" content={data.text?.bonds} />
+					</div>
+				{/if}
+				{#if canEditRoleplaySection("flaws")}
+					<CharacterEditableTextBlock
+						title="Слабости"
+						content={data.text?.flaws}
+						minHeight="68px"
+						maxHeight="68px"
+						resize="none"
+						onChange={(value) => handleTextSectionChange("flaws", value)}
+					/>
+				{:else}
+					<div class="roleplay-readonly-block compact">
+						<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
+						<CharacterTextSection title="Слабости" content={data.text?.flaws} />
+					</div>
+				{/if}
+			</div>
+
+			<div class="roleplay-text-grid-main">
+				{#if canEditRoleplaySection("appearance")}
+					<CharacterEditableTextBlock
+						title="Внешность"
+						content={data.text?.appearance}
+						onChange={(value) => handleTextSectionChange("appearance", value)}
+					/>
+				{:else}
+					<div class="roleplay-readonly-block">
+						<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
+						<CharacterTextSection title="Внешность" content={data.text?.appearance} />
+					</div>
+				{/if}
+				{#if canEditRoleplaySection("background")}
+					<CharacterEditableTextBlock
+						title="История персонажа"
+						content={data.text?.background}
+						minHeight="180px"
+						onChange={(value) => handleTextSectionChange("background", value)}
+					/>
+				{:else}
+					<div class="roleplay-readonly-block">
+						<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
+						<CharacterTextSection title="История персонажа" content={data.text?.background} />
+					</div>
+				{/if}
+				{#if canEditRoleplaySection("allies")}
+					<CharacterEditableTextBlock
+						title="Союзники и организации"
+						content={data.text?.allies}
+						minHeight="180px"
+						onChange={(value) => handleTextSectionChange("allies", value)}
+					/>
+				{:else}
+					<div class="roleplay-readonly-block">
+						<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
+						<CharacterTextSection title="Союзники и организации" content={data.text?.allies} />
+					</div>
+				{/if}
+				{#if canEditRoleplaySection("quests")}
+					<CharacterEditableTextBlock
+						title="Цели"
+						content={data.text?.quests}
+						minHeight="180px"
+						onChange={(value) => handleTextSectionChange("quests", value)}
+					/>
+				{:else}
+					<div class="roleplay-readonly-block">
+						<div class="roleplay-readonly-note">Форматированный текст сохранен без изменений</div>
+						<CharacterTextSection title="Цели" content={data.text?.quests} />
+					</div>
+				{/if}
+			</div>
 		</div>
 	</div>
 </div>
@@ -750,7 +865,6 @@
 		gap: 16px;
 		max-width: 1600px;
 		margin: 0 auto;
-		padding-bottom: 32px;
 	}
 
 	.column {
@@ -777,30 +891,72 @@
 		flex: 1 1 100%;
 	}
 
-	.physical-info-section {
-		padding: 12px;
-		background-color: var(--background-primary);
+	.roleplay-section {
+		max-width: 1600px;
+		margin: 12px auto 0;
 		border: 1px solid var(--background-modifier-border);
 		border-radius: 6px;
-		margin-bottom: 16px;
+		background-color: var(--background-primary);
+		overflow: hidden;
 	}
 
-	.section-title {
-		margin: 0 0 12px 0;
-		font-size: 14px;
+	.roleplay-section-header {
+		padding: 10px 14px;
+		border-bottom: 1px solid var(--background-modifier-border);
+		background-color: var(--background-secondary);
+	}
+
+	.roleplay-section-title {
+		margin: 0;
+		font-size: 12px;
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: 0.5px;
 		color: var(--text-normal);
-		text-align: center;
-		border-bottom: 1px solid var(--background-modifier-border);
-		padding-bottom: 8px;
 	}
 
-	.physical-info-list {
+	.roleplay-physical-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+		gap: 10px;
+		padding: 12px 14px 0;
+	}
+
+	.roleplay-text-grid {
 		display: flex;
 		flex-direction: column;
-		gap: 0;
+		gap: 12px;
+		padding: 12px 14px 14px;
+	}
+
+	.roleplay-traits-row {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+		gap: 10px;
+	}
+
+	.roleplay-text-grid-main {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+		gap: 12px;
+	}
+
+	.roleplay-readonly-block {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		min-width: 0;
+	}
+
+	.roleplay-readonly-note {
+		padding: 0 2px;
+		font-size: 11px;
+		color: var(--text-muted);
+	}
+
+	.roleplay-readonly-block.compact :global(.character-text-section .section-content) {
+		max-height: 68px;
+		overflow: auto;
 	}
 
 	/* Responsive breakpoints */
@@ -814,6 +970,10 @@
 			display: grid;
 			grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 			gap: 16px;
+		}
+
+		.roleplay-section {
+			margin-top: 12px;
 		}
 	}
 
@@ -830,6 +990,27 @@
 		.column-right {
 			display: flex;
 			flex-direction: column;
+		}
+
+		.roleplay-physical-grid {
+			grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+			gap: 8px;
+		}
+
+		.roleplay-traits-row,
+		.roleplay-text-grid-main {
+			grid-template-columns: 1fr;
+		}
+
+		.roleplay-section-header,
+		.roleplay-physical-grid,
+		.roleplay-text-grid {
+			padding-left: 10px;
+			padding-right: 10px;
+		}
+
+		.roleplay-text-grid {
+			padding-bottom: 10px;
 		}
 	}
 </style>

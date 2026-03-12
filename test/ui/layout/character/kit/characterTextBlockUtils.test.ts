@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTextFieldFromPlainText, getPlainTextFromTextField } from "../../../../../src/ui/layout/character/kit/characterTextBlockUtils";
+import { canSafelyEditAsPlainText, createTextFieldFromPlainText, getPlainTextFromTextField } from "../../../../../src/ui/layout/character/kit/characterTextBlockUtils";
 
 describe("characterTextBlockUtils", () => {
 	it("creates paragraph nodes from plain multiline text", () => {
@@ -99,5 +99,68 @@ describe("characterTextBlockUtils", () => {
 				data: "<h2>Эльф</h2><p>Темное зрение</p><blockquote>Преимущество против очарования</blockquote><div>Фейское происхождение<br>Доп. строка</div>"
 			}
 		})).toBe("Эльф\nТемное зрение\nПреимущество против очарования\nФейское происхождение\nДоп. строка");
+	});
+
+	it("allows plain paragraph content to be edited as plain text", () => {
+		expect(canSafelyEditAsPlainText({
+			value: {
+				id: "personality-1",
+				data: {
+					type: "doc",
+					content: [
+						{ type: "paragraph", content: [{ type: "text", text: "Brave and loyal" }] },
+						{ type: "paragraph", content: [{ type: "text", text: "Protects friends" }] }
+					]
+				}
+			}
+		})).toBe(true);
+	});
+
+	it("blocks plain-text editing for formatted documents", () => {
+		expect(canSafelyEditAsPlainText({
+			value: {
+				id: "background-1",
+				data: {
+					type: "doc",
+					content: [
+						{
+							type: "bulletList",
+							content: [
+								{
+									type: "listItem",
+									content: [
+										{
+											type: "paragraph",
+											content: [{ type: "text", text: "Guild contact" }]
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			}
+		})).toBe(false);
+
+		expect(canSafelyEditAsPlainText({
+			value: {
+				id: "allies-1",
+				data: {
+					type: "doc",
+					content: [
+						{
+							type: "paragraph",
+							content: [
+								{
+									type: "text",
+									text: "Important ally",
+									marks: [{ type: "bold" }]
+								}
+							]
+						}
+					]
+				}
+			}
+		})).toBe(false);
 	});
 });
