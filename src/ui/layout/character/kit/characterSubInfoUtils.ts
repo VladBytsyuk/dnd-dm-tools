@@ -10,3 +10,10 @@ export function createEmptyCharacterSubInfo(): CharacterSubInfo {
 		hair: { name: "hair", value: "" }
 	};
 }
+
+export function ensureCharacterSubInfo(subInfo?: Partial<CharacterSubInfo> | null): CharacterSubInfo {
+	return {
+		...createEmptyCharacterSubInfo(),
+		...subInfo,
+	};
+}

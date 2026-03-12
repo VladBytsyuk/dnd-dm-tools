@@ -30,7 +30,7 @@
 	import CharacterEditableInfoField from "./kit/CharacterEditableInfoField.svelte";
 	import CharacterProficienciesBlock from "./kit/CharacterProficienciesBlock.svelte";
 	import { canSafelyEditAsPlainText, createTextFieldFromPlainText } from "./kit/characterTextBlockUtils";
-	import { createEmptyCharacterSubInfo } from "./kit/characterSubInfoUtils";
+	import { createEmptyCharacterSubInfo, ensureCharacterSubInfo } from "./kit/characterSubInfoUtils";
 	import type { CharacterSubInfo } from "../../../domain/models/character/CharacterInfo";
 
 	let {
@@ -362,15 +362,14 @@
 	}
 
 	function ensureSubInfo(): CharacterSubInfo {
-		if (!data.subInfo) {
-			data.subInfo = createEmptyCharacterSubInfo();
-		}
+		data.subInfo = ensureCharacterSubInfo(data.subInfo);
 
 		return data.subInfo;
 	}
 
 	function handleSubInfoChange(field: keyof CharacterSubInfo, value: string) {
 		const subInfo = ensureSubInfo();
+		subInfo[field] = subInfo[field] ?? createEmptyCharacterSubInfo()[field];
 		subInfo[field].value = value;
 		debouncedSave();
 	}
