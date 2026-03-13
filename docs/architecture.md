@@ -7,8 +7,8 @@ DnD DM Tools follows a three-layer architecture with clear separation of concern
 ```
 ┌─────────────────────────────────────────────┐
 │                  UI Layer                   │
-│  (Svelte components, side panels, modals,   │
-│   code block processors, commands)          │
+│  (Svelte components, side panels, shared    │
+│   UIKit/design system, processors, commands)│
 ├─────────────────────────────────────────────┤
 │               Domain Layer                  │
 │  (Models, Repository interfaces, Filters,   │
@@ -29,6 +29,8 @@ DnD DM Tools follows a three-layer architecture with clear separation of concern
 | Domain | `src/domain/` | Models, repository interfaces, listener interfaces, utilities |
 | Data | `src/data/` | DB manager, DAO implementations, repository implementations |
 | UI | `src/ui/` | Svelte components, feature classes, side panels, processors, modals, commands |
+
+Within the UI layer, `src/ui/layout/uikit/` now acts as a shared sublayer for reusable design-system components and the common side-panel browser shell. See [UI Layer](./ui-layer.md) and [UIKit](./uikit.md).
 
 ## Key Abstractions
 
@@ -64,6 +66,8 @@ Orchestrates a complete feature. Each feature brings together:
 ### SidePanel (`src/ui/components/sidepanel/BaseSidePanel.ts`)
 
 Registers an Obsidian view that renders a Svelte component for browsing and viewing items.
+
+Most side-panel views now compose through the generic `BaseSidePanelUi.svelte` browser shell plus feature-provided list/detail slots, rather than duplicating search, grouping, empty-state, and filter-overlay behavior in each feature.
 
 ### CodeBlockProcessor (`src/ui/components/processor/BaseMdCodeBlockProcessor.ts`)
 

@@ -49,16 +49,26 @@ Create Svelte components in `src/ui/layout/newtype/`:
 
 | File | Purpose |
 |------|---------|
-| `NewTypeSmallUi.svelte` | List item component |
-| `NewTypeFullUi.svelte` | Full statblock/detail component |
-| `NewTypeHeaderUi.svelte` | Header area (optional) |
+| `NewTypeSmallUi.svelte` | List item adapter, usually composed from `UiItemCard` |
+| `NewTypeFullUi.svelte` | Full statblock/detail component, preferably composed from shared UIKit detail components |
+| `NewTypeHeaderUi.svelte` | Optional only if the shared `UiDetailHeader` cannot cover the feature's needs |
+
+Before creating custom UI chrome, check the shared UIKit in `src/ui/layout/uikit/` and the guide in [UIKit](./uikit.md).
+
+Use the shared layer by default:
+
+- `UiItemCard` for list items
+- `UiDetailHeader`, `UiDetailCard`, `UiPropertyGrid`, and `UiContentSection` for detail pages
+- `BaseSidePanelUi.svelte` for standard repository-backed search/browse side panels
+
+Do not introduce a feature-local proxy component when a shared UIKit component can be used directly.
 
 ### 6. Side Panel
 
 Create `src/ui/components/sidepanel/NewTypeSidePanel.ts`:
 
 - Extends `BaseSidePanel`
-- Specifies the Svelte component to render
+- Usually mounts `src/ui/layout/uikit/BaseSidePanelUi.svelte` with feature-specific slots and config
 - Defines the view type identifier
 
 ### 7. Code Block Processor
@@ -213,6 +223,7 @@ To add clipboard support for the new entity type:
 - [ ] SmallDao and FullDao created in `src/data/database/`
 - [ ] Repository created in `src/data/repositories/`
 - [ ] Svelte UI components created in `src/ui/layout/newtype/`
+- [ ] Shared UIKit components reused where possible before adding feature-local structure
 - [ ] SidePanel created in `src/ui/components/sidepanel/`
 - [ ] CodeBlockProcessor created in `src/ui/components/processor/`
 - [ ] Feature class created in `src/ui/components/feature/`
