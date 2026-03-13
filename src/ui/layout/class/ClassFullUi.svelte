@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { FullClass } from '../../../domain/models/class/FullClass';
     import type { IUiEventListener } from '../../../domain/listeners/ui_event_listener';
-    import HeaderFullUi from '../uikit/HeaderFullUi.svelte';
+    import UiDetailHeader from '../uikit/organisms/UiDetailHeader.svelte';
     import HtmlBlock from '../uikit/HtmlBlock.svelte';
     import { copyClassToClipboard } from '../../../data/clipboard';
     import { onMount, onDestroy } from 'svelte';
@@ -35,10 +35,10 @@
 </script>
 
 <div class="full-item">
-    <HeaderFullUi
+    <UiDetailHeader
         name={currentItem.name}
         source={currentItem.source}
-        onClick={() => copyClassToClipboard(currentItem)}
+        onCopy={() => copyClassToClipboard(currentItem)}
     />
 
     {#if currentItem.isArchetype && currentItem.parentClassUrl}

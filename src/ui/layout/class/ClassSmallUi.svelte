@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { SmallClass } from "../../../domain/models/class/SmallClass";
-    import SmallItemUi from "../uikit/SmallItemUi.svelte";
+    import UiItemCard from "../uikit/organisms/UiItemCard.svelte";
 
     interface Props {
         smallItem: SmallClass;
@@ -11,7 +11,7 @@
     const { name, dice, source } = smallItem;
 </script>
 
-<SmallItemUi
+<UiItemCard
     group={dice}
     name={name}
     source={source}

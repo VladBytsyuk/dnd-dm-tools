@@ -1,13 +1,14 @@
 <script lang="ts">
-	import SidePanelHeader from "./SidePanelHeader.svelte";
 	import { onMount } from "svelte";
-	import GroupBlockUi from "./GroupBlockUi.svelte";
 	import FiltersOverlay from "./FiltersOverlay.svelte";
 	import type { BaseItem } from "src/domain/models/common/BaseItem";
 	import type { Group, Repository } from "src/domain/repositories/Repository";
 	import { isFiltersEmpty, type Filters } from "src/domain/models/common/Filters";
 	import type { IUiEventListener } from 'src/domain/listeners/ui_event_listener.js';
 	import type { FilterConfig } from "src/domain/utils/FilterConfig";
+	import UiEmptyState from "./organisms/UiEmptyState.svelte";
+	import UiSearchToolbar from "./organisms/UiSearchToolbar.svelte";
+	import UiItemGroup from "./organisms/UiItemGroup.svelte";
 
     // ---- Props ----
     interface Props<Small extends BaseItem, Full extends Small, F extends Filters> {
@@ -94,7 +95,7 @@
 </script>
 
 <div class="side-panel-container">
-    <SidePanelHeader
+    <UiSearchToolbar
         onbackclick={currentItem ? onSearchBarBackClick : undefined}
         onvaluechange={onSearchBarValueChanged}
         isvaluechangable={() => !currentItem}
@@ -115,12 +116,11 @@
             onItemDelete={async (url: string) => await repository.deleteItem(url)}
         />
     {:else if searchBarValue.length > 0 && groups.length === 0}
-        <h2>Результаты поиска</h2>
-        <div>Ничего не найдено</div>
+        <UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
     {:else}
         <div class="content">
             {#each groups as group (group.sort)}
-                <GroupBlockUi
+                <UiItemGroup
                     groupTitle={groupTitleBuilder(group)}
                     items={group.smallItems}
                     onItemClick={onSmallItemClick}

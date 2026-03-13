@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SmallWeapon } from "src/domain/models/weapon/SmallWeapon";
-	import SmallItemUi from "../uikit/SmallItemUi.svelte";
+	import UiItemCard from "../uikit/organisms/UiItemCard.svelte";
 
     interface Props {
         smallItem: SmallWeapon;
@@ -12,7 +12,7 @@
     const leftText = `${diceText}${smallItem.damage.type ?? ''}`;
 </script>
 
-<SmallItemUi
+<UiItemCard
     name={smallItem.name}
     source={smallItem.source}
     left={leftText} 

@@ -9,9 +9,10 @@
 	import type { CharacterSheetFilters } from "../../../domain/models/character/CharacterSheetFilters";
 	import type { CharacterSheetRepository } from "../../../data/repositories/CharacterSheetRepository";
 	import type DndStatblockPlugin from "../../../main";
-	import SidePanelHeader from "../uikit/SidePanelHeader.svelte";
-	import GroupBlockUi from "../uikit/GroupBlockUi.svelte";
 	import FiltersOverlay from "../uikit/FiltersOverlay.svelte";
+	import UiSearchToolbar from "../uikit/organisms/UiSearchToolbar.svelte";
+	import UiItemGroup from "../uikit/organisms/UiItemGroup.svelte";
+	import UiEmptyState from "../uikit/organisms/UiEmptyState.svelte";
 	import type { CharacterSheetBrowserState } from "../../../data/repositories/characterSheetTypes";
 	import { onMount } from "svelte";
 	import { CharacterSheetBrowserController } from "./characterSheetBrowserController";
@@ -83,7 +84,7 @@
 </script>
 
 <div class="side-panel-container">
-	<SidePanelHeader
+	<UiSearchToolbar
 		onbackclick={browserState.currentItem ? onSearchBarBackClick : undefined}
 		onvaluechange={onSearchBarValueChanged}
 		isvaluechangable={() => !browserState.currentItem}
@@ -108,12 +109,11 @@
 			{plugin}
 		/>
 	{:else if browserState.searchBarValue.length > 0 && browserState.groups.length === 0}
-		<h2>Результаты поиска</h2>
-		<div>Ничего не найдено</div>
+		<UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
 	{:else}
 		<div class="side-panel-content">
 			{#each browserState.groups as group (group.sort)}
-				<GroupBlockUi
+				<UiItemGroup
 					groupTitle={group.sort}
 					items={group.smallItems}
 					onItemClick={onSmallItemClick}
@@ -161,10 +161,5 @@
 	.browser-status-error {
 		background: var(--background-modifier-error);
 		color: var(--text-on-accent);
-	}
-
-	h2 {
-		margin: 0 0 0.5em 0;
-		font-size: 1.2em;
 	}
 </style>

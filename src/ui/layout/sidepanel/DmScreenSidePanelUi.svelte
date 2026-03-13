@@ -1,8 +1,9 @@
 <script lang="ts">
 	import DmScreenGroupUi from "../screen/DmScreenGroupUi.svelte";
 	import { type DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
-	import SidePanelHeader from "../uikit/SidePanelHeader.svelte";
 	import DmScreenItemUi from "../screen/DmScreenItemUi.svelte";
+	import UiSearchToolbar from "../uikit/organisms/UiSearchToolbar.svelte";
+	import UiEmptyState from "../uikit/organisms/UiEmptyState.svelte";
 
     // ---- Props ----
     let { item, children, uiEventListener, getFilteredItems, getChildrenCount, getChildren, getFullItem } = $props();
@@ -76,7 +77,7 @@
 </script>
 
 <div>
-    <SidePanelHeader
+    <UiSearchToolbar
         onbackclick={itemsStack.length > 0 ? onSearchBarBackClick : undefined}
         onvaluechange={onSearchBarValueChanged}
         isvaluechangable={() => !currentItem}
@@ -92,9 +93,8 @@
             uiEventListener={uiEventListener}
         />
     {:else if !currentItem && searchBarValue.length > 0}
-        <h2>Результаты поиска</h2>
         {#if filteredItems.length === 0}
-            <div class="group-description">Ничего не найдено</div>
+            <UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
         {:else}
             <div>
                 {#each filteredItems as item}

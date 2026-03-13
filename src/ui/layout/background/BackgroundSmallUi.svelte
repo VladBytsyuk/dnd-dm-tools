@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { SmallBackground } from 'src/domain/models/background/SmallBackground';
-	import SmallItemUi from "../uikit/SmallItemUi.svelte";
+	import UiItemCard from "../uikit/organisms/UiItemCard.svelte";
 
     interface Props {
         smallItem: SmallBackground,
@@ -9,7 +9,7 @@
     let { smallItem, onItemClick }: Props = $props();
 </script>
 
-<SmallItemUi
+<UiItemCard
     name={smallItem.name}
     source={smallItem.source}
     onItemClick={onItemClick}

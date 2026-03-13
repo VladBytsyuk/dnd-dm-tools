@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SmallArmor } from "src/domain/models/armor/SmallArmor";
-	import SmallItemUi from "../uikit/SmallItemUi.svelte";
+	import UiItemCard from "../uikit/organisms/UiItemCard.svelte";
 
     interface Props {
         smallItem: SmallArmor;
@@ -9,7 +9,7 @@
     let { smallItem, onItemClick }: Props = $props();
 </script>
 
-<SmallItemUi
+<UiItemCard
     name={smallItem.name}
     source={smallItem.source}
     left={smallItem.armorClass}

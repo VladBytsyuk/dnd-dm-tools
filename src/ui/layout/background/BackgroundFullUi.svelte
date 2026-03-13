@@ -1,11 +1,12 @@
 <script lang="ts">
-    import { onDestroy, onMount } from 'svelte';
 	import type { IUiEventListener } from 'src/domain/listeners/ui_event_listener.js';
-	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 	import type { FullBackground } from 'src/domain/models/background/FullBackground';
 	import { copyBackgroundToClipboard } from 'src/data/clipboard';
 	import HtmlBlock from '../uikit/HtmlBlock.svelte';
-	import HeaderFullUi from '../uikit/HeaderFullUi.svelte';
+	import UiDetailCard from '../uikit/organisms/UiDetailCard.svelte';
+	import UiDetailHeader from '../uikit/organisms/UiDetailHeader.svelte';
+	import UiContentSection from '../uikit/molecules/UiContentSection.svelte';
+	import { useDiceRollers } from '../dice-roller/useDiceRollers';
 
     interface Props {
         currentItem: FullBackground,
@@ -13,25 +14,17 @@
     }
     let { currentItem, uiEventListener }: Props = $props();
 
-    const diceRollersManager = new DiceRollersManager(uiEventListener.onDiceRoll);
-
-    onMount(async () => {
-        diceRollersManager.onMount();
-    });
-
-    onDestroy(() => {
-        diceRollersManager.onDestroy();
-    });
+    useDiceRollers(uiEventListener);
 </script>
 
-<div class="full-item">
-    <HeaderFullUi
+<UiDetailCard className="full-item">
+    <UiDetailHeader
         name={currentItem.name}
         source={currentItem.source}
-        onClick={() => copyBackgroundToClipboard(currentItem)}
+        onCopy={() => copyBackgroundToClipboard(currentItem)}
     />
 
-    <div class="background-details__content">
+    <UiContentSection className="background-details__content">
         <HtmlBlock htmlContent={currentItem.associatedHtml} uiEventListener={uiEventListener} />      
-    </div>
-</div>
+    </UiContentSection>
+</UiDetailCard>
