@@ -211,8 +211,8 @@
 		right: 0;
 		max-height: 200px;
 		overflow-y: auto;
-		background-color: var(--dnd-ui-pattern-modal-bg);
-		border: 1px solid var(--dnd-ui-pattern-input-border);
+		background-color: var(--dnd-ui-pattern-modal-bg, var(--background-primary));
+		border: 1px solid var(--dnd-ui-pattern-input-border, var(--background-modifier-border));
 		border-radius: var(--dnd-ui-radius-sm);
 		box-shadow: var(--dnd-ui-shadow-sm);
 		z-index: 100;
@@ -228,7 +228,7 @@
 
 	.dropdown-item:hover,
 	.dropdown-item.selected {
-		background-color: var(--dnd-ui-surface-hover);
+		background-color: var(--dnd-ui-surface-hover, var(--background-modifier-hover));
 	}
 
 	.dropdown-item:active {
