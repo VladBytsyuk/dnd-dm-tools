@@ -59,9 +59,11 @@
 
 	.item-card:hover,
 	.item-card:focus-visible {
-		outline: 2px solid var(--dnd-ui-pattern-list-item-hover-border);
-		outline-offset: 1px;
+		border-color: var(--text-accent) !important;
 		background: var(--dnd-ui-pattern-list-item-hover-bg);
+		box-shadow:
+			inset 0 0 0 1px var(--text-accent),
+			var(--dnd-ui-shadow-sm);
 	}
 
 	.item-card__group {
