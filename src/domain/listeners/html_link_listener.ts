@@ -10,6 +10,7 @@ export interface HtmlLinkListener {
     onFeatClick: (url: string) => Promise<void>;
     onRaceClick: (url: string) => Promise<void>;
     onClassClick: (url: string) => Promise<void>;
+    onCharacterSheetClick: (url: string) => Promise<void>;
     onScreenItemClick: (url: string) => Promise<void>;
 }
 
@@ -25,6 +26,7 @@ export const registerHtmlLinkListener = (htmlLinkListener: HtmlLinkListener) => 
             LinkListener('/feats/', htmlLinkListener.onFeatClick),
             LinkListener('/races/', htmlLinkListener.onRaceClick),
             LinkListener('/classes/', htmlLinkListener.onClassClick),
+            LinkListener('/character-sheets/', htmlLinkListener.onCharacterSheetClick),
             LinkListener('/items/magic/', htmlLinkListener.onArtifactClick),
             LinkListener('/items/', htmlLinkListener.onItemClick),
         ]

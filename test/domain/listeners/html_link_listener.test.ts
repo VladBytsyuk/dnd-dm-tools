@@ -1,10 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { registerHtmlLinkListener, HtmlLinkListener } from '../../../src/domain/listeners/html_link_listener';
 
+function dispatchLinkClick(link: HTMLAnchorElement) {
+    link.dispatchEvent(new Event('click', { bubbles: true, cancelable: true }));
+}
+
 describe('html_link_listener', () => {
     let mockHtmlLinkListener: HtmlLinkListener;
     let mockNode: HTMLElement;
-
     beforeEach(() => {
         mockHtmlLinkListener = {
             onBeastClick: vi.fn(),
@@ -31,7 +34,7 @@ describe('html_link_listener', () => {
         mockNode.appendChild(link);
 
         registerHtmlLinkListener(mockHtmlLinkListener)(mockNode);
-        link.click();
+        dispatchLinkClick(link);
 
         expect(mockHtmlLinkListener.onBeastClick).toHaveBeenCalledWith('/bestiary/goblin');
     });
@@ -42,7 +45,7 @@ describe('html_link_listener', () => {
         mockNode.appendChild(link);
 
         registerHtmlLinkListener(mockHtmlLinkListener)(mockNode);
-        link.click();
+        dispatchLinkClick(link);
 
         expect(mockHtmlLinkListener.onSpellClick).toHaveBeenCalledWith('/spells/fireball');
     });
@@ -53,7 +56,7 @@ describe('html_link_listener', () => {
         mockNode.appendChild(link);
 
         registerHtmlLinkListener(mockHtmlLinkListener)(mockNode);
-        link.click();
+        dispatchLinkClick(link);
 
         expect(mockHtmlLinkListener.onWeaponClick).toHaveBeenCalledWith('/weapons/sword');
     });
@@ -64,7 +67,7 @@ describe('html_link_listener', () => {
         mockNode.appendChild(link);
 
         registerHtmlLinkListener(mockHtmlLinkListener)(mockNode);
-        link.click();
+        dispatchLinkClick(link);
 
         expect(mockHtmlLinkListener.onArmorClick).toHaveBeenCalledWith('/armors/leather');
     });
@@ -75,7 +78,7 @@ describe('html_link_listener', () => {
         mockNode.appendChild(link);
 
         registerHtmlLinkListener(mockHtmlLinkListener)(mockNode);
-        link.click();
+        dispatchLinkClick(link);
 
         expect(mockHtmlLinkListener.onItemClick).toHaveBeenCalledWith('/items/potion');
     });
@@ -86,7 +89,7 @@ describe('html_link_listener', () => {
         mockNode.appendChild(link);
 
         registerHtmlLinkListener(mockHtmlLinkListener)(mockNode);
-        link.click();
+        dispatchLinkClick(link);
 
         expect(mockHtmlLinkListener.onArtifactClick).toHaveBeenCalledWith('/items/magic/ring');
     });
@@ -97,7 +100,7 @@ describe('html_link_listener', () => {
         mockNode.appendChild(link);
 
         registerHtmlLinkListener(mockHtmlLinkListener)(mockNode);
-        link.click();
+        dispatchLinkClick(link);
 
         expect(mockHtmlLinkListener.onBackgroundClick).toHaveBeenCalledWith('/backgrounds/urchin');
     });
@@ -108,7 +111,7 @@ describe('html_link_listener', () => {
         mockNode.appendChild(link);
 
         registerHtmlLinkListener(mockHtmlLinkListener)(mockNode);
-        link.click();
+        dispatchLinkClick(link);
 
         expect(mockHtmlLinkListener.onScreenItemClick).toHaveBeenCalledWith('/screens/conditions');
     });
@@ -119,7 +122,7 @@ describe('html_link_listener', () => {
         mockNode.appendChild(link);
 
         registerHtmlLinkListener(mockHtmlLinkListener)(mockNode);
-        link.click();
+        dispatchLinkClick(link);
 
         expect(mockHtmlLinkListener.onBeastClick).not.toHaveBeenCalled();
         expect(mockHtmlLinkListener.onSpellClick).not.toHaveBeenCalled();
@@ -138,7 +141,7 @@ describe('html_link_listener', () => {
 
         const { destroy } = registerHtmlLinkListener(mockHtmlLinkListener)(mockNode);
         destroy();
-        link.click();
+        dispatchLinkClick(link);
 
         expect(mockHtmlLinkListener.onBeastClick).not.toHaveBeenCalled();
     });

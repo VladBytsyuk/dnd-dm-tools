@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 This document provides context for AI assistants working with the DnD DM Tools Obsidian plugin codebase.
 

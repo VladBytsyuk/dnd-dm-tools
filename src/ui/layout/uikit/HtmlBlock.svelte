@@ -2,11 +2,11 @@
 	import { registerHtmlLinkListener } from "src/domain/listeners/html_link_listener";
 	import { handleHtml } from "src/domain/utils/utils";
 
-    let { htmlContent, uiEventListener, ...others } = $props();
-    const linkListener = registerHtmlLinkListener(uiEventListener);   
+    let { htmlContent, uiEventListener = undefined, ...others } = $props();
+    const linkListener = uiEventListener ? registerHtmlLinkListener(uiEventListener) : () => {};
 </script>
 
-<span 
+<span
     class="{others.class || ''}"
     use:linkListener
 >

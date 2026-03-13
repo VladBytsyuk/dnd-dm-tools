@@ -24,7 +24,6 @@ export default defineConfig({
         '**/*.css',
         '**/*.wasm',
         'src/**/*.svelte',
-        'src/ui/**',
       ],
     },
   },

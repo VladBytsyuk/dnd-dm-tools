@@ -167,28 +167,31 @@ export abstract class BaseRepository<
         }
 
         try {
-            const smallItem: SmallItem = {
-                ...fullItem,
-                type: this.toTypeString((fullItem as any).type),
-            } as SmallItem;
-            const existingSmallItem = await this.smallItemDao?.readItemByUrl(fullItem.url) || null;
-            if (existingSmallItem) {
-                await this.smallItemDao?.updateItem(smallItem);
-                console.log(`Updated ${fullItem.url} in small local storage.`);
-            } else {
-                await this.smallItemDao?.createItem(smallItem);
-                console.log(`Created ${fullItem.url} in small local storage.`);
-            }
+            await this.database.transaction(async () => {
+                const smallItem: SmallItem = {
+                    ...fullItem,
+                    type: this.toTypeString((fullItem as any).type),
+                } as SmallItem;
+                const existingSmallItem = await this.smallItemDao?.readItemByUrl(fullItem.url) || null;
+                if (existingSmallItem) {
+                    await this.smallItemDao?.updateItem(smallItem);
+                    console.log(`Updated ${fullItem.url} in small local storage.`);
+                } else {
+                    await this.smallItemDao?.createItem(smallItem);
+                    console.log(`Created ${fullItem.url} in small local storage.`);
+                }
 
-            const existingFullItem = await this.fullItemDao?.readItemByUrl(fullItem.url) || null;
-            if (existingFullItem) {
-                await this.fullItemDao?.updateItem(fullItem);
-                console.log(`Updated ${fullItem.url} in full local storage.`);
-            } else {
-                await this.fullItemDao?.createItem(fullItem);
-                console.log(`Created ${fullItem.url} in full local storage.`);
-            }
+                const existingFullItem = await this.fullItemDao?.readItemByUrl(fullItem.url) || null;
+                if (existingFullItem) {
+                    await this.fullItemDao?.updateItem(fullItem);
+                    console.log(`Updated ${fullItem.url} in full local storage.`);
+                } else {
+                    await this.fullItemDao?.createItem(fullItem);
+                    console.log(`Created ${fullItem.url} in full local storage.`);
+                }
+            });
 
+            // Cache invalidation and re-initialization outside transaction
             this.#smallItems = undefined;
             this.#filters = undefined;
 
@@ -202,17 +205,19 @@ export abstract class BaseRepository<
 
     async deleteItem(url: string): Promise<boolean> {
         try {
-            const existingFullItem = await this.fullItemDao?.readItemByUrl(url) || null;
-            if (existingFullItem) {
-                await this.fullItemDao?.deleteItemByUrl(url);
-                console.log(`Deleted ${url} from full local storage.`);
-            }
+            await this.database.transaction(async () => {
+                const existingFullItem = await this.fullItemDao?.readItemByUrl(url) || null;
+                if (existingFullItem) {
+                    await this.fullItemDao?.deleteItemByUrl(url);
+                    console.log(`Deleted ${url} from full local storage.`);
+                }
 
-            const existingSmallItem = await this.smallItemDao?.readItemByUrl(url) || null;
-            if (existingSmallItem) {
-                await this.smallItemDao?.deleteItemByUrl(url);
-                console.log(`Deleted ${url} from small local storage.`);
-            }
+                const existingSmallItem = await this.smallItemDao?.readItemByUrl(url) || null;
+                if (existingSmallItem) {
+                    await this.smallItemDao?.deleteItemByUrl(url);
+                    console.log(`Deleted ${url} from small local storage.`);
+                }
+            });
 
             // Invalidate cache
             this.#smallItems = undefined;
@@ -221,7 +226,7 @@ export abstract class BaseRepository<
             await this.initialize();
             return true;
         } catch (error) {
-            console.error("Failed to put item:", error);
+            console.error("Failed to delete item:", error);
             return false;
         }
     }
