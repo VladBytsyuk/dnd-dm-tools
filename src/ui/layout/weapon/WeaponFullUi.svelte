@@ -18,12 +18,12 @@
 
     useDiceRollers(uiEventListener);
 
-    const properties: UiPropertyGridItem[] = [
+    let properties: UiPropertyGridItem[] = $derived([
         { label: 'Стоимость', value: currentItem.price },
         { label: 'Урон', value: currentItem.damage ? undefined : undefined, html: currentItem.damage ? `${currentItem.damage.dice ? `<dice-roller label="Урон (${currentItem.damage.type})" formula="${currentItem.damage.dice}"></dice-roller> ` : ''}${currentItem.damage.type}` : undefined },
         { label: 'Вес', value: currentItem.weight ? `${currentItem.weight} фун.` : undefined },
         { label: 'Свойства', html: currentItem.properties ? joinProperties(currentItem.properties) : undefined },
-    ];
+    ]);
 </script>
 
 <UiDetailCard>

@@ -17,11 +17,11 @@
 
     useDiceRollers(uiEventListener);
 
-    const properties: UiPropertyGridItem[] = [
+    let properties: UiPropertyGridItem[] = $derived([
         { label: 'Настройка', value: currentItem.customization ? 'Требуется' : 'Не требуется' },
         { label: 'Стоимость DMG', value: currentItem.cost?.dmg ?? undefined },
         { label: 'Стоимость XGE', value: currentItem.cost?.xge ?? undefined },
-    ];
+    ]);
 </script>
 
 <UiDetailCard>

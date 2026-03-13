@@ -17,14 +17,14 @@
 
     useDiceRollers(uiEventListener);
 
-    const properties: UiPropertyGridItem[] = [
+    let properties: UiPropertyGridItem[] = $derived([
         { label: 'Класс брони (AC)', value: currentItem.armorClass },
         { label: 'Стоимость', value: currentItem.price },
         { label: 'Вес', value: currentItem.weight ? `${currentItem.weight} фун.` : undefined },
         { label: 'Помеха на Скрытность', value: currentItem.disadvantage ? 'Есть' : 'Нет' },
         { label: 'Требование к Силе', value: currentItem.requirement ? 'Есть' : 'Нет' },
         { label: 'Надевание / Снятие', value: currentItem.duration },
-    ];
+    ]);
 </script>
 
 <UiDetailCard>

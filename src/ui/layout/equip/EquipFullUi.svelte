@@ -18,10 +18,10 @@
 
     useDiceRollers(uiEventListener);
 
-    const properties: UiPropertyGridItem[] = [
+    let properties: UiPropertyGridItem[] = $derived([
         { label: 'Стоимость', value: currentItem.price },
         { label: 'Вес', value: currentItem.weight ? `${currentItem.weight} фун.` : undefined },
-    ];
+    ]);
 </script>
 
 <UiDetailCard>
