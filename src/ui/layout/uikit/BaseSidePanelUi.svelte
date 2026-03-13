@@ -106,15 +106,17 @@
     />
     <div class="side-panel-spacer"></div>
     {#if currentItem}
-        <FullItemSlot
-            currentItem={currentItem}
-            repository={repository}
-            uiEventListener={uiEventListener}
-            isEditable=true
-            onClose={() => currentItem = undefined}
-            onItemSave={async (item: any) => await repository.putItem(item)}
-            onItemDelete={async (url: string) => await repository.deleteItem(url)}
-        />
+        <div class="content content-full">
+            <FullItemSlot
+                currentItem={currentItem}
+                repository={repository}
+                uiEventListener={uiEventListener}
+                isEditable=true
+                onClose={() => currentItem = undefined}
+                onItemSave={async (item: any) => await repository.putItem(item)}
+                onItemDelete={async (url: string) => await repository.deleteItem(url)}
+            />
+        </div>
     {:else if searchBarValue.length > 0 && groups.length === 0}
         <div class="content content-empty">
             <UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
@@ -171,5 +173,9 @@
 
     .content-empty {
         justify-content: flex-start;
+    }
+
+    .content-full {
+        padding-bottom: var(--dnd-ui-space-16);
     }
 </style>
