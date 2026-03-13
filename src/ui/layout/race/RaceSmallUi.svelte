@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { SmallRace } from 'src/domain/models/race/SmallRace';
-    import SmallItemUi from "../uikit/SmallItemUi.svelte";
+    import UiItemCard from "../uikit/organisms/UiItemCard.svelte";
 
     interface Props {
         smallItem: SmallRace,
@@ -13,7 +13,7 @@
         .join(', ');
 </script>
 
-<SmallItemUi
+<UiItemCard
     name={smallItem.name}
     source={smallItem.source}
     left={abilitiesText}

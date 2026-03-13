@@ -176,27 +176,27 @@
 	}
 
 	.autocomplete-input {
-		padding: 0px 2px;
+		padding: 0 var(--dnd-ui-space-2);
 		font-size: inherit;
 		border: 1px solid transparent;
-		border-radius: 2px;
-		background-color: transparent;
-		color: var(--text-normal);
-		transition: all 0.2s;
+		border-radius: var(--dnd-ui-radius-xs);
+		background-color: var(--dnd-ui-pattern-input-bg);
+		color: var(--dnd-ui-text-primary);
+		transition: all var(--dnd-ui-duration-base) var(--dnd-ui-ease-standard);
 		width: 100%;
 		line-height: 1.3;
 	}
 
 	.autocomplete-input:hover:not(:disabled) {
-		background-color: var(--background-primary-alt);
-		border-color: var(--background-modifier-border);
+		background-color: var(--dnd-ui-pattern-input-hover-bg);
+		border-color: var(--dnd-ui-pattern-input-border);
 	}
 
 	.autocomplete-input:focus {
 		outline: none;
-		background-color: var(--background-primary);
-		border-color: var(--text-accent);
-		box-shadow: 0 0 0 1px var(--background-modifier-border-focus);
+		background-color: var(--dnd-ui-pattern-input-focus-bg);
+		border-color: var(--dnd-ui-pattern-input-focus-border);
+		box-shadow: 0 0 0 1px var(--dnd-ui-pattern-input-focus-ring);
 	}
 
 	.autocomplete-input:disabled {
@@ -211,24 +211,24 @@
 		right: 0;
 		max-height: 200px;
 		overflow-y: auto;
-		background-color: var(--background-primary);
-		border: 1px solid var(--background-modifier-border);
-		border-radius: 4px;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+		background-color: var(--dnd-ui-pattern-modal-bg);
+		border: 1px solid var(--dnd-ui-pattern-input-border);
+		border-radius: var(--dnd-ui-radius-sm);
+		box-shadow: var(--dnd-ui-shadow-sm);
 		z-index: 100;
 	}
 
 	.dropdown-item {
-		padding: 4px 8px;
+		padding: var(--dnd-ui-space-4) var(--dnd-ui-space-8);
 		cursor: pointer;
-		transition: background-color 0.1s;
+		transition: background-color var(--dnd-ui-duration-fast) var(--dnd-ui-ease-standard);
 		font-size: inherit;
-		color: var(--text-normal);
+		color: var(--dnd-ui-text-primary);
 	}
 
 	.dropdown-item:hover,
 	.dropdown-item.selected {
-		background-color: var(--background-modifier-hover);
+		background-color: var(--dnd-ui-surface-hover);
 	}
 
 	.dropdown-item:active {

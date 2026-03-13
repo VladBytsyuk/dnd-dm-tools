@@ -43,7 +43,7 @@ The build produces:
 |------|-------------|
 | `main.js` | Bundled and minified plugin code |
 | `manifest.json` | Obsidian plugin manifest |
-| `styles.css` | Plugin styles |
+| `styles.css` | Plugin styles and shared design tokens |
 | `sql-wasm.wasm` | SQLite WebAssembly binary (copied from `node_modules/sql.js/dist/`) |
 
 Release builds copy these to `.release/dnd-dm-tools/`.
@@ -58,6 +58,7 @@ dnd-dm-tools/
 │   ├── data/               # Database, DAOs, repositories
 │   │   └── database/       # DB manager and DAO implementations
 │   ├── ui/                 # UI components and Svelte layouts
+│   │   └── layout/uikit/   # Shared UI kit (atoms, molecules, organisms, browser shell)
 │   └── assets/data/        # TypeScript data imports
 ├── data/                   # JSON data files (D&D 5e content)
 ├── test/                   # Test suite (see testing.md)
@@ -106,3 +107,5 @@ GitHub Actions (`.github/workflows/test.yml`) runs on push/PR to `main`:
 
 - Plugin UI text is in Russian
 - The plugin uses Svelte 5 runes syntax
+- `styles.css` defines the shared `--dnd-ui-*` design tokens and pattern tokens used by the UIKit
+- New shared UI work should extend `src/ui/layout/uikit/` before introducing feature-local chrome

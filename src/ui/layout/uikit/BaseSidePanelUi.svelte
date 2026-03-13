@@ -1,13 +1,14 @@
 <script lang="ts">
-	import SidePanelHeader from "./SidePanelHeader.svelte";
 	import { onMount } from "svelte";
-	import GroupBlockUi from "./GroupBlockUi.svelte";
 	import FiltersOverlay from "./FiltersOverlay.svelte";
 	import type { BaseItem } from "src/domain/models/common/BaseItem";
 	import type { Group, Repository } from "src/domain/repositories/Repository";
 	import { isFiltersEmpty, type Filters } from "src/domain/models/common/Filters";
 	import type { IUiEventListener } from 'src/domain/listeners/ui_event_listener.js';
 	import type { FilterConfig } from "src/domain/utils/FilterConfig";
+	import UiEmptyState from "./organisms/UiEmptyState.svelte";
+	import UiSearchToolbar from "./organisms/UiSearchToolbar.svelte";
+	import UiItemGroup from "./organisms/UiItemGroup.svelte";
 
     // ---- Props ----
     interface Props<Small extends BaseItem, Full extends Small, F extends Filters> {
@@ -94,7 +95,7 @@
 </script>
 
 <div class="side-panel-container">
-    <SidePanelHeader
+    <UiSearchToolbar
         onbackclick={currentItem ? onSearchBarBackClick : undefined}
         onvaluechange={onSearchBarValueChanged}
         isvaluechangable={() => !currentItem}
@@ -103,24 +104,27 @@
         isfiltersapplied={() => !isFiltersEmpty(filters)}
         onaddclick={emptyFullItem ? () => { currentItem = emptyFullItem; itemsStack.push(emptyFullItem); } : undefined}
     />
-    <div style="height:1em;"></div>
+    <div class="side-panel-spacer"></div>
     {#if currentItem}
-        <FullItemSlot
-            currentItem={currentItem}
-            repository={repository}
-            uiEventListener={uiEventListener}
-            isEditable=true
-            onClose={() => currentItem = undefined}
-            onItemSave={async (item: any) => await repository.putItem(item)}
-            onItemDelete={async (url: string) => await repository.deleteItem(url)}
-        />
+        <div class="content content-full">
+            <FullItemSlot
+                currentItem={currentItem}
+                repository={repository}
+                uiEventListener={uiEventListener}
+                isEditable=true
+                onClose={() => currentItem = undefined}
+                onItemSave={async (item: any) => await repository.putItem(item)}
+                onItemDelete={async (url: string) => await repository.deleteItem(url)}
+            />
+        </div>
     {:else if searchBarValue.length > 0 && groups.length === 0}
-        <h2>Результаты поиска</h2>
-        <div>Ничего не найдено</div>
+        <div class="content content-empty">
+            <UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
+        </div>
     {:else}
         <div class="content">
             {#each groups as group (group.sort)}
-                <GroupBlockUi
+                <UiItemGroup
                     groupTitle={groupTitleBuilder(group)}
                     items={group.smallItems}
                     onItemClick={onSmallItemClick}
@@ -143,11 +147,35 @@
 
 <style>
     .side-panel-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
         position: relative;
     }
 
+    .side-panel-spacer {
+        height: 1em;
+        flex-shrink: 0;
+    }
+
     .content {
-        background-color: var(--color-background);
-        gap: 4px;
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--dnd-ui-surface-base);
+        gap: var(--dnd-ui-space-4);
+        position: relative;
+        z-index: 1;
+    }
+
+    .content-empty {
+        justify-content: flex-start;
+    }
+
+    .content-full {
+        padding-bottom: var(--dnd-ui-space-16);
     }
 </style>

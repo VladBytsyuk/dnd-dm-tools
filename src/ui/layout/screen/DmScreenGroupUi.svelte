@@ -25,14 +25,14 @@
         justify-content: flex-start;
         width: 100%;
         height: 100%;
-        padding: 16px;
-        background-color: #00000028;;
-        border-radius: 8px;
-        transition: all .15s ease-in-out;
+        padding: var(--dnd-ui-space-16);
+        background-color: var(--dnd-ui-surface-panel-strong);
+        border-radius: var(--dnd-ui-radius-lg);
+        transition: all var(--dnd-ui-duration-fast) var(--dnd-ui-ease-standard);
     }
     .dm-screen-item:hover {
-        background-color: #00000056;;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background-color: var(--dnd-ui-surface-panel-hover);
+        box-shadow: var(--dnd-ui-shadow-sm);
     }
     .dm-screen-item:active {
         transform: scale(0.98);
@@ -55,16 +55,16 @@
     }       
 
     .dm-screen-item .text {
-        margin-left: 12px;
+        margin-left: var(--dnd-ui-space-12);
     }
 
     .dm-screen-item .text .name {
-        font-weight: 600;
-        color: var(--text-color);
+        font-weight: var(--dnd-ui-font-weight-semibold);
+        color: var(--dnd-ui-text-secondary);
     }
 
     .dm-screen-item .text .description {
         font-weight: 400;
-        color: var(--text-color);
+        color: var(--dnd-ui-text-secondary);
     }
 </style>

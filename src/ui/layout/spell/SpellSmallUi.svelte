@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SmallSpell } from "../../../domain/models/spell/SmallSpell";
-	import SmallItemUi from "../uikit/SmallItemUi.svelte";
+	import UiItemCard from "../uikit/organisms/UiItemCard.svelte";
 
     interface Props {
         smallItem: SmallSpell;
@@ -15,7 +15,7 @@
         (components.m ? 'М' : '•')
 </script>
 
-<SmallItemUi
+<UiItemCard
     group={level+""}
     name={name}
     source={source}

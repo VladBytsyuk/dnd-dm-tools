@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SmallMonster } from "../../../domain/models/monster/SmallMonster";
-	import SmallItemUi from "../uikit/SmallItemUi.svelte";
+	import UiItemCard from "../uikit/organisms/UiItemCard.svelte";
 
     interface Props {
         smallItem: SmallMonster;
@@ -14,7 +14,7 @@
 </script>
 
 
-<SmallItemUi
+<UiItemCard
     group={challengeRating}
     name={name}
     source={source}

@@ -2,6 +2,8 @@
 
 The UI layer encompasses all visual components and Obsidian integration points.
 
+For the shared design system and reusable Svelte primitives, see [UIKit](./uikit.md).
+
 ## Directory Structure
 
 ```
@@ -13,7 +15,7 @@ src/ui/
 │   ├── modals/            # Obsidian modal dialogs (editing, confirmation)
 │   ├── command/           # Editor commands
 │   └── suggest/           # Autocomplete/suggest components
-├── layout/                # Svelte components (~60 files)
+├── layout/                # Svelte components
 │   ├── monster/           # Monster statblock components
 │   ├── spell/             # Spell components
 │   ├── weapon/            # Weapon components
@@ -21,7 +23,10 @@ src/ui/
 │   ├── tracker/           # Initiative tracker UI
 │   ├── sidepanel/         # Side panel layout components
 │   ├── race/              # Race components
-│   └── uikit/             # Reusable UI kit components (includes FilterBlock, FiltersOverlay)
+│   └── uikit/             # Shared UI kit and browser shell
+│       ├── atoms/         # Small reusable visual primitives
+│       ├── molecules/     # Composed reusable sections
+│       └── organisms/     # Shared high-level UI blocks
 └── theme.ts               # Theme change listener
 ```
 
@@ -39,25 +44,48 @@ The project uses **Svelte 5** with runes syntax:
 |---------|-------|---------|
 | `XxxSmallUi.svelte` | List item component | `RaceSmallUi.svelte` |
 | `XxxFullUi.svelte` | Full detail/statblock component | `RaceFullUi.svelte` |
-| `XxxHeaderUi.svelte` | Header section of a detail view | `RaceHeaderUi.svelte` |
 | `XxxHeaderFullUi.svelte` | Extended header variant | `RaceHeaderFullUi.svelte` |
 | `XxxUi.svelte` | General component | `TrackerUi.svelte` |
 
-## Layout Component Structure
+Feature folders still use `XxxSmallUi.svelte` and `XxxFullUi.svelte`, but shared header/list/detail chrome should default to UIKit components instead of feature-local wrappers.
 
-A typical entity's layout components follow this pattern:
+## UIKit Structure
+
+The current shared UI system lives in `src/ui/layout/uikit/`:
 
 ```
-src/ui/layout/race/
-├── RaceSmallUi.svelte         # Compact list item
-├── RaceFullUi.svelte          # Complete statblock
-├── RaceHeaderUi.svelte        # Header section
-└── RaceHeaderFullUi.svelte    # Extended header
+src/ui/layout/uikit/
+├── atoms/
+│   ├── UiCopyableText.svelte
+│   └── UiSourceBadge.svelte
+├── molecules/
+│   ├── UiContentSection.svelte
+│   ├── UiImageGallery.svelte
+│   ├── UiItemMetaRow.svelte
+│   └── UiPropertyGrid.svelte
+├── organisms/
+│   ├── UiDetailCard.svelte
+│   ├── UiDetailHeader.svelte
+│   ├── UiEmptyState.svelte
+│   ├── UiItemCard.svelte
+│   ├── UiItemGroup.svelte
+│   └── UiSearchToolbar.svelte
+├── BaseSidePanelUi.svelte
+├── FiltersOverlay.svelte
+├── FilterBlock.svelte
+├── HtmlBlock.svelte
+├── AutocompleteInput.svelte
+└── IconButton.svelte
 ```
 
-- **SmallUi** renders in side panel lists — shows name and key attributes
-- **FullUi** renders the complete statblock — used in both side panels and code block processors
-- **HeaderUi** components provide the top section with name, source, and metadata
+The shared browser/detail composition now looks like this:
+
+- `UiItemCard` renders the reusable small-item/list card.
+- `UiItemGroup` renders grouped lists in collapsible sections.
+- `UiSearchToolbar` renders the shared side-panel search/action row.
+- `UiDetailHeader` renders the shared detail header, copy actions, source row, and image gallery.
+- `UiDetailCard`, `UiPropertyGrid`, and `UiContentSection` render the standard detail-body structure.
+- `BaseSidePanelUi` is the generic browser shell used by most data-backed entity side panels.
 
 ## Side Panel System
 
@@ -70,6 +98,29 @@ Each side panel extends `BaseSidePanel` and:
 1. Registers an Obsidian `ItemView` with a unique view type
 2. Renders a Svelte component into the view container
 3. Provides `open(fullItem)` to display a specific item's details
+
+### Shared Browser Shell
+
+Most feature side panels now use `src/ui/layout/uikit/BaseSidePanelUi.svelte` as the shared browser shell instead of maintaining a fully custom side-panel Svelte implementation.
+
+`BaseSidePanelUi` owns:
+
+- the search toolbar
+- grouped list rendering
+- empty search state
+- filter overlay wiring
+- full-item navigation within the panel
+
+Features provide the domain-specific parts through props:
+
+- repository
+- filter configuration
+- group-title builder
+- small-item slot
+- full-item slot
+- optional filter display/apply transforms
+
+`CharacterSheetSidePanelUi.svelte` remains a custom browser implementation because it has feature-specific controller-driven behavior. `DmScreenSidePanelUi.svelte` also remains feature-specific.
 
 ### Registration
 
@@ -126,7 +177,9 @@ Filters are implemented as Svelte overlay components within side panels rather t
 
 ### Filter Configuration
 
-Each feature's side panel UI component (`*SidePanelUi.svelte`) defines a `filterConfig` array specifying:
+Features that use `BaseSidePanelUi` pass a `filterConfig` array into the shared shell. Feature-specific side panels may still define their own filter configuration locally.
+
+Each filter config entry specifies:
 
 - Filter keys from the filter type
 - Display labels
@@ -148,3 +201,5 @@ Suggest components (`src/ui/components/suggest/`) provide autocomplete functiona
 ## Theme Support
 
 `src/ui/theme.ts` exports `registerThemeChangeListener()` which detects Obsidian theme changes and applies appropriate CSS adjustments.
+
+Shared styling is now centralized in `styles.css` through semantic `--dnd-ui-*` design tokens and shared pattern tokens. New shared UI should consume these tokens instead of introducing duplicated neutral colors, spacing, or radii.

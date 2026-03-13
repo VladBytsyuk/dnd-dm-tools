@@ -39,16 +39,16 @@
 		align-items: center;
 		justify-content: center;
 		cursor: pointer;
-		border-radius: 6px;
-		color: var(--text-color);
+		border-radius: var(--dnd-ui-radius-md);
+		color: var(--dnd-ui-text-secondary);
 	}
 
 	.icon-button:hover {
-		background: var(--button-bg);
+		background: var(--button-bg, var(--dnd-ui-surface-hover));
 	}
 
 	.icon-button:focus-visible {
-		outline: 2px solid var(--interactive-accent);
-		outline-offset: 2px;
+		outline: 2px solid var(--dnd-ui-accent-primary);
+		outline-offset: var(--dnd-ui-space-2);
 	}
 </style>

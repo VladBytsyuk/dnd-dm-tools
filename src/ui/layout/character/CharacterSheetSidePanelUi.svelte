@@ -9,9 +9,10 @@
 	import type { CharacterSheetFilters } from "../../../domain/models/character/CharacterSheetFilters";
 	import type { CharacterSheetRepository } from "../../../data/repositories/CharacterSheetRepository";
 	import type DndStatblockPlugin from "../../../main";
-	import SidePanelHeader from "../uikit/SidePanelHeader.svelte";
-	import GroupBlockUi from "../uikit/GroupBlockUi.svelte";
 	import FiltersOverlay from "../uikit/FiltersOverlay.svelte";
+	import UiSearchToolbar from "../uikit/organisms/UiSearchToolbar.svelte";
+	import UiItemGroup from "../uikit/organisms/UiItemGroup.svelte";
+	import UiEmptyState from "../uikit/organisms/UiEmptyState.svelte";
 	import type { CharacterSheetBrowserState } from "../../../data/repositories/characterSheetTypes";
 	import { onMount } from "svelte";
 	import { CharacterSheetBrowserController } from "./characterSheetBrowserController";
@@ -83,7 +84,7 @@
 </script>
 
 <div class="side-panel-container">
-	<SidePanelHeader
+	<UiSearchToolbar
 		onbackclick={browserState.currentItem ? onSearchBarBackClick : undefined}
 		onvaluechange={onSearchBarValueChanged}
 		isvaluechangable={() => !browserState.currentItem}
@@ -92,7 +93,7 @@
 		isfiltersapplied={() => !isFiltersEmpty(browserState.filters)}
 		onaddclick={onImportClick}
 	/>
-	<div style="height:1em;"></div>
+	<div class="side-panel-spacer"></div>
 
 	{#if browserState.errorMessage}
 		<div class="browser-status browser-status-error">{browserState.errorMessage}</div>
@@ -108,12 +109,13 @@
 			{plugin}
 		/>
 	{:else if browserState.searchBarValue.length > 0 && browserState.groups.length === 0}
-		<h2>Результаты поиска</h2>
-		<div>Ничего не найдено</div>
+		<div class="side-panel-content side-panel-content-empty">
+			<UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
+		</div>
 	{:else}
 		<div class="side-panel-content">
 			{#each browserState.groups as group (group.sort)}
-				<GroupBlockUi
+				<UiItemGroup
 					groupTitle={group.sort}
 					items={group.smallItems}
 					onItemClick={onSmallItemClick}
@@ -144,10 +146,23 @@
 
 	.side-panel-content {
 		flex: 1;
+		min-height: 0;
 		overflow-y: auto;
 		display: flex;
 		flex-direction: column;
 		gap: 1em;
+		position: relative;
+		z-index: 1;
+	}
+
+	.side-panel-spacer {
+		height: 1em;
+		flex-shrink: 0;
+	}
+
+	.side-panel-content-empty {
+		justify-content: flex-start;
+		gap: 0;
 	}
 
 	.browser-status {
@@ -161,10 +176,5 @@
 	.browser-status-error {
 		background: var(--background-modifier-error);
 		color: var(--text-on-accent);
-	}
-
-	h2 {
-		margin: 0 0 0.5em 0;
-		font-size: 1.2em;
 	}
 </style>

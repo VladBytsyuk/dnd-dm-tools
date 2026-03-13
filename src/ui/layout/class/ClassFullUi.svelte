@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { FullClass } from '../../../domain/models/class/FullClass';
     import type { IUiEventListener } from '../../../domain/listeners/ui_event_listener';
-    import HeaderFullUi from '../uikit/HeaderFullUi.svelte';
+    import UiDetailHeader from '../uikit/organisms/UiDetailHeader.svelte';
     import HtmlBlock from '../uikit/HtmlBlock.svelte';
     import { copyClassToClipboard } from '../../../data/clipboard';
     import { onMount, onDestroy } from 'svelte';
@@ -35,10 +35,10 @@
 </script>
 
 <div class="full-item">
-    <HeaderFullUi
+    <UiDetailHeader
         name={currentItem.name}
         source={currentItem.source}
-        onClick={() => copyClassToClipboard(currentItem)}
+        onCopy={() => copyClassToClipboard(currentItem)}
     />
 
     {#if currentItem.isArchetype && currentItem.parentClassUrl}
@@ -69,18 +69,18 @@
 <style>
     /* Parent class link */
     .parent-class-link {
-        padding: 12px;
-        border-bottom: 1px solid var(--background-modifier-border);
-        background-color: var(--background-secondary);
+        padding: var(--dnd-ui-space-12);
+        border-bottom: 1px solid var(--dnd-ui-border-subtle);
+        background-color: var(--dnd-ui-surface-raised);
     }
 
     .back-link {
-        color: var(--text-accent);
+        color: var(--dnd-ui-accent-primary);
         text-decoration: none;
-        font-weight: 500;
+        font-weight: var(--dnd-ui-font-weight-medium);
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: var(--dnd-ui-space-4);
     }
 
     .back-link:hover {
@@ -89,14 +89,14 @@
 
     /* HTML content */
     .class-html-content {
-        margin-top: 16px;
+        margin-top: var(--dnd-ui-space-16);
     }
 
     .class-loading {
-        margin-top: 16px;
-        padding: 20px;
+        margin-top: var(--dnd-ui-space-16);
+        padding: var(--dnd-ui-space-20);
         text-align: center;
-        color: var(--text-muted);
+        color: var(--dnd-ui-text-muted);
         font-style: italic;
     }
 </style>

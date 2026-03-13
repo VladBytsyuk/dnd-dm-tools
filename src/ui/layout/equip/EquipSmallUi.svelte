@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SmallItem } from "src/domain/models/items/SmallItem";
-	import SmallItemUi from "../uikit/SmallItemUi.svelte";
+	import UiItemCard from "../uikit/organisms/UiItemCard.svelte";
 
     interface Props {
         smallItem: SmallItem;
@@ -9,7 +9,7 @@
     let { smallItem, onItemClick }: Props = $props();
 </script>
 
-<SmallItemUi
+<UiItemCard
     name={smallItem.name}
     source={smallItem.source}
     onItemClick={onItemClick}

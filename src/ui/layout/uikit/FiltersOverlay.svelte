@@ -99,18 +99,18 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: var(--dnd-ui-pattern-overlay-bg);
         display: flex;
         align-items: flex-start;
         justify-content: center;
         z-index: 100;
-        padding-top: 20px;
+        padding-top: var(--dnd-ui-space-20);
     }
 
     .filters-overlay {
         background-color: var(--background-primary);
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        border-radius: var(--dnd-ui-radius-lg);
+        box-shadow: var(--dnd-ui-pattern-modal-shadow);
         max-width: 600px;
         width: 90%;
         max-height: calc(100vh - 40px);
@@ -122,13 +122,13 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 16px 20px;
-        border-bottom: 1px solid var(--background-modifier-border);
+        padding: var(--dnd-ui-space-16) var(--dnd-ui-space-20);
+        border-bottom: 1px solid var(--dnd-ui-border-subtle);
     }
 
     .filters-header h2 {
         margin: 0;
-        font-size: 1.2em;
+        font-size: var(--dnd-ui-font-size-xl);
     }
 
     .close-button {
@@ -136,7 +136,7 @@
         border: none;
         font-size: 1.5em;
         cursor: pointer;
-        color: var(--text-muted);
+        color: var(--dnd-ui-text-muted);
         padding: 0;
         width: 32px;
         height: 32px;
@@ -146,18 +146,18 @@
     }
 
     .close-button:hover {
-        color: var(--text-normal);
+        color: var(--dnd-ui-text-primary);
     }
 
     .filters-body {
-        padding: 20px;
+        padding: var(--dnd-ui-space-20);
         overflow-y: auto;
         flex: 1;
     }
 
     .filters-footer {
-        padding: 16px 20px;
-        border-top: 1px solid var(--background-modifier-border);
+        padding: var(--dnd-ui-space-16) var(--dnd-ui-space-20);
+        border-top: 1px solid var(--dnd-ui-border-subtle);
         display: flex;
         justify-content: flex-end;
     }

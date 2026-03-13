@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { SmallArtifact } from "src/domain/models/artifact/SmallArtifact";
-	import SmallItemUi from "../uikit/SmallItemUi.svelte";
+	import UiItemCard from "../uikit/organisms/UiItemCard.svelte";
 
     interface Props {
         smallItem: SmallArtifact;
@@ -9,7 +9,7 @@
     let { smallItem, onItemClick }: Props = $props();
 </script>
 
-<SmallItemUi
+<UiItemCard
     group={smallItem.rarity.short}
     name={smallItem.name}
     source={smallItem.source}
