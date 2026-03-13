@@ -6,6 +6,9 @@ import type { CharacterSubInfo } from "src/domain/models/character/CharacterInfo
 import type { CharacterTextSections } from "src/domain/models/character/CharacterText";
 import type { CharacterVitality } from "src/domain/models/character/CharacterVitality";
 import type { FullCharacterSheet } from "src/domain/models/character/FullCharacterSheet";
+import type { SmallCharacterSheet } from "src/domain/models/character/SmallCharacterSheet";
+import type { CharacterSheetFilters } from "src/domain/models/character/CharacterSheetFilters";
+import type { Group } from "src/domain/repositories/Repository";
 
 export type CharacterSheetDaoLike = {
 	readItemByUrl(url: string): Promise<unknown | null>;
@@ -13,6 +16,17 @@ export type CharacterSheetDaoLike = {
 
 export type CharacterSheetPersistence = {
 	putItem(item: FullCharacterSheet): Promise<boolean>;
+};
+
+export type CharacterSheetGateway = CharacterSheetPersistence & {
+	getAllFilters(): Promise<CharacterSheetFilters | null>;
+	getFilteredSmallItems(
+		name: string | null,
+		filter: CharacterSheetFilters | null
+	): Promise<SmallCharacterSheet[]>;
+	getFullItemBySmallItem(smallItem: SmallCharacterSheet): Promise<FullCharacterSheet | null>;
+	groupItems(smallItems: SmallCharacterSheet[]): Promise<Group<SmallCharacterSheet>[]>;
+	importFromJson(jsonContent: string): Promise<FullCharacterSheet>;
 };
 
 export type CharacterSubInfoField = keyof CharacterSubInfo;
@@ -39,3 +53,28 @@ export type CharacterEditorHeaderInfo = {
 };
 export type CharacterEditorSpellbookChange = CharacterSpellbookState;
 export type CharacterEditorProficienciesChange = CharacterProficiencies;
+
+export type CharacterSheetSessionStatus = "idle" | "dirty" | "saving" | "saved" | "error";
+
+export type CharacterSheetSessionState = {
+	activeUrl: string | null;
+	draft: FullCharacterSheet | null;
+	isDirty: boolean;
+	status: CharacterSheetSessionStatus;
+	errorMessage: string | null;
+	lastSavedAt: number | null;
+};
+
+export type CharacterSheetBrowserStatus = "idle" | "loading" | "importing" | "error";
+
+export type CharacterSheetBrowserState = {
+	searchBarValue: string;
+	filters: CharacterSheetFilters;
+	itemsStack: FullCharacterSheet[];
+	currentItem?: FullCharacterSheet;
+	groups: Group<SmallCharacterSheet>[];
+	isFiltersOverlayOpen: boolean;
+	fullFilters: CharacterSheetFilters | null;
+	status: CharacterSheetBrowserStatus;
+	errorMessage: string | null;
+};

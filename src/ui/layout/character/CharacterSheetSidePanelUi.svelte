@@ -1,6 +1,5 @@
 <script lang="ts">
-	import type { Repository } from "src/domain/repositories/Repository";
-	import { emptyFilters, isFiltersEmpty } from "src/domain/models/common/Filters";
+	import { isFiltersEmpty } from "src/domain/models/common/Filters";
 	import CharacterSheetFullUi from "./CharacterSheetFullUi.svelte";
 	import CharacterSheetSmallUi from "./CharacterSheetSmallUi.svelte";
 	import type { SidePanelProps } from "src/domain/utils/props/SidePanelProps";
@@ -9,11 +8,14 @@
 	import type { FullCharacterSheet } from "../../../domain/models/character/FullCharacterSheet";
 	import type { CharacterSheetFilters } from "../../../domain/models/character/CharacterSheetFilters";
 	import type { CharacterSheetRepository } from "../../../data/repositories/CharacterSheetRepository";
+	import type DndStatblockPlugin from "../../../main";
 	import SidePanelHeader from "../uikit/SidePanelHeader.svelte";
 	import GroupBlockUi from "../uikit/GroupBlockUi.svelte";
 	import FiltersOverlay from "../uikit/FiltersOverlay.svelte";
-	import type { Group } from "src/domain/repositories/Repository";
+	import type { CharacterSheetBrowserState } from "../../../data/repositories/characterSheetTypes";
 	import { onMount } from "svelte";
+	import { CharacterSheetBrowserController } from "./characterSheetBrowserController";
+	import { pickJsonFileText } from "./characterSheetFilePicker";
 
 	let {
 		initialFullItem,
@@ -24,127 +26,93 @@
 		SmallCharacterSheet,
 		FullCharacterSheet,
 		CharacterSheetFilters,
-		Repository<SmallCharacterSheet, FullCharacterSheet, CharacterSheetFilters>
+		CharacterSheetRepository
 	> & {
-		plugin: any; // DndStatblockPlugin
+		plugin: DndStatblockPlugin;
+		repository: CharacterSheetRepository;
 	} = $props();
 
-	const characterRepo = repository as CharacterSheetRepository;
 	const filterConfig: FilterConfig<CharacterSheetFilters>[] = [
 		{ key: "classes", label: "Класс" },
 		{ key: "levels", label: "Уровень" },
 		{ key: "races", label: "Раса" },
 	];
 
-	// ---- State ----
-	let searchBarValue: string = $state("");
-	let filters: CharacterSheetFilters = $state(
-		emptyFilters<CharacterSheetFilters>(["classes", "levels", "races"])
-	);
-	let itemsStack: FullCharacterSheet[] = $state(initialFullItem ? [initialFullItem] : []);
-	let currentItem: FullCharacterSheet | undefined = $state(initialFullItem || undefined);
-	let groups: Group<SmallCharacterSheet>[] = $state([]);
-	let isFiltersOverlayOpen: boolean = $state(false);
-	let fullFilters: CharacterSheetFilters | null = $state(null);
+	const browserController = new CharacterSheetBrowserController(repository, {
+		onStateChange: (state) => {
+			browserState = state;
+		},
+	});
 
-	// ---- Lifecycle ----
-	onMount(() => updateGroups());
+	let browserState = $state<CharacterSheetBrowserState>(browserController.getState());
 
-	// ---- Event Handlers ----
+	onMount(async () => {
+		browserController.initialize(initialFullItem);
+		await browserController.refreshGroups();
+	});
+
 	function onSearchBarBackClick() {
-		if (itemsStack.length >= 1) {
-			itemsStack.pop();
-			currentItem = itemsStack.last() || undefined;
-		}
+		browserController.goBack();
 	}
 
-	function onSearchBarValueChanged(value: string) {
-		searchBarValue = value;
-		updateGroups();
+	async function onSearchBarValueChanged(value: string) {
+		await browserController.updateSearch(value);
 	}
 
 	async function onSearchBarFiltersClick() {
-		const rawFilters = await repository.getAllFilters();
-		if (!rawFilters) return;
-		fullFilters = rawFilters;
-		isFiltersOverlayOpen = true;
+		await browserController.openFilters();
 	}
 
 	async function handleFiltersApply(newFilters: CharacterSheetFilters) {
-		filters = newFilters;
-		await updateGroups();
+		await browserController.applyFilters(newFilters);
 	}
 
 	function handleFiltersClose() {
-		isFiltersOverlayOpen = false;
+		browserController.closeFilters();
 	}
 
 	async function onSmallItemClick(smallItem: SmallCharacterSheet) {
-		currentItem = (await repository.getFullItemBySmallItem(smallItem)) ?? undefined;
-		if (currentItem) {
-			itemsStack.push(currentItem);
-		}
+		await browserController.openSmallItem(smallItem);
 	}
 
 	async function onImportClick() {
-		// Create a file input element
-		const input = document.createElement("input");
-		input.type = "file";
-		input.accept = ".json";
-
-		input.onchange = async (e: Event) => {
-			const file = (e.target as HTMLInputElement).files?.[0];
-			if (!file) return;
-
-			try {
-				const text = await file.text();
-				const importedCharacter = await characterRepo.importFromJson(text);
-
-				// Refresh the list
-				await updateGroups();
-
-				// Open the imported character
-				currentItem = importedCharacter;
-				itemsStack.push(importedCharacter);
-			} catch (error) {
-				console.error("Failed to import character:", error);
-				alert("Не удалось импортировать персонажа. Проверьте формат файла.");
-			}
-		};
-
-		input.click();
-	}
-
-	// ---- Private functions ----
-	async function updateGroups() {
-		const searchValueNormalized = searchBarValue.toLowerCase();
-		const smallItems: SmallCharacterSheet[] = await repository.getFilteredSmallItems(
-			searchValueNormalized,
-			filters
-		);
-		groups = await repository.groupItems(smallItems);
+		const text = await pickJsonFileText();
+		if (!text) return;
+		await browserController.importFromText(text);
 	}
 </script>
 
 <div class="side-panel-container">
 	<SidePanelHeader
-		onbackclick={currentItem ? onSearchBarBackClick : undefined}
+		onbackclick={browserState.currentItem ? onSearchBarBackClick : undefined}
 		onvaluechange={onSearchBarValueChanged}
-		isvaluechangable={() => !currentItem}
-		onclearclick={undefined}
-		onfiltersclick={currentItem ? undefined : onSearchBarFiltersClick}
-		isfiltersapplied={() => !isFiltersEmpty(filters)}
+		isvaluechangable={() => !browserState.currentItem}
+		onclearclick={() => browserController.clearError()}
+		onfiltersclick={browserState.currentItem ? undefined : onSearchBarFiltersClick}
+		isfiltersapplied={() => !isFiltersEmpty(browserState.filters)}
 		onaddclick={onImportClick}
 	/>
 	<div style="height:1em;"></div>
-	{#if currentItem}
-		<CharacterSheetFullUi {currentItem} {uiEventListener} repository={characterRepo} {plugin} />
-	{:else if searchBarValue.length > 0 && groups.length === 0}
+
+	{#if browserState.errorMessage}
+		<div class="browser-status browser-status-error">{browserState.errorMessage}</div>
+	{:else if browserState.status === "importing"}
+		<div class="browser-status">Импорт персонажа...</div>
+	{/if}
+
+	{#if browserState.currentItem}
+		<CharacterSheetFullUi
+			currentItem={browserState.currentItem}
+			{uiEventListener}
+			{repository}
+			{plugin}
+		/>
+	{:else if browserState.searchBarValue.length > 0 && browserState.groups.length === 0}
 		<h2>Результаты поиска</h2>
 		<div>Ничего не найдено</div>
 	{:else}
 		<div class="side-panel-content">
-			{#each groups as group (group.sort)}
+			{#each browserState.groups as group (group.sort)}
 				<GroupBlockUi
 					groupTitle={group.sort}
 					items={group.smallItems}
@@ -155,10 +123,10 @@
 		</div>
 	{/if}
 
-	{#if isFiltersOverlayOpen && fullFilters}
+	{#if browserState.isFiltersOverlayOpen && browserState.fullFilters}
 		<FiltersOverlay
-			{fullFilters}
-			initialFilters={filters}
+			fullFilters={browserState.fullFilters}
+			initialFilters={browserState.filters}
 			{filterConfig}
 			onApply={handleFiltersApply}
 			onClose={handleFiltersClose}
@@ -180,6 +148,19 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1em;
+	}
+
+	.browser-status {
+		margin-bottom: 12px;
+		padding: 8px 12px;
+		border-radius: 6px;
+		background: var(--background-secondary);
+		color: var(--text-muted);
+	}
+
+	.browser-status-error {
+		background: var(--background-modifier-error);
+		color: var(--text-on-accent);
 	}
 
 	h2 {

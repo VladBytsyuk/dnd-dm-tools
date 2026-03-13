@@ -197,6 +197,14 @@ export class CharacterSheetSqlTableDao extends Dao<FullCharacterSheet, Character
 		}
 	}
 
+	async filterByName(name: string): Promise<WhereClauseData> {
+		const pattern = `%${name}%`;
+		return WhereClauseData(
+			["(name_rus LIKE ? OR name_eng LIKE ?)"],
+			[pattern, pattern]
+		);
+	}
+
 	/**
 	 * Read all items as SmallCharacterSheet (minimal data for lists).
 	 * Queries only columns [0-8] for better performance.

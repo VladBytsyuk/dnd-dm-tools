@@ -5,10 +5,11 @@ import { BaseRepository } from "./BaseRepository";
 import { createFilters } from "src/domain/models/common/Filters";
 import { EmptyFullCharacterSheet } from "src/domain/models/character/FullCharacterSheet";
 import { CharacterSheetImportService } from "./CharacterSheetImportService";
+import type { CharacterSheetGateway } from "./characterSheetTypes";
 
 export class CharacterSheetRepository
 	extends BaseRepository<SmallCharacterSheet, FullCharacterSheet, CharacterSheetFilters>
-	implements Repository<SmallCharacterSheet, FullCharacterSheet, CharacterSheetFilters>
+	implements Repository<SmallCharacterSheet, FullCharacterSheet, CharacterSheetFilters>, CharacterSheetGateway
 {
 	private readonly importService;
 
@@ -96,21 +97,7 @@ export class CharacterSheetRepository
 		name: string | null = null,
 		filter: CharacterSheetFilters | null = null
 	): Promise<SmallCharacterSheet[]> {
-		// Use the DAO's optimized small items query
-		let allSmallItems =
-			(await this.database.characterSheetDao.readAllSmallItems(null, filter)) || [];
-
-		// Apply name search filter
-		if (name) {
-			const searchLower = name.toLocaleLowerCase("ru-RU");
-			allSmallItems = allSmallItems.filter((item) => {
-				const rusNameLower = item.name.rus.toLocaleLowerCase("ru-RU");
-				const engNameLower = item.name.eng.toLocaleLowerCase("ru-RU");
-
-				return rusNameLower.includes(searchLower) || engNameLower.includes(searchLower);
-			});
-		}
-		return allSmallItems;
+		return (await this.database.characterSheetDao.readAllSmallItems(name, filter)) || [];
 	}
 
 	/**
@@ -127,5 +114,46 @@ export class CharacterSheetRepository
 		const allSmallItems = await this.getAllSmallItems();
 		// BaseRepository expects to call collectFiltersFromAllItems
 		await this.collectFiltersFromAllItems(allSmallItems);
+	}
+
+	async putItem(fullItem: FullCharacterSheet): Promise<boolean> {
+		if (!fullItem.url) {
+			console.warn("Cannot put character sheet without URL");
+			return false;
+		}
+
+		try {
+			await this.database.transaction(async () => {
+				const existingItem = await this.database.characterSheetDao.readItemByUrl(fullItem.url);
+				if (existingItem) {
+					await this.database.characterSheetDao.updateItem(fullItem);
+				} else {
+					await this.database.characterSheetDao.createItem(fullItem);
+				}
+			});
+
+			await this.initialize();
+			return true;
+		} catch (error) {
+			console.error("Failed to save character sheet:", error);
+			return false;
+		}
+	}
+
+	async deleteItem(url: string): Promise<boolean> {
+		try {
+			await this.database.transaction(async () => {
+				const existingItem = await this.database.characterSheetDao.readItemByUrl(url);
+				if (existingItem) {
+					await this.database.characterSheetDao.deleteItemByUrl(url);
+				}
+			});
+
+			await this.initialize();
+			return true;
+		} catch (error) {
+			console.error("Failed to delete character sheet:", error);
+			return false;
+		}
 	}
 }

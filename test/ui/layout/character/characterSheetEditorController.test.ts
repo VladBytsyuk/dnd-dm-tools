@@ -25,15 +25,16 @@ describe("CharacterSheetEditorController", () => {
 		const second = EmptyFullCharacterSheet();
 		second.url = "second";
 
-		controller.bind(first);
+		controller.open(first);
 		controller.updateName("First Updated");
-		controller.bind(second);
+		controller.open(second);
 
 		await vi.advanceTimersByTimeAsync(1000);
 
 		expect(putItem).toHaveBeenCalledTimes(1);
-		expect(putItem).toHaveBeenCalledWith(first);
-		expect(putItem).not.toHaveBeenCalledWith(second);
+		expect(putItem.mock.calls[0][0].url).toBe("first");
+		expect(putItem.mock.calls[0][0].data.name.value).toBe("First Updated");
+		expect(second.data.name.value).toBe("");
 	});
 
 	it("should run legacy migrations and schedule a save once", async () => {
@@ -53,15 +54,15 @@ describe("CharacterSheetEditorController", () => {
 			{ type: "paragraph", content: [{ type: "text", text: "Simple weapons" }] },
 		];
 
-		controller.bind(sheet);
+		controller.open(sheet);
 		expect(controller.applyLegacyMigrations()).toBe(true);
 
-		expect(sheet.data.info.classes.value[0].className).toBe("Fighter");
-		expect(sheet.data.equipmentList?.[0].id).toBe("generated-id");
-		expect(sheet.data.proficiencies.other.value).toBe("Simple weapons");
+		expect(controller.getState().draft?.data.info.classes.value[0].className).toBe("Fighter");
+		expect(controller.getState().draft?.data.equipmentList?.[0].id).toBe("generated-id");
+		expect(controller.getState().draft?.data.proficiencies.other.value).toBe("Simple weapons");
 
 		await vi.advanceTimersByTimeAsync(1000);
-		expect(putItem).toHaveBeenCalledWith(sheet);
+		expect(putItem.mock.calls[0][0].url).toBe("legacy");
 	});
 
 	it("should synchronize spellbook derived values into spell info", () => {
@@ -70,7 +71,7 @@ describe("CharacterSheetEditorController", () => {
 		sheet.data.proficiency = 3;
 		sheet.data.stats.wis.score = 18;
 		sheet.data.stats.wis.modifier = 4;
-		controller.bind(sheet);
+		controller.open(sheet);
 
 		const spellbook = createEmptyCharacterSpellbook();
 		spellbook.baseAbilityCode = "wis";
@@ -79,9 +80,42 @@ describe("CharacterSheetEditorController", () => {
 
 		controller.updateSpellbook(spellbook);
 
-		expect(sheet.data.spellsInfo.base.code).toBe("wis");
-		expect(sheet.data.spellsInfo.save.value).toBe("15");
-		expect(sheet.data.spellsInfo.mod.value).toBe("7");
+		expect(controller.getState().draft?.data.spellsInfo.base.code).toBe("wis");
+		expect(controller.getState().draft?.data.spellsInfo.save.value).toBe("15");
+		expect(controller.getState().draft?.data.spellsInfo.mod.value).toBe("7");
+	});
+
+	it("should expose save errors in session state", async () => {
+		const controller = new CharacterSheetEditorController({
+			repository: { putItem: vi.fn().mockResolvedValue(false) },
+			debounceMs: 1000,
+		});
+		const sheet = EmptyFullCharacterSheet();
+		sheet.url = "save-error";
+
+		controller.open(sheet);
+		controller.updateName("Broken");
+
+		await vi.advanceTimersByTimeAsync(1000);
+
+		expect(controller.getState().status).toBe("error");
+		expect(controller.getState().errorMessage).toContain("Не удалось сохранить");
+	});
+
+	it("should fall back when structuredClone throws at runtime", () => {
+		const originalStructuredClone = globalThis.structuredClone;
+		vi.stubGlobal("structuredClone", () => {
+			throw new DOMException("cannot clone", "DataCloneError");
+		});
+
+		const controller = new CharacterSheetEditorController();
+		const sheet = EmptyFullCharacterSheet();
+		sheet.url = "clone-fallback";
+
+		expect(() => controller.open(sheet)).not.toThrow();
+		expect(controller.getState().draft?.url).toBe("clone-fallback");
+
+		vi.stubGlobal("structuredClone", originalStructuredClone);
 	});
 });
 

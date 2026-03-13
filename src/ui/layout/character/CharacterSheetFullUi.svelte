@@ -40,7 +40,11 @@
 		getCharacterVitality,
 		getCharacterWeaponsList,
 	} from "./characterSheetSelectors";
-	import type { CharacterEditorTextSection, CharacterSubInfoField } from "../../../data/repositories/characterSheetTypes";
+	import type {
+		CharacterEditorTextSection,
+		CharacterSheetSessionState,
+		CharacterSubInfoField,
+	} from "../../../data/repositories/characterSheetTypes";
 
 	let {
 		currentItem,
@@ -66,17 +70,18 @@
 
 	const editorController = new CharacterSheetEditorController({
 		repository,
-		onSavingChange: (value) => {
-			isSaving = value;
+		onStateChange: (state) => {
+			sessionState = state;
 		},
 	});
-	editorController.bind(currentItem);
-
-	let data = $derived(currentItem.data);
-	let isSaving = $state(false);
+	let sessionState = $state<CharacterSheetSessionState>(editorController.getState());
+	editorController.open(currentItem);
+	sessionState = editorController.getState();
+	let data = $derived(sessionState.draft?.data ?? currentItem.data);
+	let isSaving = $derived(sessionState.status === "saving");
 
 	$effect(() => {
-		editorController.bind(currentItem);
+		editorController.open(currentItem);
 		currentItem.url;
 		editorController.applyLegacyMigrations();
 	});
@@ -277,6 +282,13 @@
 </script>
 
 <div class="character-sheet-full">
+	{#if sessionState.errorMessage}
+		<div class="character-sheet-status character-sheet-status-error">
+			{sessionState.errorMessage}
+		</div>
+	{:else if sessionState.status === "saved" && sessionState.lastSavedAt}
+		<div class="character-sheet-status">Сохранено</div>
+	{/if}
 	<div class="character-sheet-layout">
 		<!-- Right Column: Spellcasting, Features, Traits -->
 		<div class="column column-right">
@@ -565,6 +577,20 @@
 		overflow: auto;
 		padding: 16px;
 		background-color: var(--background-primary);
+	}
+
+	.character-sheet-status {
+		margin-bottom: 12px;
+		padding: 8px 12px;
+		border-radius: 6px;
+		background: var(--background-secondary);
+		color: var(--text-muted);
+		font-size: 0.9em;
+	}
+
+	.character-sheet-status-error {
+		background: var(--background-modifier-error);
+		color: var(--text-on-accent);
 	}
 
 	.character-sheet-layout {
