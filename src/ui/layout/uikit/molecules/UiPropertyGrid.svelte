@@ -46,13 +46,13 @@
 		align-content: flex-start;
 		padding: 0;
 		margin-bottom: 1em;
-		background: #ffffff14;
-		border-radius: 8px;
+		background: var(--dnd-ui-pattern-meta-bg);
+		border-radius: var(--dnd-ui-radius-lg);
 	}
 
 	.property-grid__item {
 		margin: 1px;
-		padding: 4px 6px;
+		padding: var(--dnd-ui-space-4) var(--dnd-ui-space-6);
 		order: 0;
 		flex: 1 1 auto;
 		align-self: center;
@@ -61,8 +61,8 @@
 	.property-grid__title {
 		display: block;
 		text-transform: uppercase;
-		font-weight: bold;
+		font-weight: var(--dnd-ui-font-weight-bold);
 		font-style: normal;
-		padding-bottom: 4px;
+		padding-bottom: var(--dnd-ui-space-4);
 	}
 </style>

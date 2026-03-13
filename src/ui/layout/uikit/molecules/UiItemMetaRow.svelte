@@ -21,16 +21,16 @@
 <style>
 	.item-meta-row {
 		display: flex;
-		gap: 12px;
+		gap: var(--dnd-ui-space-12);
 		justify-content: space-between;
-		padding: 12px;
-		background: #ffffff14;
-		border-radius: 8px;
+		padding: var(--dnd-ui-space-12);
+		background: var(--dnd-ui-pattern-meta-bg);
+		border-radius: var(--dnd-ui-radius-lg);
 	}
 
 	.item-meta-row__type {
 		flex: 1 1 100%;
-		margin-right: 8px;
+		margin-right: var(--dnd-ui-space-8);
 		font-style: italic;
 	}
 

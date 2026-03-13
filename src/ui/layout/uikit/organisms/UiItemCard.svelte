@@ -48,24 +48,27 @@
 <style>
 	.item-card {
 		display: flex;
-		gap: 10px;
-		padding: 10px 12px;
-		border-radius: 8px;
-		background: #00000020;
+		gap: var(--dnd-ui-space-10);
+		padding: var(--dnd-ui-space-10) var(--dnd-ui-space-12);
+		border-radius: var(--dnd-ui-radius-lg);
+		background: var(--dnd-ui-pattern-list-item-bg);
+		border: 1px solid var(--dnd-ui-pattern-list-item-border);
 		cursor: pointer;
+		transition: all var(--dnd-ui-duration-base) var(--dnd-ui-ease-standard);
 	}
 
 	.item-card:hover,
 	.item-card:focus-visible {
-		outline: 2px solid var(--interactive-accent);
+		outline: 2px solid var(--dnd-ui-pattern-list-item-hover-border);
 		outline-offset: 1px;
+		background: var(--dnd-ui-pattern-list-item-hover-bg);
 	}
 
 	.item-card__group {
 		flex: 0 0 auto;
 		min-width: 2.5em;
 		text-align: center;
-		font-weight: 700;
+		font-weight: var(--dnd-ui-font-weight-bold);
 		align-self: center;
 	}
 
@@ -76,7 +79,7 @@
 
 	.item-card__row {
 		display: flex;
-		gap: 8px;
+		gap: var(--dnd-ui-space-8);
 		align-items: flex-start;
 		justify-content: space-between;
 	}
@@ -87,18 +90,18 @@
 
 	.item-card__name-rus {
 		margin: 0;
-		font-size: 14px;
+		font-size: var(--dnd-ui-font-size-lg);
 	}
 
 	.item-card__name-eng {
 		margin: 0;
 		opacity: 0.75;
-		font-size: 11px;
+		font-size: var(--dnd-ui-font-size-sm);
 	}
 
 	.item-card__left,
 	.item-card__right {
-		font-size: 12px;
+		font-size: var(--dnd-ui-font-size-md);
 		opacity: 0.85;
 	}
 

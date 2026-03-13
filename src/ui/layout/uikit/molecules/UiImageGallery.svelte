@@ -89,25 +89,25 @@
 		display: flex;
 		justify-content: space-between;
 		transform: translateY(-50%);
-		padding: 0 6px;
+		padding: 0 var(--dnd-ui-space-6);
 		max-height: 160px;
 		align-items: center;
 	}
 
 	.image-gallery__arrow {
 		border: none;
-		background: var(--button-bg);
-		color: var(--text-color);
+		background: var(--button-bg, var(--dnd-ui-surface-hover));
+		color: var(--dnd-ui-text-secondary);
 		opacity: 0;
-		padding: 4px 8px;
-		border-radius: 50%;
+		padding: var(--dnd-ui-space-4) var(--dnd-ui-space-8);
+		border-radius: var(--dnd-ui-radius-round);
 		cursor: pointer;
-		transition: background 0.3s, opacity 0.3s;
+		transition: background var(--dnd-ui-duration-base) var(--dnd-ui-ease-standard), opacity var(--dnd-ui-duration-base) var(--dnd-ui-ease-standard);
 	}
 
 	.image-gallery__arrow:hover {
 		background: rgba(0, 0, 0, 0.8);
-		color: white;
+		color: var(--dnd-ui-text-inverse);
 		opacity: 1;
 	}
 
@@ -116,7 +116,7 @@
 		width: auto;
 		display: block;
 		margin: 0 auto;
-		border-radius: 4px;
+		border-radius: var(--dnd-ui-radius-sm);
 	}
 
 	.image-gallery__slider:hover .image-gallery__arrow {

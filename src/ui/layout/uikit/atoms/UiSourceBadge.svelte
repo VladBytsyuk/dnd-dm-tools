@@ -17,20 +17,20 @@
 	.source-badge {
 		display: inline-flex;
 		align-items: center;
-		margin-left: 8px;
-		padding: 0 6px;
-		font-size: 10px;
+		margin-left: var(--dnd-ui-space-8);
+		padding: 0 var(--dnd-ui-space-6);
+		font-size: var(--dnd-ui-font-size-xs);
 		line-height: 1.5;
-		color: var(--text-color);
-		border: 1px solid var(--text-color);
-		border-radius: 999px;
+		color: var(--dnd-ui-text-secondary);
+		border: 1px solid var(--dnd-ui-text-secondary);
+		border-radius: var(--dnd-ui-radius-pill);
 	}
 
 	.source-badge-official {
-		background: #00000040;
+		background: var(--dnd-ui-pattern-badge-bg);
 	}
 
 	.source-badge-homebrew {
-		background: #00800040;
+		background: var(--dnd-ui-pattern-badge-homebrew-bg);
 	}
 </style>

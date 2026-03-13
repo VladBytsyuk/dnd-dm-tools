@@ -34,7 +34,7 @@
 	.copyable-text {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.35em;
+		gap: var(--dnd-ui-space-4);
 		cursor: pointer;
 	}
 

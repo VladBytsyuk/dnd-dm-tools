@@ -24,8 +24,8 @@
 	}
 
 	.content-section__title {
-		font-weight: 600;
-		font-size: 14px;
-		margin-bottom: 0.35em;
+		font-weight: var(--dnd-ui-font-weight-semibold);
+		font-size: var(--dnd-ui-font-size-lg);
+		margin-bottom: var(--dnd-ui-space-4);
 	}
 </style>

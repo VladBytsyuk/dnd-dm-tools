@@ -18,26 +18,26 @@
 <style>
 	.detail-card {
 		text-align: left;
-		font-size: 12.5px;
-		line-height: 1.2em;
+		font-size: var(--dnd-ui-font-size-body);
+		line-height: var(--dnd-ui-line-height-body);
 		display: inline-block;
 		vertical-align: top;
 		width: 100%;
 		background-size: cover;
 		background-position: center;
-		border-color: #00000090;
+		border-color: var(--dnd-ui-pattern-card-border);
 		border-width: 2px;
-		background: #00000020;
-		color: var(--text-color);
-		border-radius: 8px;
+		background: var(--dnd-ui-pattern-card-bg);
+		color: var(--dnd-ui-pattern-card-text);
+		border-radius: var(--dnd-ui-radius-lg);
 	}
 
 	.detail-card__body {
 		padding: 1em;
 		box-sizing: border-box;
-		font-family: "Open Sans", sans-serif;
-		background: var(--bg-color);
-		color: var(--text-color);
-		border-radius: 8px;
+		font-family: var(--dnd-ui-font-family-body);
+		background: var(--dnd-ui-pattern-card-inner-bg);
+		color: var(--dnd-ui-pattern-card-text);
+		border-radius: var(--dnd-ui-radius-lg);
 	}
 </style>

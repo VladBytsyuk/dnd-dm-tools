@@ -43,7 +43,7 @@
 	}: Props = $props();
 </script>
 
-	<div class={`detail-header ${className}`.trim()}>
+<div class={`detail-header ${className}`.trim()}>
 	<div class="detail-header__content">
 		<div class="detail-header__name-container">
 			<div class="detail-header__name-rus">
@@ -98,12 +98,12 @@
 	}
 
 	.detail-header__name-rus {
-		font-size: 20px;
-		line-height: 1.15;
-		font-weight: 700;
-		margin: 0 0 4px;
+		font-size: var(--dnd-ui-font-size-display);
+		line-height: var(--dnd-ui-line-height-tight);
+		font-weight: var(--dnd-ui-font-weight-bold);
+		margin: 0 0 var(--dnd-ui-space-4);
 		letter-spacing: 0.02em;
-		color: var(--text-color);
+		color: var(--dnd-ui-text-secondary);
 	}
 
 	.detail-header__name-copy {
@@ -112,13 +112,13 @@
 
 	.detail-header__name-eng {
 		opacity: 0.75;
-		font-size: 13px;
+		font-size: var(--dnd-ui-font-size-lg);
 		margin: 0 0 2px;
 	}
 
 	.detail-header__link {
 		opacity: 0.5;
-		font-size: 11px;
+		font-size: var(--dnd-ui-font-size-sm);
 		margin: 0 0 2px;
 	}
 
@@ -129,25 +129,25 @@
 	.detail-header__details {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-		gap: 8px;
-		margin-top: 10px;
+		gap: var(--dnd-ui-space-8);
+		margin-top: var(--dnd-ui-space-10);
 	}
 
 	.detail-header__detail-block {
-		padding: 10px 12px;
-		background: #ffffff0a;
-		border-radius: 8px;
+		padding: var(--dnd-ui-space-10) var(--dnd-ui-space-12);
+		background: var(--dnd-ui-pattern-subtle-bg);
+		border-radius: var(--dnd-ui-radius-lg);
 	}
 
 	.detail-header__detail-label {
 		display: block;
-		font-size: 10px;
+		font-size: var(--dnd-ui-font-size-xs);
 		text-transform: uppercase;
 		opacity: 0.7;
-		margin-bottom: 4px;
+		margin-bottom: var(--dnd-ui-space-4);
 	}
 
 	.detail-header__detail-value {
-		font-size: 12px;
+		font-size: var(--dnd-ui-font-size-md);
 	}
 </style>

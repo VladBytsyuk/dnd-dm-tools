@@ -93,7 +93,7 @@
 		isfiltersapplied={() => !isFiltersEmpty(browserState.filters)}
 		onaddclick={onImportClick}
 	/>
-	<div style="height:1em;"></div>
+	<div class="side-panel-spacer"></div>
 
 	{#if browserState.errorMessage}
 		<div class="browser-status browser-status-error">{browserState.errorMessage}</div>
@@ -109,7 +109,9 @@
 			{plugin}
 		/>
 	{:else if browserState.searchBarValue.length > 0 && browserState.groups.length === 0}
-		<UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
+		<div class="side-panel-content side-panel-content-empty">
+			<UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
+		</div>
 	{:else}
 		<div class="side-panel-content">
 			{#each browserState.groups as group (group.sort)}
@@ -144,10 +146,23 @@
 
 	.side-panel-content {
 		flex: 1;
+		min-height: 0;
 		overflow-y: auto;
 		display: flex;
 		flex-direction: column;
 		gap: 1em;
+		position: relative;
+		z-index: 1;
+	}
+
+	.side-panel-spacer {
+		height: 1em;
+		flex-shrink: 0;
+	}
+
+	.side-panel-content-empty {
+		justify-content: flex-start;
+		gap: 0;
 	}
 
 	.browser-status {

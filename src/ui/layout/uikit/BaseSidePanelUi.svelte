@@ -104,7 +104,7 @@
         isfiltersapplied={() => !isFiltersEmpty(filters)}
         onaddclick={emptyFullItem ? () => { currentItem = emptyFullItem; itemsStack.push(emptyFullItem); } : undefined}
     />
-    <div style="height:1em;"></div>
+    <div class="side-panel-spacer"></div>
     {#if currentItem}
         <FullItemSlot
             currentItem={currentItem}
@@ -116,7 +116,9 @@
             onItemDelete={async (url: string) => await repository.deleteItem(url)}
         />
     {:else if searchBarValue.length > 0 && groups.length === 0}
-        <UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
+        <div class="content content-empty">
+            <UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
+        </div>
     {:else}
         <div class="content">
             {#each groups as group (group.sort)}
@@ -143,11 +145,31 @@
 
 <style>
     .side-panel-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
         position: relative;
     }
 
+    .side-panel-spacer {
+        height: 1em;
+        flex-shrink: 0;
+    }
+
     .content {
-        background-color: var(--color-background);
-        gap: 4px;
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--dnd-ui-surface-base);
+        gap: var(--dnd-ui-space-4);
+        position: relative;
+        z-index: 1;
+    }
+
+    .content-empty {
+        justify-content: flex-start;
     }
 </style>

@@ -24,6 +24,7 @@
 	onDestroy(() => debouncer.cancel());
 
 	function onClearClick() {
+		debouncer.cancel();
 		searchValue = "";
 		onvaluechange?.("");
 		onclearclick?.();
@@ -31,16 +32,16 @@
 </script>
 
 <div class="search-toolbar">
-	{#if onbackclick}<button onclick={onbackclick}><ArrowLeft /></button>{/if}
+	{#if onbackclick}<button type="button" onclick={onbackclick}><ArrowLeft /></button>{/if}
 	<input
 		bind:value={searchValue}
 		oninput={() => debouncer.debounce(searchValue)}
 		disabled={isvaluechangable && !isvaluechangable()}
 	/>
-	<button onclick={onClearClick} disabled={isvaluechangable && !isvaluechangable()}><Eraser /></button>
+	<button type="button" onclick={onClearClick} disabled={isvaluechangable && !isvaluechangable()}><Eraser /></button>
 	{#if onfiltersclick}
 		<div class="search-toolbar__action">
-			<button onclick={onfiltersclick}><SlidersHorizontal /></button>
+			<button type="button" onclick={onfiltersclick}><SlidersHorizontal /></button>
 			{#if isfiltersapplied && isfiltersapplied()}
 				<span class="search-toolbar__indicator"></span>
 			{/if}
@@ -48,7 +49,7 @@
 	{/if}
 	{#if onaddclick}
 		<div class="search-toolbar__action">
-			<button onclick={onaddclick}><Plus /></button>
+			<button type="button" onclick={onaddclick}><Plus /></button>
 		</div>
 	{/if}
 </div>
@@ -60,23 +61,31 @@
 		justify-content: space-between;
 		gap: 0.25em;
 		width: 100%;
+		position: relative;
+		z-index: 2;
+		flex-shrink: 0;
 	}
 
 	.search-toolbar input {
-		border: none;
+		border: 1px solid var(--dnd-ui-border-subtle);
 		flex: 1;
 		padding: 0.5rem;
-		border-radius: 0.5em;
+		border-radius: var(--dnd-ui-radius-lg);
 		width: 100%;
 		height: 3em;
+		background-color: var(--dnd-ui-surface-muted-strong);
+		color: var(--dnd-ui-text-primary);
 	}
 
 	.search-toolbar button {
-		border-radius: 0.5em;
+		border-radius: var(--dnd-ui-radius-lg);
 		align-items: center;
 		cursor: pointer;
 		width: 3em;
 		height: 3em;
+		background-color: var(--dnd-ui-surface-panel);
+		border: 1px solid var(--dnd-ui-border-subtle);
+		color: var(--dnd-ui-text-secondary);
 	}
 
 	.search-toolbar__action {
@@ -86,14 +95,14 @@
 
 	.search-toolbar__indicator {
 		position: absolute;
-		top: 4px;
-		right: 4px;
-		width: 8px;
-		height: 8px;
-		background: var(--interactive-accent);
-		border-radius: 50%;
+		top: var(--dnd-ui-space-4);
+		right: var(--dnd-ui-space-4);
+		width: var(--dnd-ui-space-8);
+		height: var(--dnd-ui-space-8);
+		background: var(--dnd-ui-pattern-toolbar-indicator);
+		border-radius: var(--dnd-ui-radius-round);
 		z-index: 2;
 		pointer-events: none;
-		box-shadow: 0 0 2px #888;
+		box-shadow: var(--dnd-ui-pattern-toolbar-indicator-shadow);
 	}
 </style>

@@ -118,14 +118,14 @@
             {#each (groupedChildren()) as childGroup}
                 <div class="group-header">{@html childGroup.subgroupName}</div>
                 <div class="content">
-                {#each childGroup.group as group}
-                    <DmScreenGroupUi
-                        icon={group.icon}
-                        name={group.name}
-                        source={group.source.shortName}
-                        onclick={onItemClick(group)}        
-                    />
-                {/each}
+                    {#each childGroup.group as group}
+                        <DmScreenGroupUi
+                            icon={group.icon}
+                            name={group.name}
+                            source={group.source.shortName}
+                            onclick={onItemClick(group)}        
+                        />
+                    {/each}
                 </div>
             {/each}
         </div>
@@ -134,22 +134,22 @@
 
 <style>
     .content {
-        background-color: var(--color-background);
+        background-color: var(--dnd-ui-surface-base);
 
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 4px;
+        gap: var(--dnd-ui-space-4);
     }
 
     .group-description {
         font-size: 0.875rem;
-        color: var(--text-color);   
+        color: var(--dnd-ui-text-secondary);
     }       
 
     .group-header {
-        font-weight: 600;
-        color: var(--text-color);
-        margin-top: 16px;
-        margin-bottom: 8px;
+        font-weight: var(--dnd-ui-font-weight-semibold);
+        color: var(--dnd-ui-text-secondary);
+        margin-top: var(--dnd-ui-space-16);
+        margin-bottom: var(--dnd-ui-space-8);
     }
 </style>

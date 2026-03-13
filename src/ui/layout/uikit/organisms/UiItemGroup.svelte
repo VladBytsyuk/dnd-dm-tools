@@ -24,49 +24,75 @@
 
 <style>
 	.item-group {
-		margin: 1rem 0;
+		margin: 0;
 	}
 
 	.item-group details {
 		user-select: none;
-		border-radius: 8px;
-		transition: all 0.3s ease;
+		border-radius: var(--dnd-ui-radius-lg);
+		transition: all var(--dnd-ui-duration-base) var(--dnd-ui-ease-standard);
 		overflow: hidden;
 		marker: none;
+		border: 1px solid var(--dnd-ui-pattern-list-item-border);
+		background: var(--dnd-ui-pattern-group-bg);
 	}
 
 	.item-group details:hover,
 	.item-group details[open] {
-		border-color: var(--interactive-accent);
+		border-color: var(--dnd-ui-accent-primary);
 	}
 
 	.item-group__title {
+		display: block;
+		appearance: none;
 		font-size: 1.2rem;
-		font-weight: bold;
+		font-weight: var(--dnd-ui-font-weight-bold);
 		width: 100%;
-		padding: 4px 8px;
+		padding: var(--dnd-ui-space-6) var(--dnd-ui-space-8) var(--dnd-ui-space-6) var(--dnd-ui-space-24);
 		margin: 0;
-		background: var(--background-primary);
-		border-bottom: 2px solid var(--background-modifier-border);
+		background: var(--text-accent) !important;
+		border-bottom: 2px solid var(--text-accent) !important;
 		cursor: pointer;
-		transition: all 0.3s ease;
+		transition: all var(--dnd-ui-duration-base) var(--dnd-ui-ease-standard);
 		position: relative;
+		color: var(--dnd-ui-text-inverse);
+		list-style: none;
+	}
+
+	.item-group__title::-webkit-details-marker {
+		display: none;
+	}
+
+	.item-group__title::before {
+		content: "▶";
+		position: absolute;
+		left: var(--dnd-ui-space-8);
+		top: 50%;
+		transform: translateY(-50%);
+		font-size: var(--dnd-ui-font-size-sm);
+		transition: transform var(--dnd-ui-duration-base) var(--dnd-ui-ease-standard);
 	}
 
 	.item-group__title:hover {
-		background: var(--interactive-accent);
+		background: var(--text-accent-hover) !important;
+		color: var(--dnd-ui-text-inverse);
 	}
 
 	.item-group details[open] .item-group__title {
-		background: var(--interactive-accent);
-		border-bottom-color: var(--interactive-accent);
+		background: var(--text-accent) !important;
+		border-bottom-color: var(--text-accent) !important;
+		color: var(--dnd-ui-text-inverse);
+	}
+
+	.item-group details[open] .item-group__title::before {
+		transform: translateY(-50%) rotate(90deg);
 	}
 
 	.item-group__grid {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
-		gap: 4px;
-		padding: 8px 0 0;
-		background: var(--background-secondary);
+		gap: var(--dnd-ui-space-4);
+		padding: var(--dnd-ui-space-8) 0 0;
+		background: var(--dnd-ui-pattern-group-content-bg);
 	}
 </style>
