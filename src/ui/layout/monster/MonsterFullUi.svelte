@@ -35,11 +35,18 @@
     }>();
 
 	let isInEditMode = $state(false);
-    var reservedItem = $state.snapshot(currentItem);
+    function cloneCurrentItem() {
+        return $state.snapshot(currentItem);
+    }
+
+    var reservedItem = cloneCurrentItem();
     
-    const diceRollersManager = DiceRollersManager.create(uiEventListener);
-    onMount(async () => diceRollersManager.onMount());
-    onDestroy(() => diceRollersManager.onDestroy());
+    let diceRollersManager: DiceRollersManager | undefined;
+    onMount(async () => {
+        diceRollersManager = DiceRollersManager.create(uiEventListener);
+        diceRollersManager?.onMount();
+    });
+    onDestroy(() => diceRollersManager?.onDestroy());
 
     const notEmpty = (list: any[] | undefined): boolean => {
         return list !== undefined && list.length > 0;
@@ -69,7 +76,7 @@
         }
 
         await tick();
-        diceRollersManager.onMount();
+        diceRollersManager?.onMount();
     }
 
     const validateUrl = (url: string): boolean => url.length > 10 && url.startsWith('/bestiary/');

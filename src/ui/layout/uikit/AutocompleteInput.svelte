@@ -33,7 +33,7 @@
 		return rusName.includes(lowerQuery) || engName.includes(lowerQuery);
 	};
 
-	const activeFilterFn = filterFn || defaultFilterFn;
+	const activeFilterFn = $derived(filterFn || defaultFilterFn);
 
 	function handleFocus() {
 		if (disabled) return;

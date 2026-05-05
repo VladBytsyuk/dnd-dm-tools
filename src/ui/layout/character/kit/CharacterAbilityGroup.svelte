@@ -36,8 +36,16 @@
 	let { abilityKey, abilityLabel, abilityFullName, stat, save, skills, allSkills, proficiency }: Props = $props();
 
 	// Editable state
-	let abilityScore = $state(stat?.score ?? 10);
-	let saveIsProf = $state(save?.isProf ?? false);
+	function getAbilityScore() {
+		return stat?.score ?? 10;
+	}
+
+	function getSaveIsProf() {
+		return save?.isProf ?? false;
+	}
+
+	let abilityScore = $state(getAbilityScore());
+	let saveIsProf = $state(getSaveIsProf());
 	let saveBonusOverride = $state<number | null>(null);
 	let skillProfLevels = $state<Record<string, number>>({});
 	let skillBonusOverrides = $state<Record<string, number | null>>({});

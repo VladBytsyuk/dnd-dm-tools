@@ -7,7 +7,11 @@
 	}
 
 	let { smallItem, onItemClick }: Props = $props();
-	const { name, charClass, level, race, playerName } = smallItem;
+	const name = $derived(smallItem.name);
+	const charClass = $derived(smallItem.charClass);
+	const level = $derived(smallItem.level);
+	const race = $derived(smallItem.race);
+	const playerName = $derived(smallItem.playerName);
 </script>
 
 <div

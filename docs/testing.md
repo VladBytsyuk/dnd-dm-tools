@@ -13,7 +13,14 @@
 npm run test          # Run all tests (watch mode by default)
 npm run test:watch    # Explicit watch mode
 npm run test:cov      # Run tests with Istanbul coverage report
+npm run svelte-check  # Run Svelte diagnostics
 ```
+
+## Svelte Diagnostics
+
+Svelte component changes should be validated with `npm run svelte-check` in addition to the test suite. The expected result is `0 errors and 0 warnings`.
+
+Warnings from `npm run dev` are also treated as actionable. In particular, fix `state_referenced_locally` warnings by using `$derived(...)`, `$effect.pre(...)`, lifecycle callbacks, or helper functions instead of capturing props into setup-time constants or direct `$state(...)` initializers.
 
 ## Test Structure
 

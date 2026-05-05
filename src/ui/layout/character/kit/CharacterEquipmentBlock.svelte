@@ -30,13 +30,17 @@
 	let { coins, equipmentList, equipmentText = '', equipmentAutocompleteItems = [], entityLinkService, uiEventListener, onChange }: Props = $props();
 
 	// Local state for coins (to handle edit expressions)
-	let coinInputs = $state({
-		pp: coins?.pp?.value?.toString() || '0',
-		gp: coins?.gp?.value?.toString() || '0',
-		ep: coins?.ep?.value?.toString() || '0',
-		sp: coins?.sp?.value?.toString() || '0',
-		cp: coins?.cp?.value?.toString() || '0'
-	});
+	function getCoinInputs() {
+		return {
+			pp: coins?.pp?.value?.toString() || '0',
+			gp: coins?.gp?.value?.toString() || '0',
+			ep: coins?.ep?.value?.toString() || '0',
+			sp: coins?.sp?.value?.toString() || '0',
+			cp: coins?.cp?.value?.toString() || '0'
+		};
+	}
+
+	let coinInputs = $state(getCoinInputs());
 
 	// Notes popup state (for editing)
 	let showNotesPopup = $state<{ id: string; x: number; y: number } | null>(null);

@@ -13,18 +13,18 @@
     let { currentItem, uiEventListener }: Props = $props();
 
     // Format abilities as a readable string
-    const abilitiesText = currentItem.abilities
+    const abilitiesText = $derived(currentItem.abilities
         .map(a => a.value !== 0 ? `${a.name}: ${a.value > 0 ? '+' : ''}${a.value}` : a.name)
-        .join(', ');
+        .join(', '));
 
     // Format speed as a readable string
-    const speedText = currentItem.speed
+    const speedText = $derived(currentItem.speed
         .filter(s => s.value && s.value > 0)
         .map(s => s.name ? `${s.name}: ${s.value} фт.` : `${s.value} фт.`)
-        .join(', ');
+        .join(', '));
 
     // Format skills
-    const hasSkills = currentItem.skills && currentItem.skills.length > 0;
+    const hasSkills = $derived(currentItem.skills && currentItem.skills.length > 0);
 
     // Filter subrace skills that are not duplicates of parent race skills
     const getUniqueSubraceSkills = (subraceSkills: typeof currentItem.skills) => {
@@ -38,10 +38,10 @@
     };
 
     // Get image for header
-    const images = currentItem.image ? [currentItem.image] : undefined;
+    const images = $derived(currentItem.image ? [currentItem.image] : undefined);
 
     // Format subraces for header links
-    const subraceLinks = currentItem.subraces?.map((s, index) => ({ name: s.name.rus, id: `subrace-${index}` }));
+    const subraceLinks = $derived(currentItem.subraces?.map((s, index) => ({ name: s.name.rus, id: `subrace-${index}` })));
 
     // Track which subrace is open (only one at a time)
     let openSubraceIndex: number | null = $state(null);

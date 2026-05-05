@@ -8,9 +8,9 @@
     }
     let { smallItem, onItemClick }: Props = $props();
 
-    const abilitiesText = smallItem.abilities
+    const abilitiesText = $derived(smallItem.abilities
         .map(a => a.value !== 0 ? `${a.value > 0 ? '+' : ''}${a.value} ${a.shortName}` : a.shortName)
-        .join(', ');
+        .join(', '));
 </script>
 
 <UiItemCard

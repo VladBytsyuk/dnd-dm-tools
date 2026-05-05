@@ -9,58 +9,50 @@
 
     let { currentItem, uiEventListener } = $props();
 
-    const diceRollersManager = new DiceRollersManager(uiEventListener.onDiceRoll);
+    let diceRollersManager: DiceRollersManager | undefined;
 
     onMount(async () => {
+        diceRollersManager = new DiceRollersManager(uiEventListener.onDiceRoll);
         diceRollersManager.onMount();
     });
 
     onDestroy(() => {
-        diceRollersManager.onDestroy();
+        diceRollersManager?.onDestroy();
     });
 
 
     let themeClass = $state(getCurrentTheme() === Theme.Light ? 'theme-light' : 'theme-dark');
     
-    let classThemeName: string;
+    const classThemeName = $derived.by(() => {
+        if (!currentItem) {
+            return "default";
+        }
 
-    if (currentItem) {
         switch (currentItem.classes[0].url) {
             case "/classes/bard":
-                classThemeName = "bard";
-                break;
+                return "bard";
             case "/classes/wizard":
-                classThemeName = "wizard";
-                break;
+                return "wizard";
             case "/classes/druid":
-                classThemeName = "druid";
-                break;
+                return "druid";
             case "/classes/cleric":
-                classThemeName = "cleric";
-                break;
+                return "cleric";
             case "/classes/artificer":
-                classThemeName = "artificer";
-                break;
+                return "artificer";
             case "/classes/warlock":
-                classThemeName = "warlock";
-                break;
+                return "warlock";
             case "/classes/paladin":
-                classThemeName = "paladin";
-                break;
+                return "paladin";
             case "/classes/ranger":
-                classThemeName = "ranger";
-                break;
+                return "ranger";
             case "/classes/sorcerer":
-                classThemeName = "sorcerer";
-                break;
+                return "sorcerer";
             default:
-                classThemeName = "default"
+                return "default";
         }
-    } else {
-        classThemeName = "default";
-    }
+    });
     
-    let classTheme = $state(classThemeName);
+    let classTheme = $derived(classThemeName);
 
     $effect(() => {
         const unsubscribe = theme.subscribe(value => {
@@ -70,9 +62,9 @@
         return () => { unsubscribe() };
     });
 
-    let subClasses = (!currentItem || !currentItem.subclasses) ? undefined : separate(currentItem.subclasses.map((it: Class) => it.name + " (" + it.class + ")"));
-    let classes = currentItem ? separate(currentItem.classes.map((it: Class) => it.name)) : "";
-    let classHint = "Классы: " + classes + (subClasses ? "\nПодклассы: " + subClasses : "");
+    let subClasses = $derived((!currentItem || !currentItem.subclasses) ? undefined : separate(currentItem.subclasses.map((it: Class) => it.name + " (" + it.class + ")")));
+    let classes = $derived(currentItem ? separate(currentItem.classes.map((it: Class) => it.name)) : "");
+    let classHint = $derived("Классы: " + classes + (subClasses ? "\nПодклассы: " + subClasses : ""));
 </script>
 
 {#if currentItem}

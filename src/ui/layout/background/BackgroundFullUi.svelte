@@ -14,7 +14,7 @@
     }
     let { currentItem, uiEventListener }: Props = $props();
 
-    useDiceRollers(uiEventListener);
+    useDiceRollers(() => uiEventListener);
 </script>
 
 <UiDetailCard className="full-item">

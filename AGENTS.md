@@ -165,6 +165,15 @@ npm run test:cov    # Generate coverage report
 - Inline source maps for debugging
 - `verbatimModuleSyntax` enabled
 
+### Svelte 5
+- Use runes syntax (`$state`, `$derived`, `$effect`, `$effect.pre`) in `.svelte` files
+- Do not read `$props()` values into top-level constants when the value can change; use `$derived(...)`
+- Do not initialize `$state(...)` directly from props if Svelte reports `state_referenced_locally`
+- For editable local buffers copied from props, initialize with a neutral value and sync in `$effect.pre(...)`
+- For one-time state that intentionally starts from props, move the prop read into a small helper function and call that helper from the initializer
+- Create managers/controllers that depend on props through helper functions or lifecycle callbacks, not direct top-level construction
+- After Svelte edits, run `npm run svelte-check`; warning-free output is expected
+
 ### Naming
 - Features: `XxxFeature` (e.g., `BestiaryFeature`)
 - Repositories: `XxxRepository` (e.g., `BestiaryRepository`)

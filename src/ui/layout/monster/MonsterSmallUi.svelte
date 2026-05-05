@@ -9,8 +9,11 @@
 
     let { smallItem, onItemClick }: Props = $props();
     
-    const { name, type, challengeRating, source } = smallItem;
-    const typeText = typeof type === "string" ? type : type && typeof type === "object" && "name" in type ? type.name : "";
+    const name = $derived(smallItem.name);
+    const type = $derived(smallItem.type);
+    const challengeRating = $derived(smallItem.challengeRating);
+    const source = $derived(smallItem.source);
+    const typeText = $derived(typeof type === "string" ? type : type && typeof type === "object" && "name" in type ? type.name : "");
 </script>
 
 

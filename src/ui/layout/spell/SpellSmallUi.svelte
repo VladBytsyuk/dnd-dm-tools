@@ -8,11 +8,16 @@
     }
     let { smallItem, onItemClick }: Props = $props();
     
-    const { name, school, level, source, components } = smallItem;
-    const componentsText =
+    const name = $derived(smallItem.name);
+    const school = $derived(smallItem.school);
+    const level = $derived(smallItem.level);
+    const source = $derived(smallItem.source);
+    const components = $derived(smallItem.components);
+    const componentsText = $derived(
         (components.v ? 'В' : '•') +
         (components.s ? 'С' : '•') +
         (components.m ? 'М' : '•')
+    );
 </script>
 
 <UiItemCard

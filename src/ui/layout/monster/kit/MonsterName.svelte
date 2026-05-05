@@ -15,10 +15,13 @@
         uiEventListener: IUiEventListener;
     }>();
     
-    const diceRollersManager = DiceRollersManager.create(uiEventListener);
+    let diceRollersManager: DiceRollersManager | undefined;
     
-    onMount(async () => diceRollersManager.onMount());
-    onDestroy(() => diceRollersManager.onDestroy());
+    onMount(async () => {
+        diceRollersManager = DiceRollersManager.create(uiEventListener);
+        diceRollersManager.onMount();
+    });
+    onDestroy(() => diceRollersManager?.onDestroy());
 </script>
 
 <div class="header-root">

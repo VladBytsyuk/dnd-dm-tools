@@ -8,7 +8,9 @@
     }
 
     let { smallItem, onItemClick }: Props = $props();
-    const { name, dice, source } = smallItem;
+    const name = $derived(smallItem.name);
+    const dice = $derived(smallItem.dice);
+    const source = $derived(smallItem.source);
 </script>
 
 <UiItemCard

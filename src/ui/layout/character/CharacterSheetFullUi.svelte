@@ -58,25 +58,33 @@
 		plugin?: DndStatblockPlugin;
 	}>();
 
-	const diceRollersManager = DiceRollersManager.create(uiEventListener);
+	let diceRollersManager: DiceRollersManager | undefined;
 	onMount(async () => {
 		await tick();
+		diceRollersManager = DiceRollersManager.create(uiEventListener);
 		diceRollersManager.onMount();
 	});
 	onDestroy(() => {
 		editorController.destroy();
-		diceRollersManager.onDestroy();
+		diceRollersManager?.onDestroy();
 	});
 
-	const editorController = new CharacterSheetEditorController({
-		repository,
-		onStateChange: (state) => {
-			sessionState = state;
-		},
-	});
+	function createEditorController() {
+		return new CharacterSheetEditorController({
+			repository,
+			onStateChange: (state) => {
+				sessionState = state;
+			},
+		});
+	}
+
+	const editorController = createEditorController();
 	let sessionState = $state<CharacterSheetSessionState>(editorController.getState());
-	editorController.open(currentItem);
-	sessionState = editorController.getState();
+	function openCurrentItem() {
+		editorController.open(currentItem);
+		sessionState = editorController.getState();
+	}
+	openCurrentItem();
 	let data = $derived(sessionState.draft?.data ?? currentItem.data);
 	let isSaving = $derived(sessionState.status === "saving");
 

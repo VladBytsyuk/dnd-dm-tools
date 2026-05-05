@@ -35,6 +35,24 @@ For local testing, symlink or copy the plugin into your Obsidian vault's `.obsid
 | `npm run test:cov` | Run tests with coverage report |
 | `npm run svelte-check` | Run Svelte type checking |
 
+## Svelte Warning Checks
+
+`npm run dev` should finish its initial build without Svelte warnings. The most common warning to avoid is `state_referenced_locally`, which appears when a prop is captured at setup time instead of being read reactively.
+
+When changing `.svelte` files:
+
+1. Prefer `$derived(...)` for values computed from props.
+2. Use `$effect.pre(...)` for editable input buffers that mirror props.
+3. Use helper functions or lifecycle callbacks for intentional one-time reads from props.
+4. Run `npm run svelte-check`.
+5. Run `npm run build` before handing off larger UI changes.
+
+For a quick dev-build warning check without leaving the watcher running:
+
+```bash
+timeout 20s npm run dev
+```
+
 ## Build Output
 
 The build produces:

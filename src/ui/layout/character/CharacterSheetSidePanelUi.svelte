@@ -39,11 +39,15 @@
 		{ key: "races", label: "Раса" },
 	];
 
-	const browserController = new CharacterSheetBrowserController(repository, {
-		onStateChange: (state) => {
-			browserState = state;
-		},
-	});
+	function createBrowserController() {
+		return new CharacterSheetBrowserController(repository, {
+			onStateChange: (state) => {
+				browserState = state;
+			},
+		});
+	}
+
+	const browserController = createBrowserController();
 
 	let browserState = $state<CharacterSheetBrowserState>(browserController.getState());
 

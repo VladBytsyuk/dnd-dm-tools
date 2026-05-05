@@ -16,7 +16,7 @@
     }
     let { currentItem, uiEventListener }: Props = $props();
 
-    useDiceRollers(uiEventListener);
+    useDiceRollers(() => uiEventListener);
 
     let properties: UiPropertyGridItem[] = $derived([
         { label: 'Стоимость', value: currentItem.price },

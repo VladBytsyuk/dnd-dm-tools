@@ -8,8 +8,8 @@
     }
     let { smallItem, onItemClick }: Props = $props();
  
-    const diceText = smallItem.damage.dice ? smallItem.damage.dice + " ": "";
-    const leftText = `${diceText}${smallItem.damage.type ?? ''}`;
+    const diceText = $derived(smallItem.damage.dice ? smallItem.damage.dice + " ": "");
+    const leftText = $derived(`${diceText}${smallItem.damage.type ?? ''}`);
 </script>
 
 <UiItemCard

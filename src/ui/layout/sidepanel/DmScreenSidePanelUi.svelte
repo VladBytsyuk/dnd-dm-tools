@@ -9,9 +9,17 @@
     let { item, children, uiEventListener, getFilteredItems, getChildrenCount, getChildren, getFullItem } = $props();
 
     // ---- State ----
-    let itemsStack: DmScreenItem[] = $state(item ? [item] : []);
-    let currentItem: DmScreenItem | undefined = $state(item ? item : undefined);
-    let currentChildren: DmScreenItem[] = $state(item ? [] : children);
+    function getInitialItem() {
+        return item;
+    }
+
+    function getInitialChildren() {
+        return getInitialItem() ? [] : children;
+    }
+
+    let itemsStack: DmScreenItem[] = $state(getInitialItem() ? [getInitialItem()] : []);
+    let currentItem: DmScreenItem | undefined = $state(getInitialItem() ? getInitialItem() : undefined);
+    let currentChildren: DmScreenItem[] = $state(getInitialChildren());
     let searchBarValue: string = $state('');
     
     let filteredItems: DmScreenItem[] = $state([]);

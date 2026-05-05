@@ -93,6 +93,18 @@ It owns:
 
 Prefer this shell unless a feature has materially different browser behavior. `CharacterSheetSidePanelUi.svelte` and `DmScreenSidePanelUi.svelte` are current examples of justified custom side-panel implementations.
 
+### Svelte 5 State Contract
+
+Shared UIKit components are reused broadly, so Svelte warnings in this folder quickly multiply across the dev build.
+
+When writing or refactoring UIKit components:
+
+- Use `$derived(...)` for values calculated from props, such as active filters, computed labels, class names, image counts, and item metadata.
+- Use helper functions for intentional initial state derived from props, such as initial filter state or initial navigation stacks.
+- Use `$effect.pre(...)` to sync editable local inputs from changing props.
+- Create prop-dependent listeners, managers, and controllers through closures or lifecycle callbacks.
+- Keep `npm run svelte-check` at `0 errors and 0 warnings` after UIKit edits.
+
 ## Design Tokens
 
 Shared visual styling is defined in `styles.css` through `--dnd-ui-*` CSS custom properties.
@@ -146,3 +158,4 @@ Feature-local Svelte components should mostly adapt data into shared UIKit compo
 - Do not introduce duplicated neutral colors, radii, spacing, or hover states when tokens already exist.
 - Do not build a feature-local browser shell if `BaseSidePanelUi.svelte` can cover the behavior.
 - Use feature-specific styling only for domain-specific visuals, not for generic list/detail chrome.
+- Do not capture props into top-level constants or `$state(...)` initializers in a way that triggers Svelte 5 `state_referenced_locally` warnings.

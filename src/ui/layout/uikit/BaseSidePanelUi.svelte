@@ -38,12 +38,24 @@
     }: Props<any, any, any> = $props();
 
     // ---- State ----
+    function getInitialFullItem() {
+        return initialFullItem;
+    }
+
+    function getInitialFilters() {
+        return initialFilters;
+    }
+
+    function createEmptyFullItem() {
+        return repository.createEmptyFullItem();
+    }
+
     let searchBarValue: string = $state('');
-    let filters: any = $state(initialFilters);
-    let itemsStack: BaseItem[] = $state(initialFullItem ? [initialFullItem] : []);
-    let currentItem: BaseItem | undefined = $state(initialFullItem || undefined);
+    let filters: any = $state(getInitialFilters());
+    let itemsStack: BaseItem[] = $state(getInitialFullItem() ? [getInitialFullItem()] : []);
+    let currentItem: BaseItem | undefined = $state(getInitialFullItem() || undefined);
     let groups: Group<BaseItem>[] = $state([]);
-    let emptyFullItem = repository.createEmptyFullItem();
+    let emptyFullItem = createEmptyFullItem();
     let isFiltersOverlayOpen: boolean = $state(false);
     let fullFilters: any = $state(null);
 

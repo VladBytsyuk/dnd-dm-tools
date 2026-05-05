@@ -20,13 +20,10 @@
 		onChange
 	}: Props = $props();
 
-	let textValue = $state(getPlainTextFromTextField(content));
+	let textValue = $state("");
 
-	$effect(() => {
-		const nextValue = getPlainTextFromTextField(content);
-		if (nextValue !== textValue) {
-			textValue = nextValue;
-		}
+	$effect.pre(() => {
+		textValue = getPlainTextFromTextField(content);
 	});
 
 	function handleInput(event: Event) {

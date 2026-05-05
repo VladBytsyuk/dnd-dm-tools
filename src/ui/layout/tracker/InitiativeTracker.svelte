@@ -32,7 +32,11 @@
 			onImageRequested: (url: string) => Promise<string>;
 		}>();
 
-	const encounterManager = new EncounterManager(encounter);
+	function createEncounterManager() {
+		return new EncounterManager(encounter);
+	}
+
+	const encounterManager = createEncounterManager();
 
 	let state = $state({
 		current: encounterManager.current,

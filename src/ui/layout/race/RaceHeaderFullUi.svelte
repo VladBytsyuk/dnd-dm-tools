@@ -28,7 +28,7 @@
     let { name, url, type, source, onClick, images, uiEventListener, abilities, size, speed, subraces, onSubraceClick }: Props = $props();
 
     let currentImageIndex = $state(0);
-    let imagesLength = $state(images?.length ?? 0);
+    let imagesLength = $derived(images?.length ?? 0);
     let imagesState: string[] = $state([]);
     let isImageExpanded = $state(false);
 

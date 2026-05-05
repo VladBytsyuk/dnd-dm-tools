@@ -38,6 +38,73 @@ The project uses **Svelte 5** with runes syntax:
 - **Components:** Use `.svelte` extension
 - **Icons:** `lucide-svelte` for icon components
 
+### Warning-Free Prop Usage
+
+Svelte 5 warns when a prop is captured at component setup time and later treated as if it were reactive. Keep `.svelte` files free of `state_referenced_locally` warnings.
+
+Use these patterns:
+
+```svelte
+<script lang="ts">
+    let { smallItem } = $props();
+
+    const name = $derived(smallItem.name);
+    const source = $derived(smallItem.source);
+</script>
+```
+
+```svelte
+<script lang="ts">
+    let { value } = $props();
+
+    let inputValue = $state("");
+
+    $effect.pre(() => {
+        inputValue = String(value);
+    });
+</script>
+```
+
+For state that intentionally takes only the initial prop value, read the prop through a helper function:
+
+```svelte
+<script lang="ts">
+    let { initialFilters } = $props();
+
+    function getInitialFilters() {
+        return initialFilters;
+    }
+
+    let filters = $state(getInitialFilters());
+</script>
+```
+
+For managers/controllers that depend on props, create them inside a helper function or lifecycle callback so the prop is read inside a closure:
+
+```svelte
+<script lang="ts">
+    let { repository } = $props();
+
+    function createController() {
+        return new BrowserController(repository);
+    }
+
+    const controller = createController();
+</script>
+```
+
+Avoid these warning-prone patterns:
+
+```svelte
+<script lang="ts">
+    let { smallItem, value, repository } = $props();
+
+    const { name, source } = smallItem;
+    let inputValue = $state(String(value));
+    const controller = new BrowserController(repository);
+</script>
+```
+
 ### Naming Conventions
 
 | Pattern | Usage | Example |

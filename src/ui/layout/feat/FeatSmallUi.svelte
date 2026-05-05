@@ -9,7 +9,9 @@
 
     let { smallItem, onItemClick }: Props = $props();
     
-    const { name, requirements, source } = smallItem;
+    const name = $derived(smallItem.name);
+    const requirements = $derived(smallItem.requirements);
+    const source = $derived(smallItem.source);
 </script>
 
 

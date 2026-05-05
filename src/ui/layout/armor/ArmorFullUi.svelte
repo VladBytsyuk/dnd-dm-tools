@@ -15,7 +15,7 @@
     }
     let { currentItem, uiEventListener }: Props = $props();
 
-    useDiceRollers(uiEventListener);
+    useDiceRollers(() => uiEventListener);
 
     let properties: UiPropertyGridItem[] = $derived([
         { label: 'Класс брони (AC)', value: currentItem.armorClass },

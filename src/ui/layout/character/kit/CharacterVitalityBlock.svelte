@@ -27,8 +27,12 @@
 	let { vitality, stats, skills, proficiency, level, classes, conditions, onChange, onOpenConditionDetails }: Props =
 		$props();
 
-	let localVitality = $state({ ...vitality });
-	let localConditions = $state([...conditions]);
+	function getLocalVitality() {
+		return { ...vitality };
+	}
+
+	let localVitality = $state(getLocalVitality());
+	let localConditions = $state<string[]>([]);
 	let saveTimeout: NodeJS.Timeout | null = null;
 
 	// Sync when props change externally
@@ -36,7 +40,7 @@
 		localVitality = { ...vitality };
 	});
 
-	$effect(() => {
+	$effect.pre(() => {
 		localConditions = [...conditions];
 	});
 

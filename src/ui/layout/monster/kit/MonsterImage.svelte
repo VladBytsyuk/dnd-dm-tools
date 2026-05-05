@@ -15,8 +15,12 @@
         uiEventListener: IUiEventListener;
     }>();
 
+    function getImagesLength() {
+        return currentItem?.images?.length ?? 0;
+    }
+
     let currentImageIndex = $state(0);
-    let imagesLength = $state(currentItem?.images?.length ?? 0);
+    let imagesLength = $state(getImagesLength());
     let images: string[] = $state([]);
     let isImageExpanded = $state(false);
     

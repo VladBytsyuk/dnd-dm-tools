@@ -13,7 +13,11 @@
 
     let { fullFilters, initialFilters, filterConfig, onApply, onClose }: Props<F> = $props();
 
-    let currentFilters: F = $state({ ...initialFilters } as F);
+    function getInitialFilters() {
+        return { ...initialFilters } as F;
+    }
+
+    let currentFilters: F = $state(getInitialFilters());
 
     function toggleFilter(key: keyof F, value: string | number) {
         const current = currentFilters[key] as (string | number)[];

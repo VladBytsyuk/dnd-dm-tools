@@ -12,11 +12,11 @@
 
 	let { value, label, title, isEditable = false, onChange }: Props = $props();
 
-	let inputValue = $state(String(value));
+	let inputValue = $state("");
 	let inputEl: HTMLInputElement | null = $state(null);
 
 	// Sync input value when prop changes
-	$effect(() => {
+	$effect.pre(() => {
 		inputValue = String(value);
 	});
 

@@ -16,14 +16,15 @@
     }>();
 
     // Dice rollers manager
-    const diceRollersManager = new DiceRollersManager(uiEventListener.onDiceRoll);
+    let diceRollersManager: DiceRollersManager | undefined;
 
     onMount(async () => {
+        diceRollersManager = new DiceRollersManager(uiEventListener.onDiceRoll);
         diceRollersManager.onMount();
     });
 
     onDestroy(() => {
-        diceRollersManager.onDestroy();
+        diceRollersManager?.onDestroy();
     });
 
     function handleBackToParent(e: MouseEvent) {

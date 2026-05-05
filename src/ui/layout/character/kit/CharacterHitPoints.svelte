@@ -15,18 +15,18 @@
 
 	let { hpCurrent, hpTemp, hpMax, isDying, onChange }: Props = $props();
 
-	let currentInput = $state(String(hpCurrent));
-	let tempInput = $state(String(hpTemp));
-	let maxInput = $state(String(hpMax));
+	let currentInput = $state("");
+	let tempInput = $state("");
+	let maxInput = $state("");
 
 	// Update inputs when props change externally
-	$effect(() => {
+	$effect.pre(() => {
 		currentInput = String(hpCurrent);
 	});
-	$effect(() => {
+	$effect.pre(() => {
 		tempInput = String(hpTemp);
 	});
-	$effect(() => {
+	$effect.pre(() => {
 		maxInput = String(hpMax);
 	});
 
