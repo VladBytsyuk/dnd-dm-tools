@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy, tick } from "svelte";
-	import { Check, Info, X, Infinity, Minus, Plus } from "lucide-svelte";
+	import { Check, CirclePlus, Info, X, Infinity, Minus, Plus } from "lucide-svelte";
 	import type { EncounterParticipantCondition } from "../../../domain/models/encounter/EncounterParticipant";
 	import { Blinded, Charmed, Deafened, Exhaustion, Frightened, Grappled, Incapacitated, Invisible, Paralyzed, Petrified, Poisoned, Prone, Restrained, Stunned, Unconscious } from "../../components/icons";
 
@@ -50,36 +50,29 @@
 
 	let openUrl: string | null = $state(null);
 	let roundsRemain = $state(0);
-	let layout: "l15" | "l8" | "l5" = $state("l15");
 	let popoverEl: HTMLDivElement | null = $state(null);
+	let pickerEl: HTMLDivElement | null = $state(null);
+	let pickerOpen = $state(false);
 	let popX = $state(0);
 	let popY = $state(0);
+	let pickerX = $state(0);
+	let pickerY = $state(0);
 
-	let gridEl: HTMLDivElement | null = null;
-	let resizeObserver: ResizeObserver | null = null;
 	let portalRoot: HTMLDivElement | null = null;
 
 	onMount(() => {
-		if (gridEl) {
-			resizeObserver = new ResizeObserver((entries) => {
-				const w = entries[0]?.contentRect?.width ?? 0;
-				recomputeLayout(w);
-			});
-			resizeObserver.observe(gridEl);
-			recomputeLayout(gridEl.getBoundingClientRect().width);
-		}
-
 		ensurePortalRoot();
 	});
 
 	onDestroy(() => {
-		resizeObserver?.disconnect();
-		resizeObserver = null;
 		portalRoot?.remove();
 		portalRoot = null;
 	});
 
 	import { untrack } from "svelte";
+
+	const activeConditions = $derived(conditions.filter((c) => isActive(c.url)));
+	const inactiveConditions = $derived(conditions.filter((c) => !isActive(c.url)));
 
 	$effect(() => {
 		const round: number = getRound();
@@ -121,10 +114,11 @@
 		return Math.max(0, c.expiresOnRound - getRound());
 	}
 
-	function openPopover(e: KeyboardEvent | MouseEvent, url: string) {
+	function openPopover(e: KeyboardEvent | MouseEvent, url: string, closePicker = true) {
 		if (!isEditable) return;
 
 		e.stopPropagation();
+		if (closePicker) pickerOpen = false;
 		openUrl = url;
 
 		const current = getCondition(url);
@@ -135,9 +129,22 @@
 		positionPopover(e.currentTarget as HTMLElement);
 	}
 
+	function togglePicker(e: KeyboardEvent | MouseEvent) {
+		if (!isEditable) return;
+
+		e.stopPropagation();
+		openUrl = null;
+		pickerOpen = !pickerOpen;
+
+		if (pickerOpen) {
+			positionPicker(e.currentTarget as HTMLElement);
+		}
+	}
+
 	function onInfinityClick(url: string) {
 		const newCondition = { url: url, expiresOnRound: null } as EncounterParticipantCondition;
 		onChange(newCondition);
+		pickerOpen = false;
 		openUrl = null;
 		roundsRemain = 0;
 	}
@@ -146,19 +153,16 @@
 		const newExpiresOnRound = roundsRemain + getRound();
 		const newCondition = { url: url, expiresOnRound: newExpiresOnRound } as EncounterParticipantCondition;
 		onChange(newCondition);
+		pickerOpen = false;
 		openUrl = null;
 		roundsRemain = 0;
 	}
 
 	function onRemoveClick(url: string) {
 		onDelete(url);
+		pickerOpen = false;
 		openUrl = null;
 		roundsRemain = 0;
-	}
-
-	function recomputeLayout(width: number) {
-		if (width <= 480) layout = "l8";
-		else layout = "l15";
 	}
 
 	async function positionPopover(anchor: HTMLElement) {
@@ -188,6 +192,34 @@
 			popY = pad;
 		}
 
+	}
+
+	async function positionPicker(anchor: HTMLElement) {
+		const r = anchor.getBoundingClientRect();
+
+		pickerX = r.left;
+		pickerY = r.bottom + 6;
+
+		await tick();
+
+		if (!pickerEl) {
+			return;
+		}
+
+		const pr = pickerEl.getBoundingClientRect();
+		const pad = 8;
+
+		if (pickerX + pr.width > window.innerWidth - pad) {
+			pickerX = Math.max(pad, window.innerWidth - pad - pr.width);
+		}
+
+		if (pickerY + pr.height > window.innerHeight - pad) {
+			pickerY = r.top - pr.height - 6;
+		}
+
+		if (pickerY < pad) {
+			pickerY = pad;
+		}
 	}
 
 	function ensurePortalRoot() {
@@ -223,131 +255,175 @@
 
 </script>
 
-<div class="conditions-grid {layout}" bind:this={gridEl}>
-	{#each conditions as c}
+{#snippet conditionEditPopover(c: ConditionDef)}
+	{#if openUrl === c.url}
+		<div
+			class="popover"
+			use:portal
+			bind:this={popoverEl}
+			style="left:{popX}px; top:{popY}px;"
+			aria-label={c.title}
+			role="button"
+			tabindex="0"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation() } }}
+		>
+			<div>
+				<strong>{c.title}</strong>
+			</div>
+			<div class="popover-line">
+				<div
+					class="popover-item"
+					onclick={() => { onInfinityClick(c.url) }}
+					role="button"
+					tabindex="0"
+					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onInfinityClick(c.url) } }}
+				>
+					<Infinity size={16} />
+				</div>
+
+				<div style="width: 8px;"></div>
+
+				<div
+					class="popover-item"
+					onclick={() => roundsRemain = Math.max(1, roundsRemain - 1)}
+					role="button"
+					tabindex="0"
+					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { roundsRemain = Math.max(1, roundsRemain - 1) } }}
+				>
+					<Minus size={16} />
+				</div>
+				<input class="rounds-input popover-item" type="number" min="1" bind:value={roundsRemain} />
+				<div
+					class="popover-item"
+					onclick={() => roundsRemain++}
+					role="button"
+					tabindex="0"
+					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { roundsRemain++ } }}
+				>
+					<Plus size={16} />
+				</div>
+
+				<div style="width: 4px;"></div>
+
+				<div
+					class="popover-item"
+					onclick={() => onApplyClick(c.url)}
+					role="button"
+					tabindex="0"
+					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onApplyClick(c.url) } }}
+				>
+					<Check size={16}/>
+				</div>
+
+				<div
+					class="popover-item"
+					onclick={() => onRemoveClick(c.url)}
+					role="button"
+					tabindex="0"
+					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onRemoveClick(c.url) } }}
+				>
+					<X size={16}/>
+				</div>
+
+				<div style="width: 8px;"></div>
+
+				<div
+					class="popover-item"
+					onclick={() => onOpenConditionDetails(c.url)}
+					role="button"
+					tabindex="0"
+					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onOpenConditionDetails(c.url) } }}
+				>
+					<Info size={16}/>
+				</div>
+			</div>
+		</div>
+	{/if}
+{/snippet}
+
+<div class="conditions-grid">
+	{#if isEditable}
+		<div class="condition condition-picker">
+			<div
+				class="cell add-cell"
+				aria-expanded={pickerOpen}
+				aria-label="Добавить состояние"
+				role="button"
+				tabindex="0"
+				onclick={togglePicker}
+				onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { togglePicker(e) } }}
+			>
+				<CirclePlus size={20} />
+			</div>
+
+			{#if pickerOpen}
+				<div
+					class="popover picker-popover"
+					use:portal
+					bind:this={pickerEl}
+					style="left:{pickerX}px; top:{pickerY}px;"
+					aria-label="Добавить состояние"
+					role="button"
+					tabindex="0"
+					onclick={(e) => e.stopPropagation()}
+					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation() } }}
+				>
+					<div class="picker-grid">
+						{#each inactiveConditions as c}
+							<div class="condition">
+								<div
+									class="cell"
+									data-active="false"
+									aria-pressed="false"
+									aria-label={c.title}
+									role="button"
+									tabindex="0"
+									onclick={(e) => openPopover(e, c.url, false)}
+									onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { openPopover(e, c.url, false) } }}
+								>
+									<c.icon class="condition-icon" alt={c.title} />
+								</div>
+
+								{@render conditionEditPopover(c)}
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/if}
+		</div>
+	{/if}
+
+	{#each activeConditions as c}
 		<div class="condition">
 			<div
-				class="cell {isActive(c.url) ? 'active' : ''}"
-				data-active={isActive(c.url)}
-				aria-pressed={isActive(c.url)}
+				class="cell active"
+				data-active="true"
+				aria-pressed="true"
 				aria-label={c.title}
 				role="button"
 				tabindex="0"
 				onclick={(e) => openPopover(e, c.url)}
 				onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { openPopover(e, c.url) } }}
 			>
-				<c.icon class="icon" alt={c.title} />
+				<c.icon class="condition-icon" alt={c.title} />
 
-				{#if isActive(c.url) && remainingRounds(c.url) !== null}
+				{#if remainingRounds(c.url) !== null}
 					<span class="badge">{remainingRounds(c.url)}</span>
 				{/if}
 			</div>
 
-			{#if openUrl === c.url}
-				<div 
-					class="popover"   
-					use:portal
-					bind:this={popoverEl}
-					style="left:{popX}px; top:{popY}px;"
-					aria-label={c.title}
-					role="button"
-					tabindex="0"
-					onclick={(e) => e.stopPropagation()}
-					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation() } }}
-				>
-					<div>
-						<strong>{c.title}</strong>
-					</div>
-					<div class="popover-line">
-						<div 
-							class="popover-item"
-							onclick={() => { onInfinityClick(c.url) }}
-							role="button"
-							tabindex="0"
-							onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onInfinityClick(c.url) } }}
-						>
-							<Infinity size={16} />
-						</div>
-
-						<div style="width: 8px;"></div>
-
-						<div 
-							class="popover-item"
-							onclick={() => roundsRemain = Math.max(1, roundsRemain - 1)}
-							role="button"
-							tabindex="0"
-							onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { roundsRemain = Math.max(1, roundsRemain - 1) } }}
-						>
-							<Minus size={16} />
-						</div>
-						<input class="rounds-input popover-item" type="number" min="1" bind:value={roundsRemain} />
-						<div 
-							class="popover-item"
-							onclick={() => roundsRemain++}
-							role="button"
-							tabindex="0"
-							onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { roundsRemain++ } }}
-						>
-							<Plus size={16} />
-						</div>
-						
-						<div style="width: 4px;"></div>
-
-						<div 
-							class="popover-item"
-							onclick={() => onApplyClick(c.url)}
-							role="button"
-							tabindex="0"
-							onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onApplyClick(c.url) } }}
-						>
-							<Check size={16}/>
-						</div>
-
-						<div
-							class="popover-item"
-							onclick={() => onRemoveClick(c.url)}
-							role="button"
-							tabindex="0"
-							onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onRemoveClick(c.url) } }}
-						>
-							<X size={16}/>
-						</div>
-
-
-						<div style="width: 8px;"></div>
-
-						<div 
-							class="popover-item"
-							onclick={() => onOpenConditionDetails(c.url)}
-							role="button"
-							tabindex="0"
-							onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onOpenConditionDetails(c.url) } }}
-						>
-							<Info size={16}/>
-						</div>
-					</div>
-				</div>
-			{/if}
+			{@render conditionEditPopover(c)}
 		</div>
 	{/each}
 </div>
 
 <style>
 	.conditions-grid {
-		display: grid;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px;
 		align-content: stretch;
-	}
-
-	/* 15x1 */
-	.conditions-grid.l15 {
-		grid-template-columns: repeat(15, 1fr);
-		grid-template-rows: repeat(1, 1fr);
-	}
-
-	/* 8x2 */
-	.conditions-grid.l8 {
-		grid-template-columns: repeat(8, 1fr);
-		grid-template-rows: repeat(2, 1fr);
 	}
 
 	.condition {
@@ -366,7 +442,17 @@
 		transition: background 0.2s;
 	}
 
-	.icon {
+	.add-cell {
+		color: var(--text-muted);
+	}
+
+	.add-cell:hover,
+	.add-cell[aria-expanded="true"] {
+		background: var(--background-modifier-hover);
+		color: var(--text-normal);
+	}
+
+	:global(.condition-icon) {
 		position: relative;
 		width: 24px;
 		height: 24px;
@@ -413,6 +499,16 @@
 		margin-top: 4px;
 	}
 
+	.picker-popover {
+		padding: 8px;
+	}
+
+	.picker-grid {
+		display: grid;
+		grid-template-columns: repeat(5, 32px);
+		gap: 6px;
+	}
+
 	.rounds-input {
 		width: 50px;
 		text-align: center;
@@ -425,14 +521,14 @@
 		justify-content: center;
 	}
 
-	.dnd-dm-conditions-popover-root {
+	:global(.dnd-dm-conditions-popover-root) {
 		position: fixed;
 		inset: 0;
 		z-index: 100000;
 		pointer-events: none;
 	}
 
-	.dnd-dm-conditions-popover-root .popover {
+	:global(.dnd-dm-conditions-popover-root) .popover {
 		pointer-events: auto;
 	}
 </style>

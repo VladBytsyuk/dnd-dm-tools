@@ -545,9 +545,7 @@
 					readonly={!isEditable}
 				/>
 			</div>
-		</div>
 
-		<div class="line3">
 			<ParticipantConditionsGrid
 				isEditable={isEditable}
 				onOpenConditionDetails={(url: string) => onOpenConditionDetails(url)}
@@ -731,11 +729,6 @@
 		gap: 4px;
 		align-items: center;
         align-content: center;
-	}
-
-	.line3 {
-		margin-top: 4px;
-		margin-bottom: 4px;
 	}
 
 	.field {
