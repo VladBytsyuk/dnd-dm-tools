@@ -3,7 +3,8 @@
 		Play,
 		StepForward,
 		ClipboardCopy,
-		ClipboardPaste,
+		ClipboardPlus,
+		Replace,
 		ArrowUpDown,
 		Skull,
 		Plus,
@@ -241,11 +242,12 @@
 
 				{#if isEditable}
 					<button
-						class="btn ghost"
+						class="btn ghost replaceAction"
 						onclick={pasteEncounter}
-						aria-label="Вставить столкновение"
+						aria-label="Заменить столкновение данными из буфера обмена"
+						title="Заменить столкновение данными из буфера обмена"
 					>
-						<ClipboardPaste size={16} />
+						<Replace size={16} />
 					</button>
 				{/if}
 			</div>
@@ -321,9 +323,10 @@
 				<button
 					class="btn footerSecondary"
 					onclick={pasteParticipant}
-					aria-label="Вставить участника или столкновение из буфера обмена"
+					aria-label="Добавить участника или столкновение из буфера обмена"
+					title="Добавить участника или столкновение из буфера обмена"
 				>
-					<ClipboardPaste size={16} />
+					<ClipboardPlus size={16} />
 				</button>
 			</footer>
 		{/if}
@@ -398,6 +401,7 @@
 		display: flex;
 		align-items: center;
 		gap: 8px;
+		min-width: 0;
 		padding: 4px 8px;
 		border-radius: 10px;
 		border: 1px solid var(--background-modifier-border);
@@ -405,6 +409,13 @@
 		color: var(--text-on-accent);
 		cursor: pointer;
 		user-select: none;
+	}
+
+	.btn span {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.btn:disabled {
@@ -415,6 +426,12 @@
 	.btn.ghost {
 		background: transparent;
 		color: var(--text-normal);
+	}
+
+	.btn.replaceAction {
+		border-color: var(--text-warning);
+		background: color-mix(in srgb, var(--text-warning) 12%, transparent);
+		color: var(--text-warning);
 	}
 
 	/* inputlike — как в ParticipantItem */
@@ -471,9 +488,12 @@
 	}
 
 	.footerSecondary {
-		flex: 0 0 auto;
+		flex: 0 1 auto;
 		justify-content: center;
 		padding-left: 12px;
 		padding-right: 12px;
+		background: color-mix(in srgb, var(--interactive-accent) 12%, var(--background-secondary));
+		color: var(--text-accent);
+		border-color: var(--interactive-accent);
 	}
 </style>
