@@ -192,37 +192,8 @@
 			{/if}
 		</div>
 
-		<div class="actions">
+		<div class="actions" class:editableActions={isEditable}>
 			{#if isEditable}
-			<div class="actions-row">
-				<button
-					class="btn"
-					onclick={onPlayNext}
-					aria-label={state.current.activeParticipantIndex == null
-						? "Начать столкновение"
-						: "Следующий ход"}
-				>
-					{#if state.current.activeParticipantIndex == null}
-						<Play size={16} />
-						<span>Старт</span>
-					{:else}
-						<StepForward size={16} />
-						<span>Дальше</span>
-					{/if}
-				</button>
-
-				<button
-					class="btn"
-					onclick={stopEncounter}
-					aria-label="Остановить столкновение"
-				>
-					<Square size={16} />
-				</button>
-			</div>
-			{/if}
-
-			<div class="actions-row">
-				{#if isEditable}
 				<button
 					class="btn ghost"
 					onclick={sortByInitiative}
@@ -230,30 +201,26 @@
 				>
 					<ArrowUpDown size={16} />
 				</button>
-				{/if}
+			{/if}
 
-				<button
-					class="btn ghost"
-					onclick={copyEncounter}
-					aria-label="Копировать столкновение"
-				>
-					<ClipboardCopy size={16} />
-				</button>
-
-				{#if isEditable}
-					<button
-						class="btn ghost replaceAction"
-						onclick={pasteEncounter}
-						aria-label="Заменить столкновение данными из буфера обмена"
-						title="Заменить столкновение данными из буфера обмена"
-					>
-						<Replace size={16} />
-					</button>
-				{/if}
-			</div>
+			<button
+				class="btn ghost"
+				onclick={copyEncounter}
+				aria-label="Копировать столкновение"
+			>
+				<ClipboardCopy size={16} />
+			</button>
 
 			{#if isEditable}
-			<div class="actions-row">
+				<button
+					class="btn ghost replaceAction"
+					onclick={pasteEncounter}
+					aria-label="Заменить столкновение данными из буфера обмена"
+					title="Заменить столкновение данными из буфера обмена"
+				>
+					<Replace size={16} />
+				</button>
+
 				<button
 					class="btn ghost"
 					onclick={undo}
@@ -278,7 +245,26 @@
 				>
 					<Trash2 size={16} />
 				</button>
-			</div>
+				<button
+					class="btn"
+					onclick={stopEncounter}
+					aria-label="Остановить столкновение"
+				>
+					<Square size={16} />
+				</button>
+				<button
+					class="btn playNext"
+					onclick={onPlayNext}
+					aria-label={state.current.activeParticipantIndex == null
+						? "Начать столкновение"
+						: "Следующий ход"}
+				>
+					{#if state.current.activeParticipantIndex == null}
+						<Play size={16} />
+					{:else}
+						<StepForward size={16} />
+					{/if}
+				</button>
 			{/if}
 		</div>
 	</header>
@@ -330,7 +316,9 @@
 				</button>
 			</footer>
 		{/if}
+
 	</div>
+
 </div>
 
 <style>
@@ -340,13 +328,16 @@
 		gap: 8px;
 		padding: 8px;
 		min-width: 380px;
+		container-type: inline-size;
 	}
 
 	.topbar {
 		display: flex;
+		flex-direction: row;
 		align-items: center;
 		justify-content: space-between;
 		gap: 10px;
+		box-sizing: border-box;
 		border-radius: 12px;
 		background: var(--background-secondary);
 		border: 1px solid var(--background-modifier-border);
@@ -356,13 +347,15 @@
 		display: flex;
 		align-items: center;
 		gap: 4px;
-		min-width: 220px;
+		flex: 1 1 180px;
+		min-width: 0;
 	}
 
 	.roundCompact {
 		display: inline-grid;
 		place-items: center;
 		width: 48px;
+		padding: 0px 0px 0px 8px;
 		font-size: 20px;
 		font-weight: 800;
 		font-variant-numeric: tabular-nums;
@@ -377,45 +370,66 @@
 	}
 
 	.titleInput {
+		flex: 1 1 120px;
 		font-weight: 800;
-		width: min(360px, 48vw);
+		width: auto;
 		min-width: 120px;
+		max-width: 100%;
 	}
 
 	.actions {
 		display: flex;
-		flex-direction: column;
+		flex-direction: row;
+		flex-wrap: wrap;
 		align-items: center;
+		justify-content: flex-end;
+		flex: 0 1 auto;
+		width: auto;
+		min-width: 0;
+		max-width: 100%;
+		box-sizing: border-box;
 		gap: 4px;
 		padding: 4px 2px 4px 2px;
-		flex-wrap: wrap;
 	}
 
-	.actions-row {
-		display: flex;
-		align-items: center;
-		gap: 4px;
+	.actions.editableActions {
+		display: grid;
+		grid-template-columns: repeat(8, 32px);
+		justify-content: flex-end;
+	}
+
+	@container (max-width: 520px) {
+		.actions.editableActions {
+			grid-template-columns: repeat(4, 32px);
+		}
 	}
 
 	.btn {
-		display: flex;
+		display: inline-flex;
 		align-items: center;
+		justify-content: center;
+		flex: 0 0 auto;
 		gap: 8px;
+		width: auto;
 		min-width: 0;
+		max-width: max-content;
 		padding: 4px 8px;
+		box-sizing: border-box;
 		border-radius: 10px;
 		border: 1px solid var(--background-modifier-border);
 		background: var(--interactive-normal);
-		color: var(--text-on-accent);
+		color: var(--text-normal);
 		cursor: pointer;
 		user-select: none;
 	}
 
-	.btn span {
-		min-width: 0;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
+	.actions > .btn {
+		flex: 0 0 32px;
+		width: 32px;
+		min-width: 32px;
+		max-width: 32px;
+		height: 28px;
+		padding: 4px 0;
 	}
 
 	.btn:disabled {
@@ -432,6 +446,12 @@
 		border-color: var(--text-warning);
 		background: color-mix(in srgb, var(--text-warning) 12%, transparent);
 		color: var(--text-warning);
+	}
+
+	.btn.playNext {
+		border-color: var(--interactive-accent);
+		background: var(--interactive-accent);
+		color: var(--text-on-accent);
 	}
 
 	/* inputlike — как в ParticipantItem */
@@ -483,7 +503,9 @@
 	}
 
 	.footerPrimary {
-		flex: 1;
+		flex: 1 1 auto;
+		width: auto;
+		max-width: none;
 		justify-content: center;
 	}
 
@@ -496,4 +518,5 @@
 		color: var(--text-accent);
 		border-color: var(--interactive-accent);
 	}
+
 </style>
