@@ -1,0 +1,4 @@
+interface:
+  display_name: "DnD Svelte Refactor"
+  short_description: "Review-first Svelte refactors"
+  default_prompt: "Use $dnd-svelte-refactor to review and refactor <path/to/component.svelte>."
