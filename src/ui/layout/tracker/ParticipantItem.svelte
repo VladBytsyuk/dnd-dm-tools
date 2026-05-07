@@ -2,10 +2,10 @@
 	import { Trash2, Skull, Dices, Heart, Shield, Eye, Users, Meh } from "lucide-svelte";
 	import { d20, roll } from "src/domain/dice";
 	import { formatModifier } from "src/domain/modifier";
+	import { evalNumericExpression } from "src/domain/utils/mathExpression";
 	import type { EncounterParticipant, EncounterParticipantCondition } from "../../../domain/models/encounter/EncounterParticipant";
 	import ParticipantConditionsGrid from "./ParticipantConditionsGrid.svelte";
 	import { onMount } from "svelte";
-	import type { IUiEventListener } from "../../../domain/listeners/ui_event_listener";
 
 	let {
 		participant,
@@ -71,118 +71,29 @@
 
 	const getIsDead = (p: EncounterParticipant) => Boolean(p.isDead);
 	const getIsDown = (p: EncounterParticipant) => Number(p.hpCurrent ?? 0) <= 0 && !p.isDead;
+	const isActivationKey = (e: KeyboardEvent) => e.key === "Enter" || e.key === " ";
 
-	// --- арифметика в числовых полях ---
-	const evalNumericExpression = (exprRaw: string): number | null => {
-		const expr = (exprRaw ?? "").trim();
-		if (!expr.length) return null;
+	function onActivation(e: KeyboardEvent, action: () => void) {
+		if (isActivationKey(e)) action();
+	}
 
-		if (!/^[0-9+\-*/().\s]+$/.test(expr)) {
-			const n = Number(expr);
-			return Number.isFinite(n) ? n : null;
-		}
-
-		const tokens: string[] = [];
-		let i = 0;
-		while (i < expr.length) {
-			const c = expr[i];
-			if (c === " " || c === "\t" || c === "\n") {
-				i++;
-				continue;
-			}
-			if (/[0-9.]/.test(c)) {
-				let j = i + 1;
-				while (j < expr.length && /[0-9.]/.test(expr[j])) j++;
-				tokens.push(expr.slice(i, j));
-				i = j;
-				continue;
-			}
-			if ("+-*/()".includes(c)) {
-				tokens.push(c);
-				i++;
-				continue;
-			}
-			return null;
-		}
-
-		// unary minus => 0 -
-		const fixed: string[] = [];
-		for (let k = 0; k < tokens.length; k++) {
-			const t = tokens[k];
-			if (t === "-" && (k === 0 || tokens[k - 1] === "(" || "+-*/".includes(tokens[k - 1]))) {
-				fixed.push("0", "-");
-			} else {
-				fixed.push(t);
-			}
-		}
-
-		const prec: Record<string, number> = { "+": 1, "-": 1, "*": 2, "/": 2 };
-		const out: string[] = [];
-		const ops: string[] = [];
-
-		for (const t of fixed) {
-			if (/^[0-9.]+$/.test(t)) {
-				out.push(t);
-				continue;
-			}
-			if (t in prec) {
-				while (ops.length) {
-					const top = ops[ops.length - 1];
-					if (top in prec && prec[top] >= prec[t]) out.push(ops.pop()!);
-					else break;
-				}
-				ops.push(t);
-				continue;
-			}
-			if (t === "(") {
-				ops.push(t);
-				continue;
-			}
-			if (t === ")") {
-				while (ops.length && ops[ops.length - 1] !== "(") out.push(ops.pop()!);
-				if (!ops.length) return null;
-				ops.pop();
-				continue;
-			}
-			return null;
-		}
-
-		while (ops.length) {
-			const op = ops.pop()!;
-			if (op === "(" || op === ")") return null;
-			out.push(op);
-		}
-
-		const stack: number[] = [];
-		for (const t of out) {
-			if (/^[0-9.]+$/.test(t)) {
-				const n = Number(t);
-				if (!Number.isFinite(n)) return null;
-				stack.push(n);
-				continue;
-			}
-			const b = stack.pop();
-			const a = stack.pop();
-			if (a == null || b == null) return null;
-
-			let r = 0;
-			if (t === "+") r = a + b;
-			else if (t === "-") r = a - b;
-			else if (t === "*") r = a * b;
-			else if (t === "/") r = a / b;
-			else return null;
-
-			if (!Number.isFinite(r)) return null;
-			stack.push(r);
-		}
-		return stack.length === 1 ? stack[0] : null;
-	};
+	function getInputValue(e: Event) {
+		return (e.target as HTMLInputElement).value;
+	}
 
 	const applyNumericExpression = (field: keyof EncounterParticipant, raw: string, roundToInt = true) => {
 		if (!isEditable) return;
 		const v = evalNumericExpression(raw);
 		if (v == null) return;
 		onSetValue(participant.id, field, roundToInt ? Math.trunc(v) : v);
+	};
+
+	const applyNumericExpressionFromEvent = (field: keyof EncounterParticipant, e: Event, roundToInt = true) => {
+		applyNumericExpression(field, getInputValue(e), roundToInt);
+	};
+
+	const applyNumericExpressionOnEnter = (field: keyof EncounterParticipant, e: KeyboardEvent, roundToInt = true) => {
+		if (e.key === "Enter") applyNumericExpressionFromEvent(field, e, roundToInt);
 	};
 
 	const applyHpCurrentExpression = (el: HTMLInputElement) => {
@@ -211,12 +122,18 @@
 			finalHp = hpMax > 0 ? clamp(n, 0, hpMax) : Math.max(0, n);
 		}
 
-		// ✅ NEW: всегда “нормализуем” отображаемое значение в инпуте
 		el.value = String(finalHp);
 
-		// обновляем состояние
 		onSetValue(participant.id, "isDead", finalDead);
 		onSetValue(participant.id, "hpCurrent", finalHp);
+	};
+
+	const applyHpCurrentExpressionFromEvent = (e: Event) => {
+		applyHpCurrentExpression(e.target as HTMLInputElement);
+	};
+
+	const applyHpCurrentExpressionOnEnter = (e: KeyboardEvent) => {
+		if (e.key === "Enter") applyHpCurrentExpressionFromEvent(e);
 	};
 
 	const canMakeDeathSave = () => {
@@ -243,6 +160,18 @@
 		}
 	};
 
+	function incrementDeathSaveFail() {
+		if (canMakeDeathSave()) {
+			deathSavesFail = clamp(deathSavesFail + 1, 0, 3);
+		}
+	}
+
+	function incrementDeathSaveSuccess() {
+		if (canMakeDeathSave()) {
+			deathSavesSuccess = clamp(deathSavesSuccess + 1, 0, 3);
+		}
+	}
+
 	const PRESET_COLORS = [
 		"#1A6AFF", // насыщенный синий
 		"#FF7433", // оранжевый
@@ -258,10 +187,16 @@
 		"#FFFFFF"  // белый
 	];
 
+	const SIDE_OPTIONS = [
+		{ kind: "pc", label: "Союзники", icon: Users },
+		{ kind: "neutral", label: "Независимые", icon: Meh },
+		{ kind: "enemy", label: "Враги", icon: Skull }
+	] as const;
+
 	let isColorPickerOpen = $state(false);
 
 	function getParticipantColor(): string {
-		return (participant as any).colorHex ?? "#94a3b8";
+		return participant.colorHex ?? "#94a3b8";
 	}
 
 	function toggleColorPicker(e: MouseEvent | KeyboardEvent) {
@@ -272,8 +207,13 @@
 
 	function setColor(hex: string) {
 		if (!isEditable) return;
-		onSetValue(participant.id, "colorHex" as any, hex);
+		onSetValue(participant.id, "colorHex", hex);
 		isColorPickerOpen = false;
+	}
+
+	function setSide(side: EncounterParticipant["side"]) {
+		if (!isEditable) return;
+		onSetValue(participant.id, "side", side);
 	}
 
 	$effect(() => {
@@ -301,7 +241,7 @@
 		tabindex="0"
 		aria-label="Цвет участника"
 		onclick={toggleColorPicker}
-		onkeydown={(e) => { if (e.key === "Enter" || e.key === " ") toggleColorPicker(e); }}
+		onkeydown={(e) => onActivation(e, () => toggleColorPicker(e))}
 	>
 		{#if isColorPickerOpen}
 			<div 
@@ -310,7 +250,7 @@
 				tabindex="0"
 				aria-label="Цвет участника"
 				onclick={(e) => e.stopPropagation()}
-				onkeydown={(e) => { if (e.key === "Enter" || e.key === " ") e.stopPropagation(); }}
+				onkeydown={(e) => onActivation(e, () => e.stopPropagation())}
 			>
 				<div class="color-grid">
 					{#each PRESET_COLORS as hex}
@@ -321,7 +261,7 @@
 							role="button"
 							tabindex="0"
 							onclick={() => setColor(hex)}
-							onkeydown={(e) => { if (e.key === "Enter" || e.key === " ") setColor(hex) }}
+							onkeydown={(e) => onActivation(e, () => setColor(hex))}
 						></div>
 					{/each}
 				</div>
@@ -333,7 +273,7 @@
         class="statbtn" 
         role="button"
         tabindex="0"
-        onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onOpenStatblock(participant) } }}
+        onkeydown={(e) => onActivation(e, () => onOpenStatblock(participant))}
         onclick={() => onOpenStatblock(participant)} 
         aria-label="Открыть существо"
     >
@@ -367,7 +307,7 @@
 					<div 
 						class="death-roll" 
 						onclick={doDeathSave} 
-						onkeydown={doDeathSave}
+						onkeydown={(e) => onActivation(e, doDeathSave)}
 						role="button"
 						tabindex="0"
 						aria-label="Спасбросок на смерть"
@@ -383,8 +323,8 @@
 								aria-label="Провал"
 								role="button"
 								tabindex="0"
-								onclick={() => { if (canMakeDeathSave()) { deathSavesFail = clamp(deathSavesFail + 1, 0, 3) } }}
-        						onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { if (canMakeDeathSave()) { deathSavesFail = clamp(deathSavesFail + 1, 0, 3) } } }}
+								onclick={incrementDeathSaveFail}
+        						onkeydown={(e) => onActivation(e, incrementDeathSaveFail)}
 							></span>
 						{/each}
 
@@ -397,8 +337,8 @@
 								aria-label="Успех"
 								role="button"
 								tabindex="0"
-								onclick={() => { if (canMakeDeathSave()) { deathSavesSuccess = clamp(deathSavesSuccess + 1, 0, 3) } }}
-        						onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { if (canMakeDeathSave()) { deathSavesSuccess = clamp(deathSavesSuccess + 1, 0, 3) } } }}
+								onclick={incrementDeathSaveSuccess}
+        						onkeydown={(e) => onActivation(e, incrementDeathSaveSuccess)}
 							></span>
 						{/each}
 					</div>
@@ -407,57 +347,35 @@
 
 			{#if isEditable}
 				<div class="side" role="group" aria-label="Сторона">
-					<div
-						class="sideBtn"
-						data-kind="pc"
-						data-active={(participant.side ?? "neutral") === "pc"}
-						aria-label="Союзники"
-						onclick={() => onSetValue(participant.id, "side", "pc")}
-						onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSetValue(participant.id, "side", "pc") }}
-						role="button"
-						tabindex="0"
-					>
-						<Users size={16} />
-					</div>
-
-					<div
-						class="sideBtn"
-						data-kind="neutral"
-						data-active={(participant.side ?? "neutral") === "neutral"}
-						aria-label="Независимые"
-						onclick={() => onSetValue(participant.id, "side", "neutral")}
-						onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSetValue(participant.id, "side", "neutral") }}
-						role="button"
-						tabindex="0"
-					>
-						<Meh size={16} />
-					</div>
-
-					<div
-						class="sideBtn"
-						data-kind="enemy"
-						data-active={(participant.side ?? "neutral") === "enemy"}
-						aria-label="Враги"
-						onclick={() => onSetValue(participant.id, "side", "enemy")}
-						onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSetValue(participant.id, "side", "enemy") }}
-						role="button"
-						tabindex="0"
-					>
-						<Skull size={16} />
-					</div>
+					{#each SIDE_OPTIONS as side}
+						{@const SideIcon = side.icon}
+						<div
+							class="sideBtn"
+							data-kind={side.kind}
+							data-active={(participant.side ?? "neutral") === side.kind}
+							aria-label={side.label}
+							onclick={() => setSide(side.kind)}
+							onkeydown={(e) => onActivation(e, () => setSide(side.kind))}
+							role="button"
+							tabindex="0"
+						>
+							<SideIcon size={16} />
+						</div>
+					{/each}
 				</div>
 			{:else}
-				<!-- в readonly можно либо показывать тот же блок без клика, либо просто ничего -->
 				<div class="side readonly" aria-label="Сторона">
-					<div class="sideBtn" data-kind="pc" data-active={(participant.side ?? "neutral") === "pc"} aria-label="Союзники">
-						<Users size={16} />
-					</div>
-					<div class="sideBtn" data-kind="neutral" data-active={(participant.side ?? "neutral") === "neutral"} aria-label="Независимые">
-						<Meh size={16} />
-					</div>
-					<div class="sideBtn" data-kind="enemy" data-active={(participant.side ?? "neutral") === "enemy"} aria-label="Враги">
-						<Skull size={16} />
-					</div>
+					{#each SIDE_OPTIONS as side}
+						{@const SideIcon = side.icon}
+						<div
+							class="sideBtn"
+							data-kind={side.kind}
+							data-active={(participant.side ?? "neutral") === side.kind}
+							aria-label={side.label}
+						>
+							<SideIcon size={16} />
+						</div>
+					{/each}
 				</div>
 			{/if}
 
@@ -471,8 +389,8 @@
 					value={String(participant.initiative ?? 0)}
 					inputmode="numeric"
 					placeholder={formatModifier(participant.initiativeModifier)}
-					onkeydown={(e) => { if (e.key === "Enter") applyNumericExpression("initiative", (e.target as HTMLInputElement).value) }}
-					onblur={(e) => applyNumericExpression("initiative", (e.target as HTMLInputElement).value)}
+					onkeydown={(e) => applyNumericExpressionOnEnter("initiative", e)}
+					onblur={(e) => applyNumericExpressionFromEvent("initiative", e)}
 					readonly={!isEditable}
 				/>
 			</div>
@@ -485,10 +403,8 @@
 						value={String(participant.hpCurrent ?? 0)}
 						inputmode="numeric"
 						aria-label="Текущие Хиты"
-						onkeydown={(e) => {
-							if (e.key === "Enter") applyHpCurrentExpression(e.target as HTMLInputElement);
-						}}
-						onblur={(e) => applyHpCurrentExpression(e.target as HTMLInputElement)}
+						onkeydown={applyHpCurrentExpressionOnEnter}
+						onblur={applyHpCurrentExpressionFromEvent}
 						readonly={!isEditable}
 					/>
 					<span class="slash">/</span>
@@ -497,10 +413,8 @@
 						value={String(participant.hpMax ?? 0)}
 						inputmode="numeric"
 						aria-label="Максимальные Хиты"
-						onkeydown={(e) => {
-							if (e.key === "Enter") applyNumericExpression("hpMax", (e.target as HTMLInputElement).value);
-						}}
-						onblur={(e) => applyNumericExpression("hpMax", (e.target as HTMLInputElement).value)}
+						onkeydown={(e) => applyNumericExpressionOnEnter("hpMax", e)}
+						onblur={(e) => applyNumericExpressionFromEvent("hpMax", e)}
 						readonly={!isEditable}
 					/>
 					<span class="slash">+</span>
@@ -509,10 +423,8 @@
 						value={String(participant.hpTemporary ?? 0)}
 						inputmode="numeric"
 						aria-label="Временные Хиты"
-						onkeydown={(e) => {
-							if (e.key === "Enter") applyNumericExpression("hpTemporary", (e.target as HTMLInputElement).value);
-						}}
-						onblur={(e) => applyNumericExpression("hpTemporary", (e.target as HTMLInputElement).value)}
+						onkeydown={(e) => applyNumericExpressionOnEnter("hpTemporary", e)}
+						onblur={(e) => applyNumericExpressionFromEvent("hpTemporary", e)}
 						readonly={!isEditable}
 					/>
 				</div>
@@ -524,10 +436,8 @@
 					class="num inputlike input-centered"
 					value={String(participant.armorClass ?? 10)}
 					inputmode="numeric"
-					onkeydown={(e) => {
-						if (e.key === "Enter") applyNumericExpression("armorClass", (e.target as HTMLInputElement).value);
-					}}
-					onblur={(e) => applyNumericExpression("armorClass", (e.target as HTMLInputElement).value)}
+					onkeydown={(e) => applyNumericExpressionOnEnter("armorClass", e)}
+					onblur={(e) => applyNumericExpressionFromEvent("armorClass", e)}
 					readonly={!isEditable}
 				/>
 			</div>
@@ -538,10 +448,8 @@
 					class="num inputlike input-centered"
 					value={String(participant.passivePerception ?? 10)}
 					inputmode="numeric"
-					onkeydown={(e) => {
-						if (e.key === "Enter") applyNumericExpression("passivePerception", (e.target as HTMLInputElement).value);
-					}}
-					onblur={(e) => applyNumericExpression("passivePerception", (e.target as HTMLInputElement).value)}
+					onkeydown={(e) => applyNumericExpressionOnEnter("passivePerception", e)}
+					onblur={(e) => applyNumericExpressionFromEvent("passivePerception", e)}
 					readonly={!isEditable}
 				/>
 			</div>
@@ -563,7 +471,7 @@
 				<div 
 					class="btn ghost danger"
 					onclick={() => onToggleDead(participant.id)}
-					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onToggleDead(participant.id) } }}
+					onkeydown={(e) => onActivation(e, () => onToggleDead(participant.id))}
 					aria-label="Смерть"
 					role="button"
 					tabindex="0"
@@ -574,7 +482,7 @@
 					class="btn ghost danger" 
 					onclick={() => onRemove(participant.id)} 
 					aria-label="Удалить"
-					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onRemove(participant.id) } }}
+					onkeydown={(e) => onActivation(e, () => onRemove(participant.id))}
 					role="button"
 					tabindex="0"
 				>
