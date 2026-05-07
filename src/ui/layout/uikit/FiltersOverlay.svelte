@@ -117,7 +117,7 @@
         box-shadow: var(--dnd-ui-pattern-modal-shadow);
         max-width: 600px;
         width: 90%;
-        max-height: calc(100vh - 40px);
+        height: 300px;
         display: flex;
         flex-direction: column;
     }
@@ -157,6 +157,7 @@
         padding: var(--dnd-ui-space-20);
         overflow-y: auto;
         flex: 1;
+        min-height: 0;
     }
 
     .filters-footer {
