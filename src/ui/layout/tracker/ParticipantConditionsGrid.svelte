@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy, tick } from "svelte";
+	import { onDestroy, tick, untrack } from "svelte";
 	import { Check, CirclePlus, Info, X, Infinity, Minus, Plus } from "lucide-svelte";
 	import type { EncounterParticipantCondition } from "../../../domain/models/encounter/EncounterParticipant";
 	import { Blinded, Charmed, Deafened, Exhaustion, Frightened, Grappled, Incapacitated, Invisible, Paralyzed, Petrified, Poisoned, Prone, Restrained, Stunned, Unconscious } from "../../components/icons";
@@ -8,6 +8,11 @@
 		url: string;
 		title: string;
 		icon: any;
+	};
+
+	type OverlayPosition = {
+		x: number;
+		y: number;
 	};
 
 	const conditions: ConditionDef[] = [
@@ -53,65 +58,55 @@
 	let popoverEl: HTMLDivElement | null = $state(null);
 	let pickerEl: HTMLDivElement | null = $state(null);
 	let pickerOpen = $state(false);
-	let popX = $state(0);
-	let popY = $state(0);
-	let pickerX = $state(0);
-	let pickerY = $state(0);
+	let popoverPosition = $state<OverlayPosition>({ x: 0, y: 0 });
+	let pickerPosition = $state<OverlayPosition>({ x: 0, y: 0 });
 
 	let portalRoot: HTMLDivElement | null = null;
-
-	onMount(() => {
-		ensurePortalRoot();
-	});
 
 	onDestroy(() => {
 		portalRoot?.remove();
 		portalRoot = null;
 	});
 
-	import { untrack } from "svelte";
-
-	const activeConditions = $derived(conditions.filter((c) => isActive(c.url)));
-	const inactiveConditions = $derived(conditions.filter((c) => !isActive(c.url)));
+	const currentRound: number = $derived(getRound());
+	const participantConditions: EncounterParticipantCondition[] = $derived(getConditions());
+	const conditionByUrl: Map<string, EncounterParticipantCondition> = $derived(new Map(participantConditions.map((condition) => [condition.url, condition])));
+	const activeConditions = $derived(conditions
+		.map((definition) => ({ definition, condition: conditionFor(definition.url) }))
+		.filter((entry): entry is { definition: ConditionDef; condition: EncounterParticipantCondition } => isActive(entry.condition))
+	);
+	const inactiveConditions = $derived(conditions.filter((condition) => !isActive(conditionFor(condition.url))));
 
 	$effect(() => {
-		const round: number = getRound();
-		const current: EncounterParticipantCondition[] = getConditions();
-
-		const expiredUrls = current
-			.filter((c) => c.expiresOnRound != null && c.expiresOnRound <= round)
+		const expiredUrls = participantConditions
+			.filter((c) => c.expiresOnRound != null && c.expiresOnRound <= currentRound)
 			.map((c) => c.url);
 
 		if (expiredUrls.length === 0) return;
 
 		queueMicrotask(() => {
 			untrack(() => {
-			for (const url of expiredUrls) onDelete(url);
+				for (const url of expiredUrls) onDelete(url);
 			});
 		});
 	});
 
-	function getCondition(url: string): EncounterParticipantCondition | undefined {
-		return getConditions().find((pc: EncounterParticipantCondition) => pc.url === url);
+	function conditionFor(url: string): EncounterParticipantCondition | undefined {
+		return conditionByUrl.get(url);
 	}
 
-	function isActive(url: string): boolean {
-		const c = getCondition(url);
-		if (!c) {
+	function isActive(condition: EncounterParticipantCondition | undefined): boolean {
+		if (!condition) {
 			return false;
 		}
 
-		const currentRound = getRound();
-		const expiresOnRound = c?.expiresOnRound ?? 1000;
-		const isActiveNow = expiresOnRound > currentRound;
-		
-		return isActiveNow;
+		const expiresOnRound = condition.expiresOnRound ?? 1000;
+		return expiresOnRound > currentRound;
 	}
 
-	function remainingRounds(url: string) {
-		const c = getCondition(url);
-		if (!c || c.expiresOnRound == null) return null;
-		return Math.max(0, c.expiresOnRound - getRound());
+	function remainingRoundsFor(condition: EncounterParticipantCondition) {
+		if (condition.expiresOnRound == null) return null;
+		return Math.max(0, condition.expiresOnRound - currentRound);
 	}
 
 	function openPopover(e: KeyboardEvent | MouseEvent, url: string, closePicker = true) {
@@ -121,12 +116,12 @@
 		if (closePicker) pickerOpen = false;
 		openUrl = url;
 
-		const current = getCondition(url);
+		const current = conditionFor(url);
 		roundsRemain = current && current.expiresOnRound
-			? Math.max(1, current.expiresOnRound - getRound()) 
+			? Math.max(1, current.expiresOnRound - currentRound)
 			: 1;
 
-		positionPopover(e.currentTarget as HTMLElement);
+		positionOverlay(e.currentTarget as HTMLElement, () => popoverEl, popoverPosition);
 	}
 
 	function togglePicker(e: KeyboardEvent | MouseEvent) {
@@ -137,88 +132,68 @@
 		pickerOpen = !pickerOpen;
 
 		if (pickerOpen) {
-			positionPicker(e.currentTarget as HTMLElement);
+			positionOverlay(e.currentTarget as HTMLElement, () => pickerEl, pickerPosition);
 		}
 	}
 
-	function onInfinityClick(url: string) {
-		const newCondition = { url: url, expiresOnRound: null } as EncounterParticipantCondition;
-		onChange(newCondition);
+	function closePopovers() {
 		pickerOpen = false;
 		openUrl = null;
 		roundsRemain = 0;
 	}
 
+	function setCondition(url: string, expiresOnRound: number | null) {
+		onChange({ url, expiresOnRound } as EncounterParticipantCondition);
+		closePopovers();
+	}
+
+	function onInfinityClick(url: string) {
+		setCondition(url, null);
+	}
+
 	function onApplyClick(url: string) {
-		const newExpiresOnRound = roundsRemain + getRound();
-		const newCondition = { url: url, expiresOnRound: newExpiresOnRound } as EncounterParticipantCondition;
-		onChange(newCondition);
-		pickerOpen = false;
-		openUrl = null;
-		roundsRemain = 0;
+		setCondition(url, roundsRemain + currentRound);
 	}
 
 	function onRemoveClick(url: string) {
 		onDelete(url);
-		pickerOpen = false;
-		openUrl = null;
-		roundsRemain = 0;
+		closePopovers();
 	}
 
-	async function positionPopover(anchor: HTMLElement) {
-		const r = anchor.getBoundingClientRect();
-
-		popX = r.left;
-		popY = r.bottom + 6;
-
-		await tick();
-
-		if (!popoverEl) {
+	function handleActivation(event: KeyboardEvent, callback: () => void) {
+		if (event.key !== "Enter" && event.key !== " ") {
 			return;
 		}
 
-		const pr = popoverEl.getBoundingClientRect();
-		const pad = 8;
-
-		if (popX + pr.width > window.innerWidth - pad) {
-			popX = Math.max(pad, window.innerWidth - pad - pr.width);
-		}
-
-		if (popY + pr.height > window.innerHeight - pad) {
-			popY = r.top - pr.height - 6;
-		}
-
-		if (popY < pad) {
-			popY = pad;
-		}
-
+		callback();
 	}
 
-	async function positionPicker(anchor: HTMLElement) {
+	async function positionOverlay(anchor: HTMLElement, getOverlay: () => HTMLElement | null, position: OverlayPosition) {
 		const r = anchor.getBoundingClientRect();
 
-		pickerX = r.left;
-		pickerY = r.bottom + 6;
+		position.x = r.left;
+		position.y = r.bottom + 6;
 
 		await tick();
 
-		if (!pickerEl) {
+		const overlay = getOverlay();
+		if (!overlay) {
 			return;
 		}
 
-		const pr = pickerEl.getBoundingClientRect();
+		const pr = overlay.getBoundingClientRect();
 		const pad = 8;
 
-		if (pickerX + pr.width > window.innerWidth - pad) {
-			pickerX = Math.max(pad, window.innerWidth - pad - pr.width);
+		if (position.x + pr.width > window.innerWidth - pad) {
+			position.x = Math.max(pad, window.innerWidth - pad - pr.width);
 		}
 
-		if (pickerY + pr.height > window.innerHeight - pad) {
-			pickerY = r.top - pr.height - 6;
+		if (position.y + pr.height > window.innerHeight - pad) {
+			position.y = r.top - pr.height - 6;
 		}
 
-		if (pickerY < pad) {
-			pickerY = pad;
+		if (position.y < pad) {
+			position.y = pad;
 		}
 	}
 
@@ -261,12 +236,12 @@
 			class="popover"
 			use:portal
 			bind:this={popoverEl}
-			style="left:{popX}px; top:{popY}px;"
+			style="left:{popoverPosition.x}px; top:{popoverPosition.y}px;"
 			aria-label={c.title}
 			role="button"
 			tabindex="0"
 			onclick={(e) => e.stopPropagation()}
-			onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation() } }}
+			onkeydown={(e) => handleActivation(e, () => e.stopPropagation())}
 		>
 			<div>
 				<strong>{c.title}</strong>
@@ -274,22 +249,20 @@
 			<div class="popover-line">
 				<div
 					class="popover-item"
-					onclick={() => { onInfinityClick(c.url) }}
+					onclick={() => onInfinityClick(c.url)}
 					role="button"
 					tabindex="0"
-					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onInfinityClick(c.url) } }}
+					onkeydown={(e) => handleActivation(e, () => onInfinityClick(c.url))}
 				>
 					<Infinity size={16} />
 				</div>
 
-				<div style="width: 8px;"></div>
-
 				<div
-					class="popover-item"
+					class="popover-item popover-group-start"
 					onclick={() => roundsRemain = Math.max(1, roundsRemain - 1)}
 					role="button"
 					tabindex="0"
-					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { roundsRemain = Math.max(1, roundsRemain - 1) } }}
+					onkeydown={(e) => handleActivation(e, () => roundsRemain = Math.max(1, roundsRemain - 1))}
 				>
 					<Minus size={16} />
 				</div>
@@ -299,19 +272,17 @@
 					onclick={() => roundsRemain++}
 					role="button"
 					tabindex="0"
-					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { roundsRemain++ } }}
+					onkeydown={(e) => handleActivation(e, () => roundsRemain++)}
 				>
 					<Plus size={16} />
 				</div>
 
-				<div style="width: 4px;"></div>
-
 				<div
-					class="popover-item"
+					class="popover-item popover-action-start"
 					onclick={() => onApplyClick(c.url)}
 					role="button"
 					tabindex="0"
-					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onApplyClick(c.url) } }}
+					onkeydown={(e) => handleActivation(e, () => onApplyClick(c.url))}
 				>
 					<Check size={16}/>
 				</div>
@@ -321,19 +292,17 @@
 					onclick={() => onRemoveClick(c.url)}
 					role="button"
 					tabindex="0"
-					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onRemoveClick(c.url) } }}
+					onkeydown={(e) => handleActivation(e, () => onRemoveClick(c.url))}
 				>
 					<X size={16}/>
 				</div>
 
-				<div style="width: 8px;"></div>
-
 				<div
-					class="popover-item"
+					class="popover-item popover-group-start"
 					onclick={() => onOpenConditionDetails(c.url)}
 					role="button"
 					tabindex="0"
-					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onOpenConditionDetails(c.url) } }}
+					onkeydown={(e) => handleActivation(e, () => onOpenConditionDetails(c.url))}
 				>
 					<Info size={16}/>
 				</div>
@@ -352,7 +321,7 @@
 				role="button"
 				tabindex="0"
 				onclick={togglePicker}
-				onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { togglePicker(e) } }}
+				onkeydown={(e) => handleActivation(e, () => togglePicker(e))}
 			>
 				<CirclePlus size={20} />
 			</div>
@@ -362,12 +331,12 @@
 					class="popover picker-popover"
 					use:portal
 					bind:this={pickerEl}
-					style="left:{pickerX}px; top:{pickerY}px;"
+					style="left:{pickerPosition.x}px; top:{pickerPosition.y}px;"
 					aria-label="Добавить состояние"
 					role="button"
 					tabindex="0"
 					onclick={(e) => e.stopPropagation()}
-					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation() } }}
+					onkeydown={(e) => handleActivation(e, () => e.stopPropagation())}
 				>
 					<div class="picker-grid">
 						{#each inactiveConditions as c}
@@ -380,7 +349,7 @@
 									role="button"
 									tabindex="0"
 									onclick={(e) => openPopover(e, c.url, false)}
-									onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { openPopover(e, c.url, false) } }}
+									onkeydown={(e) => handleActivation(e, () => openPopover(e, c.url, false))}
 								>
 									<c.icon class="condition-icon" alt={c.title} />
 								</div>
@@ -394,7 +363,8 @@
 		</div>
 	{/if}
 
-	{#each activeConditions as c}
+	{#each activeConditions as { definition: c, condition }}
+		{@const remainingRounds = remainingRoundsFor(condition)}
 		<div class="condition">
 			<div
 				class="cell active"
@@ -404,12 +374,12 @@
 				role="button"
 				tabindex="0"
 				onclick={(e) => openPopover(e, c.url)}
-				onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { openPopover(e, c.url) } }}
+				onkeydown={(e) => handleActivation(e, () => openPopover(e, c.url))}
 			>
 				<c.icon class="condition-icon" alt={c.title} />
 
-				{#if remainingRounds(c.url) !== null}
-					<span class="badge">{remainingRounds(c.url)}</span>
+				{#if remainingRounds !== null}
+					<span class="badge">{remainingRounds}</span>
 				{/if}
 			</div>
 
@@ -519,6 +489,14 @@
 		align-items: center;
 		align-content: center;
 		justify-content: center;
+	}
+
+	.popover-group-start {
+		margin-left: 8px;
+	}
+
+	.popover-action-start {
+		margin-left: 4px;
 	}
 
 	:global(.dnd-dm-conditions-popover-root) {
