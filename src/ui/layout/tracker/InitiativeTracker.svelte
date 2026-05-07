@@ -23,7 +23,7 @@
 	import type { EncounterParticipant, EncounterParticipantCondition } from "src/domain/models/encounter/EncounterParticipant";
 	import ParticipantItem from "./ParticipantItem.svelte";
 
-	let { app, encounter, isEditable, onPortraitClick, onConditionClick, onImageRequested } =
+	let { app: _app, encounter, isEditable, onPortraitClick, onConditionClick, onImageRequested } =
 		$props<{
 			app: any;
 			encounter: Encounter;
@@ -51,9 +51,13 @@
 		state.canRedo = encounterManager.canRedo;
 	});
 
-	const setEncounterName = (name: string) => {
+	const runEditable = (action: () => void) => {
 		if (!isEditable) return;
-		encounterManager.setName(name);
+		action();
+	};
+
+	const setEncounterName = (name: string) => {
+		runEditable(() => encounterManager.setName(name));
 	};
 
 	const setValue = (
@@ -61,44 +65,37 @@
 		field: keyof EncounterParticipant,
 		value: any,
 	) => {
-		if (!isEditable) return;
-		encounterManager.setParticipantValue(id, field, value);
+		runEditable(() => encounterManager.setParticipantValue(id, field, value));
 	};
 
 	const sortByInitiative = () => {
-		encounterManager.sortByInitiative();
-	};
-
-	const startEncounter = () => {
-		encounterManager.startEncounter();
-	};
-
-	const nextStepEncounter = () => {
-		encounterManager.nextStepEncounter();
+		runEditable(() => encounterManager.sortByInitiative());
 	};
 
 	const stopEncounter = () => {
-		encounterManager.stopEncounter();
+		runEditable(() => encounterManager.stopEncounter());
 	};
 
 	const onPlayNext = () => {
-		if (state.current.activeParticipantIndex == null) startEncounter();
-		else nextStepEncounter();
+		runEditable(() => {
+			if (state.current.activeParticipantIndex == null) {
+				encounterManager.startEncounter();
+			} else {
+				encounterManager.nextStepEncounter();
+			}
+		});
 	};
 
 	const addParticipant = () => {
-		if (!isEditable) return;
-		encounterManager.addParticipant();
+		runEditable(() => encounterManager.addParticipant());
 	};
 
 	const removeParticipant = (id: number) => {
-		if (!isEditable) return;
-		encounterManager.removeParticipant(id);
+		runEditable(() => encounterManager.removeParticipant(id));
 	};
 
 	const toggleDead = (id: number) => {
-		if (!isEditable) return;
-		encounterManager.toggleDead(id);
+		runEditable(() => encounterManager.toggleDead(id));
 	};
 
 	const onOpenStatblock = (p: EncounterParticipant) => {
@@ -113,7 +110,6 @@
 		await copyEncounterToClipboard(state.current.encounter);
 	};
 
-
 	const pasteEncounter = async () => {
 		if (!isEditable) return;
 
@@ -126,51 +122,37 @@
 	const pasteParticipant = async () => {
 		if (!isEditable) return;
 
-		const p = (await getEncounterParticipantFromClipboard(
-			false,
-		)) as EncounterParticipant | null;
-		if (!p) {
-			const e = (await getEncounterFromClipboard()) as Encounter | null;
+		const participant = await getEncounterParticipantFromClipboard(false);
+		if (participant) {
+			encounterManager.pasteParticipants([participant]);
+			return;
+		}
 
-			if (e && e.participants.length > 0) {
-				encounterManager.pasteParticipants(e.participants)
-			} else {
-				return;
-			}
-		} else {
-			encounterManager.pasteParticipants([p])
+		const clipboardEncounter = await getEncounterFromClipboard();
+		if (clipboardEncounter?.participants.length) {
+			encounterManager.pasteParticipants(clipboardEncounter.participants);
 		}
 	};
 
-	const resolvePluginAsset = (relativePath: string) => {
-		const base = `${app.vault.configDir}/plugins/dnd-dm-tools/`;
-		return app.vault.adapter.getResourcePath(base + relativePath);
-	};
-
 	const onConditionChange = (participantId: number, condition: EncounterParticipantCondition) => {
-		if (!isEditable) return;
-		encounterManager.setCondition(participantId, condition);
+		runEditable(() => encounterManager.setCondition(participantId, condition));
 	};
 
 	const onConditionDelete = (participantId: number, url: string) => {
-		if (!isEditable) return;
-		encounterManager.deleteCondition(participantId, url);
+		runEditable(() => encounterManager.deleteCondition(participantId, url));
 	};
 
 	const undo = () => {
-		if (!isEditable) return;
-		encounterManager.undo();
-	}
+		runEditable(() => encounterManager.undo());
+	};
 
 	const redo = () => {
-		if (!isEditable) return;
-		encounterManager.redo();
-	}
+		runEditable(() => encounterManager.redo());
+	};
 
 	const clearEncounter = () => {
-		if (!isEditable) return;
-		encounterManager.clearEncounter();
-	}
+		runEditable(() => encounterManager.clearEncounter());
+	};
 </script>
 
 <div class="tracker">
