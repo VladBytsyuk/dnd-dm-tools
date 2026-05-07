@@ -586,15 +586,9 @@
 </article>
 
 <style>
-    :global(.theme-light) {
-        --active-participant-bg: #00000088;
-    }
-
-    :global(.theme-dark) {
-        --active-participant-bg: #ffffff88;
-    }
-
 	.row {
+		--active-participant-bg: #3b82f6;
+
 		position: relative;
 		display: grid;
 		grid-template-columns: 62px 1fr auto;
@@ -602,6 +596,19 @@
 		align-items: stretch;
 		border-top: 1px solid var(--background-modifier-border);
 	}
+
+	.row[data-side="pc"] {
+		--active-participant-bg: #22c55e;
+	}
+
+	.row[data-side="enemy"] {
+		--active-participant-bg: #ef4444;
+	}
+
+	.row[data-side="neutral"] {
+		--active-participant-bg: #3b82f6;
+	}
+
 	.row:first-child {
 		border-top: none;
 	}
@@ -616,7 +623,7 @@
 	}
 
 	.row[data-active="true"] {
-		background: color-mix(in srgb, var(--active-participant-bg) 10%, transparent);
+		background: color-mix(in srgb, var(--active-participant-bg) 26%, transparent);
 	}
 
 	.row[data-down="true"] {
