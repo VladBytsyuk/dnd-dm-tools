@@ -157,6 +157,64 @@ describe('ClassesRepository - Fragment URL Building', () => {
     });
 });
 
+describe('ClassesRepository - Full Item Fetch Characterization', () => {
+    it('should fetch associated fragment HTML and persist full class on cache miss', async () => {
+        const remoteClass = {
+            ...fullClassBard,
+            url: "/classes/bard",
+            associatedUrl: undefined,
+            associatedHtml: undefined,
+        };
+        const createItem = vi.fn();
+        const mockDb = {
+            smallClassDao: {
+                readAllItems: vi.fn().mockResolvedValue([smallClassBard]),
+                readAllItemsNames: vi.fn().mockResolvedValue(["Бард"]),
+                readItemByName: vi.fn().mockResolvedValue(smallClassBard),
+                readItemByUrl: vi.fn().mockResolvedValue(smallClassBard),
+                readArchetypesByParentUrl: vi.fn().mockResolvedValue([]),
+            },
+            fullClassDao: {
+                readItemByUrl: vi.fn().mockResolvedValue(null),
+                readItemByName: vi.fn().mockResolvedValue(null),
+                createItem,
+            },
+            transaction: vi.fn(async (callback: () => Promise<void>) => {
+                await callback();
+            }),
+        };
+        const repo = new ClassesRepository(mockDb as any);
+        (repo as any).fetchFromAPI = vi.fn().mockResolvedValue({ ...remoteClass });
+        (repo as any).fetchHtmlFromAPI = vi.fn().mockResolvedValue("<article>Бард</article>");
+
+        const result = await repo.getFullItemByUrl("/classes/bard");
+
+        expect((repo as any).fetchFromAPI).toHaveBeenCalledWith("/classes/bard");
+        expect((repo as any).fetchHtmlFromAPI).toHaveBeenCalledWith("/classes/fragment/bard");
+        expect(result).toEqual({
+            ...remoteClass,
+            url: "/classes/bard",
+            associatedUrl: "/classes/fragment/bard",
+            associatedHtml: "<article>Бард</article>",
+        });
+        expect(createItem).toHaveBeenCalledWith(result);
+        expect(mockDb.transaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return cached full class without fetching associated HTML', async () => {
+        const mockDb = mockDatabase([smallClassBard], [fullClassBard]);
+        const repo = new ClassesRepository(mockDb);
+        (repo as any).fetchFromAPI = vi.fn();
+        (repo as any).fetchHtmlFromAPI = vi.fn();
+
+        const result = await repo.getFullItemByUrl("/classes/bard");
+
+        expect(result).toEqual(fullClassBard);
+        expect((repo as any).fetchFromAPI).not.toHaveBeenCalled();
+        expect((repo as any).fetchHtmlFromAPI).not.toHaveBeenCalled();
+    });
+});
+
 describe('ClassesRepository - Archetype Filtering', () => {
     let repo: ClassesRepository;
 
