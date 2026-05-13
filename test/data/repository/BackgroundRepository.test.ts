@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { BackgroundRepository } from "../../../src/data/repositories/BackgroundRepository";
 import type { SmallBackground } from "../../../src/domain/models/background/SmallBackground";
 import type { FullBackground } from "../../../src/domain/models/background/FullBackground";
@@ -17,6 +17,13 @@ import {
     fullBackgroundOccultist,
     fullBackgroundHarborfolk
 } from "../../__mocks__/domain/models/background/full_background_items";
+import {
+    FullItemReadServiceDouble,
+    ItemReadStoreDouble,
+    ItemWriteStoreDouble,
+    SmallItemProjectorDouble,
+} from "../ports/testDoubles";
+import { BackgroundMapper } from "../../../src/data/mappers/sourceMappers";
 
 runBaseRepositoryTests<SmallBackground, FullBackground, BackgroundsFilters>({
     title: 'Repository: Background',
@@ -86,51 +93,56 @@ describe('BackgroundRepository - Associated HTML Characterization', () => {
             associatedUrl: undefined,
             associatedHtml: undefined,
         };
-        const createItem = vi.fn();
-        const mockDb = {
-            smallBackgroundDao: {
-                readAllItems: vi.fn().mockResolvedValue([smallBackgroundOccultist]),
-                readAllItemsNames: vi.fn().mockResolvedValue(["Оккультист"]),
-                readItemByName: vi.fn().mockResolvedValue(smallBackgroundOccultist),
-                readItemByUrl: vi.fn().mockResolvedValue(smallBackgroundOccultist),
+        const readStore = new ItemReadStoreDouble<SmallBackground, FullBackground, BackgroundsFilters>();
+        readStore.fullItemsByUrl.set("/backgrounds/occultist", null);
+        const writeStore = new ItemWriteStoreDouble<SmallBackground, FullBackground>();
+        const service = new FullItemReadServiceDouble<any>().succeed({
+            item: remoteBackground,
+            associatedUrl: "/backgrounds/fragment/199",
+            associatedHtml: "<section>Оккультист</section>",
+        });
+        const mapper = new BackgroundMapper() as any;
+        const projector = new SmallItemProjectorDouble<FullBackground, SmallBackground>(
+            (item) => ({ name: item.name, url: item.url, source: item.source, homebrew: item.homebrew })
+        );
+        const repo = new BackgroundRepository({
+            readStore,
+            writeStore,
+            service,
+            mapper: {
+                map: (response: any, url: string) => mapper.map({
+                    ...response.item,
+                    associatedUrl: response.associatedUrl,
+                    associatedHtml: response.associatedHtml,
+                }, url),
             },
-            fullBackgroundDao: {
-                readItemByUrl: vi.fn().mockResolvedValue(null),
-                readItemByName: vi.fn().mockResolvedValue(null),
-                createItem,
-            },
-            transaction: vi.fn(async (callback: () => Promise<void>) => {
-                await callback();
-            }),
-        };
-        const repo = new BackgroundRepository(mockDb as any);
-        (repo as any).fetchFromAPI = vi.fn().mockResolvedValue({ ...remoteBackground });
-        (repo as any).fetchHtmlFromAPI = vi.fn().mockResolvedValue("<section>Оккультист</section>");
+            projector,
+        });
 
         const result = await repo.getFullItemByUrl("/backgrounds/occultist");
 
-        expect((repo as any).fetchFromAPI).toHaveBeenCalledWith("/backgrounds/occultist");
-        expect((repo as any).fetchHtmlFromAPI).toHaveBeenCalledWith("/backgrounds/fragment/199");
+        expect(service.calls[0]).toMatchObject({
+            method: "getFullItem",
+            args: ["/backgrounds/occultist", undefined],
+        });
         expect(result).toEqual({
             ...remoteBackground,
             url: "/backgrounds/occultist",
             associatedUrl: "/backgrounds/fragment/199",
             associatedHtml: "<section>Оккультист</section>",
         });
-        expect(createItem).toHaveBeenCalledWith(result);
-        expect(mockDb.transaction).toHaveBeenCalledTimes(1);
+        expect(writeStore.calls[0]).toMatchObject({
+            method: "saveFetchedFull",
+            args: [result],
+        });
     });
 
     it('should return cached background without fetching associated HTML', async () => {
         const mockDb = mockDatabase([smallBackgroundOccultist], [fullBackgroundOccultist]);
         const repo = new BackgroundRepository(mockDb);
-        (repo as any).fetchFromAPI = vi.fn();
-        (repo as any).fetchHtmlFromAPI = vi.fn();
 
         const result = await repo.getFullItemByUrl("/backgrounds/occultist");
 
         expect(result).toEqual(fullBackgroundOccultist);
-        expect((repo as any).fetchFromAPI).not.toHaveBeenCalled();
-        expect((repo as any).fetchHtmlFromAPI).not.toHaveBeenCalled();
     });
 });

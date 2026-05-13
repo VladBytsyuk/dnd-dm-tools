@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { DmScreenRepository } from "../../../src/data/repositories/DmScreenRepository";
 import type { DmScreenItem } from "../../../src/domain/models/dm_screen/DmScreenItem";
+import { FullItemReadServiceDouble } from "../ports/testDoubles";
 
 const source = {
 	shortName: "PHB",
@@ -46,23 +47,25 @@ function createDmScreenRepository(cachedItem: DmScreenItem | null) {
 		}),
 	};
 
+	const service = new FullItemReadServiceDouble<any>();
+
 	return {
-		repository: new DmScreenRepository(database as any),
+		repository: new DmScreenRepository(database as any, service),
 		database,
 		dmScreenGroupDao,
+		service,
 	};
 }
 
 describe("DmScreenRepository characterization", () => {
 	it("returns a cached described item without refreshing", async () => {
 		const cachedItem = createDmScreenItem({ description: "<p>Cached</p>" });
-		const { repository, database, dmScreenGroupDao } = createDmScreenRepository(cachedItem);
-		(repository as any).fetchFromAPI = vi.fn();
+		const { repository, database, dmScreenGroupDao, service } = createDmScreenRepository(cachedItem);
 
 		const result = await repository.getFullItemByUrl("/screens/condition");
 
 		expect(result).toEqual(cachedItem);
-		expect((repository as any).fetchFromAPI).not.toHaveBeenCalled();
+		expect(service.calls).toEqual([]);
 		expect(database.transaction).not.toHaveBeenCalled();
 		expect(dmScreenGroupDao.updateItem).not.toHaveBeenCalled();
 	});
@@ -70,12 +73,15 @@ describe("DmScreenRepository characterization", () => {
 	it("treats a cached item without description as a partial miss and updates it from remote", async () => {
 		const cachedItem = createDmScreenItem({ description: undefined });
 		const remoteItem = createDmScreenItem({ description: "<p>Remote description</p>" });
-		const { repository, database, dmScreenGroupDao } = createDmScreenRepository(cachedItem);
-		(repository as any).fetchFromAPI = vi.fn().mockResolvedValue(remoteItem);
+		const { repository, database, dmScreenGroupDao, service } = createDmScreenRepository(cachedItem);
+		service.succeed(remoteItem as any);
 
 		const result = await repository.getFullItemByUrl("/screens/condition");
 
-		expect((repository as any).fetchFromAPI).toHaveBeenCalledWith("/screens/condition");
+		expect(service.calls[0]).toMatchObject({
+			method: "getFullItem",
+			args: ["/screens/condition", undefined],
+		});
 		expect(database.transaction).toHaveBeenCalledTimes(1);
 		expect(dmScreenGroupDao.updateItem).toHaveBeenCalledWith(remoteItem);
 		expect(result).toEqual(remoteItem);
@@ -83,8 +89,8 @@ describe("DmScreenRepository characterization", () => {
 
 	it("returns null and does not update when a missing-description refresh fails", async () => {
 		const cachedItem = createDmScreenItem({ description: undefined });
-		const { repository, database, dmScreenGroupDao } = createDmScreenRepository(cachedItem);
-		(repository as any).fetchFromAPI = vi.fn().mockResolvedValue(null);
+		const { repository, database, dmScreenGroupDao, service } = createDmScreenRepository(cachedItem);
+		service.fail("network");
 
 		const result = await repository.getFullItemByUrl("/screens/condition");
 
@@ -100,13 +106,29 @@ describe("DmScreenRepository characterization", () => {
 			description: undefined,
 		});
 		const remoteItem = { ...cachedItem, description: "<p>Remote</p>" };
-		const { repository, dmScreenGroupDao } = createDmScreenRepository(cachedItem);
-		(repository as any).fetchFromAPI = vi.fn().mockResolvedValue(remoteItem);
+		const { repository, dmScreenGroupDao, service } = createDmScreenRepository(cachedItem);
+		service.succeed(remoteItem as any);
 
 		const result = await repository.getFullItemByName("Очарование");
 
 		expect(dmScreenGroupDao.readItemByName).toHaveBeenCalledWith("Очарование");
-		expect((repository as any).fetchFromAPI).toHaveBeenCalledWith("/screens/charmed");
+		expect(service.calls[0]).toMatchObject({
+			method: "getFullItem",
+			args: ["/screens/charmed", undefined],
+		});
 		expect(result).toEqual(remoteItem);
+	});
+
+	it("filters across all DM screen items, not only root items", async () => {
+		const childItem = createDmScreenItem({
+			name: { rus: "Очарование", eng: "Charmed" },
+			url: "/screens/charmed",
+		});
+		const { repository, dmScreenGroupDao } = createDmScreenRepository(childItem);
+
+		const result = await repository.getFilteredItems("charm");
+
+		expect(dmScreenGroupDao.readAllItems).toHaveBeenCalledWith(null, null);
+		expect(result).toEqual([childItem]);
 	});
 });

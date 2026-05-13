@@ -1,30 +1,84 @@
-import type { SmallCharacterSheet, FullCharacterSheet, CharacterSheetFilters } from "src/domain/models/character";
-import type { Group, Repository } from "src/domain/repositories/Repository";
-import type DB from "../database/DB";
-import { BaseRepository } from "./BaseRepository";
+import { CharacterSheetImportMapper } from "src/data/mappers/characterSheetImportMapper";
+import { smallItemProjectors } from "src/data/projectors/smallItemProjectors";
+import { CharacterSheetStore, DbTransactionalStore } from "src/data/stores";
 import { createFilters } from "src/domain/models/common/Filters";
+import type {
+	CharacterSheetFilters,
+	FullCharacterSheet,
+	SmallCharacterSheet,
+} from "src/domain/models/character";
 import { EmptyFullCharacterSheet } from "src/domain/models/character/FullCharacterSheet";
-import { CharacterSheetImportService } from "./CharacterSheetImportService";
+import type { Group, Repository } from "src/domain/repositories/Repository";
 import type { CharacterSheetGateway } from "./characterSheetTypes";
 
+type SmallDaoLike<TSmall, TFilter> = {
+	readAllItems(name: string | null, filter: TFilter | null): Promise<TSmall[]>;
+};
+
+type CharacterSheetRepositoryDatabase = {
+	transaction(callback: (...args: any[]) => Promise<void>): Promise<void> | void;
+	characterSheetDao: {
+		createItem(item: FullCharacterSheet): Promise<void>;
+		deleteItemByUrl(url: string): Promise<void>;
+		readAllSmallItems(
+			name: string | null,
+			filter: CharacterSheetFilters | null,
+		): Promise<SmallCharacterSheet[]>;
+		readFullItemByUrl(url: string): Promise<FullCharacterSheet | null>;
+		readItemByUrl(url: string): Promise<FullCharacterSheet | null>;
+		updateItem(item: FullCharacterSheet): Promise<void>;
+	};
+	smallRaceDao?: SmallDaoLike<unknown, unknown>;
+	smallBackgroundDao?: SmallDaoLike<unknown, unknown>;
+	smallClassDao?: SmallDaoLike<unknown, unknown>;
+	smallItemDao?: SmallDaoLike<unknown, unknown>;
+	smallArtifactDao?: SmallDaoLike<unknown, unknown>;
+	smallArmorDao?: SmallDaoLike<unknown, unknown>;
+	smallSpellDao?: SmallDaoLike<unknown, unknown>;
+	fullArmorDao?: unknown;
+	fullArtifactDao?: unknown;
+	fullItemDao?: unknown;
+	fullSpellDao?: unknown;
+};
+
 export class CharacterSheetRepository
-	extends BaseRepository<SmallCharacterSheet, FullCharacterSheet, CharacterSheetFilters>
 	implements Repository<SmallCharacterSheet, FullCharacterSheet, CharacterSheetFilters>, CharacterSheetGateway
 {
-	private readonly importService;
+	#smallItems?: SmallCharacterSheet[];
+	#filters?: CharacterSheetFilters;
+	readonly #store: CharacterSheetStore;
+	readonly #importMapper = new CharacterSheetImportMapper();
 
-	constructor(database: DB) {
-		// Pass the same DAO for both small and full items
-		super(database, database.characterSheetDao, database.characterSheetDao);
-		this.importService = new CharacterSheetImportService(database.characterSheetDao);
+	constructor(private readonly database: CharacterSheetRepositoryDatabase) {
+		this.#store = new CharacterSheetStore(
+			database.characterSheetDao,
+			new DbTransactionalStore(database),
+		);
 	}
 
 	/**
-	 * Gets the database instance for accessing DAOs.
-	 * Needed for EntityLinkService to query races, classes, and backgrounds.
+	 * Kept for the character sheet editor/linking surface, which still reads related DAOs directly.
 	 */
-	getDatabase(): DB {
+	getDatabase(): any {
 		return this.database;
+	}
+
+	async initialize(): Promise<void> {
+		const allSmallItems = await this.getAllSmallItems();
+		this.#filters = await this.collectFiltersFromAllItems(allSmallItems) ?? undefined;
+	}
+
+	dispose(): void {
+		this.#smallItems = undefined;
+		this.#filters = undefined;
+	}
+
+	async getAllFilters(): Promise<CharacterSheetFilters | null> {
+		if (this.#filters) return this.#filters;
+
+		const allSmallItems = this.#smallItems ?? await this.getAllSmallItems();
+		this.#filters = await this.collectFiltersFromAllItems(allSmallItems) ?? undefined;
+		return this.#filters ?? null;
 	}
 
 	async collectFiltersFromAllItems(
@@ -48,7 +102,6 @@ export class CharacterSheetRepository
 	}
 
 	async groupItems(smallItems: SmallCharacterSheet[]): Promise<Group<SmallCharacterSheet>[]> {
-		// Group by level (ascending)
 		const grouped = new Map<number, SmallCharacterSheet[]>();
 
 		smallItems.forEach((sheet) => {
@@ -71,49 +124,47 @@ export class CharacterSheetRepository
 		return EmptyFullCharacterSheet();
 	}
 
-	/**
-	 * Override to fetch from local database only (no API).
-	 */
-	async getFullItemByUrl(url: string): Promise<FullCharacterSheet | null> {
-		return await this.database.characterSheetDao.readFullItemByUrl(url);
+	async getAllSmallItems(): Promise<SmallCharacterSheet[]> {
+		if (this.#smallItems) return this.#smallItems;
+
+		this.#smallItems = await this.#store.readAllSmallItems();
+		return this.#smallItems;
 	}
 
-	/**
-	 * Import character sheet from JSON file content.
-	 * Parses the raw JSON, extracts fields, and saves to database.
-	 * Supports both standard format and riardon.json format.
-	 * @throws {Error} If JSON is malformed or required fields are missing
-	 */
-	async importFromJson(jsonContent: string): Promise<FullCharacterSheet> {
-		const fullSheet = await this.importService.importFromJson(jsonContent);
-		await this.putItem(fullSheet);
-		return fullSheet;
-	}
-
-	/**
-	 * Override to use Small items query for better performance.
-	 */
 	async getFilteredSmallItems(
 		name: string | null = null,
 		filter: CharacterSheetFilters | null = null
 	): Promise<SmallCharacterSheet[]> {
-		return (await this.database.characterSheetDao.readAllSmallItems(name, filter)) || [];
+		return await this.#store.readFilteredSmallItems(name, filter);
 	}
 
-	/**
-	 * Override to use Small items query for better performance.
-	 */
-	async getAllSmallItems(): Promise<SmallCharacterSheet[]> {
-		return (await this.database.characterSheetDao.readAllSmallItems(null, null)) || [];
+	async getAllSmallItemNames(): Promise<string[]> {
+		return (await this.getAllSmallItems()).map((item) => item.name.rus);
 	}
 
-	/**
-	 * Override initialize to use Small items.
-	 */
-	async initialize(): Promise<void> {
-		const allSmallItems = await this.getAllSmallItems();
-		// BaseRepository expects to call collectFiltersFromAllItems
-		await this.collectFiltersFromAllItems(allSmallItems);
+	async getFullItemByUrl(url: string): Promise<FullCharacterSheet | null> {
+		return await this.#store.readFullItemByUrl(url);
+	}
+
+	async getFullItemByName(name: string): Promise<FullCharacterSheet | null> {
+		const smallItem = (await this.getAllSmallItems()).find((item) =>
+			item.name.rus === name || item.name.eng === name
+		);
+
+		return smallItem ? await this.getFullItemBySmallItem(smallItem) : null;
+	}
+
+	async getFullItemBySmallItem(smallItem: SmallCharacterSheet): Promise<FullCharacterSheet | null> {
+		if (!smallItem.url) return null;
+		return await this.getFullItemByUrl(smallItem.url);
+	}
+
+	async importFromJson(jsonContent: string): Promise<FullCharacterSheet> {
+		const fullSheet = this.#importMapper.map(jsonContent);
+		fullSheet.url = await this.#store.generateUniqueUrl(fullSheet.name.rus || fullSheet.name.eng);
+		await this.#store.saveImportedSheet(fullSheet);
+		await this.reloadCaches();
+		return fullSheet;
 	}
 
 	async putItem(fullItem: FullCharacterSheet): Promise<boolean> {
@@ -123,16 +174,9 @@ export class CharacterSheetRepository
 		}
 
 		try {
-			await this.database.transaction(async () => {
-				const existingItem = await this.database.characterSheetDao.readItemByUrl(fullItem.url);
-				if (existingItem) {
-					await this.database.characterSheetDao.updateItem(fullItem);
-				} else {
-					await this.database.characterSheetDao.createItem(fullItem);
-				}
-			});
-
-			await this.initialize();
+			smallItemProjectors.characterSheet.project(fullItem);
+			await this.#store.saveSheet(fullItem);
+			await this.reloadCaches();
 			return true;
 		} catch (error) {
 			console.error("Failed to save character sheet:", error);
@@ -142,18 +186,18 @@ export class CharacterSheetRepository
 
 	async deleteItem(url: string): Promise<boolean> {
 		try {
-			await this.database.transaction(async () => {
-				const existingItem = await this.database.characterSheetDao.readItemByUrl(url);
-				if (existingItem) {
-					await this.database.characterSheetDao.deleteItemByUrl(url);
-				}
-			});
-
-			await this.initialize();
+			await this.#store.deleteByUrl(url);
+			await this.reloadCaches();
 			return true;
 		} catch (error) {
 			console.error("Failed to delete character sheet:", error);
 			return false;
 		}
+	}
+
+	private async reloadCaches(): Promise<void> {
+		this.#smallItems = undefined;
+		this.#filters = undefined;
+		await this.initialize();
 	}
 }

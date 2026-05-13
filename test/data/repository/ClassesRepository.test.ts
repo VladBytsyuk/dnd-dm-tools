@@ -20,6 +20,8 @@ import {
     fullClassFighter,
     fullArchetypeValor
 } from "../../__mocks__/domain/models/class/full_class_items";
+import { buildClassFragmentUrl } from "../../../src/data/mappers/sourceMappers";
+import { FullItemReadServiceDouble } from "../ports/testDoubles";
 
 // Base repository tests with only base classes (no archetypes)
 const baseClassesOnly = [smallClassBard, smallClassWizard, smallClassFighter];
@@ -117,41 +119,33 @@ describe('ClassesRepository - Archetype Queries', () => {
 });
 
 describe('ClassesRepository - Fragment URL Building', () => {
-    let repo: ClassesRepository;
-
-    beforeEach(() => {
-        const mockDb = mockDatabase([smallClassBard], [fullClassBard]);
-        repo = new ClassesRepository(mockDb);
-    });
-
     it('should convert base class URL to fragment', () => {
-        // Access private method through type assertion
-        const result = (repo as any).buildFragmentUrl("/classes/bard");
+        const result = buildClassFragmentUrl("/classes/bard");
         expect(result).toBe("/classes/fragment/bard");
     });
 
     it('should convert archetype URL to fragment', () => {
-        const result = (repo as any).buildFragmentUrl("/classes/bard/college-of-valor");
+        const result = buildClassFragmentUrl("/classes/bard/college-of-valor");
         expect(result).toBe("/classes/fragment/bard/college-of-valor");
     });
 
     it('should not change already-fragment URLs', () => {
-        const result = (repo as any).buildFragmentUrl("/classes/fragment/bard");
+        const result = buildClassFragmentUrl("/classes/fragment/bard");
         expect(result).toBe("/classes/fragment/bard");
     });
 
     it('should handle multi-segment archetype paths', () => {
-        const result = (repo as any).buildFragmentUrl("/classes/wizard/school-of-evocation");
+        const result = buildClassFragmentUrl("/classes/wizard/school-of-evocation");
         expect(result).toBe("/classes/fragment/wizard/school-of-evocation");
     });
 
     it('should handle edge case with non-classes URL', () => {
-        const result = (repo as any).buildFragmentUrl("/other/path");
+        const result = buildClassFragmentUrl("/other/path");
         expect(result).toBe("/other/path");  // Fallback - return as-is
     });
 
     it('should handle trailing slashes', () => {
-        const result = (repo as any).buildFragmentUrl("/classes/bard/");
+        const result = buildClassFragmentUrl("/classes/bard/");
         // Should handle gracefully - exact behavior depends on implementation
         expect(result).toMatch(/fragment/);
     });
@@ -183,14 +177,23 @@ describe('ClassesRepository - Full Item Fetch Characterization', () => {
                 await callback();
             }),
         };
-        const repo = new ClassesRepository(mockDb as any);
-        (repo as any).fetchFromAPI = vi.fn().mockResolvedValue({ ...remoteClass });
-        (repo as any).fetchHtmlFromAPI = vi.fn().mockResolvedValue("<article>Бард</article>");
+        const service = new FullItemReadServiceDouble<any>().succeed({
+            item: { ...remoteClass },
+            associatedUrl: "/classes/fragment/bard",
+            associatedHtml: "<article>Бард</article>",
+        });
+        const repo = new ClassesRepository(mockDb as any, service);
 
         const result = await repo.getFullItemByUrl("/classes/bard");
-
-        expect((repo as any).fetchFromAPI).toHaveBeenCalledWith("/classes/bard");
-        expect((repo as any).fetchHtmlFromAPI).toHaveBeenCalledWith("/classes/fragment/bard");
+        expect(service.calls[0]).toMatchObject({
+            method: "getFullItem",
+            args: [
+                "/classes/bard",
+                {
+                    sourceBooks: expect.any(Array),
+                },
+            ],
+        });
         expect(result).toEqual({
             ...remoteClass,
             url: "/classes/bard",
