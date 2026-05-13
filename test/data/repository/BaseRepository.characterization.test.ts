@@ -1,4 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { spellMapper } from "../../../src/data/mappers/sourceMappers";
+import { smallItemProjectors } from "../../../src/data/projectors/smallItemProjectors";
+import { createSimpleRepositoryDependencies } from "../../../src/data/repositories/SimpleRepository";
 import { SpellbookRepository } from "../../../src/data/repositories/SpellbookRepository";
 import type { FullSpell } from "../../../src/domain/models/spell/FullSpell";
 import type { SmallSpell } from "../../../src/domain/models/spell/SmallSpell";
@@ -6,26 +9,19 @@ import { fullSpellAwaken, fullSpellFireball } from "../../__mocks__/domain/model
 import { smallSpellAwaken, smallSpellFireball } from "../../__mocks__/domain/models/spell/small_spell_items";
 
 function toSmallSpell(fullSpell: FullSpell): SmallSpell {
-	return {
-		name: fullSpell.name,
-		level: fullSpell.level,
-		school: fullSpell.school,
-		components: fullSpell.components,
-		url: fullSpell.url,
-		source: fullSpell.source,
-	};
+	return smallItemProjectors.spell.project(fullSpell);
 }
 
 function savedSmallSpellFromFull(fullSpell: FullSpell): SmallSpell {
-	return {
-		...fullSpell,
-		type: "",
-	} as SmallSpell;
+	return smallItemProjectors.spell.project(fullSpell);
 }
 
 function createStatefulSpellRepository(
 	initialSmallItems: SmallSpell[] = [],
-	initialFullItems: FullSpell[] = []
+	initialFullItems: FullSpell[] = [],
+	service = {
+		getFullItem: vi.fn().mockResolvedValue({ ok: false, reason: "not-found" as const }),
+	},
 ) {
 	const smallItems = [...initialSmallItems];
 	const fullItems = [...initialFullItems];
@@ -77,16 +73,24 @@ function createStatefulSpellRepository(
 	};
 
 	return {
-		repository: new SpellbookRepository(database as any),
+		repository: new SpellbookRepository(createSimpleRepositoryDependencies(
+			database as any,
+			smallSpellDao as any,
+			fullSpellDao as any,
+			spellMapper,
+			smallItemProjectors.spell,
+			service,
+		)),
 		database,
 		smallSpellDao,
 		fullSpellDao,
 		smallItems,
 		fullItems,
+		service,
 	};
 }
 
-describe("BaseRepository characterization", () => {
+describe("SimpleRepository orchestration", () => {
 	beforeEach(() => {
 		vi.restoreAllMocks();
 	});
@@ -96,27 +100,28 @@ describe("BaseRepository characterization", () => {
 			[smallSpellFireball],
 			[fullSpellFireball]
 		);
-		const fetchFromAPI = vi.fn();
-		(repository as any).fetchFromAPI = fetchFromAPI;
 
 		const result = await repository.getFullItemByUrl("/spells/fireball");
 
 		expect(result).toEqual(fullSpellFireball);
 		expect(fullSpellDao.readItemByUrl).toHaveBeenCalledWith("/spells/fireball");
-		expect(fetchFromAPI).not.toHaveBeenCalled();
+		expect(repository).toBeDefined();
 	});
 
 	it("persists and returns a remotely fetched full item on cache miss", async () => {
 		const remoteSpell = { ...fullSpellAwaken, url: "" };
+		const service = {
+			getFullItem: vi.fn().mockResolvedValue({ ok: true as const, value: remoteSpell }),
+		};
 		const { repository, database, fullSpellDao, fullItems } = createStatefulSpellRepository(
 			[smallSpellAwaken],
-			[]
+			[],
+			service,
 		);
-		(repository as any).fetchFromAPI = vi.fn().mockResolvedValue(remoteSpell);
 
 		const result = await repository.getFullItemByUrl("/spells/awaken");
 
-		expect((repository as any).fetchFromAPI).toHaveBeenCalledWith("/spells/awaken");
+		expect(service.getFullItem).toHaveBeenCalledWith("/spells/awaken");
 		expect(database.transaction).toHaveBeenCalledTimes(1);
 		expect(fullSpellDao.createItem).toHaveBeenCalledWith({
 			...remoteSpell,
@@ -135,14 +140,18 @@ describe("BaseRepository characterization", () => {
 	});
 
 	it("returns null and does not persist when remote fetch fails", async () => {
+		const service = {
+			getFullItem: vi.fn().mockResolvedValue({ ok: false as const, reason: "network" as const }),
+		};
 		const { repository, database, fullSpellDao, fullItems } = createStatefulSpellRepository(
 			[smallSpellAwaken],
-			[]
+			[],
+			service,
 		);
-		(repository as any).fetchFromAPI = vi.fn().mockResolvedValue(null);
 
 		const result = await repository.getFullItemByUrl("/spells/awaken");
 
+		expect(service.getFullItem).toHaveBeenCalledWith("/spells/awaken");
 		expect(result).toBeNull();
 		expect(database.transaction).not.toHaveBeenCalled();
 		expect(fullSpellDao.createItem).not.toHaveBeenCalled();

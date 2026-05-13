@@ -1,5 +1,4 @@
 import type { ItemReadStore, ItemWriteStore, TransactionalStore } from "src/data/ports";
-import type DB from "src/data/database/DB";
 import type { Dao } from "src/domain/Dao";
 import type { BaseItem } from "src/domain/models/common/BaseItem";
 
@@ -84,8 +83,12 @@ export class GenericSqlItemWriteStore<
 	}
 }
 
+interface TransactionalDatabase {
+	transaction(callback: (...args: any[]) => Promise<void>): Promise<void> | void;
+}
+
 export class DbTransactionalStore implements TransactionalStore {
-	constructor(private readonly database: Pick<DB, "transaction">) {}
+	constructor(private readonly database: TransactionalDatabase) {}
 
 	async transaction<T>(callback: () => Promise<T>): Promise<T> {
 		let result: T | undefined;

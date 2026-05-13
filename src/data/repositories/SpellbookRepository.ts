@@ -1,23 +1,40 @@
 import { type SpellbookFilters } from "src/domain/models/spell/SpellbookFilters";
-import type DB from "../database/DB";
 import type { Spellbook } from 'src/domain/repositories/Spellbook';
 import type { FullSpell } from "src/domain/models/spell/FullSpell";
 import type { SmallSpell } from 'src/domain/models/spell/SmallSpell';
-import { BaseRepository } from './BaseRepository';
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
 import { sortSources } from "src/domain/utils/SourceSorter";
+import { spellMapper } from "src/data/mappers/sourceMappers";
+import { smallItemProjectors } from "src/data/projectors/smallItemProjectors";
+import {
+    createSimpleRepositoryDependencies,
+    SimpleRepository,
+    type SimpleRepositoryDatabase,
+    type SimpleRepositoryDependencies,
+} from "./SimpleRepository";
+import type { Dao } from "src/domain/Dao";
+
+type SpellbookRepositoryDatabase = SimpleRepositoryDatabase & {
+    smallSpellDao: Dao<SmallSpell, SpellbookFilters>;
+    fullSpellDao: Dao<FullSpell, unknown>;
+};
 
 export class SpellbookRepository
-    extends BaseRepository<SmallSpell, FullSpell, SpellbookFilters> 
+    extends SimpleRepository<SmallSpell, FullSpell, SpellbookFilters> 
     implements Spellbook {
 
-    constructor(database: DB) {
-        super(
-            database,
-            database.smallSpellDao,
-            database.fullSpellDao,
-        );
+    constructor(
+        dependencies: SpellbookRepositoryDatabase
+            | SimpleRepositoryDependencies<SmallSpell, FullSpell, SpellbookFilters>
+    ) {
+        super("readStore" in dependencies ? dependencies : createSimpleRepositoryDependencies(
+            dependencies,
+            dependencies.smallSpellDao,
+            dependencies.fullSpellDao,
+            spellMapper,
+            smallItemProjectors.spell,
+        ));
     }
 
     async collectFiltersFromAllItems(allSmallItems: SmallSpell[]): Promise<SpellbookFilters | null> {

@@ -1,23 +1,40 @@
 import { type ArmoryFilters } from "src/domain/models/armor/ArmoryFilters"
-import { BaseRepository } from "./BaseRepository"
 import type { SmallArmor } from "src/domain/models/armor/SmallArmor"
 import type { FullArmor } from "src/domain/models/armor/FullArmor"
 import type { Armory } from "src/domain/repositories/Armory"
-import type DB from "../database/DB"
 import { createFilters } from "src/domain/models/common/Filters"
 import type { Group } from "src/domain/repositories/Repository"
 import { sortSources } from "src/domain/utils/SourceSorter"
+import { armorMapper } from "src/data/mappers/sourceMappers"
+import { smallItemProjectors } from "src/data/projectors/smallItemProjectors"
+import {
+    createSimpleRepositoryDependencies,
+    SimpleRepository,
+    type SimpleRepositoryDatabase,
+    type SimpleRepositoryDependencies,
+} from "./SimpleRepository"
+import type { Dao } from "src/domain/Dao"
+
+type ArmoryRepositoryDatabase = SimpleRepositoryDatabase & {
+    smallArmorDao: Dao<SmallArmor, ArmoryFilters>;
+    fullArmorDao: Dao<FullArmor, unknown>;
+};
 
 export class ArmoryRepository
-    extends BaseRepository<SmallArmor, FullArmor, ArmoryFilters>
+    extends SimpleRepository<SmallArmor, FullArmor, ArmoryFilters>
     implements Armory {
 
-    constructor(database: DB) {
-        super(
-            database,
-            database.smallArmorDao,
-            database.fullArmorDao,
-        );
+    constructor(
+        dependencies: ArmoryRepositoryDatabase
+            | SimpleRepositoryDependencies<SmallArmor, FullArmor, ArmoryFilters>
+    ) {
+        super("readStore" in dependencies ? dependencies : createSimpleRepositoryDependencies(
+            dependencies,
+            dependencies.smallArmorDao,
+            dependencies.fullArmorDao,
+            armorMapper,
+            smallItemProjectors.armor,
+        ));
     }
 
     async collectFiltersFromAllItems(allSmallItems: SmallArmor[]): Promise<ArmoryFilters | null> {

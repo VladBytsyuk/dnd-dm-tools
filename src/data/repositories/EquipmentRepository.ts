@@ -1,23 +1,40 @@
 import { type EquipmentFilters } from "src/domain/models/items/EquipmentFilters";
-import { BaseRepository } from "./BaseRepository";
 import type { SmallItem } from "src/domain/models/items/SmallItem";
 import type { FullItem } from "src/domain/models/items/FullItem";
 import type { Equipment } from "src/domain/repositories/Equipment";
-import type DB from "../database/DB";
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
 import { sortSources } from "src/domain/utils/SourceSorter";
+import { itemMapper } from "src/data/mappers/sourceMappers";
+import { smallItemProjectors } from "src/data/projectors/smallItemProjectors";
+import {
+    createSimpleRepositoryDependencies,
+    SimpleRepository,
+    type SimpleRepositoryDatabase,
+    type SimpleRepositoryDependencies,
+} from "./SimpleRepository";
+import type { Dao } from "src/domain/Dao";
+
+type EquipmentRepositoryDatabase = SimpleRepositoryDatabase & {
+    smallItemDao: Dao<SmallItem, EquipmentFilters>;
+    fullItemDao: Dao<FullItem, unknown>;
+};
 
 export class EquipmentRepository
-    extends BaseRepository<SmallItem, FullItem, EquipmentFilters>
+    extends SimpleRepository<SmallItem, FullItem, EquipmentFilters>
     implements Equipment {
 
-    constructor(database: DB) {
-        super(
-            database,
-            database.smallItemDao,
-            database.fullItemDao,
-        );
+    constructor(
+        dependencies: EquipmentRepositoryDatabase
+            | SimpleRepositoryDependencies<SmallItem, FullItem, EquipmentFilters>
+    ) {
+        super("readStore" in dependencies ? dependencies : createSimpleRepositoryDependencies(
+            dependencies,
+            dependencies.smallItemDao,
+            dependencies.fullItemDao,
+            itemMapper,
+            smallItemProjectors.item,
+        ));
     }
 
     async collectFiltersFromAllItems(allSmallItems: SmallItem[]): Promise<EquipmentFilters | null> {

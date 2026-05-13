@@ -1,24 +1,40 @@
 import type { SmallFeat } from "src/domain/models/feat/SmallFeat";
 import { type FeatsFilters } from "src/domain/models/feat/FeatsFilters";
-import type DB from "../database/DB";
 import type { Feats } from 'src/domain/repositories/Feats';
 import { type FullFeat } from 'src/domain/models/feat/FullFeat';
-import { BaseRepository } from './BaseRepository';
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
 import { sortSources } from "src/domain/utils/SourceSorter";
+import { featMapper } from "src/data/mappers/sourceMappers";
+import { smallItemProjectors } from "src/data/projectors/smallItemProjectors";
+import {
+    createSimpleRepositoryDependencies,
+    SimpleRepository,
+    type SimpleRepositoryDatabase,
+    type SimpleRepositoryDependencies,
+} from "./SimpleRepository";
+import type { Dao } from "src/domain/Dao";
 
+type FeatsRepositoryDatabase = SimpleRepositoryDatabase & {
+    smallFeatDao: Dao<SmallFeat, FeatsFilters>;
+    fullFeatDao: Dao<FullFeat, unknown>;
+};
 
 export class FeatsRepository 
-    extends BaseRepository<SmallFeat, FullFeat, FeatsFilters> 
+    extends SimpleRepository<SmallFeat, FullFeat, FeatsFilters> 
     implements Feats {
 
-    constructor(database: DB) {
-        super(
-            database,
-            database.smallFeatDao,
-            database.fullFeatDao,
-        );
+    constructor(
+        dependencies: FeatsRepositoryDatabase
+            | SimpleRepositoryDependencies<SmallFeat, FullFeat, FeatsFilters>
+    ) {
+        super("readStore" in dependencies ? dependencies : createSimpleRepositoryDependencies(
+            dependencies,
+            dependencies.smallFeatDao,
+            dependencies.fullFeatDao,
+            featMapper,
+            smallItemProjectors.feat,
+        ));
     }
 
     async collectFiltersFromAllItems(allSmallItems: SmallFeat[]): Promise<FeatsFilters | null> {
