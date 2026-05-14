@@ -25,18 +25,23 @@ function createDmScreenItem(overrides: Partial<DmScreenItem> = {}): DmScreenItem
 }
 
 function createDmScreenRepository(cachedItem: DmScreenItem | null) {
+	let storedItem = cachedItem;
 	const dmScreenGroupDao = {
 		readChildren: vi.fn().mockResolvedValue([]),
-		readAllItems: vi.fn().mockResolvedValue(cachedItem ? [cachedItem] : []),
-		readAllItemsNames: vi.fn().mockResolvedValue(cachedItem ? [cachedItem.name.rus] : []),
+		readAllItems: vi.fn(async () => storedItem ? [storedItem] : []),
+		readAllItemsNames: vi.fn(async () => storedItem ? [storedItem.name.rus] : []),
 		readItemByName: vi.fn(async (name: string) =>
-			cachedItem && (cachedItem.name.rus === name || cachedItem.name.eng === name) ? cachedItem : null
+			storedItem && (storedItem.name.rus === name || storedItem.name.eng === name) ? storedItem : null
 		),
 		readItemByUrl: vi.fn(async (url: string) =>
-			cachedItem && cachedItem.url === url ? cachedItem : null
+			storedItem && storedItem.url.toLocaleLowerCase() === url.toLocaleLowerCase()
+				? storedItem
+				: null
 		),
 		readChildrenCount: vi.fn().mockResolvedValue(0),
-		updateItem: vi.fn(),
+		updateItem: vi.fn(async (item: DmScreenItem) => {
+			storedItem = item;
+		}),
 		createItem: vi.fn(),
 		deleteItemByUrl: vi.fn(),
 	};
@@ -85,6 +90,32 @@ describe("DmScreenRepository characterization", () => {
 		expect(database.transaction).toHaveBeenCalledTimes(1);
 		expect(dmScreenGroupDao.updateItem).toHaveBeenCalledWith(remoteItem);
 		expect(result).toEqual(remoteItem);
+	});
+
+	it("updates the canonical cached URL when the requested URL casing differs", async () => {
+		const cachedItem = createDmScreenItem({
+			name: { rus: "Досягаемость", eng: "Reach" },
+			url: "/screens/reach",
+			description: undefined,
+		});
+		const remoteItem = {
+			...cachedItem,
+			url: "/screens/Reach",
+			description: "<p>Remote description</p>",
+		};
+		const { repository, dmScreenGroupDao, service } = createDmScreenRepository(cachedItem);
+		service.succeed(remoteItem as any);
+
+		const firstResult = await repository.getFullItemByUrl("/screens/Reach");
+		const secondResult = await repository.getFullItemByUrl("/screens/Reach");
+
+		expect(service.calls).toHaveLength(1);
+		expect(dmScreenGroupDao.updateItem).toHaveBeenCalledWith({
+			...remoteItem,
+			url: "/screens/reach",
+		});
+		expect(firstResult?.url).toBe("/screens/reach");
+		expect(secondResult?.description).toBe("<p>Remote description</p>");
 	});
 
 	it("returns null and does not update when a missing-description refresh fails", async () => {

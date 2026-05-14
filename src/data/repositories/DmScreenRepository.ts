@@ -142,13 +142,18 @@ export class DmScreenRepository implements DmScreen {
 			console.log(`Loaded ${cachedFullItem.name.rus} from local storage.`);
 			return cachedFullItem;
 		}
+		if (!cachedFullItem) return null;
 		console.log(`Item ${url} doesn't have a description in local storage.`);
 
 		const response = await this.#service.getFullItem(url);
 		if (!response.ok) return null;
 
 		try {
-			const fullItem = this.#mapper.map(response.value, url);
+			const fullItem = {
+				...cachedFullItem,
+				...this.#mapper.map(response.value, cachedFullItem.url),
+				url: cachedFullItem.url,
+			};
 			await this.#store.updateItemDescription(fullItem);
 			console.log(`Updated ${url} in local storage.`);
 			return fullItem;
