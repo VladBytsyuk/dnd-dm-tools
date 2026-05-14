@@ -16,7 +16,7 @@ runSqlDaoBaseTests<FullClass, unknown>({
     filters: null,
     expected: {
         table: 'full_classes',
-        fill: false,  // getLocalData returns empty
+        fill: false,
         whereClausesCount: 0,
         filterParams: []
     },
@@ -257,23 +257,6 @@ describe('FullClassSqlTableDao - HTML Content', () => {
 
         expect(mapped.associatedHtml).toBe(largeHtml);
         expect(mapped.associatedHtml!.length).toBeGreaterThan(5000);
-    });
-});
-
-// Test getLocalData returns empty
-describe('FullClassSqlTableDao - Local Data', () => {
-    let dao: FullClassSqlTableDao;
-
-    beforeEach(() => {
-        vi.clearAllMocks();
-        dao = new FullClassSqlTableDao(mockDatabase);
-    });
-
-    it('should return empty array from getLocalData', () => {
-        const data = dao.getLocalData();
-
-        expect(data).toEqual([]);
-        expect(Array.isArray(data)).toBe(true);
     });
 });
 

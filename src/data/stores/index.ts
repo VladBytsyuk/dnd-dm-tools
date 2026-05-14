@@ -3,6 +3,7 @@ export {
 	GenericSqlItemReadStore,
 	GenericSqlItemWriteStore,
 } from "./genericSqlStores";
+export { SeedStore } from "./SeedStore";
 export {
 	CharacterSheetStore,
 	ClassStore,

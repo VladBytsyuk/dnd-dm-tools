@@ -12,7 +12,7 @@ runSqlDaoBaseTests<SmallWeapon, ArsenalFilters>({
     filters: arsenalFilters,
     expected: {
         table: 'small_arsenal',
-        fill: true,
+        fill: false,
         whereClausesCount: 4,
         filterParams: ['1', '1к6', '1к10', 'рубящий', 'дробящий', 'колющий', 'Воинское рукопашное', 'Простое рукопашное', 'Воинское дальнобойное', 'PHB'],
     },

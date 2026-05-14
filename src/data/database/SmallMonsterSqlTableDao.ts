@@ -3,7 +3,6 @@ import type { SmallMonster } from 'src/domain/models/monster/SmallMonster';
 import { Dao, WhereClauseData } from '../../domain/Dao';
 import type { App, PluginManifest } from 'obsidian';
 import type { BestiaryFilters } from 'src/domain/models/monster/BestiaryFilters';
-import { baseBestiary } from '../../assets/data/bestiary';
 
 export class SmallMonsterSqlTableDao extends Dao<SmallMonster, BestiaryFilters> {
 
@@ -19,10 +18,6 @@ export class SmallMonsterSqlTableDao extends Dao<SmallMonster, BestiaryFilters> 
     
     getTableName(): string {
         return 'small_bestiary';
-    }
-
-    getLocalData(): SmallMonster[] {
-        return baseBestiary;
     }
 
     // Table management

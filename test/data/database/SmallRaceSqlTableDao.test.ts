@@ -9,6 +9,7 @@ import {
     smallRace1SubraceLevel2,
     singleRaceFilter,
 } from '../../__mocks__/domain/models/race/small_race_items';
+import { RaceSeedMapper } from '../../../src/data/mappers/seedMappers';
 
 runSqlDaoBaseTests<SmallRace, RaceFilters>({
     title: 'SmallRaceSqlTableDao',
@@ -17,7 +18,7 @@ runSqlDaoBaseTests<SmallRace, RaceFilters>({
     filters: singleRaceFilter,
     expected: {
         table: 'small_races',
-        fill: false, // Disable fill test due to custom fillTableWithData implementation
+        fill: false,
         whereClausesCount: 3,
         filterParams: ['%"key":"dexterity"%', 'Базовая', 'PHB'],
     },
@@ -66,6 +67,7 @@ runSqlDaoBaseTests<SmallRace, RaceFilters>({
 // Additional tests for hierarchy-specific functionality
 describe('SmallRaceSqlTableDao - Hierarchy', () => {
     let dao: SmallRaceSqlTableDao;
+    let mapper: RaceSeedMapper;
     let mockDb: any;
 
     beforeEach(() => {
@@ -74,23 +76,22 @@ describe('SmallRaceSqlTableDao - Hierarchy', () => {
             exec: vi.fn().mockReturnValue([]),
         };
         dao = new SmallRaceSqlTableDao(mockDb, {} as any, {} as any);
+        mapper = new RaceSeedMapper();
     });
 
-    describe('flattenRaces', () => {
+    describe('RaceSeedMapper', () => {
         it('should flatten races with subraces', () => {
             const parentRace: SmallRace = {
                 ...smallRace1,
                 subraces: [smallRace1Subrace],
             };
 
-            // Access private method via prototype
-            const flattenRaces = (dao as any).flattenRaces.bind(dao);
-            const result = flattenRaces([parentRace], null);
+            const result = mapper.mapSeeds([parentRace]);
 
             expect(result).toHaveLength(2);
-            expect(result[0].race.url).toBe(smallRace1.url);
+            expect(result[0].item.url).toBe(smallRace1.url);
             expect(result[0].parentUrl).toBeNull();
-            expect(result[1].race.url).toBe(smallRace1Subrace.url);
+            expect(result[1].item.url).toBe(smallRace1Subrace.url);
             expect(result[1].parentUrl).toBe(smallRace1.url);
         });
 
@@ -104,8 +105,7 @@ describe('SmallRaceSqlTableDao - Hierarchy', () => {
                 subraces: [level1Subrace],
             };
 
-            const flattenRaces = (dao as any).flattenRaces.bind(dao);
-            const result = flattenRaces([parentRace], null);
+            const result = mapper.mapSeeds([parentRace]);
 
             expect(result).toHaveLength(3);
             expect(result[0].parentUrl).toBeNull();
@@ -114,11 +114,10 @@ describe('SmallRaceSqlTableDao - Hierarchy', () => {
         });
 
         it('should handle races without subraces', () => {
-            const flattenRaces = (dao as any).flattenRaces.bind(dao);
-            const result = flattenRaces([smallRace1], null);
+            const result = mapper.mapSeeds([smallRace1]);
 
             expect(result).toHaveLength(1);
-            expect(result[0].race.url).toBe(smallRace1.url);
+            expect(result[0].item.url).toBe(smallRace1.url);
             expect(result[0].parentUrl).toBeNull();
         });
     });

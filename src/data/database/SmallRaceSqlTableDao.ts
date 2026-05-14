@@ -4,7 +4,6 @@ import { Dao, WhereClauseData } from "src/domain/Dao";
 import type { RaceFilters } from "src/domain/models/race/RaceFilters";
 import type { SmallRace } from "src/domain/models/race/SmallRace";
 import type { AbilityBonus } from "src/domain/models/common/AbilityBonus";
-import { baseRaces } from "../../assets/data/races";
 
 interface FlattenedRace {
     race: SmallRace;
@@ -25,54 +24,6 @@ export class SmallRaceSqlTableDao extends Dao<SmallRace, RaceFilters> {
 
     getTableName(): string {
         return 'small_races';
-    }
-
-    getLocalData(): SmallRace[] {
-        // Flatten the hierarchy for storage
-        // The base Dao.fillTableWithData() will call createItem for each
-        const flattened = this.flattenRaces(baseRaces, null);
-        return flattened.map(f => f.race);
-    }
-
-    private flattenRaces(races: SmallRace[], parentUrl: string | null): FlattenedRace[] {
-        const result: FlattenedRace[] = [];
-        for (const race of races) {
-            // Store this race with its parent reference
-            result.push({ race, parentUrl });
-            // Recursively process subraces
-            if (race.subraces && race.subraces.length > 0) {
-                result.push(...this.flattenRaces(race.subraces, race.url));
-            }
-        }
-        return result;
-    }
-
-    // Cache for parent URLs during data insertion
-    private parentUrlCache: Map<string, string | null> = new Map();
-
-    override async fillTableWithData(): Promise<void> {
-        const tableExists = await this.isTableExists();
-        if (tableExists) {
-            const tableEmpty = await this.isTableEmpty();
-            if (tableEmpty) {
-                // Build parent URL cache before inserting
-                const flattened = this.flattenRaces(baseRaces, null);
-                for (const item of flattened) {
-                    this.parentUrlCache.set(item.race.url, item.parentUrl);
-                }
-                // Insert all items
-                for (const item of flattened) {
-                    await this.createItemWithParent(item.race, item.parentUrl);
-                }
-                if (flattened.length > 0) {
-                    console.log(`Table ${this.getTableName()} filled with local data.`);
-                }
-                // Clear cache after insertion
-                this.parentUrlCache.clear();
-            }
-        } else {
-            console.warn(`Table ${this.getTableName()} does not exist. Cannot fill with data.`);
-        }
     }
 
     // Table management
@@ -101,12 +52,10 @@ export class SmallRaceSqlTableDao extends Dao<SmallRace, RaceFilters> {
 
     // CRUD operations
     async createItem(item: SmallRace): Promise<void> {
-        // Use cached parent URL if available, otherwise null
-        const parentUrl = this.parentUrlCache.get(item.url) ?? null;
-        await this.createItemWithParent(item, parentUrl);
+        await this.createItemWithParent(item, null);
     }
 
-    private async createItemWithParent(item: SmallRace, parentUrl: string | null): Promise<void> {
+    async createItemWithParent(item: SmallRace, parentUrl: string | null): Promise<void> {
         try {
             const existing = await this.checkItemExists(item);
             if (existing) return;

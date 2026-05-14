@@ -3,7 +3,6 @@ import type { Database, SqlValue } from "sql.js";
 import { Dao, WhereClauseData } from "src/domain/Dao";
 import type { ArtifactoryFilters } from "src/domain/models/artifact/ArtifactoryFilters";
 import type { SmallArtifact } from "src/domain/models/artifact/SmallArtifact";
-import { baseArtifacts } from "../../assets/data/artifacts";
 
 export class SmallArtifactSqlTableDao extends Dao<SmallArtifact, ArtifactoryFilters> {
     
@@ -19,10 +18,6 @@ export class SmallArtifactSqlTableDao extends Dao<SmallArtifact, ArtifactoryFilt
 
     getTableName(): string {
         return 'small_artifactory';
-    }
-
-    getLocalData(): SmallArtifact[] {
-        return baseArtifacts;
     }
 
     // Table management
