@@ -1,100 +1,90 @@
 # Architecture Overview
 
-DnD DM Tools follows a three-layer architecture with clear separation of concerns.
+DnD DM Tools follows a layered architecture with domain models and repository interfaces at the center, SQL.js persistence behind the data layer, and Obsidian/Svelte UI at the edge.
 
 ## Layer Diagram
 
 ```
 ┌─────────────────────────────────────────────┐
 │                  UI Layer                   │
-│  (Svelte components, side panels, shared    │
-│   UIKit/design system, processors, commands)│
+│  Svelte components, side panels, processors │
+│  commands, Obsidian feature wiring          │
 ├─────────────────────────────────────────────┤
 │               Domain Layer                  │
-│  (Models, Repository interfaces, Filters,   │
-│   Listener interfaces, utilities)           │
+│  Models, repository interfaces, filters,    │
+│  listener interfaces, domain utilities      │
 ├─────────────────────────────────────────────┤
 │                Data Layer                   │
-│  (DB manager, DAOs, Repository impls,       │
-│   SQL.js/WASM database)                     │
+│  Repositories, stores, services, mappers,   │
+│  projectors, SQL.js DB manager, DAOs        │
 └─────────────────────────────────────────────┘
 ```
 
-**Dependency rule:** Each layer only depends on layers below it. The UI layer depends on Domain and Data. The Data layer depends on Domain. The Domain layer has no internal dependencies on other layers.
+**Dependency rule:** UI depends on Domain and Data. Data depends on Domain. Domain does not depend on UI or Data implementation details.
 
 ## Directory Mapping
 
 | Layer | Directory | Contents |
 |-------|-----------|----------|
 | Domain | `src/domain/` | Models, repository interfaces, listener interfaces, utilities |
-| Data | `src/data/` | DB manager, DAO implementations, repository implementations |
+| Data | `src/data/` | Repository implementations, stores, services, mappers, projectors, DB manager, DAOs |
 | UI | `src/ui/` | Svelte components, feature classes, side panels, processors, modals, commands |
 
-Within the UI layer, `src/ui/layout/uikit/` now acts as a shared sublayer for reusable design-system components and the common side-panel browser shell. See [UI Layer](./ui-layer.md) and [UIKit](./uikit.md).
+Within the UI layer, `src/ui/layout/uikit/` is the shared design-system and browser-shell layer. See [UI Layer](./ui-layer.md) and [UIKit](./uikit.md).
 
 ## Key Abstractions
 
-### Repository (`src/domain/repositories/Repository.ts`)
+### Repository Interface
 
-The central data access interface. Generic over `SmallItem`, `FullItem`, and `Filter` types. Provides:
+`src/domain/repositories/Repository.ts` defines the domain-facing data access contract:
 
-- `getAllSmallItems()` / `getFilteredSmallItems()` — list queries
-- `getFullItemByUrl()` / `getFullItemByName()` / `getFullItemBySmallItem()` — detail queries
-- `getAllFilters()` — available filter values
-- `groupItems()` — grouped list results
-- `putItem()` / `deleteItem()` — mutations
-- `createEmptyFullItem()` — factory for new items
+- `getAllSmallItems()` / `getFilteredSmallItems()` for list queries.
+- `getFullItemByUrl()` / `getFullItemByName()` / `getFullItemBySmallItem()` for detail queries.
+- `getAllFilters()` and `groupItems()` for side-panel browsing.
+- `putItem()` / `deleteItem()` for mutations.
+- `createEmptyFullItem()` for editor flows.
 
-### DAO (`src/domain/Dao.ts`)
+### Repository Implementations
 
-Abstract base class for database table access. Each DAO manages one SQL table and provides:
+`src/data/repositories/` implements repository orchestration. Repositories depend on stores, services, mappers, and projectors instead of `DB`, DAOs, or Obsidian HTTP APIs.
 
-- Table lifecycle: `createTable()`, `fillTableWithData()`, `dropTable()`
-- CRUD: `createItem()`, `readAllItems()`, `readItem()`, `updateItem()`, `deleteItem()`
-- Filtering: `filterByName()`, `filterByFilters()`
-- Mapping: `mapSqlValues()` to convert SQL rows to domain objects
+`SimpleRepository` handles the common cached-read, remote-fetch, map, persist, project, and cache-invalidation flow. Specialized repositories add feature-specific orchestration for classes, races, backgrounds, DM screen items, and character sheets.
 
-### Feature (`src/ui/components/feature/BaseFeature.ts`)
+### Stores
 
-Orchestrates a complete feature. Each feature brings together:
+Stores in `src/data/stores/` own persistence behavior and DAO access. Generic stores handle the common small/full table pattern; specialized stores handle race hierarchy, class archetypes, DM screen expansion, and character sheet storage.
 
-- A **Repository** for data access
-- A **SidePanel** for the browsing UI
-- A **CodeBlockProcessor** for rendering items in markdown
-- **Commands** registered with Obsidian's command palette
+### Services
 
-### SidePanel (`src/ui/components/sidepanel/BaseSidePanel.ts`)
+Services in `src/data/services/` fetch or import raw data and return `ServiceResult`. Obsidian `requestUrl` is isolated to TTG service adapters, not repositories.
 
-Registers an Obsidian view that renders a Svelte component for browsing and viewing items.
+### Mappers and Projectors
 
-Most side-panel views now compose through the generic `BaseSidePanelUi.svelte` browser shell plus feature-provided list/detail slots, rather than duplicating search, grouping, empty-state, and filter-overlay behavior in each feature.
+Mappers convert source DTOs and import payloads into domain models. Projectors derive small/list models from full models for persistence.
 
-### CodeBlockProcessor (`src/ui/components/processor/BaseMdCodeBlockProcessor.ts`)
+### DAO
 
-Processes fenced code blocks in markdown notes to render item statblocks inline.
+`src/domain/Dao.ts` is the base class for SQL table adapters in `src/data/database/`. DAOs own SQL schema, CRUD statements, filters, and row mapping only. Legacy DAO seed hooks are deprecated; seed loading is handled by seed services and `SeedStore`.
+
+### Feature
+
+`src/ui/components/feature/BaseFeature.ts` wires a repository, side panel, code block processor, and Obsidian commands for one feature.
 
 ## Database
 
-The plugin uses **SQL.js** (SQLite compiled to WebAssembly) for all data storage:
+The plugin uses SQL.js:
 
-- **WASM binary:** `sql-wasm.wasm` bundled with the plugin
-- **Database file:** `database.db` in the plugin directory
-- **Initialization:** Loads WASM, opens or creates the database, creates tables, fills with initial JSON data
-- **Transactions:** Supported via `DB.transaction()` with automatic rollback on error
-- **Persistence:** Database is saved to disk after each transaction
+- WASM binary: `sql-wasm.wasm`
+- Database file: `database.db` in the plugin directory
+- Manager: `src/data/database/DB.ts`
+- Transactions: `DB.transaction()` with rollback on error and persistence after commit
 
-The `DB` class (`src/data/database/DB.ts`) is the central database manager. It initializes all DAOs and manages the database lifecycle.
+`DB` initializes concrete DAOs and database lifecycle. Repository factories use that composition root to build repository dependencies.
 
 ## Plugin Entry Point
 
-`src/main.ts` defines `DndStatblockPlugin` which:
-
-1. Creates and initializes the `DB` instance
-2. Creates the `UiEventListener` (cross-feature communication)
-3. Instantiates all feature classes
-4. Calls `initialize()` on each feature
-5. Registers the initiative tracker side panel, encounter code block processor, and encounter command
+`src/main.ts` creates and initializes `DB`, creates the `UiEventListener`, constructs all features, initializes them, and registers side panels, markdown processors, and commands.
 
 ## Cross-Feature Communication
 
-The `UiEventListener` (`src/data/ui_event_listener.ts`) implements `IUiEventListener` (`src/domain/listeners/ui_event_listener.ts`) and provides a way for UI components to trigger actions across features (e.g., opening an item from a different feature's context).
+`src/data/ui_event_listener.ts` implements `IUiEventListener` and lets UI components open items across feature boundaries.

@@ -206,15 +206,13 @@ describe('ClassesRepository - Full Item Fetch Characterization', () => {
 
     it('should return cached full class without fetching associated HTML', async () => {
         const mockDb = mockDatabase([smallClassBard], [fullClassBard]);
-        const repo = new ClassesRepository(mockDb);
-        (repo as any).fetchFromAPI = vi.fn();
-        (repo as any).fetchHtmlFromAPI = vi.fn();
+        const service = new FullItemReadServiceDouble<any>();
+        const repo = new ClassesRepository(mockDb, service);
 
         const result = await repo.getFullItemByUrl("/classes/bard");
 
         expect(result).toEqual(fullClassBard);
-        expect((repo as any).fetchFromAPI).not.toHaveBeenCalled();
-        expect((repo as any).fetchHtmlFromAPI).not.toHaveBeenCalled();
+        expect(service.calls).toEqual([]);
     });
 });
 
