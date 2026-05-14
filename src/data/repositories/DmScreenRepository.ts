@@ -1,5 +1,5 @@
 import { DmScreenDescriptionMapper } from "src/data/mappers/sourceMappers";
-import type { FullItemReadService } from "src/data/ports";
+import type { FullItemMapper, FullItemReadService } from "src/data/ports";
 import { TtgService, type TtgJsonObject } from "src/data/services";
 import { DbTransactionalStore, DmScreenStore } from "src/data/stores";
 import { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
@@ -18,6 +18,13 @@ type DmScreenRepositoryDatabase = {
 	};
 };
 
+export interface DmScreenRepositoryDependencies {
+	dao: DmScreenRepositoryDatabase["dmScreenGroupDao"];
+	store: DmScreenStore;
+	service: FullItemReadService<TtgJsonObject>;
+	mapper: FullItemMapper<TtgJsonObject, DmScreenItem>;
+}
+
 class DmScreenDescriptionService implements FullItemReadService<TtgJsonObject> {
 	constructor(private readonly service = new TtgService()) {}
 
@@ -31,18 +38,27 @@ export class DmScreenRepository implements DmScreen {
 	readonly #store: DmScreenStore;
 	readonly #dao: DmScreenRepositoryDatabase["dmScreenGroupDao"];
 	readonly #service: FullItemReadService<TtgJsonObject>;
-	readonly #mapper = new DmScreenDescriptionMapper();
+	readonly #mapper: FullItemMapper<TtgJsonObject, DmScreenItem>;
 
 	constructor(
-		database: DmScreenRepositoryDatabase,
+		dependencies: DmScreenRepositoryDatabase | DmScreenRepositoryDependencies,
 		service: FullItemReadService<TtgJsonObject> = new DmScreenDescriptionService(),
 	) {
-		this.#dao = database.dmScreenGroupDao;
+		if ("store" in dependencies) {
+			this.#dao = dependencies.dao;
+			this.#service = dependencies.service;
+			this.#store = dependencies.store;
+			this.#mapper = dependencies.mapper;
+			return;
+		}
+
+		this.#dao = dependencies.dmScreenGroupDao;
 		this.#service = service;
 		this.#store = new DmScreenStore(
-			database.dmScreenGroupDao,
-			new DbTransactionalStore(database),
+			dependencies.dmScreenGroupDao,
+			new DbTransactionalStore(dependencies),
 		);
+		this.#mapper = new DmScreenDescriptionMapper();
 	}
 
 	async initialize() {

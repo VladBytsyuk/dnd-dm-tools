@@ -4,7 +4,7 @@ import type { FullRace } from "src/domain/models/race/FullRace";
 import type { RaceFilters } from "src/domain/models/race/RaceFilters";
 import type DB from "src/data/database/DB";
 import type { Repository } from "src/domain/repositories/Repository";
-import { RacesRepository } from "src/data/repositories/RacesRepository";
+import { createRacesRepository } from "src/data/repositories/factories";
 import type DndStatblockPlugin from "src/main";
 import { RaceSidePanel } from "../sidepanel/RaceSidePanel";
 import type { BaseMdCodeBlockProcessor } from "../processor/BaseMdCodeBlockProcessor";
@@ -15,7 +15,7 @@ import type { BaseSidePanel } from "../sidepanel/BaseSidePanel";
 export class RaceFeature extends BaseFeature<SmallRace, FullRace, RaceFilters> {
 
     createRepository(database: DB): Repository<SmallRace, FullRace, RaceFilters> {
-        return new RacesRepository(database);
+        return createRacesRepository(database);
     }
 
     createSidePanel(plugin: DndStatblockPlugin, repository: Repository<SmallRace, FullRace, RaceFilters>, uiEventListener: IUiEventListener): BaseSidePanel<SmallRace, FullRace, RaceFilters> {

@@ -4,7 +4,7 @@ import type { FullArmor } from "src/domain/models/armor/FullArmor";
 import type { ArmoryFilters } from "src/domain/models/armor/ArmoryFilters";
 import type DB from "src/data/database/DB";
 import type { Repository } from "src/domain/repositories/Repository";
-import { ArmoryRepository } from "src/data/repositories/ArmoryRepository";
+import { createArmoryRepository } from "src/data/repositories/factories";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type DndStatblockPlugin from "src/main";
 import type { BaseSidePanel } from "../sidepanel/BaseSidePanel";
@@ -15,7 +15,7 @@ import { ArmorySidePanel } from "../sidepanel/ArmorySidePanel";
 export class ArmoryFeature extends BaseFeature<SmallArmor, FullArmor, ArmoryFilters> {
 
     createRepository(database: DB): Repository<SmallArmor, FullArmor, ArmoryFilters> | null {
-        return new ArmoryRepository(database);
+        return createArmoryRepository(database);
     }
     
     createSidePanel(plugin: DndStatblockPlugin, repository: Repository<SmallArmor, FullArmor, ArmoryFilters>, uiEventListener: IUiEventListener): BaseSidePanel<SmallArmor, FullArmor, ArmoryFilters> | null {

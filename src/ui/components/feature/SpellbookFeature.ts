@@ -4,7 +4,7 @@ import type { FullSpell } from "src/domain/models/spell/FullSpell";
 import type { SpellbookFilters } from "src/domain/models/spell/SpellbookFilters";
 import type DB from "src/data/database/DB";
 import type { Repository } from "src/domain/repositories/Repository";
-import { SpellbookRepository } from "src/data/repositories/SpellbookRepository";
+import { createSpellbookRepository } from "src/data/repositories/factories";
 import type DndStatblockPlugin from "src/main";
 import { SpellBookSidePanel } from "../sidepanel/SpellbookSidePanel";
 import type { BaseMdCodeBlockProcessor } from "../processor/BaseMdCodeBlockProcessor";
@@ -17,7 +17,7 @@ import type { BaseSidePanel } from "../sidepanel/BaseSidePanel";
 export class SpellbookFeature extends BaseFeature<SmallSpell, FullSpell, SpellbookFilters> {
 
     createRepository(database: DB): Repository<SmallSpell, FullSpell, SpellbookFilters> {
-        return new SpellbookRepository(database);
+        return createSpellbookRepository(database);
     }
 
     createSidePanel(plugin: DndStatblockPlugin, repository: Repository<SmallSpell, FullSpell, SpellbookFilters>, uiEventListener: IUiEventListener): BaseSidePanel<SmallSpell, FullSpell, SpellbookFilters> {

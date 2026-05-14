@@ -1,5 +1,5 @@
 import { RaceMapper } from "src/data/mappers/sourceMappers";
-import type { FullItemReadService, ServiceResult } from "src/data/ports";
+import type { FullItemMapper, FullItemReadService, ServiceResult } from "src/data/ports";
 import { smallItemProjectors } from "src/data/projectors/smallItemProjectors";
 import type { TtgApiRequestOptions, TtgJsonObject } from "src/data/services";
 import { TtgService } from "src/data/services";
@@ -17,6 +17,7 @@ import {
 	createSimpleRepositoryDependencies,
 	SimpleRepository,
 	type SimpleRepositoryDatabase,
+	type SimpleRepositoryDependencies,
 } from "./SimpleRepository";
 
 type RaceRepositoryDatabase = SimpleRepositoryDatabase & {
@@ -45,6 +46,34 @@ class RaceTreeService implements FullItemReadService<TtgJsonObject, TtgApiReques
 	}
 }
 
+export interface RacesRepositoryDependencies {
+	simpleDependencies: SimpleRepositoryDependencies<SmallRace, FullRace, RaceFilters, TtgJsonObject>;
+	raceStore: RaceStore;
+	service: FullItemReadService<TtgJsonObject, TtgApiRequestOptions>;
+	mapper: FullItemMapper<TtgJsonObject, FullRace>;
+}
+
+function createDependencies(
+	database: RaceRepositoryDatabase,
+	service: FullItemReadService<TtgJsonObject, TtgApiRequestOptions>,
+): RacesRepositoryDependencies {
+	const transactions = new DbTransactionalStore(database);
+	const mapper = new RaceMapper();
+	return {
+		simpleDependencies: createSimpleRepositoryDependencies(
+			database,
+			database.smallRaceDao,
+			database.fullRaceDao,
+			mapper,
+			smallItemProjectors.race,
+			service,
+		),
+		raceStore: new RaceStore(database.smallRaceDao, database.fullRaceDao, transactions),
+		service,
+		mapper,
+	};
+}
+
 export class RacesRepository
 	extends SimpleRepository<SmallRace, FullRace, RaceFilters, TtgJsonObject>
 	implements Races {
@@ -53,24 +82,20 @@ export class RacesRepository
 
 	readonly #raceStore: RaceStore;
 	readonly #service: FullItemReadService<TtgJsonObject, TtgApiRequestOptions>;
-	readonly #mapper = new RaceMapper();
+	readonly #mapper: FullItemMapper<TtgJsonObject, FullRace>;
 
 	constructor(
-		database: RaceRepositoryDatabase,
+		dependencies: RaceRepositoryDatabase | RacesRepositoryDependencies,
 		service: FullItemReadService<TtgJsonObject, TtgApiRequestOptions> = new RaceTreeService(),
 	) {
-		const transactions = new DbTransactionalStore(database);
-		super(createSimpleRepositoryDependencies(
-			database,
-			database.smallRaceDao,
-			database.fullRaceDao,
-			new RaceMapper(),
-			smallItemProjectors.race,
-			service,
-		));
+		const assembled = "simpleDependencies" in dependencies
+			? dependencies
+			: createDependencies(dependencies, service);
+		super(assembled.simpleDependencies);
 
-		this.#raceStore = new RaceStore(database.smallRaceDao, database.fullRaceDao, transactions);
-		this.#service = service;
+		this.#raceStore = assembled.raceStore;
+		this.#service = assembled.service;
+		this.#mapper = assembled.mapper;
 	}
 
 	async collectFiltersFromAllItems(allSmallItems: SmallRace[]): Promise<RaceFilters | null> {

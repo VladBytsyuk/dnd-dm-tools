@@ -1,4 +1,5 @@
 import { CharacterSheetImportMapper } from "src/data/mappers/characterSheetImportMapper";
+import type { FullItemMapper } from "src/data/ports";
 import { smallItemProjectors } from "src/data/projectors/smallItemProjectors";
 import { CharacterSheetStore, DbTransactionalStore } from "src/data/stores";
 import { createFilters } from "src/domain/models/common/Filters";
@@ -41,19 +42,35 @@ type CharacterSheetRepositoryDatabase = {
 	fullSpellDao?: unknown;
 };
 
+export interface CharacterSheetRepositoryDependencies {
+	database: CharacterSheetRepositoryDatabase;
+	store: CharacterSheetStore;
+	importMapper: FullItemMapper<string, FullCharacterSheet>;
+}
+
 export class CharacterSheetRepository
 	implements Repository<SmallCharacterSheet, FullCharacterSheet, CharacterSheetFilters>, CharacterSheetGateway
 {
 	#smallItems?: SmallCharacterSheet[];
 	#filters?: CharacterSheetFilters;
 	readonly #store: CharacterSheetStore;
-	readonly #importMapper = new CharacterSheetImportMapper();
+	readonly #importMapper: FullItemMapper<string, FullCharacterSheet>;
+	private readonly database: CharacterSheetRepositoryDatabase;
 
-	constructor(private readonly database: CharacterSheetRepositoryDatabase) {
+	constructor(databaseOrDependencies: CharacterSheetRepositoryDatabase | CharacterSheetRepositoryDependencies) {
+		if ("store" in databaseOrDependencies) {
+			this.database = databaseOrDependencies.database;
+			this.#store = databaseOrDependencies.store;
+			this.#importMapper = databaseOrDependencies.importMapper;
+			return;
+		}
+
+		this.database = databaseOrDependencies;
 		this.#store = new CharacterSheetStore(
-			database.characterSheetDao,
-			new DbTransactionalStore(database),
+			databaseOrDependencies.characterSheetDao,
+			new DbTransactionalStore(databaseOrDependencies),
 		);
+		this.#importMapper = new CharacterSheetImportMapper();
 	}
 
 	/**
@@ -160,7 +177,7 @@ export class CharacterSheetRepository
 	}
 
 	async importFromJson(jsonContent: string): Promise<FullCharacterSheet> {
-		const fullSheet = this.#importMapper.map(jsonContent);
+		const fullSheet = this.#importMapper.map(jsonContent, "");
 		fullSheet.url = await this.#store.generateUniqueUrl(fullSheet.name.rus || fullSheet.name.eng);
 		await this.#store.saveImportedSheet(fullSheet);
 		await this.reloadCaches();

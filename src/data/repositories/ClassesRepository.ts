@@ -1,5 +1,5 @@
 import { ClassMapper } from "src/data/mappers/sourceMappers";
-import type { FullItemReadService, ServiceResult } from "src/data/ports";
+import type { FullItemMapper, FullItemReadService, ServiceResult } from "src/data/ports";
 import { smallItemProjectors } from "src/data/projectors/smallItemProjectors";
 import type { TtgApiRequestOptions, TtgItemWithHtml } from "src/data/services";
 import { TtgService } from "src/data/services";
@@ -16,9 +16,10 @@ import {
 	createSimpleRepositoryDependencies,
 	SimpleRepository,
 	type SimpleRepositoryDatabase,
+	type SimpleRepositoryDependencies,
 } from "./SimpleRepository";
 
-type ClassWithHtmlResponse = TtgItemWithHtml<Record<string, unknown>>;
+export type ClassWithHtmlResponse = TtgItemWithHtml<Record<string, unknown>>;
 
 type ClassRepositoryDatabase = SimpleRepositoryDatabase & {
 	smallClassDao: Dao<SmallClass, ClassesFilters> & {
@@ -48,6 +49,39 @@ class ClassWithHtmlMapper extends ClassMapper {
 	}
 }
 
+export interface ClassesRepositoryDependencies {
+	simpleDependencies: SimpleRepositoryDependencies<
+		SmallClass,
+		FullClass,
+		ClassesFilters,
+		ClassWithHtmlResponse
+	>;
+	classStore: ClassStore;
+	service: FullItemReadService<ClassWithHtmlResponse, TtgApiRequestOptions>;
+	mapper: FullItemMapper<ClassWithHtmlResponse, FullClass>;
+}
+
+function createDependencies(
+	database: ClassRepositoryDatabase,
+	service: FullItemReadService<ClassWithHtmlResponse, TtgApiRequestOptions>,
+): ClassesRepositoryDependencies {
+	const transactions = new DbTransactionalStore(database);
+	const mapper = new ClassWithHtmlMapper();
+	return {
+		simpleDependencies: createSimpleRepositoryDependencies(
+			database,
+			database.smallClassDao,
+			database.fullClassDao,
+			mapper,
+			smallItemProjectors.class,
+			service,
+		),
+		classStore: new ClassStore(database.smallClassDao, database.fullClassDao, transactions),
+		service,
+		mapper,
+	};
+}
+
 export class ClassesRepository
 	extends SimpleRepository<SmallClass, FullClass, ClassesFilters, ClassWithHtmlResponse>
 	implements Repository<SmallClass, FullClass, ClassesFilters> {
@@ -58,24 +92,20 @@ export class ClassesRepository
 	#filtersCache?: ClassesFilters;
 	readonly #classStore: ClassStore;
 	readonly #service: FullItemReadService<ClassWithHtmlResponse, TtgApiRequestOptions>;
-	readonly #mapper = new ClassWithHtmlMapper();
+	readonly #mapper: FullItemMapper<ClassWithHtmlResponse, FullClass>;
 
 	constructor(
-		database: ClassRepositoryDatabase,
+		dependencies: ClassRepositoryDatabase | ClassesRepositoryDependencies,
 		service: FullItemReadService<ClassWithHtmlResponse, TtgApiRequestOptions> = new ClassWithHtmlService(),
 	) {
-		const transactions = new DbTransactionalStore(database);
-		super(createSimpleRepositoryDependencies(
-			database,
-			database.smallClassDao,
-			database.fullClassDao,
-			new ClassWithHtmlMapper(),
-			smallItemProjectors.class,
-			service,
-		));
+		const assembled = "simpleDependencies" in dependencies
+			? dependencies
+			: createDependencies(dependencies, service);
+		super(assembled.simpleDependencies);
 
-		this.#classStore = new ClassStore(database.smallClassDao, database.fullClassDao, transactions);
-		this.#service = service;
+		this.#classStore = assembled.classStore;
+		this.#service = assembled.service;
+		this.#mapper = assembled.mapper;
 	}
 
 	async initialize(): Promise<void> {

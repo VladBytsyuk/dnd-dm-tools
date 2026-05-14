@@ -2,7 +2,7 @@ import type { SmallCharacterSheet, FullCharacterSheet, CharacterSheetFilters } f
 import { BaseFeature, type FeatureCommand } from "./BaseFeature";
 import type DB from "src/data/database/DB";
 import type { Repository } from "src/domain/repositories/Repository";
-import { CharacterSheetRepository } from "src/data/repositories/CharacterSheetRepository";
+import { createCharacterSheetRepository } from "src/data/repositories/factories";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type DndStatblockPlugin from "src/main";
 import type { BaseSidePanel } from "../sidepanel/BaseSidePanel";
@@ -16,7 +16,7 @@ export class CharacterSheetFeature extends BaseFeature<
 	CharacterSheetFilters
 > {
 	createRepository(database: DB): Repository<SmallCharacterSheet, FullCharacterSheet, CharacterSheetFilters> {
-		return new CharacterSheetRepository(database);
+		return createCharacterSheetRepository(database);
 	}
 
 	createSidePanel(

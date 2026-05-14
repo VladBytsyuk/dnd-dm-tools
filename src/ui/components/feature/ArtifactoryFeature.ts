@@ -4,7 +4,7 @@ import type { FullArtifact } from "src/domain/models/artifact/FullArtifact";
 import type { ArtifactoryFilters } from "src/domain/models/artifact/ArtifactoryFilters";
 import type { Repository } from "src/domain/repositories/Repository";
 import type DB from "src/data/database/DB";
-import { ArtifactoryRepository } from "src/data/repositories/ArtifactoryRepository";
+import { createArtifactoryRepository } from "src/data/repositories/factories";
 import type DndStatblockPlugin from "src/main";
 import { ArtifactorySidePanel } from "../sidepanel/ArtifactorySidePanel";
 import type { BaseMdCodeBlockProcessor } from "../processor/BaseMdCodeBlockProcessor";
@@ -15,7 +15,7 @@ import type { BaseSidePanel } from "../sidepanel/BaseSidePanel";
 export class ArtifactoryFeature extends BaseFeature<SmallArtifact, FullArtifact, ArtifactoryFilters> {
 
     createRepository(database: DB): Repository<SmallArtifact, FullArtifact, ArtifactoryFilters> | null {
-        return new ArtifactoryRepository(database);
+        return createArtifactoryRepository(database);
     }
 
     createSidePanel(plugin: DndStatblockPlugin, repository: Repository<SmallArtifact, FullArtifact, ArtifactoryFilters>, uiEventListener: IUiEventListener): BaseSidePanel<SmallArtifact, FullArtifact, ArtifactoryFilters> | null {
