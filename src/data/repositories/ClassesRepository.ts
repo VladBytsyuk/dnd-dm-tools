@@ -176,6 +176,9 @@ export class ClassesRepository
 		const cachedFullItem = await this.#classStore.readFullClassByName(name);
 		if (cachedFullItem) return cachedFullItem;
 
+		const smallClassByName = await this.#classStore.readSmallClassByName(name);
+		if (smallClassByName) return await this.getFullItemBySmallItem(smallClassByName);
+
 		const search = name.toLocaleLowerCase("ru-RU");
 		const smallItem = (await this.getAllSmallItems()).find((item) =>
 			item.name.rus.toLocaleLowerCase("ru-RU") === search

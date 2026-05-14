@@ -214,6 +214,58 @@ describe('ClassesRepository - Full Item Fetch Characterization', () => {
         expect(result).toEqual(fullClassBard);
         expect(service.calls).toEqual([]);
     });
+
+    it('should fetch an uncached archetype by name using the archetype small item URL', async () => {
+        const remoteArchetype = {
+            ...fullArchetypeValor,
+            associatedUrl: undefined,
+            associatedHtml: undefined,
+        };
+        const createItem = vi.fn();
+        const mockDb = {
+            smallClassDao: {
+                readAllItems: vi.fn().mockResolvedValue([smallClassBard]),
+                readAllItemsNames: vi.fn().mockResolvedValue(["Бард"]),
+                readItemByName: vi.fn().mockResolvedValue(smallArchetypeValor),
+                readItemByUrl: vi.fn().mockResolvedValue(smallArchetypeValor),
+                readArchetypesByParentUrl: vi.fn().mockResolvedValue([smallArchetypeValor]),
+            },
+            fullClassDao: {
+                readItemByUrl: vi.fn().mockResolvedValue(null),
+                readItemByName: vi.fn().mockResolvedValue(null),
+                createItem,
+            },
+            transaction: vi.fn(async (callback: () => Promise<void>) => {
+                await callback();
+            }),
+        };
+        const service = new FullItemReadServiceDouble<any>().succeed({
+            item: { ...remoteArchetype },
+            associatedUrl: "/classes/fragment/bard/college-of-valor",
+            associatedHtml: "<article>Коллегия Доблести</article>",
+        });
+        const repo = new ClassesRepository(mockDb as any, service);
+
+        const result = await repo.getFullItemByName("Коллегия Доблести");
+
+        expect(mockDb.smallClassDao.readItemByName).toHaveBeenCalledWith("Коллегия Доблести");
+        expect(mockDb.smallClassDao.readAllItems).not.toHaveBeenCalled();
+        expect(service.calls[0]).toMatchObject({
+            method: "getFullItem",
+            args: [
+                "/classes/bard/college-of-valor",
+                {
+                    sourceBooks: expect.any(Array),
+                },
+            ],
+        });
+        expect(result).toEqual({
+            ...remoteArchetype,
+            associatedUrl: "/classes/fragment/bard/college-of-valor",
+            associatedHtml: "<article>Коллегия Доблести</article>",
+        });
+        expect(createItem).toHaveBeenCalledWith(result);
+    });
 });
 
 describe('ClassesRepository - Archetype Filtering', () => {

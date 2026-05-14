@@ -120,7 +120,7 @@ export class ClassStore {
 	constructor(
 		private readonly smallClassDao: Pick<
 			SmallClassSqlTableDao,
-			"readAllItems" | "readArchetypesByParentUrl"
+			"readAllItems" | "readArchetypesByParentUrl" | "readItemByName"
 		>,
 		private readonly fullClassDao: Pick<
 			FullClassSqlTableDao,
@@ -149,6 +149,10 @@ export class ClassStore {
 
 	async readArchetypesForClass(parentClassUrl: string): Promise<SmallClass[]> {
 		return this.smallClassDao.readArchetypesByParentUrl(parentClassUrl);
+	}
+
+	async readSmallClassByName(name: string): Promise<SmallClass | null> {
+		return this.smallClassDao.readItemByName(name);
 	}
 
 	async readFullClassByName(name: string): Promise<FullClass | null> {
