@@ -22,6 +22,10 @@ export abstract class Dao<T extends BaseItem, F> implements Initializable {
 
     abstract getTableName(): string;
 
+    /**
+     * @deprecated Static seed data is loaded by seed services through SeedStore.
+     * DAOs should remain SQL table adapters and should not override this hook.
+     */
     getLocalData(): T[] {
         return [];
     }
@@ -42,6 +46,10 @@ export abstract class Dao<T extends BaseItem, F> implements Initializable {
     // Table management
     abstract createTable() : Promise<void>;
 
+    /**
+     * @deprecated Use DatabaseSeedOrchestrator/SeedStore for initial data loading.
+     * Kept temporarily for compatibility with legacy DAO tests and callers.
+     */
     async fillTableWithData(): Promise<void> {
         const tableExists = await this.isTableExists();
         if (tableExists) {

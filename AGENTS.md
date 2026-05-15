@@ -55,7 +55,7 @@ dnd-dm-tools/
 │   │   ├── listeners/            # Event handling interfaces
 │   │   └── utils/                # Utility functions
 │   ├── data/                     # Data access layer
-│   │   ├── databse/              # Database and DAOs (note: typo in folder name)
+│   │   ├── database/             # Database and DAOs
 │   │   │   ├── DB.ts             # Central database manager
 │   │   │   ├── Small*Dao.ts      # Minimal item data access
 │   │   │   └── Full*Dao.ts       # Complete item data access
@@ -113,7 +113,8 @@ Each feature follows a consistent structure:
 
 2. **Repository** (`src/data/repositories/XxxRepository.ts`)
    - Implements `Repository<SmallItem, FullItem, Filters>` interface
-   - Provides CRUD operations via DAOs
+   - Orchestrates stores, services, mappers, and projectors
+   - Does not import `DB`, concrete SQL DAO classes, or Obsidian `requestUrl`
 
 3. **Side Panel** (`src/ui/components/sidepanel/XxxSidePanel.ts`)
    - Extends `BaseSidePanel`
@@ -125,8 +126,10 @@ Each feature follows a consistent structure:
 ### DAO Pattern
 
 Each entity type has two DAOs:
-- `SmallXxxSqlTableDao` - Retrieves minimal item data for lists
-- `FullXxxSqlTableDao` - Retrieves complete item details
+- `SmallXxxSqlTableDao` - SQL adapter for list-view table data
+- `FullXxxSqlTableDao` - SQL adapter for complete item details
+
+DAOs are SQL table adapters only. Static seed data is loaded by seed services through `SeedStore`; do not add new `getLocalData()` overrides.
 
 ### Model Pattern
 
@@ -139,7 +142,7 @@ Domain models follow a Small/Full pattern:
 | File | Purpose |
 |------|---------|
 | `src/main.ts` | Plugin entry point, initializes all features |
-| `src/data/databse/DB.ts` | Database manager, initializes all DAOs |
+| `src/data/database/DB.ts` | Database manager, initializes all DAOs |
 | `src/ui/components/feature/BaseFeature.ts` | Base class for all features |
 | `src/domain/repositories/Repository.ts` | Repository interface definition |
 
@@ -214,7 +217,7 @@ The plugin uses SQL.js (SQLite in WASM) for data storage:
 
 ## Important Notes
 
-1. **Known typo:** The database folder is named `databse` (missing 'a')
+1. **Database path:** The database folder is `src/data/database/`
 2. **Language:** Plugin UI is in Russian
 3. **Obsidian API:** Always use mocks from `test/__mocks__/obsidian.ts` for testing
 4. **Svelte 5:** Uses runes and new Svelte 5 syntax
@@ -229,22 +232,27 @@ To add a new entity type:
    - `FullNewType.ts` - Complete entity
    - `NewTypeFilters.ts` - Filter interface
 
-2. Add JSON data in `data/newtype.json`
+2. Add JSON data in `data/newtype.json` only if the feature has bundled seed data
 
-3. Create DAOs in `src/data/databse/`
+3. Create DAOs in `src/data/database/`
    - `SmallNewTypeSqlTableDao.ts`
    - `FullNewTypeSqlTableDao.ts`
 
-4. Create repository in `src/data/repositories/`
-   - `NewTypeRepository.ts` implementing `Repository` interface
+4. Create mapper/projector/store/service wiring as needed
+   - Use generic SQL stores for standard Small/Full entities
+   - Add seed services for bundled data
 
-5. Create UI components in `src/ui/layout/newtype/`
+5. Create repository in `src/data/repositories/`
+   - `NewTypeRepository.ts` implementing `Repository` interface via dependency ports
+   - Add a factory in `src/data/repositories/factories.ts`
+
+6. Create UI components in `src/ui/layout/newtype/`
    - `NewTypeSmallUi.svelte`
    - `NewTypeFullUi.svelte`
 
-6. Create feature in `src/ui/components/feature/`
+7. Create feature in `src/ui/components/feature/`
    - `NewTypeFeature.ts` extending `BaseFeature`
 
-7. Register feature in `src/main.ts`
+8. Register feature in `src/main.ts`
 
-8. Add tests in `test/` directory
+9. Add tests in `test/` directory

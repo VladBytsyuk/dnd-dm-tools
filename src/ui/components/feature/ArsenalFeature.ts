@@ -8,14 +8,14 @@ import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type DndStatblockPlugin from "src/main";
 import type { BaseSidePanel } from "../sidepanel/BaseSidePanel";
 import type { BaseMdCodeBlockProcessor } from "../processor/BaseMdCodeBlockProcessor";
-import { ArsenalRepository } from "src/data/repositories/ArsenalRepository";
+import { createArsenalRepository } from "src/data/repositories/factories";
 import { ArsenalMdCodeBlockProcessor } from "../processor/ArsenalMdCodeBlockProcessor";
 import { ArsenalSidePanel } from "../sidepanel/ArsenalSidePanel";
 
 export class ArsenalFeature extends BaseFeature<SmallWeapon, FullWeapon, ArsenalFilters> {
 
     createRepository(database: DB): Repository<SmallWeapon, FullWeapon, ArsenalFilters> {
-        return new ArsenalRepository(database);
+        return createArsenalRepository(database);
     }
 
     createSidePanel(plugin: DndStatblockPlugin, repository: Repository<SmallWeapon, FullWeapon, ArsenalFilters>, uiEventListener: IUiEventListener): BaseSidePanel<SmallWeapon, FullWeapon, ArsenalFilters> {

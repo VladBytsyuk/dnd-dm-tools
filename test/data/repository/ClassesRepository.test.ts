@@ -20,6 +20,8 @@ import {
     fullClassFighter,
     fullArchetypeValor
 } from "../../__mocks__/domain/models/class/full_class_items";
+import { buildClassFragmentUrl } from "../../../src/data/mappers/sourceMappers";
+import { FullItemReadServiceDouble } from "../ports/testDoubles";
 
 // Base repository tests with only base classes (no archetypes)
 const baseClassesOnly = [smallClassBard, smallClassWizard, smallClassFighter];
@@ -117,43 +119,152 @@ describe('ClassesRepository - Archetype Queries', () => {
 });
 
 describe('ClassesRepository - Fragment URL Building', () => {
-    let repo: ClassesRepository;
-
-    beforeEach(() => {
-        const mockDb = mockDatabase([smallClassBard], [fullClassBard]);
-        repo = new ClassesRepository(mockDb);
-    });
-
     it('should convert base class URL to fragment', () => {
-        // Access private method through type assertion
-        const result = (repo as any).buildFragmentUrl("/classes/bard");
+        const result = buildClassFragmentUrl("/classes/bard");
         expect(result).toBe("/classes/fragment/bard");
     });
 
     it('should convert archetype URL to fragment', () => {
-        const result = (repo as any).buildFragmentUrl("/classes/bard/college-of-valor");
+        const result = buildClassFragmentUrl("/classes/bard/college-of-valor");
         expect(result).toBe("/classes/fragment/bard/college-of-valor");
     });
 
     it('should not change already-fragment URLs', () => {
-        const result = (repo as any).buildFragmentUrl("/classes/fragment/bard");
+        const result = buildClassFragmentUrl("/classes/fragment/bard");
         expect(result).toBe("/classes/fragment/bard");
     });
 
     it('should handle multi-segment archetype paths', () => {
-        const result = (repo as any).buildFragmentUrl("/classes/wizard/school-of-evocation");
+        const result = buildClassFragmentUrl("/classes/wizard/school-of-evocation");
         expect(result).toBe("/classes/fragment/wizard/school-of-evocation");
     });
 
     it('should handle edge case with non-classes URL', () => {
-        const result = (repo as any).buildFragmentUrl("/other/path");
+        const result = buildClassFragmentUrl("/other/path");
         expect(result).toBe("/other/path");  // Fallback - return as-is
     });
 
     it('should handle trailing slashes', () => {
-        const result = (repo as any).buildFragmentUrl("/classes/bard/");
+        const result = buildClassFragmentUrl("/classes/bard/");
         // Should handle gracefully - exact behavior depends on implementation
         expect(result).toMatch(/fragment/);
+    });
+});
+
+describe('ClassesRepository - Full Item Fetch Characterization', () => {
+    it('should fetch associated fragment HTML and persist full class on cache miss', async () => {
+        const remoteClass = {
+            ...fullClassBard,
+            url: "/classes/bard",
+            associatedUrl: undefined,
+            associatedHtml: undefined,
+        };
+        const createItem = vi.fn();
+        const mockDb = {
+            smallClassDao: {
+                readAllItems: vi.fn().mockResolvedValue([smallClassBard]),
+                readAllItemsNames: vi.fn().mockResolvedValue(["Бард"]),
+                readItemByName: vi.fn().mockResolvedValue(smallClassBard),
+                readItemByUrl: vi.fn().mockResolvedValue(smallClassBard),
+                readArchetypesByParentUrl: vi.fn().mockResolvedValue([]),
+            },
+            fullClassDao: {
+                readItemByUrl: vi.fn().mockResolvedValue(null),
+                readItemByName: vi.fn().mockResolvedValue(null),
+                createItem,
+            },
+            transaction: vi.fn(async (callback: () => Promise<void>) => {
+                await callback();
+            }),
+        };
+        const service = new FullItemReadServiceDouble<any>().succeed({
+            item: { ...remoteClass },
+            associatedUrl: "/classes/fragment/bard",
+            associatedHtml: "<article>Бард</article>",
+        });
+        const repo = new ClassesRepository(mockDb as any, service);
+
+        const result = await repo.getFullItemByUrl("/classes/bard");
+        expect(service.calls[0]).toMatchObject({
+            method: "getFullItem",
+            args: [
+                "/classes/bard",
+                {
+                    sourceBooks: expect.any(Array),
+                },
+            ],
+        });
+        expect(result).toEqual({
+            ...remoteClass,
+            url: "/classes/bard",
+            associatedUrl: "/classes/fragment/bard",
+            associatedHtml: "<article>Бард</article>",
+        });
+        expect(createItem).toHaveBeenCalledWith(result);
+        expect(mockDb.transaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return cached full class without fetching associated HTML', async () => {
+        const mockDb = mockDatabase([smallClassBard], [fullClassBard]);
+        const service = new FullItemReadServiceDouble<any>();
+        const repo = new ClassesRepository(mockDb, service);
+
+        const result = await repo.getFullItemByUrl("/classes/bard");
+
+        expect(result).toEqual(fullClassBard);
+        expect(service.calls).toEqual([]);
+    });
+
+    it('should fetch an uncached archetype by name using the archetype small item URL', async () => {
+        const remoteArchetype = {
+            ...fullArchetypeValor,
+            associatedUrl: undefined,
+            associatedHtml: undefined,
+        };
+        const createItem = vi.fn();
+        const mockDb = {
+            smallClassDao: {
+                readAllItems: vi.fn().mockResolvedValue([smallClassBard]),
+                readAllItemsNames: vi.fn().mockResolvedValue(["Бард"]),
+                readItemByName: vi.fn().mockResolvedValue(smallArchetypeValor),
+                readItemByUrl: vi.fn().mockResolvedValue(smallArchetypeValor),
+                readArchetypesByParentUrl: vi.fn().mockResolvedValue([smallArchetypeValor]),
+            },
+            fullClassDao: {
+                readItemByUrl: vi.fn().mockResolvedValue(null),
+                readItemByName: vi.fn().mockResolvedValue(null),
+                createItem,
+            },
+            transaction: vi.fn(async (callback: () => Promise<void>) => {
+                await callback();
+            }),
+        };
+        const service = new FullItemReadServiceDouble<any>().succeed({
+            item: { ...remoteArchetype },
+            associatedUrl: "/classes/fragment/bard/college-of-valor",
+            associatedHtml: "<article>Коллегия Доблести</article>",
+        });
+        const repo = new ClassesRepository(mockDb as any, service);
+
+        const result = await repo.getFullItemByName("Коллегия Доблести");
+
+        expect(mockDb.smallClassDao.readItemByName).toHaveBeenCalledWith("Коллегия Доблести");
+        expect(mockDb.smallClassDao.readAllItems).not.toHaveBeenCalled();
+        expect(service.calls[0]).toMatchObject({
+            method: "getFullItem",
+            args: [
+                "/classes/bard/college-of-valor",
+                {
+                    sourceBooks: expect.any(Array),
+                },
+            ],
+        });
+        expect(result).toEqual({
+            ...remoteArchetype,
+            associatedUrl: "/classes/fragment/bard/college-of-valor",
+            associatedHtml: "<article>Коллегия Доблести</article>",
+        });
+        expect(createItem).toHaveBeenCalledWith(result);
     });
 });
 

@@ -30,7 +30,7 @@ runSqlDaoBaseTests<SmallMonster, BestiaryFilters>({
     filters: filters,
     expected: {
         table: 'small_bestiary',
-        fill: true,
+        fill: false,
         whereClausesCount: 3,
         filterParams: ['Гуманоид', '1/4', 'MM'],
     },

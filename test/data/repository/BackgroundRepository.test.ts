@@ -17,6 +17,13 @@ import {
     fullBackgroundOccultist,
     fullBackgroundHarborfolk
 } from "../../__mocks__/domain/models/background/full_background_items";
+import {
+    FullItemReadServiceDouble,
+    ItemReadStoreDouble,
+    ItemWriteStoreDouble,
+    SmallItemProjectorDouble,
+} from "../ports/testDoubles";
+import { BackgroundMapper } from "../../../src/data/mappers/sourceMappers";
 
 runBaseRepositoryTests<SmallBackground, FullBackground, BackgroundsFilters>({
     title: 'Repository: Background',
@@ -75,5 +82,67 @@ describe('BackgroundRepository - Source-based Grouping', () => {
         const homebrewNames = homebrewGroups.map(g => g.sort).sort();
         expect(homebrewNames[0]).toBe('Дополнительные предыстории из ресурсов Лиги Авантюристов'); // ADLA*
         expect(homebrewNames[1]).toBe('Фолиант героев'); // ToH*
+    });
+});
+
+describe('BackgroundRepository - Associated HTML Characterization', () => {
+    it('should fetch associated HTML from returned background URL and persist the requested URL', async () => {
+        const remoteBackground: FullBackground = {
+            ...fullBackgroundOccultist,
+            url: "/backgrounds/fragment/199",
+            associatedUrl: undefined,
+            associatedHtml: undefined,
+        };
+        const readStore = new ItemReadStoreDouble<SmallBackground, FullBackground, BackgroundsFilters>();
+        readStore.fullItemsByUrl.set("/backgrounds/occultist", null);
+        const writeStore = new ItemWriteStoreDouble<SmallBackground, FullBackground>();
+        const service = new FullItemReadServiceDouble<any>().succeed({
+            item: remoteBackground,
+            associatedUrl: "/backgrounds/fragment/199",
+            associatedHtml: "<section>Оккультист</section>",
+        });
+        const mapper = new BackgroundMapper() as any;
+        const projector = new SmallItemProjectorDouble<FullBackground, SmallBackground>(
+            (item) => ({ name: item.name, url: item.url, source: item.source, homebrew: item.homebrew })
+        );
+        const repo = new BackgroundRepository({
+            readStore,
+            writeStore,
+            service,
+            mapper: {
+                map: (response: any, url: string) => mapper.map({
+                    ...response.item,
+                    associatedUrl: response.associatedUrl,
+                    associatedHtml: response.associatedHtml,
+                }, url),
+            },
+            projector,
+        });
+
+        const result = await repo.getFullItemByUrl("/backgrounds/occultist");
+
+        expect(service.calls[0]).toMatchObject({
+            method: "getFullItem",
+            args: ["/backgrounds/occultist", undefined],
+        });
+        expect(result).toEqual({
+            ...remoteBackground,
+            url: "/backgrounds/occultist",
+            associatedUrl: "/backgrounds/fragment/199",
+            associatedHtml: "<section>Оккультист</section>",
+        });
+        expect(writeStore.calls[0]).toMatchObject({
+            method: "saveFetchedFull",
+            args: [result],
+        });
+    });
+
+    it('should return cached background without fetching associated HTML', async () => {
+        const mockDb = mockDatabase([smallBackgroundOccultist], [fullBackgroundOccultist]);
+        const repo = new BackgroundRepository(mockDb);
+
+        const result = await repo.getFullItemByUrl("/backgrounds/occultist");
+
+        expect(result).toEqual(fullBackgroundOccultist);
     });
 });

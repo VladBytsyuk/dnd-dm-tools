@@ -1,23 +1,40 @@
 import type { SmallWeapon } from 'src/domain/models/weapon/SmallWeapon';
 import type { Arsenal } from 'src/domain/repositories/Arsenal';
-import type DB from '../database/DB';
 import type { FullWeapon } from 'src/domain/models/weapon/FullWeapon';
 import { type ArsenalFilters } from 'src/domain/models/weapon/ArsenalFilters';
-import { BaseRepository } from './BaseRepository';
 import { createFilters } from 'src/domain/models/common/Filters';
 import type { Group } from 'src/domain/repositories/Repository';
 import { sortSources } from 'src/domain/utils/SourceSorter';
+import { weaponMapper } from "src/data/mappers/sourceMappers";
+import { smallItemProjectors } from "src/data/projectors/smallItemProjectors";
+import {
+    createSimpleRepositoryDependencies,
+    SimpleRepository,
+    type SimpleRepositoryDatabase,
+    type SimpleRepositoryDependencies,
+} from "./SimpleRepository";
+import type { Dao } from "src/domain/Dao";
+
+type ArsenalRepositoryDatabase = SimpleRepositoryDatabase & {
+    smallWeaponDao: Dao<SmallWeapon, ArsenalFilters>;
+    fullWeaponDao: Dao<FullWeapon, unknown>;
+};
 
 export class ArsenalRepository 
-    extends BaseRepository<SmallWeapon, FullWeapon, ArsenalFilters> 
+    extends SimpleRepository<SmallWeapon, FullWeapon, ArsenalFilters> 
     implements Arsenal {
 
-    constructor(database: DB) {
-        super(
-            database,
-            database.smallWeaponDao,
-            database.fullWeaponDao,
-        );
+    constructor(
+        dependencies: ArsenalRepositoryDatabase
+            | SimpleRepositoryDependencies<SmallWeapon, FullWeapon, ArsenalFilters>
+    ) {
+        super("readStore" in dependencies ? dependencies : createSimpleRepositoryDependencies(
+            dependencies,
+            dependencies.smallWeaponDao,
+            dependencies.fullWeaponDao,
+            weaponMapper,
+            smallItemProjectors.weapon,
+        ));
     }
 
     async collectFiltersFromAllItems(allSmallItems: SmallWeapon[]): Promise<ArsenalFilters | null> {

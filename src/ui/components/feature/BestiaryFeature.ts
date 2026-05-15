@@ -4,7 +4,7 @@ import type { FullMonster } from "src/domain/models/monster/FullMonster";
 import type { BestiaryFilters } from "src/domain/models/monster/BestiaryFilters";
 import type DB from "src/data/database/DB";
 import type { Repository } from "src/domain/repositories/Repository";
-import { BestiaryRepository } from "src/data/repositories/BestiaryRepository";
+import { createBestiaryRepository } from "src/data/repositories/factories";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type DndStatblockPlugin from "src/main";
 import type { BaseSidePanel } from "../sidepanel/BaseSidePanel";
@@ -17,7 +17,7 @@ import { stringifyYaml, type Editor } from "obsidian";
 export class BestiaryFeature extends BaseFeature<SmallMonster, FullMonster, BestiaryFilters> {
 
     createRepository(database: DB): Repository<SmallMonster, FullMonster, BestiaryFilters> {
-        return new BestiaryRepository(database);
+        return createBestiaryRepository(database);
     }
 
     createSidePanel(plugin: DndStatblockPlugin, repository: Repository<SmallMonster, FullMonster, BestiaryFilters>, uiEventListener: IUiEventListener): BaseSidePanel<SmallMonster, FullMonster, BestiaryFilters> {

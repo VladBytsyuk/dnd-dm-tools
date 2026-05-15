@@ -12,7 +12,7 @@ runSqlDaoBaseTests<SmallItem, EquipmentFilters>({
     filters: equipmentFilters,
     expected: {
         table: 'small_equipment',
-        fill: true,
+        fill: false,
         whereClausesCount: 1,
         filterParams: ['PHB'],
     },

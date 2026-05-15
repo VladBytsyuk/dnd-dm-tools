@@ -12,7 +12,7 @@ runSqlDaoBaseTests<SmallSpell, SpellbookFilters>({
     filters: spellbookFilters,
     expected: {
         table: 'small_spellbook',
-        fill: true,
+        fill: false,
         whereClausesCount: 3,
         filterParams: [3, 5, 9, "воплощение", "преобразование", "вызов", "PHB"],
     },

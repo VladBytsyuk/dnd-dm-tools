@@ -11,6 +11,8 @@ import {
     smallClassWizard
 } from '../../__mocks__/domain/models/class/small_class_items';
 import { mockApp, mockDatabase, mockManifest } from '../../__mocks__/data';
+import { ClassSeedMapper } from '../../../src/data/mappers/seedMappers';
+import { baseClasses as classSeeds } from '../../../src/assets/data/classes';
 
 runSqlDaoBaseTests<SmallClass, ClassesFilters>({
     title: 'Dao: Classes small',
@@ -19,7 +21,7 @@ runSqlDaoBaseTests<SmallClass, ClassesFilters>({
     filters: classesFilters,
     expected: {
         table: 'small_classes',
-        fill: true,
+        fill: false,
         whereClausesCount: 2,
         filterParams: ["к6", "к8", "к10", "к12", "PHB", "XGE", "TCE", "SCAG"],
     },
@@ -149,16 +151,16 @@ describe('SmallClassSqlTableDao - Archetype Queries', () => {
 });
 
 // Test archetype flattening from baseClasses
-describe('SmallClassSqlTableDao - Data Loading', () => {
-    let dao: SmallClassSqlTableDao;
+describe('ClassSeedMapper - Data Loading', () => {
+    let mapper: ClassSeedMapper;
 
     beforeEach(() => {
         vi.clearAllMocks();
-        dao = new SmallClassSqlTableDao(mockDatabase, mockApp, mockManifest);
+        mapper = new ClassSeedMapper();
     });
 
     it('should flatten archetypes from baseClasses', () => {
-        const data = dao.getLocalData();
+        const data = mapper.mapSeeds(classSeeds);
 
         // Verify substantial number of items
         expect(data.length).toBeGreaterThan(100);
@@ -176,7 +178,7 @@ describe('SmallClassSqlTableDao - Data Loading', () => {
     });
 
     it('should assign parent URL to archetypes', () => {
-        const data = dao.getLocalData();
+        const data = mapper.mapSeeds(classSeeds);
         const archetypes = data.filter(c => c.isArchetype);
 
         // All archetypes should have a parent URL
@@ -188,7 +190,7 @@ describe('SmallClassSqlTableDao - Data Loading', () => {
     });
 
     it('should inherit dice from parent class', () => {
-        const data = dao.getLocalData();
+        const data = mapper.mapSeeds(classSeeds);
 
         // Find a base class and its archetypes
         const baseClass = data.find(c => !c.isArchetype);
@@ -206,7 +208,7 @@ describe('SmallClassSqlTableDao - Data Loading', () => {
     });
 
     it('should not have parent URL for base classes', () => {
-        const data = dao.getLocalData();
+        const data = mapper.mapSeeds(classSeeds);
         const baseClasses = data.filter(c => !c.isArchetype);
 
         baseClasses.forEach(baseClass => {
@@ -216,7 +218,7 @@ describe('SmallClassSqlTableDao - Data Loading', () => {
     });
 
     it('should have isArchetype flag set correctly', () => {
-        const data = dao.getLocalData();
+        const data = mapper.mapSeeds(classSeeds);
 
         data.forEach(item => {
             if (item.isArchetype) {
@@ -228,7 +230,7 @@ describe('SmallClassSqlTableDao - Data Loading', () => {
     });
 
     it('should have valid URLs for all items', () => {
-        const data = dao.getLocalData();
+        const data = mapper.mapSeeds(classSeeds);
 
         data.forEach(item => {
             expect(item.url).toBeTruthy();

@@ -62,4 +62,39 @@ describe("CharacterSheetImportService", () => {
 			service.importFromJson(JSON.stringify({ jsonType: "monster", data: "{}" }))
 		).rejects.toThrow('Invalid jsonType: expected "character", got "monster"');
 	});
+
+	it("should reject non-empty-string input validation failures", async () => {
+		const service = new CharacterSheetImportService({
+			readItemByUrl: vi.fn().mockResolvedValue(null),
+		});
+
+		await expect(service.importFromJson("")).rejects.toThrow(
+			"Invalid input: expected non-empty string"
+		);
+	});
+
+	it("should reject malformed JSON with the parse error in the message", async () => {
+		const service = new CharacterSheetImportService({
+			readItemByUrl: vi.fn().mockResolvedValue(null),
+		});
+
+		await expect(service.importFromJson("{")).rejects.toThrow("Failed to parse JSON:");
+	});
+
+	it("should reject imported sheets with a blank character name", async () => {
+		const sheet = EmptyFullCharacterSheet();
+		sheet.data.name.value = " ";
+		const service = new CharacterSheetImportService({
+			readItemByUrl: vi.fn().mockResolvedValue(null),
+		});
+
+		await expect(
+			service.importFromJson(
+				JSON.stringify({
+					data: stringifyCharacterData(sheet).data,
+					jsonType: "character",
+				})
+			)
+		).rejects.toThrow("Failed to import character sheet: Invalid character sheet: character name is required");
+	});
 });

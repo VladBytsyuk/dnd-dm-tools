@@ -26,6 +26,8 @@ import { SmallClassSqlTableDao } from './SmallClassSqlTableDao';
 import { FullClassSqlTableDao } from './FullClassSqlTableDao';
 import { CharacterSheetSqlTableDao } from './CharacterSheetSqlTableDao';
 import type { Initializable } from 'src/domain/Initializable';
+import { DatabaseSeedOrchestrator } from 'src/data/services';
+import { DbTransactionalStore, SeedStore } from 'src/data/stores';
 
 export default class DB implements Initializable {
 
@@ -103,12 +105,7 @@ export default class DB implements Initializable {
                 );
             });
 
-            // Fill tables with initial data
-            await this.transaction(async () => {
-                await Promise.all(
-                    sqlTableDaos.map(tableDao => tableDao.fillTableWithData())
-                );
-            });
+            await this.createSeedOrchestrator().seedAll();
 
             console.log('Database initialized');
         } catch (error) {
@@ -206,6 +203,25 @@ export default class DB implements Initializable {
         ];
     }
 
+    private createSeedOrchestrator(): DatabaseSeedOrchestrator {
+        return new DatabaseSeedOrchestrator(
+            new SeedStore(new DbTransactionalStore(this)),
+            {
+                smallMonsterDao: this.smallMonsterDao,
+                smallSpellDao: this.smallSpellDao,
+                dmScreenGroupDao: this.dmScreenGroupDao,
+                smallWeaponDao: this.smallWeaponDao,
+                smallArmorDao: this.smallArmorDao,
+                smallItemDao: this.smallItemDao,
+                smallArtifactDao: this.smallArtifactDao,
+                smallBackgroundDao: this.smallBackgroundDao,
+                smallFeatDao: this.smallFeatDao,
+                smallRaceDao: this.smallRaceDao,
+                smallClassDao: this.smallClassDao,
+            },
+        );
+    }
+
     private pluginFile(filename: string, absolute = false) {
         const path = [
             this.app.vault.configDir,
@@ -250,9 +266,8 @@ export default class DB implements Initializable {
             await this.smallClassDao.createTable();
             await this.fullClassDao.createTable();
 
-            // Repopulate from classes.ts
-            await this.smallClassDao.fillTableWithData();
         });
+        await this.createSeedOrchestrator().seedSmallClass();
         console.log('Classes migration complete.');
     }
 }

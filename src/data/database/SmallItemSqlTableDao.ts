@@ -3,7 +3,6 @@ import type { Database, SqlValue } from "sql.js";
 import { Dao, WhereClauseData } from "src/domain/Dao";
 import type { EquipmentFilters } from "src/domain/models/items/EquipmentFilters";
 import type { SmallItem } from "src/domain/models/items/SmallItem";
-import { baseEquipment } from "../../assets/data/equipment";
 
 export class SmallItemSqlTableDao extends Dao<SmallItem, EquipmentFilters> {
 
@@ -19,10 +18,6 @@ export class SmallItemSqlTableDao extends Dao<SmallItem, EquipmentFilters> {
 
     getTableName(): string {
         return 'small_equipment';
-    }
-
-    getLocalData(): SmallItem[] {
-        return baseEquipment;
     }
 
     // Table management

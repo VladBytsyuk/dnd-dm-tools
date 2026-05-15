@@ -1,24 +1,40 @@
 import type { SmallMonster } from "src/domain/models/monster/SmallMonster";
 import { type BestiaryFilters } from "src/domain/models/monster/BestiaryFilters";
-import type DB from "../database/DB";
 import type { Bestiary } from 'src/domain/repositories/Bestiary';
 import { EmptyFullMonster, type FullMonster } from 'src/domain/models/monster/FullMonster';
-import { BaseRepository } from './BaseRepository';
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
 import { sortSources } from "src/domain/utils/SourceSorter";
+import { monsterMapper } from "src/data/mappers/sourceMappers";
+import { smallItemProjectors } from "src/data/projectors/smallItemProjectors";
+import {
+	createSimpleRepositoryDependencies,
+	SimpleRepository,
+	type SimpleRepositoryDatabase,
+	type SimpleRepositoryDependencies,
+} from "./SimpleRepository";
+import type { Dao } from "src/domain/Dao";
 
+type BestiaryRepositoryDatabase = SimpleRepositoryDatabase & {
+	smallMonsterDao: Dao<SmallMonster, BestiaryFilters>;
+	fullMonsterDao: Dao<FullMonster, unknown>;
+};
 
 export class BestiaryRepository 
-    extends BaseRepository<SmallMonster, FullMonster, BestiaryFilters> 
+    extends SimpleRepository<SmallMonster, FullMonster, BestiaryFilters> 
     implements Bestiary {
 
-    constructor(database: DB) {
-        super(
-            database,
-            database.smallMonsterDao,
-            database.fullMonsterDao,
-        );
+    constructor(
+        dependencies: BestiaryRepositoryDatabase
+            | SimpleRepositoryDependencies<SmallMonster, FullMonster, BestiaryFilters>    
+    ) {
+        super("readStore" in dependencies ? dependencies : createSimpleRepositoryDependencies(
+            dependencies,
+            dependencies.smallMonsterDao,
+            dependencies.fullMonsterDao,
+            monsterMapper,
+            smallItemProjectors.monster,
+        ));
     }
 
     async collectFiltersFromAllItems(allSmallItems: SmallMonster[]): Promise<BestiaryFilters | null> {

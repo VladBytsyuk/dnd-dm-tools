@@ -24,11 +24,6 @@ export class CharacterSheetSqlTableDao extends Dao<FullCharacterSheet, Character
 		return "character_sheets";
 	}
 
-	getLocalData(): FullCharacterSheet[] {
-		// Return empty array - no initial data, users import/create characters
-		return [];
-	}
-
 	/**
 	 * Extracts the primary class name from a character for database storage.
 	 * Uses new multiclass format if available, falls back to legacy field.

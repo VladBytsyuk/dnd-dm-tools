@@ -1,23 +1,40 @@
 import type { SmallArtifact } from "src/domain/models/artifact/SmallArtifact";
-import { BaseRepository } from "./BaseRepository";
 import type { FullArtifact } from "src/domain/models/artifact/FullArtifact";
 import { type ArtifactoryFilters } from "src/domain/models/artifact/ArtifactoryFilters";
 import type { Artifactory } from "src/domain/repositories/Artifactory";
-import type DB from "../database/DB";
 import { createFilters } from "src/domain/models/common/Filters";
 import type { Group } from "src/domain/repositories/Repository";
 import { sortSources } from "src/domain/utils/SourceSorter";
+import { artifactMapper } from "src/data/mappers/sourceMappers";
+import { smallItemProjectors } from "src/data/projectors/smallItemProjectors";
+import {
+    createSimpleRepositoryDependencies,
+    SimpleRepository,
+    type SimpleRepositoryDatabase,
+    type SimpleRepositoryDependencies,
+} from "./SimpleRepository";
+import type { Dao } from "src/domain/Dao";
+
+type ArtifactoryRepositoryDatabase = SimpleRepositoryDatabase & {
+    smallArtifactDao: Dao<SmallArtifact, ArtifactoryFilters>;
+    fullArtifactDao: Dao<FullArtifact, unknown>;
+};
 
 export class ArtifactoryRepository
-    extends BaseRepository<SmallArtifact, FullArtifact, ArtifactoryFilters>
+    extends SimpleRepository<SmallArtifact, FullArtifact, ArtifactoryFilters>
     implements Artifactory {
 
-    constructor(database: DB) {
-        super(
-            database,
-            database.smallArtifactDao,
-            database.fullArtifactDao,
-        );
+    constructor(
+        dependencies: ArtifactoryRepositoryDatabase
+            | SimpleRepositoryDependencies<SmallArtifact, FullArtifact, ArtifactoryFilters>
+    ) {
+        super("readStore" in dependencies ? dependencies : createSimpleRepositoryDependencies(
+            dependencies,
+            dependencies.smallArtifactDao,
+            dependencies.fullArtifactDao,
+            artifactMapper,
+            smallItemProjectors.artifact,
+        ));
     }
 
     async collectFiltersFromAllItems(allSmallItems: SmallArtifact[]): Promise<ArtifactoryFilters | null> {

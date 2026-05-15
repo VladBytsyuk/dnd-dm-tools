@@ -12,7 +12,7 @@ runSqlDaoBaseTests<SmallBackground, BackgroundsFilters>({
     filters: backgroundsFilters,
     expected: {
         table: 'small_backgrounds',
-        fill: true,
+        fill: false,
         whereClausesCount: 1,
         filterParams: ["GGR", "ToH", "ADLA"],
     },

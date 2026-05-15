@@ -1,7 +1,6 @@
 import type { Database, SqlValue } from 'sql.js';
 import { Dao } from "../../domain/Dao";
 import type { FullClass } from 'src/domain/models/class/FullClass';
-import { baseClasses } from '../../assets/data/classes';
 
 export class FullClassSqlTableDao extends Dao<FullClass, any> {
 
@@ -13,11 +12,6 @@ export class FullClassSqlTableDao extends Dao<FullClass, any> {
 
     getTableName(): string {
         return 'full_classes';
-    }
-
-    getLocalData(): FullClass[] {
-        // Return empty array - HTML content fetched on-demand
-        return [];
     }
 
     // Table management

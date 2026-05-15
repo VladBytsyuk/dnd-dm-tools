@@ -1,6 +1,6 @@
 # Adding a New Feature
 
-This guide walks through adding a new entity type to the plugin.
+This guide covers adding a new repository-backed entity type to the plugin. Follow the existing feature patterns and keep domain models, data access, and UI concerns separated.
 
 ## Files to Create
 
@@ -14,36 +14,67 @@ Create `src/domain/models/newtype/`:
 | `FullNewType.ts` | Complete model extending `SmallNewType` |
 | `NewTypeFilters.ts` | Filter interface for list queries |
 
-### 2. JSON Data
+Add or extend the matching domain repository interface under `src/domain/repositories/` when the feature needs more than the generic `Repository` contract.
 
-Create `data/newtype.json` with the initial dataset. This data is loaded into the database on first run.
+### 2. Data
+
+Add initial static data in `data/` only when the feature ships bundled content. Expose it through `src/assets/data` and a seed service in `src/data/services/seedServices.ts`.
+
+Do not load seed JSON from a DAO. DAO `getLocalData()` is deprecated.
 
 ### 3. DAOs
 
-Create in `src/data/database/`:
+Create SQL table adapters in `src/data/database/`:
 
 | File | Purpose |
 |------|---------|
-| `SmallNewTypeSqlTableDao.ts` | Extends `Dao<SmallNewType, NewTypeFilters>`. Defines the list-view table schema, creates items, maps SQL rows to `SmallNewType`. |
-| `FullNewTypeSqlTableDao.ts` | Extends `Dao<FullNewType, NewTypeFilters>`. Defines the detail table schema (or reads from the same table with more columns), maps SQL rows to `FullNewType`. |
+| `SmallNewTypeSqlTableDao.ts` | List-view table schema, SQL writes, SQL reads, filters, and row mapping |
+| `FullNewTypeSqlTableDao.ts` | Detail table schema or detail-table access, SQL writes, SQL reads, and row mapping |
 
 Each DAO must implement:
-- `getTableName()` — SQL table name
-- `createTable()` — CREATE TABLE statement
-- `createItem()` — INSERT statement
-- `updateItem()` — UPDATE statement
-- `mapSqlValues()` — row-to-object mapping
-- `getLocalData()` — return parsed JSON data for initial fill (SmallDao only, typically)
 
-### 4. Repository
+- `getTableName()` for the SQL table name.
+- `createTable()` for the `CREATE TABLE` statement.
+- `createItem()` and `updateItem()` for SQL writes.
+- `mapSqlValues()` for row-to-domain mapping.
+- `filterByName()` / `filterByFilters()` when list filtering needs SQL clauses.
 
-Create `src/data/repositories/NewTypeRepository.ts`:
+DAOs are SQL table adapters only. They should not fetch TTG data, import JSON data, or contain repository orchestration.
 
-- Implements `Repository<SmallNewType, FullNewType, NewTypeFilters>`
-- Constructor takes `DB` and extracts the relevant DAOs
-- Delegates all interface methods to the DAOs
+### 4. Store, Service, Mapper, Projector
 
-### 5. UI Components
+For standard small/full entities, use the generic stores through `createSimpleRepositoryDependencies()`.
+
+Add these pieces as needed:
+
+- A source mapper in `src/data/mappers/sourceMappers.ts` to convert TTG DTOs into `FullNewType`.
+- A small item projector in `src/data/projectors/smallItemProjectors.ts`.
+- A seed service and seed mapper if bundled data requires normalization.
+- A specialized store in `src/data/stores/` only when generic small/full persistence is not enough.
+- A specialized service wrapper only when the TTG request differs from the default `TtgService.getFullItem()` flow.
+
+### 5. Repository
+
+Create `src/data/repositories/NewTypeRepository.ts`.
+
+Prefer extending `SimpleRepository`:
+
+```typescript
+export class NewTypeRepository
+	extends SimpleRepository<SmallNewType, FullNewType, NewTypeFilters>
+	implements Repository<SmallNewType, FullNewType, NewTypeFilters> {
+
+	constructor(
+		dependencies: SimpleRepositoryDependencies<SmallNewType, FullNewType, NewTypeFilters>,
+	) {
+		super(dependencies);
+	}
+}
+```
+
+Repositories should depend on store/service/mapper/projector dependencies. Put production assembly in `src/data/repositories/factories.ts`; do not import `DB`, concrete SQL DAOs, or Obsidian `requestUrl` into the repository implementation.
+
+### 6. UI Components
 
 Create Svelte components in `src/ui/layout/newtype/`:
 
@@ -51,185 +82,110 @@ Create Svelte components in `src/ui/layout/newtype/`:
 |------|---------|
 | `NewTypeSmallUi.svelte` | List item adapter, usually composed from `UiItemCard` |
 | `NewTypeFullUi.svelte` | Full statblock/detail component, preferably composed from shared UIKit detail components |
-| `NewTypeHeaderUi.svelte` | Optional only if the shared `UiDetailHeader` cannot cover the feature's needs |
+| `NewTypeHeaderUi.svelte` | Optional only if `UiDetailHeader` cannot cover the feature's needs |
 
-Before creating custom UI chrome, check the shared UIKit in `src/ui/layout/uikit/` and the guide in [UIKit](./uikit.md).
+Use the shared UIKit by default:
 
-Use the shared layer by default:
+- `UiItemCard` for list items.
+- `UiDetailHeader`, `UiDetailCard`, `UiPropertyGrid`, and `UiContentSection` for detail pages.
+- `BaseSidePanelUi.svelte` for standard repository-backed browse/search side panels.
 
-- `UiItemCard` for list items
-- `UiDetailHeader`, `UiDetailCard`, `UiPropertyGrid`, and `UiContentSection` for detail pages
-- `BaseSidePanelUi.svelte` for standard repository-backed search/browse side panels
-
-Do not introduce a feature-local proxy component when a shared UIKit component can be used directly.
-
-### 6. Side Panel
+### 7. Side Panel
 
 Create `src/ui/components/sidepanel/NewTypeSidePanel.ts`:
 
-- Extends `BaseSidePanel`
-- Usually mounts `src/ui/layout/uikit/BaseSidePanelUi.svelte` with feature-specific slots and config
-- Defines the view type identifier
+- Extends `BaseSidePanel`.
+- Usually mounts `src/ui/layout/uikit/BaseSidePanelUi.svelte` with feature-specific slots and config.
+- Defines the Obsidian view type identifier.
 
-### 7. Code Block Processor
+### 8. Code Block Processor
 
 Create `src/ui/components/processor/NewTypeMdCodeBlockProcessor.ts`:
 
-- Extends `BaseMdCodeBlockProcessor`
-- Defines the fenced code block language (e.g., `dnd-newtype`)
+- Extends `BaseMdCodeBlockProcessor`.
+- Defines the fenced code block language, for example `dnd-newtype`.
 
-### 8. Feature Class
+### 9. Feature Class
 
 Create `src/ui/components/feature/NewTypeFeature.ts`:
 
 ```typescript
 export class NewTypeFeature extends BaseFeature<SmallNewType, FullNewType, NewTypeFilters> {
+	createRepository(database: DB) {
+		return createNewTypeRepository(database);
+	}
 
-    createRepository(database: DB) {
-        return new NewTypeRepository(database);
-    }
+	createSidePanel(plugin, repository, uiEventListener) {
+		return new NewTypeSidePanel(plugin, repository, uiEventListener);
+	}
 
-    createSidePanel(plugin, repository, uiEventListener) {
-        return new NewTypeSidePanel(plugin, repository, uiEventListener);
-    }
+	createCodeBlockProcessor() {
+		return new NewTypeMdCodeBlockProcessor();
+	}
 
-    createCodeBlockProcessor() {
-        return new NewTypeMdCodeBlockProcessor();
-    }
-
-    getCommands(): FeatureCommand[] {
-        return []; // Add editor commands if needed
-    }
+	getCommands(): FeatureCommand[] {
+		return [];
+	}
 }
 ```
+
+Feature classes may receive `DB` because they call repository factories. Keep direct DAO wiring inside `src/data/repositories/factories.ts`.
 
 ## Registration
 
 ### In `src/data/database/DB.ts`
 
-1. Add DAO fields:
-   ```typescript
-   public smallNewTypeDao: SmallNewTypeSqlTableDao;
-   public fullNewTypeDao: FullNewTypeSqlTableDao;
-   ```
+1. Add DAO fields.
+2. Initialize them in `initDaos()`.
+3. Add them to `getDaos()`.
+4. Add seed orchestration only if the feature has bundled seed data.
 
-2. Initialize them in `initDaos()`:
-   ```typescript
-   this.smallNewTypeDao = new SmallNewTypeSqlTableDao(database, this.app, this.manifest);
-   this.fullNewTypeDao = new FullNewTypeSqlTableDao(database);
-   ```
+### In `src/data/repositories/factories.ts`
 
-3. Add both to `getDaos()` return array.
+Add `createNewTypeRepository(database: DB, options?: RepositoryFactoryServices)` and assemble:
+
+- Generic or specialized stores.
+- TTG or feature-specific service.
+- Mapper.
+- Small item projector.
 
 ### In `src/main.ts`
 
-1. Add a field:
-   ```typescript
-   newTypeFeature: NewTypeFeature;
-   ```
+1. Add a feature field.
+2. Instantiate the feature in initialization.
+3. Add it to the `features` array.
+4. Add a lazy getter in `UiEventListener` construction if cross-feature navigation is needed.
 
-2. Instantiate in `#initialize()`:
-   ```typescript
-   this.newTypeFeature = new NewTypeFeature(this, this.#database, this.#uiEventListener);
-   ```
+### Link Listener
 
-3. Add to the `features` array.
+When rendered HTML should open the new feature from links:
 
-4. Add a lazy getter in `UiEventListener` constructor if cross-feature navigation is needed.
+1. Add a handler to `src/domain/listeners/html_link_listener.ts`.
+2. Add a `LinkListener` entry in `registerHtmlLinkListener()`.
+3. Implement the handler in `src/data/ui_event_listener.ts`.
+4. Pass the feature provider from `src/main.ts`.
 
-### In `src/domain/listeners/html_link_listener.ts` — Link Listener
+Place more specific URL prefixes before less specific ones.
 
-The `HtmlLinkListener` interface defines click handlers for cross-feature navigation. When a user clicks a link inside rendered HTML content (e.g., a reference to another entity), the link listener intercepts it and opens the target item in its side panel.
+### Clipboard Support
 
-To add support for the new entity type:
-
-1. Add a handler method to the `HtmlLinkListener` interface:
-   ```typescript
-   onNewTypeClick: (url: string) => Promise<void>;
-   ```
-
-2. Add a `LinkListener` entry in `registerHtmlLinkListener()` mapping the URL prefix to the handler:
-   ```typescript
-   LinkListener('/newtypes/', htmlLinkListener.onNewTypeClick),
-   ```
-   **Note:** Place more specific prefixes before less specific ones (e.g., `/items/magic/` before `/items/`).
-
-3. Implement the handler in `src/data/ui_event_listener.ts`:
-   ```typescript
-   // Add a provider parameter to the constructor:
-   private newTypeFeatureProvider: () => NewTypeFeature,
-
-   // Add the handler method:
-   async onNewTypeClick(url: string): Promise<void> {
-       this.onClick(this.newTypeFeatureProvider, url);
-   }
-
-   // Bind it in the constructor:
-   this.onNewTypeClick = this.onNewTypeClick.bind(this);
-   ```
-
-4. Pass the feature provider in `src/main.ts` when constructing `UiEventListener`:
-   ```typescript
-   () => this.newTypeFeature,
-   ```
-
-### In `src/data/clipboard.ts` — Clipboard Support
-
-The clipboard module provides copy/paste of entities as YAML-serialized markdown code blocks. Each entity type has a dedicated `copyXxxToClipboard()` function.
-
-To add clipboard support for the new entity type:
-
-1. Import the full model type:
-   ```typescript
-   import type { FullNewType } from "../domain/models/newtype/FullNewType";
-   ```
-
-2. Add a copy function:
-   ```typescript
-   export function copyNewTypeToClipboard(newType: FullNewType) {
-       copyToClipboard(newType, newType.name.rus, "newtype");
-   }
-   ```
-   The third argument (`"newtype"`) is the code block language identifier used for serialization.
-
-3. (Optional) Add a read function if paste support is needed:
-   ```typescript
-   export async function getNewTypeFromClipboard(): Promise<FullNewType | undefined> {
-       const item = await getFromClipboard<FullNewType>("newtype");
-       if (!item) new Notice("Не удалось прочитать данные из буфера обмена");
-       return item;
-   }
-   ```
-
-4. Use the copy function in your Svelte header component (e.g., `NewTypeHeaderFullUi.svelte`):
-   ```svelte
-   <script lang="ts">
-       import { copyTextToClipboard } from '../../../data/clipboard';
-   </script>
-
-   <div role="button" tabindex="0"
-       onclick={() => copyTextToClipboard(name.rus)}
-       onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') copyTextToClipboard(name.rus); }}
-       aria-label="Скопировать в буфер обмена"
-   >
-       <span>{name.rus}</span> <span class="clipboard-icon">📋</span>
-   </div>
-   ```
+Add copy/paste helpers in `src/data/clipboard.ts` only when the feature needs clipboard integration.
 
 ## Checklist
 
-- [ ] Domain models created (`SmallNewType`, `FullNewType`, `NewTypeFilters`)
-- [ ] JSON data file created in `data/`
-- [ ] SmallDao and FullDao created in `src/data/database/`
-- [ ] Repository created in `src/data/repositories/`
-- [ ] Svelte UI components created in `src/ui/layout/newtype/`
-- [ ] Shared UIKit components reused where possible before adding feature-local structure
-- [ ] SidePanel created in `src/ui/components/sidepanel/`
-- [ ] CodeBlockProcessor created in `src/ui/components/processor/`
-- [ ] Feature class created in `src/ui/components/feature/`
-- [ ] DAOs registered in `DB.ts` (`initDaos()` and `getDaos()`)
-- [ ] Feature registered in `main.ts` (`#initialize()` and `features` array)
-- [ ] Link listener extended (`HtmlLinkListener` interface, `registerHtmlLinkListener()`, `UiEventListener`)
-- [ ] Clipboard support added (`copyNewTypeToClipboard()` in `src/data/clipboard.ts`)
-- [ ] Clipboard copy wired in header Svelte component
-- [ ] Tests added in `test/`
+- [ ] Domain models and repository interface updated.
+- [ ] Static data and seed service added, if needed.
+- [ ] SQL DAOs added in `src/data/database/`.
+- [ ] Mapper and small item projector added.
+- [ ] Repository implemented with dependency ports.
+- [ ] Repository factory added.
+- [ ] Svelte UI components added using shared UIKit where possible.
+- [ ] Side panel added.
+- [ ] Code block processor added.
+- [ ] Feature class added.
+- [ ] DAOs registered in `DB.ts`.
+- [ ] Feature registered in `main.ts`.
+- [ ] Link listener extended, if needed.
+- [ ] Clipboard support added, if needed.
+- [ ] Tests added or updated.
+- [ ] `npm run svelte-check`, `npm run test -- --run`, and `npm run build` pass.

@@ -3,7 +3,6 @@ import type { SmallClass } from 'src/domain/models/class/SmallClass';
 import { Dao, WhereClauseData } from '../../domain/Dao';
 import type { App, PluginManifest } from 'obsidian';
 import type { ClassesFilters } from 'src/domain/models/class/ClassesFilters';
-import { baseClasses } from '../../assets/data/classes';
 
 export class SmallClassSqlTableDao extends Dao<SmallClass, ClassesFilters> {
 
@@ -19,36 +18,6 @@ export class SmallClassSqlTableDao extends Dao<SmallClass, ClassesFilters> {
 
     getTableName(): string {
         return 'small_classes';
-    }
-
-    getLocalData(): SmallClass[] {
-        const items: SmallClass[] = [];
-
-        for (const classData of baseClasses) {
-            // Add base class
-            items.push({
-                name: classData.name,
-                url: classData.url,
-                dice: classData.dice,
-                source: classData.source,
-                isArchetype: false,
-                parentClassUrl: undefined,
-            });
-
-            // Add each archetype as separate item
-            for (const archetype of classData.archetypes) {
-                items.push({
-                    name: archetype.name,
-                    url: archetype.url,
-                    dice: classData.dice,           // Inherit from parent
-                    source: archetype.source,
-                    isArchetype: true,
-                    parentClassUrl: classData.url,
-                });
-            }
-        }
-
-        return items;  // Returns ~428 items
     }
 
     // Table management

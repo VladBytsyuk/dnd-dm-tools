@@ -12,7 +12,7 @@ runSqlDaoBaseTests<SmallArtifact, ArtifactoryFilters>({
     filters: artifactoryFilters,
     expected: {
         table: 'small_artifactory',
-        fill: true,
+        fill: false,
         whereClausesCount: 3,
         filterParams: [ "чудесный предмет", "волшебная палочка", "XGE", "BMT", "DMG", "O", "Р", "А" ],
     },

@@ -7,6 +7,7 @@ import { runBaseRepositoryTests } from "./BaseRepository";
 import { smallRace1, smallRace2, smallRace3, raceFilters } from "../../__mocks__/domain/models/race/small_race_items";
 import { fullRace1, fullRace2, fullRace3, fullRace1Subrace } from "../../__mocks__/domain/models/race/full_race_items";
 import { mockDatabase } from "../../__mocks__/dao/mock_item_dao";
+import { FullItemReadServiceDouble } from "../ports/testDoubles";
 
 runBaseRepositoryTests<SmallRace, FullRace, RaceFilters>({
     title: 'Repository: Races',
@@ -252,9 +253,8 @@ describe('RacesRepository - Subrace Persistence', () => {
             transaction: vi.fn().mockImplementation(async (fn) => await fn()),
         };
 
-        const repo = new RacesRepository(mockDb as any);
-        // Mock the fetchFromAPI method to return race with subraces
-        (repo as any).fetchFromAPI = vi.fn().mockResolvedValue(raceWithSubraces);
+        const service = new FullItemReadServiceDouble<any>().succeed(raceWithSubraces);
+        const repo = new RacesRepository(mockDb as any, service);
 
         const result = await repo.getFullItemByUrl('/races/elf');
 
@@ -312,8 +312,8 @@ describe('RacesRepository - Subrace Persistence', () => {
             transaction: vi.fn().mockImplementation(async (fn) => await fn()),
         };
 
-        const repo = new RacesRepository(mockDb as any);
-        (repo as any).fetchFromAPI = vi.fn().mockResolvedValue(raceWithNestedSubraces);
+        const service = new FullItemReadServiceDouble<any>().succeed(raceWithNestedSubraces);
+        const repo = new RacesRepository(mockDb as any, service);
 
         await repo.getFullItemByUrl('/races/elf');
 
@@ -333,7 +333,9 @@ describe('RacesRepository - Subrace Persistence', () => {
             subraces: undefined, // Subraces not populated in cached object
         };
 
-        const readSubracesByParentUrlMock = vi.fn().mockResolvedValue([cachedSubrace]);
+        const readSubracesByParentUrlMock = vi.fn()
+            .mockResolvedValueOnce([cachedSubrace])
+            .mockResolvedValue([]);
 
         const mockFullDao = {
             readAllItems: vi.fn().mockResolvedValue([cachedRace]),
@@ -399,8 +401,8 @@ describe('RacesRepository - Subrace Persistence', () => {
             transaction: vi.fn().mockImplementation(async (fn) => await fn()),
         };
 
-        const repo = new RacesRepository(mockDb as any);
-        (repo as any).fetchFromAPI = vi.fn().mockResolvedValue(raceWithoutSubraces);
+        const service = new FullItemReadServiceDouble<any>().succeed(raceWithoutSubraces);
+        const repo = new RacesRepository(mockDb as any, service);
 
         await repo.getFullItemByUrl('/races/elf');
 

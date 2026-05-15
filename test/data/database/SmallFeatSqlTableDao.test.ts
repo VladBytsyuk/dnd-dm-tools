@@ -27,7 +27,7 @@ runSqlDaoBaseTests<SmallFeat, FeatsFilters>({
     filters: filters,
     expected: {
         table: 'small_feats',
-        fill: true,
+        fill: false,
         whereClausesCount: 1,
         filterParams: ['PHB'],
     },

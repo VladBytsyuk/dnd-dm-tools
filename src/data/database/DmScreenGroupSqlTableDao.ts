@@ -2,7 +2,6 @@ import { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import { Dao } from "../../domain/Dao";
 import type { App, PluginManifest } from "obsidian";
 import type { Database, SqlValue } from "sql.js";
-import { baseDmScreenItems } from "../../assets/data/dm_screen";
 
 export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
 
@@ -18,10 +17,6 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
 
     getTableName(): string {
         return 'dm_screen_items';
-    }
-
-    getLocalData(): DmScreenItem[] {
-        return baseDmScreenItems;
     }
 
     // Table management
@@ -43,49 +38,6 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
                 parent_url TEXT
             );
         `);
-    }
-
-    async fillTableWithData(): Promise<void> {
-        const tableEmpty = await this.isTableEmpty();
-        if (tableEmpty) {
-            const groups = this.getLocalData();
-            const flattenGroups = (items: DmScreenItem[]): DmScreenItem[] => {
-                let result: DmScreenItem[] = [];
-                for (const item of items) {
-                    const dmScreenItem = DmScreenItem(
-                        item.name,
-                        item.url,
-                        item.order,
-                        item.source,
-                        item.group,
-                        item.icon,
-                        item.description,
-                        undefined
-                    );
-                    result.push(dmScreenItem);
-                    if (item.children && item.children.length > 0) {
-                        const childItems = flattenGroups(item.children).map(child => {
-                            return DmScreenItem(
-                                child.name,
-                                child.url,
-                                child.order,
-                                child.source,
-                                child.group,
-                                child.icon,
-                                child.description,
-                                item.url
-                            );
-                        });
-                        result = result.concat(childItems);
-                    }
-                }
-                return result;
-            };
-            const flattenedItems = flattenGroups(groups);
-            for (const group of flattenedItems || []) {
-                await this.createItem(group);
-            }
-        }
     }
 
     // CRUD operations
@@ -153,7 +105,7 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
                     group_short_name = ?,
                     group_item = ?,
                     description = ?
-                WHERE url = ?;
+                WHERE url = ? COLLATE NOCASE;
             `, [
                 item.name.rus,
                 item.name.eng,
@@ -202,11 +154,16 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
             const result = this.database.exec(`
                 SELECT COUNT(*) FROM ${this.getTableName()} WHERE parent_url = ?;
             `, [url]);
-            return result.length;
+            if (result.length === 0 || result[0].values.length === 0) return 0;
+            return Number(result[0].values[0][0]);
         } catch (error) {
             console.error(`Error reading children count for ${url}:`, error);
             throw error;
         }
+    }
+
+    async readItemByUrl(url: string): Promise<DmScreenItem | null> {
+        return this.readItem('url = ? COLLATE NOCASE', [url]);
     }
 
     async readChildren(url: string | undefined = undefined): Promise<DmScreenItem[]> {
