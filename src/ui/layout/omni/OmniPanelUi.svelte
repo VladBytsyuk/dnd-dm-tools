@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type {
-		OmniTileSettings,
+		AssistantTileState,
+		AssistantWorkspaceState,
 		PanelKey,
-		PluginSettings,
-	} from "src/domain/settings/PluginSettings";
+	} from "src/domain/models/assistant/AssistantWorkspace";
 	import type { PanelSearchResult } from "src/ui/components/sidepanel/PanelHost";
 	import OmniPanelContent from "./OmniPanelContent.svelte";
 
@@ -18,11 +18,11 @@
 		saveWorkspace,
 	}: {
 		panels: PanelSummary[];
-		initialWorkspace: PluginSettings["omniWorkspace"];
+		initialWorkspace: AssistantWorkspaceState;
 		search: (query: string) => Promise<PanelSearchResult[]>;
 		openResult: (result: PanelSearchResult) => Promise<void>;
 		mountPanel: (key: PanelKey, element: Element) => Promise<() => void>;
-		saveWorkspace: (workspace: PluginSettings["omniWorkspace"]) => Promise<void>;
+		saveWorkspace: (workspace: AssistantWorkspaceState) => Promise<void>;
 	} = $props();
 
 	function getInitialWorkspace() {
@@ -58,13 +58,13 @@
 		persist();
 	}
 
-	function activate(tile: OmniTileSettings, key: PanelKey, index: 0 | 1) {
+	function activate(tile: AssistantTileState, key: PanelKey, index: 0 | 1) {
 		tile.activeTab = key;
 		workspace.focusedTile = index;
 		persist();
 	}
 
-	function closeTab(tile: OmniTileSettings, key: PanelKey) {
+	function closeTab(tile: AssistantTileState, key: PanelKey) {
 		const index = tile.tabs.indexOf(key);
 		tile.tabs = tile.tabs.filter((tab) => tab !== key);
 		if (tile.activeTab === key) {
@@ -85,7 +85,7 @@
 		persist();
 	}
 
-	function reorderTab(tile: OmniTileSettings, key: PanelKey, offset: -1 | 1) {
+	function reorderTab(tile: AssistantTileState, key: PanelKey, offset: -1 | 1) {
 		const currentIndex = tile.tabs.indexOf(key);
 		const nextIndex = currentIndex + offset;
 		if (currentIndex < 0 || nextIndex < 0 || nextIndex >= tile.tabs.length) return;
@@ -224,7 +224,7 @@
 						{:else}
 							<div class="empty">
 								<strong>Откройте панель</strong>
-								<span>Выберите раздел в верхней части Омни-панели.</span>
+								<span>Выберите раздел в верхней части Помощника ДМа.</span>
 							</div>
 						{/if}
 					</div>

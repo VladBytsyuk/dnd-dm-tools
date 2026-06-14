@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import type { PanelKey } from "src/domain/settings/PluginSettings";
+	import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
 
 	let {
 		panelKey,
@@ -35,4 +35,3 @@
 		overflow: hidden;
 	}
 </style>
-

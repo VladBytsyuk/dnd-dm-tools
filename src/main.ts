@@ -1,4 +1,4 @@
-import { normalizePath, Plugin } from 'obsidian';
+import { Plugin } from 'obsidian';
 import { registerThemeChangeListener } from './ui/theme';
 import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor/encounter_md_code_block_processor';
 import { registerAddEncounterCommand } from './ui/components/command/add_encounter_command';
@@ -20,13 +20,10 @@ import { RaceFeature } from './ui/components/feature/RaceFeature';
 import { ClassesFeature } from './ui/components/feature/ClassesFeature';
 import { CharacterSheetFeature } from './ui/components/feature/CharacterSheetFeature';
 import {
-	normalizeSettings,
-	type PanelKey,
-	type PluginMode,
-	type PluginSettings,
-} from './domain/settings/PluginSettings';
+	loadAssistantWorkspace,
+	type AssistantWorkspaceState,
+} from './domain/models/assistant/AssistantWorkspace';
 import { PanelManager } from './ui/components/sidepanel/PanelManager';
-import { DndDmToolsSettingTab } from './ui/components/settings/DndDmToolsSettingTab';
 import type { PanelHost } from './ui/components/sidepanel/PanelHost';
 
 export default class DndStatblockPlugin extends Plugin {
@@ -47,24 +44,17 @@ export default class DndStatblockPlugin extends Plugin {
 	spellbookFeature: SpellbookFeature;
 	dmScreenFeature: DmScreenFeature;
 	private features: BaseFeature<any, any, any>[];
-	settings: PluginSettings;
+	private assistantWorkspace: AssistantWorkspaceState;
 	panelManager: PanelManager;
+	private shouldResetLegacyViews = false;
 
 	#uiEventListener: IUiEventListener;
 
 	// ---- callbacks ----
 	async onload() {
-		const storedSettings = await this.loadData();
-		const databasePath = normalizePath([
-			this.app.vault.configDir,
-			"plugins",
-			this.manifest.id,
-			"database.db",
-		].join("/"));
-		const existingInstallation = Boolean(storedSettings)
-			|| await this.app.vault.adapter.exists(databasePath);
-		this.settings = normalizeSettings(storedSettings, existingInstallation);
-		await this.saveData(this.settings);
+		const loadResult = loadAssistantWorkspace(await this.loadData());
+		this.assistantWorkspace = loadResult.workspace;
+		this.shouldResetLegacyViews = loadResult.shouldResetLegacyViews;
 
 		await this.#initialize(() => {
 			registerEncounterMdCodeBlockProcessor(
@@ -75,7 +65,6 @@ export default class DndStatblockPlugin extends Plugin {
 			);
 			registerAddEncounterCommand(this);
 			registerThemeChangeListener();
-			this.addSettingTab(new DndDmToolsSettingTab(this));
 			console.log("dnd-dm-tools has been loaded.");
 		});
 	}
@@ -85,17 +74,9 @@ export default class DndStatblockPlugin extends Plugin {
 		console.log("dnd-dm-tools has been unloaded.");
 	}
 
-	async setMode(mode: PluginMode): Promise<void> {
-		await this.panelManager.setMode(mode);
-	}
-
-	async setSeparatePanelEnabled(key: PanelKey, enabled: boolean): Promise<void> {
-		this.settings.separatePanels[key] = enabled;
-		await this.panelManager.updateSeparatePanel(key);
-	}
-
-	async saveSettings(): Promise<void> {
-		await this.saveData(this.settings);
+	async persistAssistantWorkspace(workspace: AssistantWorkspaceState): Promise<void> {
+		this.assistantWorkspace = workspace;
+		await this.saveData(workspace);
 	}
 
 	// ---- private methods ----
@@ -151,14 +132,15 @@ export default class DndStatblockPlugin extends Plugin {
 
 		this.panelManager = new PanelManager(
 			this,
-			() => this.settings,
-			() => this.saveSettings(),
+			() => this.assistantWorkspace,
+			(workspace) => this.persistAssistantWorkspace(workspace),
 		);
 		const panels: PanelHost[] = this.features
 			.map((feature) => feature.sidePanel)
 			.filter((panel): panel is NonNullable<typeof panel> => Boolean(panel));
 		panels.push(new InitiativeTrackerPanel(this, this.#uiEventListener));
-		this.panelManager.register(panels);
+		await this.panelManager.register(panels, this.shouldResetLegacyViews);
+		await this.persistAssistantWorkspace(this.assistantWorkspace);
 		
 		callback();
 	}

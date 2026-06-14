@@ -3,44 +3,42 @@ import { mount, unmount } from "svelte";
 import type { BaseItem } from "src/domain/models/common/BaseItem";
 import {
 	PANEL_KEYS,
+	type AssistantWorkspaceState,
 	type PanelKey,
-	type PluginMode,
-	type PluginSettings,
-} from "src/domain/settings/PluginSettings";
+} from "src/domain/models/assistant/AssistantWorkspace";
 import type DndStatblockPlugin from "src/main";
 import OmniPanelUi from "src/ui/layout/omni/OmniPanelUi.svelte";
 import type { PanelHost, PanelSearchResult } from "./PanelHost";
 
 export const OMNI_VIEW_ID = "dnd-dm-tools-omni";
+const LEGACY_VIEW_PREFIX = "obsidian-dnd-statblock-side-panel-";
 
 export class PanelManager {
 	private panels = new Map<PanelKey, PanelHost>();
-	private ribbonElements: HTMLElement[] = [];
 	private currentItems = new Map<PanelKey, BaseItem>();
-	private activeSeparatePanel: PanelKey | null = null;
-	private omniView: OmniItemView | null = null;
+	private assistantView: AssistantItemView | null = null;
 
 	constructor(
 		private plugin: DndStatblockPlugin,
-		private getSettings: () => PluginSettings,
-		private saveSettings: () => Promise<void>,
+		private getPersistedWorkspace: () => AssistantWorkspaceState,
+		private persistWorkspace: (workspace: AssistantWorkspaceState) => Promise<void>,
 	) {}
 
-	register(panels: PanelHost[]): void {
+	async register(panels: PanelHost[], shouldResetLegacyViews: boolean): Promise<void> {
 		for (const panel of panels) {
 			if (this.panels.has(panel.getKey())) throw new Error(`Duplicate panel key: ${panel.getKey()}`);
 			this.panels.set(panel.getKey(), panel);
-			panel.registerView();
 		}
 		this.plugin.registerView(OMNI_VIEW_ID, (leaf) => {
-			this.omniView = new OmniItemView(leaf, this);
-			return this.omniView;
+			this.assistantView = new AssistantItemView(leaf, this);
+			return this.assistantView;
 		});
-		this.rebuildRibbons();
-	}
+		this.plugin.addRibbonIcon("layout-dashboard", "Помощник ДМа", () => this.openAssistant());
 
-	getPanel(key: PanelKey): PanelHost | undefined {
-		return this.panels.get(key);
+		if (shouldResetLegacyViews) {
+			this.detachLegacyViews();
+			await this.openAssistant();
+		}
 	}
 
 	getPanelSummaries() {
@@ -53,53 +51,20 @@ export class PanelManager {
 			}));
 	}
 
-	getWorkspace(): PluginSettings["omniWorkspace"] {
-		return this.getSettings().omniWorkspace;
-	}
-
-	async setMode(mode: PluginMode): Promise<void> {
-		const settings = this.getSettings();
-		if (settings.mode === mode) return;
-		settings.mode = mode;
-		if (mode === "omni" && this.activeSeparatePanel) {
-			this.addTabToFocusedTile(this.activeSeparatePanel);
-		}
-		await this.saveSettings();
-		this.detachIncompatibleViews(mode);
-		this.rebuildRibbons();
-		if (mode === "omni") {
-			await this.openOmni();
-		} else if (this.activeSeparatePanel) {
-			await this.openPanel(this.activeSeparatePanel);
-		}
-	}
-
-	async updateSeparatePanel(_key: PanelKey): Promise<void> {
-		await this.saveSettings();
-		if (this.getSettings().mode === "separate") this.rebuildRibbons();
+	getWorkspace(): AssistantWorkspaceState {
+		return this.getPersistedWorkspace();
 	}
 
 	async openPanel(key: PanelKey): Promise<void> {
-		const panel = this.panels.get(key);
-		if (!panel) return;
-		if (this.getSettings().mode === "separate") {
-			this.activeSeparatePanel = key;
-			await panel.openSeparate();
-			return;
-		}
+		if (!this.panels.has(key)) return;
 		this.addTabToFocusedTile(key);
-		await this.saveSettings();
-		await this.openOmni();
-		this.omniView?.refresh();
+		await this.persistWorkspace(this.getWorkspace());
+		await this.openAssistant();
+		this.assistantView?.refresh();
 	}
 
 	async openItem(key: PanelKey, item?: BaseItem): Promise<void> {
 		if (item) this.currentItems.set(key, item);
-		if (this.getSettings().mode === "separate") {
-			this.activeSeparatePanel = key;
-			await this.panels.get(key)?.openSeparate(item);
-			return;
-		}
 		await this.openPanel(key);
 	}
 
@@ -131,18 +96,12 @@ export class PanelManager {
 		};
 	}
 
-	async saveWorkspace(workspace: PluginSettings["omniWorkspace"]): Promise<void> {
-		this.getSettings().omniWorkspace = workspace;
-		await this.saveSettings();
-	}
-
-	refresh(): void {
-		this.rebuildRibbons();
-		this.omniView?.refresh();
+	async saveWorkspace(workspace: AssistantWorkspaceState): Promise<void> {
+		await this.persistWorkspace(workspace);
 	}
 
 	private addTabToFocusedTile(key: PanelKey): void {
-		const workspace = this.getSettings().omniWorkspace;
+		const workspace = this.getWorkspace();
 		for (const tile of workspace.tiles) {
 			const index = tile.tabs.indexOf(key);
 			if (index >= 0) tile.tabs.splice(index, 1);
@@ -154,38 +113,20 @@ export class PanelManager {
 		target.activeTab = key;
 	}
 
-	private rebuildRibbons(): void {
-		for (const element of this.ribbonElements) element.remove();
-		this.ribbonElements = [];
-		const settings = this.getSettings();
-		if (settings.mode === "omni") {
-			this.ribbonElements.push(this.plugin.addRibbonIcon("layout-dashboard", "Омни", () => this.openOmni()));
-			return;
-		}
-		for (const [key, panel] of this.panels) {
-			if (settings.separatePanels[key]) this.ribbonElements.push(panel.addRibbonIcon());
+	private detachLegacyViews(): void {
+		for (const key of PANEL_KEYS) {
+			this.plugin.app.workspace.detachLeavesOfType(`${LEGACY_VIEW_PREFIX}${key}`);
 		}
 	}
 
-	private detachIncompatibleViews(mode: PluginMode): void {
-		if (mode === "omni") {
-			for (const panel of this.panels.values()) {
-				this.plugin.app.workspace.detachLeavesOfType(panel.getViewId());
-			}
-			return;
-		}
-		this.plugin.app.workspace.detachLeavesOfType(OMNI_VIEW_ID);
-	}
-
-	private async openOmni(): Promise<void> {
+	private async openAssistant(): Promise<void> {
 		let leaf = this.plugin.app.workspace.getLeavesOfType(OMNI_VIEW_ID)[0];
 		if (!leaf) leaf = this.plugin.app.workspace.getRightLeaf(true)!!;
 		await leaf.setViewState({ type: OMNI_VIEW_ID });
 		await this.plugin.app.workspace.revealLeaf(leaf);
 	}
 }
-
-class OmniItemView extends ItemView {
+class AssistantItemView extends ItemView {
 	private component: unknown;
 
 	constructor(leaf: WorkspaceLeaf, private manager: PanelManager) {
@@ -193,7 +134,7 @@ class OmniItemView extends ItemView {
 	}
 
 	getViewType() { return OMNI_VIEW_ID; }
-	getDisplayText() { return "Омни"; }
+	getDisplayText() { return "Помощник ДМа"; }
 	getIcon() { return "layout-dashboard"; }
 
 	async onOpen() {
@@ -221,7 +162,7 @@ class OmniItemView extends ItemView {
 				search: (query: string) => this.manager.search(query),
 				openResult: (result: PanelSearchResult) => this.manager.openSearchResult(result),
 				mountPanel: (key: PanelKey, element: Element) => this.manager.mountPanel(key, element),
-				saveWorkspace: (workspace: PluginSettings["omniWorkspace"]) => this.manager.saveWorkspace(workspace),
+				saveWorkspace: (workspace: AssistantWorkspaceState) => this.manager.saveWorkspace(workspace),
 			},
 		});
 	}
