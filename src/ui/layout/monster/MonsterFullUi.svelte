@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onDestroy, onMount, tick } from 'svelte';
 	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
-	import { type FullMonster } from '../../../domain/models/monster/FullMonster';
+	import { normalizeMonsterForEditing, type FullMonster } from '../../../domain/models/monster/FullMonster';
 	import type { IUiEventListener } from '../../../domain/listeners/ui_event_listener';
 	import MonsterBaseInfo from './kit/MonsterBaseInfo.svelte';
 	import MonsterName from './kit/MonsterName.svelte';
@@ -23,15 +23,15 @@
 		uiEventListener,
         isEditable = false,
         onClose = () => {},
-        onItemSave = (currentItem: FullMonster) => {true},
-        onItemDelete = (url: string) => {true}
+        onItemSave = (_currentItem: FullMonster) => true,
+        onItemDelete = (_url: string) => true
 	} = $props<{
         currentItem: FullMonster;
         uiEventListener: IUiEventListener;
         isEditable: boolean;
-        onCloose: () => void;
-        onItemSave: (currentItem: FullMonster) => boolean;
-        onItemDelete: (url: string) => boolean;
+        onClose: () => void;
+        onItemSave: (currentItem: FullMonster) => boolean | Promise<boolean>;
+        onItemDelete: (url: string) => boolean | Promise<boolean>;
     }>();
 
 	let isInEditMode = $state(false);
@@ -54,14 +54,15 @@
 
     const onEditModeChange = async (newIsInEditMode: boolean, saveChanges: boolean) => {
         if (newIsInEditMode) {
-            isInEditMode = newIsInEditMode;
             reservedItem = $state.snapshot(currentItem);
+            currentItem = normalizeMonsterForEditing(currentItem);
+            isInEditMode = newIsInEditMode;
             return;
         }
 
         if (saveChanges) {
             if (validateUrl(currentItem.url)) {
-                const saveSucceed = onItemSave(currentItem);
+                const saveSucceed = await onItemSave(currentItem);
                 if (saveSucceed) {
                     isInEditMode = newIsInEditMode;
                 } else {
@@ -83,11 +84,11 @@
 
     const onMonsterPaste = async () => {
         const newItem = await getMonsterFromClipboard();
-        if (newItem) currentItem = newItem;
+        if (newItem) currentItem = normalizeMonsterForEditing(newItem);
     };
 
-    const onMonsterDelete = () => {
-        const deleteSuccess = onItemDelete(currentItem.url);
+    const onMonsterDelete = async () => {
+        const deleteSuccess = await onItemDelete(currentItem.url);
         if (deleteSuccess) {
             onClose();
         } else {

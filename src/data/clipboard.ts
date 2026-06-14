@@ -117,14 +117,14 @@ export async function getClassFromClipboard(ignoreNotice: boolean = false): Prom
 
 export async function getFromClipboard<T>(blockName: string): Promise<T | undefined> {
     try {
-        const clipboard = await navigator.clipboard.readText();
-        if (!clipboard.startsWith(`\`\`\`${blockName}`)) {
+        const clipboard = (await navigator.clipboard.readText())
+            .replace(/\r\n?/g, "\n")
+            .trim();
+        const lines = clipboard.split("\n");
+        if (lines[0]?.trim() !== `\`\`\`${blockName}` || lines.at(-1)?.trim() !== "```") {
             throw new Error(`Clipboard content does not start with \`\`\`${blockName}`);   
         }
-        const yaml = clipboard
-            .split('\n')
-            .filter((value) => !value.includes("```"))
-            .join('\n');
+        const yaml = lines.slice(1, -1).join("\n");
         const obj = parseYaml(yaml) as T;   
         return obj;
     } catch(e) {

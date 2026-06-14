@@ -60,7 +60,7 @@ export class SmallMonsterSqlTableDao extends Dao<SmallMonster, BestiaryFilters> 
             [
                 item.name.rus,
                 item.name.eng,
-                item.type as string,
+                this.getTypeName(item),
                 item.challengeRating,
                 item.url,
                 item.source.shortName,
@@ -120,7 +120,7 @@ export class SmallMonsterSqlTableDao extends Dao<SmallMonster, BestiaryFilters> 
             `, [
                 item.name.rus,
                 item.name.eng,
-                item.type as string,
+                this.getTypeName(item),
                 item.challengeRating,
                 item.url,
                 item.source.shortName,
@@ -161,5 +161,9 @@ export class SmallMonsterSqlTableDao extends Dao<SmallMonster, BestiaryFilters> 
             console.error('Error mapping SQL values to SmallMonster:', error);
             throw error;
         }
+    }
+
+    private getTypeName(item: SmallMonster): string {
+        return typeof item.type === 'string' ? item.type : item.type.name;
     }
 }

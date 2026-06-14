@@ -1,8 +1,9 @@
-import { expect } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SmallMonsterSqlTableDao } from '../../../src/data/database/SmallMonsterSqlTableDao';
 import type { SmallMonster } from '../../../src/domain/models/monster/SmallMonster';
 import type { BestiaryFilters } from '../../../src/domain/models/monster/BestiaryFilters';
 import { runSqlDaoBaseTests } from './Dao';
+import { mockApp, mockDatabase, mockManifest } from '../../__mocks__/data';
 
 const sampleMonster: SmallMonster = {
     name: { rus: 'Гоблин', eng: 'Goblin' },
@@ -65,4 +66,39 @@ runSqlDaoBaseTests<SmallMonster, BestiaryFilters>({
             expect(monster.source.homebrew).toBe(sampleMonster.source.homebrew);
         }
     }
+});
+
+describe('SmallMonsterSqlTableDao structured type persistence', () => {
+    let dao: SmallMonsterSqlTableDao;
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        dao = new SmallMonsterSqlTableDao(mockDatabase as any, mockApp as any, mockManifest as any);
+    });
+
+    it('binds the type name when creating a monster with structured type data', async () => {
+        vi.spyOn(dao, 'checkItemExists').mockResolvedValue(false);
+
+        await dao.createItem({
+            ...sampleMonster,
+            type: { name: 'Гуманоид' },
+        });
+
+        const insertCall = (mockDatabase.exec as any).mock.calls.find(
+            ([sql]: [string]) => sql.includes('INSERT INTO small_bestiary')
+        );
+        expect(insertCall[1][2]).toBe('Гуманоид');
+    });
+
+    it('binds the type name when updating a monster with structured type data', async () => {
+        await dao.updateItem({
+            ...sampleMonster,
+            type: { name: 'Гуманоид' },
+        });
+
+        const updateCall = (mockDatabase.exec as any).mock.calls.find(
+            ([sql]: [string]) => sql.includes('UPDATE small_bestiary SET')
+        );
+        expect(updateCall[1][2]).toBe('Гуманоид');
+    });
 });

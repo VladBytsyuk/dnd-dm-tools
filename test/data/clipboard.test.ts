@@ -231,6 +231,21 @@ ${yaml}
         expect(monster).toEqual(mockMonster);
     });
 
+    it('should get monster from a statblock with surrounding whitespace and CRLF', async () => {
+        const yaml = obsidian.stringifyYaml(mockMonster).replace(/\n/g, '\r\n');
+        const clipboardContent = `  \r\n\`\`\`statblock\r\n${yaml}\r\n\`\`\`\r\n  `;
+        const readText = vi.fn().mockResolvedValue(clipboardContent);
+
+        Object.defineProperty(navigator, 'clipboard', {
+            value: { readText },
+            writable: true,
+        });
+
+        const monster = await getMonsterFromClipboard(true);
+
+        expect(monster).toEqual(mockMonster);
+    });
+
     it('should get encounter participant from clipboard', async () => {
         // Arrange
         const yaml = obsidian.stringifyYaml(mockMonster);

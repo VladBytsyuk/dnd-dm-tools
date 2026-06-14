@@ -9,9 +9,9 @@
         onItemDelete
     } = $props<{
         isInEditMode: boolean;
-        onEditModeChange: (isInEditMode: boolean, saveChanges: boolean) => void;
-        onItemPaste: () => void;
-        onItemDelete: () => void;
+        onEditModeChange: (isInEditMode: boolean, saveChanges: boolean) => void | Promise<void>;
+        onItemPaste: () => void | Promise<void>;
+        onItemDelete: () => void | Promise<void>;
     }>();
 </script>
   
