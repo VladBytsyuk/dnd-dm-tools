@@ -11,7 +11,7 @@ import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
 export class BestiarySidePanel extends BaseSidePanel<SmallMonster, FullMonster, BestiaryFilters> {
 
-    getKey(): string { return "bestiary"; }
+    getKey() { return "bestiary" as const; }
     getRibbonIconName(): string { return "skull"; }
     getTitle(): string { return "Бестиарий"; }
 
@@ -22,7 +22,7 @@ export class BestiarySidePanel extends BaseSidePanel<SmallMonster, FullMonster, 
             { key: 'challengeRatings', label: 'Опасность' },
         ];
 
-        mount(BaseSidePanelUi, {
+        return mount(BaseSidePanelUi, {
             target: element,
             props: {
                 initialFullItem: this.fullItem,

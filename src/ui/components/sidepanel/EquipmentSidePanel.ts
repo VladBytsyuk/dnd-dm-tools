@@ -11,7 +11,7 @@ import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
 export class EquipmentSidePanel extends BaseSidePanel<SmallItem, FullItem, EquipmentFilters> {
 
-    getKey(): string { return "equipment"; }
+    getKey() { return "equipment" as const; }
     getRibbonIconName(): string { return "backpack"; }
     getTitle(): string { return "Экипировка"; }
 
@@ -20,7 +20,7 @@ export class EquipmentSidePanel extends BaseSidePanel<SmallItem, FullItem, Equip
             { key: 'sources', label: 'Источник' },
         ];
 
-        mount(BaseSidePanelUi, {
+        return mount(BaseSidePanelUi, {
             target: element,
             props: {
                 initialFullItem: this.fullItem,

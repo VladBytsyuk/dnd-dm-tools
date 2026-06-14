@@ -1,11 +1,11 @@
-import { Plugin } from 'obsidian';
+import { normalizePath, Plugin } from 'obsidian';
 import { registerThemeChangeListener } from './ui/theme';
 import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor/encounter_md_code_block_processor';
 import { registerAddEncounterCommand } from './ui/components/command/add_encounter_command';
 import { UiEventListener } from './data/ui_event_listener';
 import type { IUiEventListener } from './domain/listeners/ui_event_listener';
 import DB from './data/database/DB';
-import { registerSidePanelInitiativeTracker } from './ui/components/sidepanel/side_panel_initiative_tracker';
+import { InitiativeTrackerPanel } from './ui/components/sidepanel/side_panel_initiative_tracker';
 import { ArsenalFeature } from './ui/components/feature/ArsenalFeature';
 import type { BaseFeature } from './ui/components/feature/BaseFeature';
 import { BestiaryFeature } from './ui/components/feature/BestiaryFeature';
@@ -19,6 +19,15 @@ import { FeatFeature } from './ui/components/feature/FeatFeature';
 import { RaceFeature } from './ui/components/feature/RaceFeature';
 import { ClassesFeature } from './ui/components/feature/ClassesFeature';
 import { CharacterSheetFeature } from './ui/components/feature/CharacterSheetFeature';
+import {
+	normalizeSettings,
+	type PanelKey,
+	type PluginMode,
+	type PluginSettings,
+} from './domain/settings/PluginSettings';
+import { PanelManager } from './ui/components/sidepanel/PanelManager';
+import { DndDmToolsSettingTab } from './ui/components/settings/DndDmToolsSettingTab';
+import type { PanelHost } from './ui/components/sidepanel/PanelHost';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -38,13 +47,26 @@ export default class DndStatblockPlugin extends Plugin {
 	spellbookFeature: SpellbookFeature;
 	dmScreenFeature: DmScreenFeature;
 	private features: BaseFeature<any, any, any>[];
+	settings: PluginSettings;
+	panelManager: PanelManager;
 
 	#uiEventListener: IUiEventListener;
 
 	// ---- callbacks ----
 	async onload() {
-		this.#initialize(() => {
-			registerSidePanelInitiativeTracker(this, this.#uiEventListener);
+		const storedSettings = await this.loadData();
+		const databasePath = normalizePath([
+			this.app.vault.configDir,
+			"plugins",
+			this.manifest.id,
+			"database.db",
+		].join("/"));
+		const existingInstallation = Boolean(storedSettings)
+			|| await this.app.vault.adapter.exists(databasePath);
+		this.settings = normalizeSettings(storedSettings, existingInstallation);
+		await this.saveData(this.settings);
+
+		await this.#initialize(() => {
 			registerEncounterMdCodeBlockProcessor(
 				this, 
 				this.bestiaryFeature.repository!,
@@ -53,6 +75,7 @@ export default class DndStatblockPlugin extends Plugin {
 			);
 			registerAddEncounterCommand(this);
 			registerThemeChangeListener();
+			this.addSettingTab(new DndDmToolsSettingTab(this));
 			console.log("dnd-dm-tools has been loaded.");
 		});
 	}
@@ -60,6 +83,19 @@ export default class DndStatblockPlugin extends Plugin {
 	onunload() {
 		this.#dispose();
 		console.log("dnd-dm-tools has been unloaded.");
+	}
+
+	async setMode(mode: PluginMode): Promise<void> {
+		await this.panelManager.setMode(mode);
+	}
+
+	async setSeparatePanelEnabled(key: PanelKey, enabled: boolean): Promise<void> {
+		this.settings.separatePanels[key] = enabled;
+		await this.panelManager.updateSeparatePanel(key);
+	}
+
+	async saveSettings(): Promise<void> {
+		await this.saveData(this.settings);
 	}
 
 	// ---- private methods ----
@@ -111,7 +147,18 @@ export default class DndStatblockPlugin extends Plugin {
 			this.classesFeature,
 			this.characterSheetFeature,
 		];
-		this.features.forEach(feature => feature.initialize());
+		await Promise.all(this.features.map(feature => feature.initialize()));
+
+		this.panelManager = new PanelManager(
+			this,
+			() => this.settings,
+			() => this.saveSettings(),
+		);
+		const panels: PanelHost[] = this.features
+			.map((feature) => feature.sidePanel)
+			.filter((panel): panel is NonNullable<typeof panel> => Boolean(panel));
+		panels.push(new InitiativeTrackerPanel(this, this.#uiEventListener));
+		this.panelManager.register(panels);
 		
 		callback();
 	}

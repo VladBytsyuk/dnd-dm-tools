@@ -11,7 +11,7 @@ import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
 export class ArsenalSidePanel extends BaseSidePanel<SmallWeapon, FullWeapon, ArsenalFilters> {
 
-    getKey(): string { return "arsenal"; }
+    getKey() { return "arsenal" as const; }
     getRibbonIconName(): string { return "axe"; }
     getTitle(): string { return "Арсенал"; }
 
@@ -23,7 +23,7 @@ export class ArsenalSidePanel extends BaseSidePanel<SmallWeapon, FullWeapon, Ars
             { key: 'types', label: 'Типы' },
         ];
 
-        mount(BaseSidePanelUi, {
+        return mount(BaseSidePanelUi, {
             target: element,
             props: {
                 initialFullItem: this.fullItem,

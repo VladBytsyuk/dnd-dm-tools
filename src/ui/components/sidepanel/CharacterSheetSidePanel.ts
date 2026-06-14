@@ -9,8 +9,8 @@ export class CharacterSheetSidePanel extends BaseSidePanel<
 	FullCharacterSheet,
 	CharacterSheetFilters
 > {
-	getKey(): string {
-		return "character-sheets";
+	getKey() {
+		return "character-sheets" as const;
 	}
 
 	getRibbonIconName(): string {
@@ -22,7 +22,7 @@ export class CharacterSheetSidePanel extends BaseSidePanel<
 	}
 
 	async mountSvelteComponent(element: Element) {
-		mount(CharacterSheetSidePanelUi, {
+		return mount(CharacterSheetSidePanelUi, {
 			target: element,
 			props: {
 				initialFullItem: this.fullItem,

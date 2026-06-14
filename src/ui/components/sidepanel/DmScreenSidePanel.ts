@@ -6,7 +6,7 @@ import { DmScreenRepository } from "src/data/repositories/DmScreenRepository";
 
 export class DmScreenSidePanel extends BaseSidePanel<DmScreenItem, DmScreenItem, any> {
 
-    getKey(): string { return "dm-screen"; }
+    getKey() { return "dm-screen" as const; }
     getRibbonIconName(): string { return "book-open"; }
     getTitle(): string { return "Ширма"; }
 
@@ -15,7 +15,7 @@ export class DmScreenSidePanel extends BaseSidePanel<DmScreenItem, DmScreenItem,
             throw new Error("DmScreenSidePanel can only be used with DmScreenRepository");
         }
         const dmScreenRepository = this.repository as DmScreenRepository;
-        mount(DmScreenSidePanelUi, {
+        return mount(DmScreenSidePanelUi, {
             target: element,
             props: {
                 item: this.fullItem,

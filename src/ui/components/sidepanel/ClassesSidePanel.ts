@@ -11,7 +11,7 @@ import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
 export class ClassesSidePanel extends BaseSidePanel<SmallClass, FullClass, ClassesFilters> {
 
-    getKey(): string { return "classes"; }
+    getKey() { return "classes" as const; }
     getRibbonIconName(): string { return "graduation-cap"; }
     getTitle(): string { return "Классы"; }
 
@@ -21,7 +21,7 @@ export class ClassesSidePanel extends BaseSidePanel<SmallClass, FullClass, Class
             { key: 'diceTypes', label: 'Типы костей' },
         ];
 
-        mount(BaseSidePanelUi, {
+        return mount(BaseSidePanelUi, {
             target: element,
             props: {
                 initialFullItem: this.fullItem,

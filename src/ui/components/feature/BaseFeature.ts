@@ -53,7 +53,6 @@ export abstract class BaseFeature<
 
     async initialize(): Promise<void> {
         this.repository?.initialize();
-        this.sidePanel?.register();
         if (this.repository) this.codeBlockProcessor?.register(this.plugin, this.repository, this.uiEventListener);
         this.getCommands().forEach(command => {
             this.plugin.addCommand({
@@ -71,8 +70,7 @@ export abstract class BaseFeature<
 
     async onItemClick(url: string): Promise<void> {
         if (!this.repository || !this.sidePanel) return;
-        const fullItem = await this.repository.getFullItemByUrl(url);
-        if (fullItem) await this.sidePanel.open(fullItem);
+        await this.plugin.panelManager.openItemByUrl(this.sidePanel.getKey(), url);
     }
 }
 
