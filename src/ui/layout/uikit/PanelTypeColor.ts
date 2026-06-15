@@ -1,6 +1,6 @@
 import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
 
-export const OMNI_RESULT_TYPE_COLORS = {
+export const PANEL_TYPE_COLORS = {
 	bestiary: "#D45555",
 	spellbook: "#8B5CF6",
 	"dm-screen": "#64748B",
@@ -15,8 +15,8 @@ export const OMNI_RESULT_TYPE_COLORS = {
 	"character-sheets": "#6366F1",
 } satisfies Partial<Record<PanelKey, string>>;
 
-export function getOmniResultTypeColor(panelKey: PanelKey): string {
-	return OMNI_RESULT_TYPE_COLORS[
-		panelKey as keyof typeof OMNI_RESULT_TYPE_COLORS
+export function getPanelTypeColor(panelKey: PanelKey): string {
+	return PANEL_TYPE_COLORS[
+		panelKey as keyof typeof PANEL_TYPE_COLORS
 	] ?? "#64748B";
 }

@@ -9,9 +9,11 @@
 	import UiEmptyState from "./organisms/UiEmptyState.svelte";
 	import UiSearchToolbar from "./organisms/UiSearchToolbar.svelte";
 	import UiItemGroup from "./organisms/UiItemGroup.svelte";
+	import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
 
     // ---- Props ----
     interface Props<Small extends BaseItem, Full extends Small, F extends Filters> {
+        panelKey: PanelKey;
         initialFullItem?: Full;
         initialFilters: F;
         uiEventListener: IUiEventListener;
@@ -25,6 +27,7 @@
     }
 
     let {
+        panelKey,
         initialFullItem,
         initialFilters,
         uiEventListener,
@@ -137,6 +140,7 @@
         <div class="content">
             {#each groups as group (group.sort)}
                 <UiItemGroup
+                    {panelKey}
                     groupTitle={groupTitleBuilder(group)}
                     items={group.smallItems}
                     onItemClick={onSmallItemClick}

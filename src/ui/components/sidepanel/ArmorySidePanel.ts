@@ -24,6 +24,7 @@ export class ArmorySidePanel extends BaseSidePanel<SmallArmor, FullArmor, Armory
         return mount(BaseSidePanelUi, {
             target: element,
             props: {
+                panelKey: this.getKey(),
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<ArmoryFilters>(['types', 'sources']),
                 repository: this.repository,

@@ -120,6 +120,7 @@
 		<div class="side-panel-content">
 			{#each browserState.groups as group (group.sort)}
 				<UiItemGroup
+					panelKey="character-sheets"
 					groupTitle={group.sort}
 					items={group.smallItems}
 					onItemClick={onSmallItemClick}

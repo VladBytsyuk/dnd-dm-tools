@@ -4,6 +4,7 @@
 	import DmScreenItemUi from "../screen/DmScreenItemUi.svelte";
 	import UiSearchToolbar from "../uikit/organisms/UiSearchToolbar.svelte";
 	import UiEmptyState from "../uikit/organisms/UiEmptyState.svelte";
+	import PanelTypeTint from "../uikit/PanelTypeTint.svelte";
 
     // ---- Props ----
     let { item, children, uiEventListener, getFilteredItems, getChildrenCount, getChildren, getFullItem } = $props();
@@ -106,12 +107,14 @@
         {:else}
             <div>
                 {#each filteredItems as item}
-                    <DmScreenGroupUi
-                        icon={item.icon}
-                        name={item.name}
-                        source={item.source.shortName}
-                        onclick={onItemClick(item)}        
-                    />
+                    <PanelTypeTint panelKey="dm-screen">
+                        <DmScreenGroupUi
+                            icon={item.icon}
+                            name={item.name}
+                            source={item.source.shortName}
+                            onclick={onItemClick(item)}
+                        />
+                    </PanelTypeTint>
                 {/each}
             </div>
         {/if}
@@ -127,12 +130,14 @@
                 <div class="group-header">{@html childGroup.subgroupName}</div>
                 <div class="content">
                     {#each childGroup.group as group}
-                        <DmScreenGroupUi
-                            icon={group.icon}
-                            name={group.name}
-                            source={group.source.shortName}
-                            onclick={onItemClick(group)}        
-                        />
+                        <PanelTypeTint panelKey="dm-screen">
+                            <DmScreenGroupUi
+                                icon={group.icon}
+                                name={group.name}
+                                source={group.source.shortName}
+                                onclick={onItemClick(group)}
+                            />
+                        </PanelTypeTint>
                     {/each}
                 </div>
             {/each}

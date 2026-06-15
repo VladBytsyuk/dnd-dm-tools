@@ -23,6 +23,7 @@ export class FeatsSidePanel extends BaseSidePanel<SmallFeat, FullFeat, FeatsFilt
         return mount(BaseSidePanelUi, {
             target: element,
             props: {
+                panelKey: this.getKey(),
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<FeatsFilters>(['sources']),
                 repository: this.repository,

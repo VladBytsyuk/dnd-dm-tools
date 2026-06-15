@@ -23,6 +23,7 @@ export class BackgroundSidePanel extends BaseSidePanel<SmallBackground, FullBack
         return mount(BaseSidePanelUi, {
             target: element,
             props: {
+                panelKey: this.getKey(),
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<BackgroundsFilters>(['sources']),
                 repository: this.repository,

@@ -73,6 +73,7 @@ export class RaceSidePanel extends BaseSidePanel<SmallRace, FullRace, RaceFilter
         return mount(BaseSidePanelUi, {
             target: element,
             props: {
+                panelKey: this.getKey(),
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<RaceFilters>(['abilities', 'types', 'sources']),
                 repository: this.repository,

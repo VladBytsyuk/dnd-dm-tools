@@ -26,6 +26,7 @@ export class ArsenalSidePanel extends BaseSidePanel<SmallWeapon, FullWeapon, Ars
         return mount(BaseSidePanelUi, {
             target: element,
             props: {
+                panelKey: this.getKey(),
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<ArsenalFilters>(['types', 'sources', 'dices', 'damageTypes']),
                 repository: this.repository,

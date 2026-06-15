@@ -23,6 +23,7 @@ export class EquipmentSidePanel extends BaseSidePanel<SmallItem, FullItem, Equip
         return mount(BaseSidePanelUi, {
             target: element,
             props: {
+                panelKey: this.getKey(),
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<EquipmentFilters>(['sources']),
                 repository: this.repository,

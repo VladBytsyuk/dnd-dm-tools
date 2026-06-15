@@ -1,14 +1,17 @@
 <script lang="ts">
 	import type { BaseItem } from "src/domain/models/common/BaseItem";
+	import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
+	import PanelTypeTint from "../PanelTypeTint.svelte";
 
 	interface Props {
+		panelKey: PanelKey;
 		groupTitle: string;
 		items: BaseItem[];
 		onItemClick: (item: BaseItem) => void;
 		SmallItemSlot: any;
 	}
 
-	let { groupTitle, items, onItemClick, SmallItemSlot }: Props = $props();
+	let { panelKey, groupTitle, items, onItemClick, SmallItemSlot }: Props = $props();
 </script>
 
 <div class="item-group">
@@ -16,7 +19,9 @@
 		<summary class="item-group__title">{groupTitle}</summary>
 		<div class="item-group__grid">
 			{#each items as item (item.url)}
-				<SmallItemSlot smallItem={item} onItemClick={() => onItemClick(item)} />
+				<PanelTypeTint {panelKey}>
+					<SmallItemSlot smallItem={item} onItemClick={() => onItemClick(item)} />
+				</PanelTypeTint>
 			{/each}
 		</div>
 	</details>

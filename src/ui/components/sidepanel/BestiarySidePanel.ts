@@ -25,6 +25,7 @@ export class BestiarySidePanel extends BaseSidePanel<SmallMonster, FullMonster, 
         return mount(BaseSidePanelUi, {
             target: element,
             props: {
+                panelKey: this.getKey(),
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<BestiaryFilters>(['types', 'challengeRatings', 'sources']),
                 repository: this.repository,

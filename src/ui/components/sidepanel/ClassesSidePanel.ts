@@ -24,6 +24,7 @@ export class ClassesSidePanel extends BaseSidePanel<SmallClass, FullClass, Class
         return mount(BaseSidePanelUi, {
             target: element,
             props: {
+                panelKey: this.getKey(),
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<ClassesFilters>(['diceTypes', 'sources']),
                 repository: this.repository,
