@@ -137,7 +137,7 @@
 		padding: 2px 6px;
 		border: 1px solid var(--background-modifier-border);
 		border-radius: 8px;
-		background: var(--background-primary);
+		background: rgba(136, 136, 136, 0.2);
 		cursor: pointer;
 	}
 
