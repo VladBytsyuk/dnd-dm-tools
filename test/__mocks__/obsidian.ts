@@ -39,6 +39,9 @@ export class Notice {
 }
 
 export function normalizePath(p: string) { return p.replace(/\\/g, '/'); }
+export function setIcon(parent: HTMLElement, iconId: string) {
+  parent.dataset.icon = iconId;
+}
 export async function requestUrl(_opts: any) {
   return { status: 200, text: async () => '', json: async () => ({}) };
 }

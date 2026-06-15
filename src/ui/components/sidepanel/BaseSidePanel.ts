@@ -38,6 +38,7 @@ export abstract class BaseSidePanel<ST extends BaseItem, FT extends ST, F extend
             url: item.url,
             title: item.name.rus || item.name.eng,
             subtitle: item.name.eng && item.name.eng !== item.name.rus ? item.name.eng : "",
+            item,
         }));
     }
 

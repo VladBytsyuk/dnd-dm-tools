@@ -6,6 +6,7 @@ export interface PanelSearchResult {
 	url: string;
 	title: string;
 	subtitle: string;
+	item: BaseItem;
 }
 
 export interface PanelHost {
