@@ -9,8 +9,18 @@
 	import { getPanelTypeColor } from "../uikit/PanelTypeColor";
 	import OmniPanelContent from "./OmniPanelContent.svelte";
 	import OmniSearchResult from "./OmniSearchResult.svelte";
+	import {
+		getTabInsertionPosition,
+		normalizeTabInsertionPosition,
+	} from "./OmniTabDrag";
 
 	type PanelSummary = { key: PanelKey; title: string; icon: string };
+	type DraggedTab = { key: PanelKey; tileIndex: 0 | 1 };
+	type DropIndicator = {
+		tileIndex: 0 | 1;
+		position: number;
+		boundary: number;
+	};
 
 	let {
 		panels,
@@ -35,6 +45,8 @@
 	let workspace = $state(getInitialWorkspace());
 	let query = $state("");
 	let results = $state<PanelSearchResult[]>([]);
+	let draggedTab = $state<DraggedTab | null>(null);
+	let dropIndicator = $state<DropIndicator | null>(null);
 	let searchSequence = 0;
 
 	const panelByKey = $derived(
@@ -160,14 +172,82 @@
 		await openResult(result);
 	}
 
+	function updateDropIndicator(
+		event: DragEvent,
+		tileIndex: 0 | 1,
+		tabList: HTMLElement,
+		append = false,
+	) {
+		if (!draggedTab) return;
+		event.preventDefault();
+		if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+
+		const tabs = Array.from(
+			tabList.querySelectorAll<HTMLElement>(".tab"),
+		);
+		const rawPosition = append
+			? tabs.length
+			: getTabInsertionPosition(
+					event.clientX,
+					tabs.map((tab) => {
+						const rect = tab.getBoundingClientRect();
+						return rect.left + rect.width / 2;
+					}),
+				);
+		const sourcePosition = workspace.tiles[
+			draggedTab.tileIndex
+		].tabs.indexOf(draggedTab.key);
+		if (sourcePosition < 0) return;
+
+		dropIndicator = {
+			tileIndex,
+			position: normalizeTabInsertionPosition(
+				rawPosition,
+				sourcePosition,
+				draggedTab.tileIndex === tileIndex,
+				tabs.length,
+			),
+			boundary: rawPosition,
+		};
+	}
+
+	function onTileDragOver(event: DragEvent, tileIndex: 0 | 1) {
+		const tile = event.currentTarget as HTMLElement;
+		const tabList = tile.querySelector<HTMLElement>(".tabs");
+		if (tabList) updateDropIndicator(event, tileIndex, tabList, true);
+	}
+
+	function clearDropIndicator(event: DragEvent, tileIndex: 0 | 1) {
+		const nextTarget = event.relatedTarget;
+		const tile = event.currentTarget as HTMLElement;
+		if (nextTarget instanceof Node && tile.contains(nextTarget))
+			return;
+		if (dropIndicator?.tileIndex === tileIndex) dropIndicator = null;
+	}
+
+	function clearDragState() {
+		draggedTab = null;
+		dropIndicator = null;
+	}
+
 	function onDrop(event: DragEvent, tileIndex: 0 | 1, position?: number) {
 		event.preventDefault();
-		const key = event.dataTransfer?.getData("text/panel-key") as PanelKey;
-		const source = Number(
-			event.dataTransfer?.getData("text/tile-index"),
-		) as 0 | 1;
+		const key =
+			draggedTab?.key ??
+			(event.dataTransfer?.getData("text/panel-key") as PanelKey);
+		const source =
+			draggedTab?.tileIndex ??
+			(Number(
+				event.dataTransfer?.getData("text/tile-index"),
+			) as 0 | 1);
+		const targetPosition =
+			position ??
+			(dropIndicator?.tileIndex === tileIndex
+				? dropIndicator.position
+				: undefined);
+		clearDragState();
 		if (panelByKey.has(key) && (source === 0 || source === 1))
-			moveTab(key, source, tileIndex, position);
+			moveTab(key, source, tileIndex, targetPosition);
 	}
 </script>
 
@@ -245,17 +325,48 @@
 					class="tile"
 					role="group"
 					aria-label={`Область ${tileIndex + 1}`}
-					ondragover={(event) => event.preventDefault()}
+					ondragover={(event) => onTileDragOver(event, tileIndex)}
+					ondragleave={(event) =>
+						clearDropIndicator(event, tileIndex)}
 					ondrop={(event) => onDrop(event, tileIndex)}
 				>
 					<div
 						class="tabs"
+						class:drop-target={dropIndicator?.tileIndex === tileIndex}
+						class:drop-empty={
+							dropIndicator?.tileIndex === tileIndex &&
+							tile.tabs.length === 0
+						}
 						role="tablist"
+						tabindex="-1"
 						aria-label={`Область ${tileIndex + 1}`}
+						ondragover={(event) => {
+							event.stopPropagation();
+							updateDropIndicator(
+								event,
+								tileIndex,
+								event.currentTarget,
+							);
+						}}
+						ondrop={(event) => {
+							event.stopPropagation();
+							onDrop(
+								event,
+								tileIndex,
+								dropIndicator?.tileIndex === tileIndex
+									? dropIndicator.position
+									: undefined,
+							);
+						}}
 					>
 						<button
 							type="button"
 							class="focus-tile"
+							class:drop-after={
+								dropIndicator?.tileIndex === tileIndex &&
+								dropIndicator.boundary === 0 &&
+								tile.tabs.length === 0
+							}
 							aria-pressed={workspace.focusedTile === tileIndex}
 							onclick={() => setFocusedTile(tileIndex)}
 						>
@@ -264,6 +375,15 @@
 						{#each tile.tabs as key, tabIndex (key)}
 							<div
 								class:active={tile.activeTab === key}
+								class:drop-before={
+									dropIndicator?.tileIndex === tileIndex &&
+									dropIndicator.boundary === tabIndex
+								}
+								class:drop-after={
+									dropIndicator?.tileIndex === tileIndex &&
+									dropIndicator.boundary === tile.tabs.length &&
+									tabIndex === tile.tabs.length - 1
+								}
 								class="tab"
 								style={`--panel-type-color: ${getPanelTypeColor(key)}`}
 								role="group"
@@ -278,12 +398,11 @@
 										"text/tile-index",
 										String(tileIndex),
 									);
+									if (event.dataTransfer)
+										event.dataTransfer.effectAllowed = "move";
+									draggedTab = { key, tileIndex };
 								}}
-								ondragover={(event) => event.preventDefault()}
-								ondrop={(event) => {
-									event.stopPropagation();
-									onDrop(event, tileIndex, tabIndex);
-								}}
+								ondragend={clearDragState}
 							>
 								<button
 									type="button"
@@ -479,8 +598,42 @@
 		gap: var(--dnd-ui-space-4);
 		overflow-x: auto;
 		flex: 0 0 auto;
+		border-radius: var(--dnd-ui-radius-md);
+	}
+	.tabs.drop-target {
+		background: color-mix(
+			in srgb,
+			var(--interactive-accent) 10%,
+			transparent
+		);
+	}
+	.tabs.drop-empty {
+		outline: 2px dashed var(--interactive-accent);
+		outline-offset: -2px;
+	}
+	.tab.drop-before::before,
+	.tab.drop-after::after,
+	.focus-tile.drop-after::after {
+		content: "";
+		position: absolute;
+		z-index: 3;
+		top: 0;
+		bottom: 0;
+		width: 4px;
+		border-radius: 2px;
+		background: var(--interactive-accent);
+		box-shadow: 0 0 0 1px var(--background-primary);
+		pointer-events: none;
+	}
+	.tab.drop-before::before {
+		left: -2px;
+	}
+	.tab.drop-after::after,
+	.focus-tile.drop-after::after {
+		right: -2px;
 	}
 	.focus-tile {
+		position: relative;
 		flex: 0 0 auto;
 		font-weight: 700;
 	}
