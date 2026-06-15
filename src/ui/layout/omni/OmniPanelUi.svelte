@@ -6,6 +6,7 @@
 	} from "src/domain/models/assistant/AssistantWorkspace";
 	import { setIcon, type IconName } from "obsidian";
 	import type { PanelSearchResult } from "src/ui/components/sidepanel/PanelHost";
+	import { getPanelTypeColor } from "../uikit/PanelTypeColor";
 	import OmniPanelContent from "./OmniPanelContent.svelte";
 	import OmniSearchResult from "./OmniSearchResult.svelte";
 
@@ -197,8 +198,9 @@
 				<div
 					class="omni-toolbar__icon"
 					class:active={isPanelOpen(panel.key)}
+					style={`--panel-type-color: ${getPanelTypeColor(panel.key)}`}
 					style:color={isPanelOpen(panel.key)
-						? "var(--interactive-accent)"
+						? "var(--panel-type-color)"
 						: "var(--dnd-ui-text-secondary)"}
 					role="button"
 					tabindex="0"
@@ -263,6 +265,7 @@
 							<div
 								class:active={tile.activeTab === key}
 								class="tab"
+								style={`--panel-type-color: ${getPanelTypeColor(key)}`}
 								role="group"
 								aria-label={panelByKey.get(key)?.title ?? key}
 								draggable="true"
@@ -428,7 +431,7 @@
 		outline-offset: var(--dnd-ui-space-2);
 	}
 	.omni-toolbar__icon.active {
-		color: var(--interactive-accent) !important;
+		color: var(--panel-type-color) !important;
 	}
 	.omni-toolbar__icon span {
 		display: flex;
@@ -441,8 +444,8 @@
 	}
 	.omni-toolbar__icon.active :global(svg),
 	.omni-toolbar__icon.active :global(svg *) {
-		color: var(--interactive-accent) !important;
-		stroke: var(--interactive-accent) !important;
+		color: var(--panel-type-color) !important;
+		stroke: var(--panel-type-color) !important;
 	}
 	@container omni-toolbar (max-width: 720px) {
 		.omni-toolbar__search,
@@ -488,7 +491,13 @@
 		border-bottom: 2px solid transparent;
 	}
 	.tab.active {
-		border-bottom-color: var(--interactive-accent);
+		border-bottom-color: var(--panel-type-color);
+	}
+	.tab.active .tab-icon,
+	.tab.active .tab-icon :global(svg),
+	.tab.active .tab-icon :global(svg *) {
+		color: var(--panel-type-color);
+		stroke: var(--panel-type-color);
 	}
 	.tab button {
 		border: 0;
