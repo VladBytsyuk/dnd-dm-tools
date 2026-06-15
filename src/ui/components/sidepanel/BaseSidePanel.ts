@@ -5,6 +5,7 @@ import type { Repository } from "src/domain/repositories/Repository";
 import type DndStatblockPlugin from "src/main";
 import type { PanelHost, PanelSearchResult } from "./PanelHost";
 import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
+import { sortItemsBySearchRelevance } from "./OmniSearchRanking";
 
 export abstract class BaseSidePanel<ST extends BaseItem, FT extends ST, F extends Filters> implements PanelHost {
 
@@ -33,7 +34,7 @@ export abstract class BaseSidePanel<ST extends BaseItem, FT extends ST, F extend
 
     async search(query: string): Promise<PanelSearchResult[]> {
         const items = await this.repository.getFilteredSmallItems(query, null);
-        return items.slice(0, 25).map((item) => ({
+        return sortItemsBySearchRelevance(items, query).slice(0, 25).map((item) => ({
             panelKey: this.getKey(),
             url: item.url,
             title: item.name.rus || item.name.eng,

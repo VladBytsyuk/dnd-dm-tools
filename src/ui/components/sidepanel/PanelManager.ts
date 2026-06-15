@@ -9,6 +9,7 @@ import {
 import type DndStatblockPlugin from "src/main";
 import OmniPanelUi from "src/ui/layout/omni/OmniPanelUi.svelte";
 import type { PanelHost, PanelSearchResult } from "./PanelHost";
+import { sortPanelResultsBySearchRelevance } from "./OmniSearchRanking";
 
 export const OMNI_VIEW_ID = "dnd-dm-tools-omni";
 const LEGACY_VIEW_PREFIX = "obsidian-dnd-statblock-side-panel-";
@@ -79,7 +80,10 @@ export class PanelManager {
 		const results = await Promise.allSettled(
 			Array.from(this.panels.values()).map((panel) => panel.search(normalized)),
 		);
-		return results.flatMap((result) => result.status === "fulfilled" ? result.value : []);
+		const combined = results.flatMap((result) =>
+			result.status === "fulfilled" ? result.value : []
+		);
+		return sortPanelResultsBySearchRelevance(combined, normalized);
 	}
 
 	async openSearchResult(result: PanelSearchResult): Promise<void> {
