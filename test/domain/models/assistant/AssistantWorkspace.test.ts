@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+	createAssistantWorkspaceSnapshot,
 	createDefaultAssistantWorkspace,
 	loadAssistantWorkspace,
 } from "src/domain/models/assistant/AssistantWorkspace";
@@ -12,6 +13,25 @@ describe("AssistantWorkspace", () => {
 			splitRatio: 0.5,
 			tiles: [
 				{ tabs: [], activeTab: null },
+				{ tabs: [], activeTab: null },
+			],
+		});
+	});
+
+	it("creates a detached workspace snapshot", () => {
+		const workspace = createDefaultAssistantWorkspace();
+		workspace.tiles[0].tabs.push("bestiary");
+		workspace.tiles[0].activeTab = "bestiary";
+
+		const snapshot = createAssistantWorkspaceSnapshot(workspace);
+		workspace.tiles[0].tabs.push("spellbook");
+
+		expect(snapshot).toEqual({
+			layout: "single",
+			focusedTile: 0,
+			splitRatio: 0.5,
+			tiles: [
+				{ tabs: ["bestiary"], activeTab: "bestiary" },
 				{ tabs: [], activeTab: null },
 			],
 		});

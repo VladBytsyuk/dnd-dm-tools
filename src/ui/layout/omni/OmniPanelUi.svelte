@@ -1,8 +1,9 @@
 <script lang="ts">
-	import type {
-		AssistantTileState,
-		AssistantWorkspaceState,
-		PanelKey,
+	import {
+		createAssistantWorkspaceSnapshot,
+		type AssistantTileState,
+		type AssistantWorkspaceState,
+		type PanelKey,
 	} from "src/domain/models/assistant/AssistantWorkspace";
 	import { setIcon, type IconName } from "obsidian";
 	import type { PanelSearchResult } from "src/ui/components/sidepanel/PanelHost";
@@ -61,7 +62,7 @@
 	);
 
 	function persist() {
-		saveWorkspace(structuredClone(workspace));
+		saveWorkspace(createAssistantWorkspaceSnapshot(workspace));
 	}
 
 	function setFocusedTile(index: 0 | 1) {

@@ -46,6 +46,20 @@ export function createDefaultAssistantWorkspace(): AssistantWorkspaceState {
 	};
 }
 
+export function createAssistantWorkspaceSnapshot(
+	workspace: AssistantWorkspaceState,
+): AssistantWorkspaceState {
+	return {
+		layout: workspace.layout,
+		focusedTile: workspace.focusedTile,
+		splitRatio: workspace.splitRatio,
+		tiles: workspace.tiles.map((tile) => ({
+			tabs: [...tile.tabs],
+			activeTab: tile.activeTab,
+		})) as [AssistantTileState, AssistantTileState],
+	};
+}
+
 function isPanelKey(value: unknown): value is PanelKey {
 	return typeof value === "string" && (PANEL_KEYS as readonly string[]).includes(value);
 }
