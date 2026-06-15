@@ -553,7 +553,7 @@
 	.omni-toolbar__search {
 		flex-grow: 1;
 		flex-shrink: 1;
-		min-width: 720px;
+		min-width: min(500px, 100%);
 	}
 	.omni-toolbar__search input {
 		height: 3em;
@@ -589,8 +589,12 @@
 	.omni-toolbar__icons {
 		display: flex !important;
 		flex-direction: row !important;
-		align-self: center;
+		flex-wrap: wrap;
+		align-self: flex-start;
+		align-content: flex-start;
 		gap: var(--dnd-ui-space-4);
+		max-width: 100%;
+		min-width: 0;
 	}
 	.omni-toolbar__icon {
 		display: flex;
@@ -630,7 +634,7 @@
 	@container omni-toolbar (max-width: 720px) {
 		.omni-toolbar__search,
 		.omni-toolbar__icons {
-			grid-column: 1 / -1;
+			flex-basis: 100%;
 		}
 		.omni-toolbar__icons {
 			justify-content: flex-start;
@@ -786,6 +790,8 @@
 	.body {
 		flex: 1;
 		overflow: hidden;
+		padding-top: 2px;
+		box-sizing: border-box;
 	}
 	.empty {
 		height: 100%;
