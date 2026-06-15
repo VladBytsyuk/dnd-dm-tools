@@ -6,44 +6,65 @@
 
 	let {
 		isEditable,
+		colorHex,
 		spellSlots,
 		resources,
 		onSpellSlotsChange,
 		onResourcesChange,
 	} = $props<{
 		isEditable: boolean;
+		colorHex: string;
 		spellSlots: EncounterParticipantSpellSlot[];
 		resources: EncounterParticipantResource[];
 		onSpellSlotsChange: (spellSlots: EncounterParticipantSpellSlot[]) => void;
 		onResourcesChange: (resources: EncounterParticipantResource[]) => void;
 	}>();
 
-	function nextUsed(used: number, markerIndex: number) {
-		return markerIndex < used ? markerIndex : markerIndex + 1;
+	function adjustUsed(used: number, total: number, delta: number) {
+		return Math.max(0, Math.min(total, used + delta));
 	}
 
-	function setSpellSlotUsed(level: number, markerIndex: number) {
+	function adjustSpellSlotUsed(level: number, delta: number) {
 		if (!isEditable) return;
 		onSpellSlotsChange(spellSlots.map((slot: EncounterParticipantSpellSlot) =>
 			slot.level === level
-				? { ...slot, used: nextUsed(slot.used, markerIndex) }
+				? { ...slot, used: adjustUsed(slot.used, slot.total, delta) }
 				: slot,
 		));
 	}
 
-	function setResourceUsed(id: string, markerIndex: number) {
+	function adjustResourceUsed(id: string, delta: number) {
 		if (!isEditable) return;
 		onResourcesChange(resources.map((resource: EncounterParticipantResource) =>
 			resource.id === id
-				? { ...resource, used: nextUsed(resource.used, markerIndex) }
+				? { ...resource, used: adjustUsed(resource.used, resource.total, delta) }
 				: resource,
 		));
 	}
+
+	function handleActivation(event: KeyboardEvent, action: () => void) {
+		if (event.key === "Enter" || event.key === " ") {
+			event.preventDefault();
+			action();
+		}
+	}
 </script>
 
-<div class="participant-resources-line" aria-label="Ячейки заклинаний и ресурсы">
+<div
+	class="participant-resources-line"
+	style:--participant-resource-accent={colorHex}
+	aria-label="Ячейки заклинаний и ресурсы"
+>
 	{#each spellSlots as slot (slot.level)}
-		<div class="resource-group">
+		<div
+			class="resource-group"
+			role="button"
+			tabindex={isEditable ? 0 : -1}
+			aria-disabled={!isEditable}
+			aria-label={`Использовать ячейку ${slot.level} круга`}
+			onclick={() => adjustSpellSlotUsed(slot.level, 1)}
+			onkeydown={(event) => handleActivation(event, () => adjustSpellSlotUsed(slot.level, 1))}
+		>
 			<span class="resource-label">{slot.level} круг</span>
 			<div class="markers" role="group" aria-label={`Ячейки ${slot.level} круга`}>
 				{#each Array(slot.total) as _, markerIndex}
@@ -53,7 +74,11 @@
 						disabled={!isEditable}
 						aria-label={`Ячейка ${slot.level} круга ${markerIndex + 1}`}
 						aria-pressed={markerIndex < slot.used}
-						onclick={() => setSpellSlotUsed(slot.level, markerIndex)}
+						onkeydown={(event) => event.stopPropagation()}
+						onclick={(event) => {
+							event.stopPropagation();
+							adjustSpellSlotUsed(slot.level, markerIndex < slot.used ? -1 : 1);
+						}}
 					></button>
 				{/each}
 			</div>
@@ -61,7 +86,15 @@
 	{/each}
 
 	{#each resources as resource (resource.id)}
-		<div class="resource-group">
+		<div
+			class="resource-group"
+			role="button"
+			tabindex={isEditable ? 0 : -1}
+			aria-disabled={!isEditable}
+			aria-label={`Использовать ресурс ${resource.name}`}
+			onclick={() => adjustResourceUsed(resource.id, 1)}
+			onkeydown={(event) => handleActivation(event, () => adjustResourceUsed(resource.id, 1))}
+		>
 			<span class="resource-label" title={resource.name}>{resource.name}</span>
 			<div class="markers" role="group" aria-label={resource.name}>
 				{#each Array(resource.total) as _, markerIndex}
@@ -71,7 +104,11 @@
 						disabled={!isEditable}
 						aria-label={`${resource.name}: использование ${markerIndex + 1}`}
 						aria-pressed={markerIndex < resource.used}
-						onclick={() => setResourceUsed(resource.id, markerIndex)}
+						onkeydown={(event) => event.stopPropagation()}
+						onclick={(event) => {
+							event.stopPropagation();
+							adjustResourceUsed(resource.id, markerIndex < resource.used ? -1 : 1);
+						}}
 					></button>
 				{/each}
 			</div>
@@ -101,6 +138,11 @@
 		border: 1px solid var(--background-modifier-border);
 		border-radius: 8px;
 		background: var(--background-primary);
+		cursor: pointer;
+	}
+
+	.resource-group[aria-disabled="true"] {
+		cursor: default;
 	}
 
 	.resource-label {
@@ -117,14 +159,15 @@
 		height: 12px;
 		min-width: 12px;
 		padding: 0;
-		border: 1px solid var(--interactive-accent);
+		border: 1px solid var(--participant-resource-accent);
 		border-radius: 999px;
 		background: transparent;
 		cursor: pointer;
 	}
 
 	.marker.used {
-		background: var(--interactive-accent);
+		border-color: var(--participant-resource-accent);
+		background: var(--participant-resource-accent);
 	}
 
 	.marker:disabled {

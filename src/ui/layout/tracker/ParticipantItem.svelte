@@ -482,6 +482,7 @@
 			{#if (participant.spellSlots?.length ?? 0) > 0 || (participant.resources?.length ?? 0) > 0}
 				<ParticipantResourcesRow
 					{isEditable}
+					colorHex={getParticipantColor()}
 					spellSlots={participant.spellSlots ?? []}
 					resources={participant.resources ?? []}
 					onSpellSlotsChange={(spellSlots) => onSetValue(participant.id, "spellSlots", spellSlots)}

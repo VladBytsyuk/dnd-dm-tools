@@ -42,7 +42,9 @@
 
 	function normalizeCount(value: number) {
 		const numericValue = Number(value);
-		return Number.isFinite(numericValue) ? Math.max(0, Math.trunc(numericValue)) : 0;
+		return Number.isFinite(numericValue)
+			? Math.max(0, Math.min(9, Math.trunc(numericValue)))
+			: 0;
 	}
 
 	function open(e: MouseEvent | KeyboardEvent) {
@@ -202,6 +204,7 @@
 						<input
 							type="number"
 							min="0"
+							max="9"
 							step="1"
 							aria-label={`Ячейки ${index + 1} круга`}
 							bind:value={spellSlotCounts[index]}
@@ -228,6 +231,7 @@
 							class="resource-count"
 							type="number"
 							min="1"
+							max="9"
 							step="1"
 							aria-label={`Количество ресурса ${resource.name || "без названия"}`}
 							bind:value={resource.total}
@@ -242,7 +246,6 @@
 			</div>
 
 			<div class="popover-actions">
-				<button onclick={close}><X size={16} />Отмена</button>
 				<button class="save-button" disabled={hasInvalidResource} onclick={save}><Save size={16} />Сохранить</button>
 			</div>
 		</div>
