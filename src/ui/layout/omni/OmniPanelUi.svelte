@@ -35,6 +35,7 @@
 		search,
 		openResult,
 		mountPanel,
+		discardPanel,
 		saveWorkspace,
 	}: {
 		panels: PanelSummary[];
@@ -42,6 +43,7 @@
 		search: (query: string) => Promise<PanelSearchResult[]>;
 		openResult: (result: PanelSearchResult) => Promise<void>;
 		mountPanel: (key: PanelKey, element: Element) => Promise<() => void>;
+		discardPanel: (key: PanelKey) => void;
 		saveWorkspace: (workspace: AssistantWorkspaceState) => Promise<void>;
 	} = $props();
 
@@ -170,6 +172,7 @@
 
 	function closeTab(tile: AssistantTileState, key: PanelKey) {
 		const index = tile.tabs.indexOf(key);
+		discardPanel(key);
 		tile.tabs = tile.tabs.filter((tab) => tab !== key);
 		if (tile.activeTab === key) {
 			tile.activeTab =

@@ -11,6 +11,7 @@ import type DndStatblockPlugin from "src/main";
 import OmniPanelUi from "src/ui/layout/omni/OmniPanelUi.svelte";
 import type { PanelHost, PanelSearchResult } from "./PanelHost";
 import { sortPanelResultsBySearchRelevance } from "./OmniSearchRanking";
+import { PanelSessionCache } from "./PanelSessionCache";
 
 export const OMNI_VIEW_ID = "dnd-dm-tools-omni";
 const OMNI_ICON_ID = "dnd-dm-tools-omni";
@@ -20,6 +21,12 @@ export class PanelManager {
 	private panels = new Map<PanelKey, PanelHost>();
 	private currentItems = new Map<PanelKey, BaseItem>();
 	private assistantView: AssistantItemView | null = null;
+	private panelSessions = new PanelSessionCache(
+		(key, element) => this.mountPanelComponent(key, element),
+		(component) => {
+			void unmount(component as Record<string, any>);
+		},
+	);
 
 	constructor(
 		private plugin: DndStatblockPlugin,
@@ -68,7 +75,10 @@ export class PanelManager {
 	}
 
 	async openItem(key: PanelKey, item?: BaseItem): Promise<void> {
-		if (item) this.currentItems.set(key, item);
+		if (item) {
+			this.panelSessions.discard(key);
+			this.currentItems.set(key, item);
+		}
 		await this.openPanel(key);
 	}
 
@@ -94,13 +104,25 @@ export class PanelManager {
 	}
 
 	async mountPanel(key: PanelKey, element: Element): Promise<() => void> {
+		if (!this.panels.has(key)) return () => {};
+		return await this.panelSessions.attach(key, element);
+	}
+
+	discardPanel(key: PanelKey): void {
+		this.panelSessions.discard(key);
+		this.currentItems.delete(key);
+	}
+
+	dispose(): void {
+		this.panelSessions.dispose();
+		this.currentItems.clear();
+	}
+
+	private async mountPanelComponent(key: PanelKey, element: Element): Promise<unknown> {
 		const panel = this.panels.get(key);
-		if (!panel) return () => {};
+		if (!panel) return undefined;
 		const item = this.currentItems.get(key);
-		const component = await panel.mount(element, item);
-		return () => {
-			if (component) unmount(component);
-		};
+		return await panel.mount(element, item);
 	}
 
 	async saveWorkspace(workspace: AssistantWorkspaceState): Promise<void> {
@@ -169,6 +191,7 @@ class AssistantItemView extends ItemView {
 				search: (query: string) => this.manager.search(query),
 				openResult: (result: PanelSearchResult) => this.manager.openSearchResult(result),
 				mountPanel: (key: PanelKey, element: Element) => this.manager.mountPanel(key, element),
+				discardPanel: (key: PanelKey) => this.manager.discardPanel(key),
 				saveWorkspace: (workspace: AssistantWorkspaceState) => this.manager.saveWorkspace(workspace),
 			},
 		});

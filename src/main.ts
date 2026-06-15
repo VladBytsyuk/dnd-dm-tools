@@ -146,6 +146,7 @@ export default class DndStatblockPlugin extends Plugin {
 	}
 
 	#dispose() {
+		this.panelManager.dispose();
 		this.features.forEach(feature => feature.dispose());
 	}
 }
