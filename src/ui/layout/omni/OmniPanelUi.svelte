@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {
+		activateOrOpenAssistantPanel,
 		createAssistantWorkspaceSnapshot,
 		type AssistantTileState,
 		type AssistantWorkspaceState,
@@ -126,21 +127,7 @@
 	}
 
 	function openPanel(key: PanelKey) {
-		const existingTileIndex = workspace.tiles.findIndex((tile) =>
-			tile.tabs.includes(key),
-		);
-		if (existingTileIndex >= 0) {
-			const tileIndex = existingTileIndex as 0 | 1;
-			workspace.tiles[tileIndex].activeTab = key;
-			workspace.focusedTile = tileIndex;
-			persist();
-			return;
-		}
-
-		const tileIndex =
-			workspace.layout === "single" ? 0 : workspace.focusedTile;
-		workspace.tiles[tileIndex].tabs.push(key);
-		workspace.tiles[tileIndex].activeTab = key;
+		activateOrOpenAssistantPanel(workspace, key);
 		persist();
 	}
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+	activateOrOpenAssistantPanel,
 	createAssistantWorkspaceSnapshot,
 	createDefaultAssistantWorkspace,
 	loadAssistantWorkspace,
@@ -35,6 +36,90 @@ describe("AssistantWorkspace", () => {
 				{ tabs: [], activeTab: null },
 			],
 		});
+	});
+
+	it("focuses an existing panel without moving or reordering it", () => {
+		const workspace = loadAssistantWorkspace({
+			layout: "vertical-split",
+			focusedTile: 0,
+			tiles: [
+				{
+					tabs: ["bestiary", "spellbook"],
+					activeTab: "bestiary",
+				},
+				{
+					tabs: ["equipment", "artifactory"],
+					activeTab: "artifactory",
+				},
+			],
+		}).workspace;
+
+		activateOrOpenAssistantPanel(workspace, "equipment");
+
+		expect(workspace.focusedTile).toBe(1);
+		expect(workspace.tiles).toEqual([
+			{
+				tabs: ["bestiary", "spellbook"],
+				activeTab: "bestiary",
+			},
+			{
+				tabs: ["equipment", "artifactory"],
+				activeTab: "equipment",
+			},
+		]);
+	});
+
+	it("activates an existing panel in the focused tile without reordering it", () => {
+		const workspace = loadAssistantWorkspace({
+			layout: "vertical-split",
+			focusedTile: 0,
+			tiles: [
+				{
+					tabs: ["bestiary", "spellbook"],
+					activeTab: "bestiary",
+				},
+				{ tabs: ["equipment"], activeTab: "equipment" },
+			],
+		}).workspace;
+
+		activateOrOpenAssistantPanel(workspace, "spellbook");
+
+		expect(workspace.focusedTile).toBe(0);
+		expect(workspace.tiles[0]).toEqual({
+			tabs: ["bestiary", "spellbook"],
+			activeTab: "spellbook",
+		});
+	});
+
+	it("opens a missing panel in the focused split tile", () => {
+		const workspace = loadAssistantWorkspace({
+			layout: "vertical-split",
+			focusedTile: 1,
+			tiles: [
+				{ tabs: ["bestiary"], activeTab: "bestiary" },
+				{ tabs: ["equipment"], activeTab: "equipment" },
+			],
+		}).workspace;
+
+		activateOrOpenAssistantPanel(workspace, "spellbook");
+
+		expect(workspace.tiles[1]).toEqual({
+			tabs: ["equipment", "spellbook"],
+			activeTab: "spellbook",
+		});
+	});
+
+	it("opens a missing panel in the first tile for a single layout", () => {
+		const workspace = createDefaultAssistantWorkspace();
+		workspace.focusedTile = 1;
+
+		activateOrOpenAssistantPanel(workspace, "bestiary");
+
+		expect(workspace.focusedTile).toBe(0);
+		expect(workspace.tiles).toEqual([
+			{ tabs: ["bestiary"], activeTab: "bestiary" },
+			{ tabs: [], activeTab: null },
+		]);
 	});
 
 	it("preserves a legacy Assistant workspace", () => {

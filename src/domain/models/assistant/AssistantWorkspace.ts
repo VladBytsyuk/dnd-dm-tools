@@ -60,6 +60,26 @@ export function createAssistantWorkspaceSnapshot(
 	};
 }
 
+export function activateOrOpenAssistantPanel(
+	workspace: AssistantWorkspaceState,
+	key: PanelKey,
+): void {
+	const existingTileIndex = workspace.tiles.findIndex((tile) =>
+		tile.tabs.includes(key),
+	);
+	if (existingTileIndex >= 0) {
+		const tileIndex = existingTileIndex as 0 | 1;
+		workspace.tiles[tileIndex].activeTab = key;
+		workspace.focusedTile = tileIndex;
+		return;
+	}
+
+	const tileIndex = workspace.layout === "single" ? 0 : workspace.focusedTile;
+	workspace.tiles[tileIndex].tabs.push(key);
+	workspace.tiles[tileIndex].activeTab = key;
+	workspace.focusedTile = tileIndex;
+}
+
 function isPanelKey(value: unknown): value is PanelKey {
 	return typeof value === "string" && (PANEL_KEYS as readonly string[]).includes(value);
 }

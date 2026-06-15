@@ -3,6 +3,7 @@ import { mount, unmount } from "svelte";
 import omniIcon from "src/assets/icon.svg";
 import type { BaseItem } from "src/domain/models/common/BaseItem";
 import {
+	activateOrOpenAssistantPanel,
 	PANEL_KEYS,
 	type AssistantWorkspaceState,
 	type PanelKey,
@@ -68,7 +69,7 @@ export class PanelManager {
 
 	async openPanel(key: PanelKey): Promise<void> {
 		if (!this.panels.has(key)) return;
-		this.addTabToFocusedTile(key);
+		this.activateOrOpenPanelTab(key);
 		await this.persistWorkspace(this.getWorkspace());
 		await this.openAssistant();
 		this.assistantView?.refresh();
@@ -129,17 +130,8 @@ export class PanelManager {
 		await this.persistWorkspace(workspace);
 	}
 
-	private addTabToFocusedTile(key: PanelKey): void {
-		const workspace = this.getWorkspace();
-		for (const tile of workspace.tiles) {
-			const index = tile.tabs.indexOf(key);
-			if (index >= 0) tile.tabs.splice(index, 1);
-			if (tile.activeTab === key) tile.activeTab = tile.tabs[0] ?? null;
-		}
-		const targetIndex = workspace.layout === "single" ? 0 : workspace.focusedTile;
-		const target = workspace.tiles[targetIndex];
-		target.tabs.push(key);
-		target.activeTab = key;
+	private activateOrOpenPanelTab(key: PanelKey): void {
+		activateOrOpenAssistantPanel(this.getWorkspace(), key);
 	}
 
 	private detachLegacyViews(): void {
