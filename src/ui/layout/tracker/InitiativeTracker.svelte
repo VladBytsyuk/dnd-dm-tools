@@ -20,7 +20,12 @@
 	} from "src/data/clipboard";
 	import type { Encounter } from "src/domain/models/encounter/Encounter";
 	import { EncounterManager } from "src/domain/models/encounter/EncounterManager";
-	import type { EncounterParticipant, EncounterParticipantCondition } from "src/domain/models/encounter/EncounterParticipant";
+	import type {
+		EncounterParticipant,
+		EncounterParticipantCondition,
+		EncounterParticipantResource,
+		EncounterParticipantSpellSlot,
+	} from "src/domain/models/encounter/EncounterParticipant";
 	import ParticipantItem from "./ParticipantItem.svelte";
 
 	let { app: _app, encounter, isEditable, onPortraitClick, onConditionClick, onImageRequested } =
@@ -140,6 +145,14 @@
 
 	const onConditionDelete = (participantId: number, url: string) => {
 		runEditable(() => encounterManager.deleteCondition(participantId, url));
+	};
+
+	const onResourcesChange = (
+		participantId: number,
+		spellSlots: EncounterParticipantSpellSlot[],
+		resources: EncounterParticipantResource[],
+	) => {
+		runEditable(() => encounterManager.setParticipantResources(participantId, spellSlots, resources));
 	};
 
 	const undo = () => {
@@ -271,6 +284,7 @@
 						onRemove={removeParticipant}
 						onConditionChange={onConditionChange}
 						onConditionDelete={onConditionDelete}
+						onResourcesChange={onResourcesChange}
 						getRound={() => state.current.round}
 						onImageRequested={onImageRequested}
 					/>

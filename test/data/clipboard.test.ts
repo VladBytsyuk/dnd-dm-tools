@@ -269,7 +269,26 @@ ${yaml}
 
     it('should get encounter from clipboard', async () => {
         // Arrange
-        const yaml = obsidian.stringifyYaml(mockEncounter);
+        const encounterWithResources = {
+            ...mockEncounter,
+            participants: [{
+                id: 1,
+                initiative: 12,
+                initiativeModifier: 2,
+                name: 'Маг',
+                hpCurrent: 20,
+                hpTemporary: 0,
+                hpMax: 20,
+                armorClass: 14,
+                passivePerception: 11,
+                side: 'pc' as const,
+                isDead: false,
+                conditions: [],
+                spellSlots: [{ level: 2, total: 3, used: 1 }],
+                resources: [{ id: 'rage', name: 'Ярость', total: 2, used: 1 }],
+            }],
+        };
+        const yaml = obsidian.stringifyYaml(encounterWithResources);
         const clipboardContent = `\`\`\`encounter
 ${yaml}
 \`\`\``;
@@ -284,6 +303,6 @@ ${yaml}
         const encounter = await getEncounterFromClipboard();
 
         // Assert
-        expect(encounter).toEqual(mockEncounter);
+        expect(encounter).toEqual(encounterWithResources);
     });
 });

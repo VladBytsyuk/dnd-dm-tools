@@ -3,8 +3,14 @@
 	import { d20, roll } from "src/domain/dice";
 	import { formatModifier } from "src/domain/modifier";
 	import { evalNumericExpression } from "src/domain/utils/mathExpression";
-	import type { EncounterParticipant, EncounterParticipantCondition } from "../../../domain/models/encounter/EncounterParticipant";
+	import type {
+		EncounterParticipant,
+		EncounterParticipantCondition,
+		EncounterParticipantResource,
+		EncounterParticipantSpellSlot,
+	} from "../../../domain/models/encounter/EncounterParticipant";
 	import ParticipantConditionsGrid from "./ParticipantConditionsGrid.svelte";
+	import ParticipantResourcesRow from "./ParticipantResourcesRow.svelte";
 	import { onMount } from "svelte";
 
 	let {
@@ -18,6 +24,7 @@
 		onRemove,
 		onConditionChange,
 		onConditionDelete,
+		onResourcesChange,
 		getRound,
         onImageRequested
 	} = $props<{
@@ -32,6 +39,11 @@
 		onRemove: (id: number) => void;
 		onConditionChange: (participantId: number, condition: EncounterParticipantCondition) => void;
 		onConditionDelete: (participantId: number, url: string) => void;
+		onResourcesChange: (
+			participantId: number,
+			spellSlots: EncounterParticipantSpellSlot[],
+			resources: EncounterParticipantResource[],
+		) => void;
 		getRound: () => number;
         onImageRequested: (url: string) => Promise<string>;
 	}>();
@@ -459,13 +471,26 @@
 				onOpenConditionDetails={(url: string) => onOpenConditionDetails(url)}
 				onChange={(condition: EncounterParticipantCondition) => onConditionChange(participant.id, condition)}
 				onDelete={(url: string) => onConditionDelete(participant.id, url)}
+				onResourcesChange={(spellSlots, resources) => onResourcesChange(participant.id, spellSlots, resources)}
 				getRound={getRound}
 				getConditions={() => participant.conditions ?? []}
-				/>
-		</div>
-	</div>
+				getSpellSlots={() => participant.spellSlots ?? []}
+				getResources={() => participant.resources ?? []}
+			/>
+			</div>
 
-	<div class="right">
+			{#if (participant.spellSlots?.length ?? 0) > 0 || (participant.resources?.length ?? 0) > 0}
+				<ParticipantResourcesRow
+					{isEditable}
+					spellSlots={participant.spellSlots ?? []}
+					resources={participant.resources ?? []}
+					onSpellSlotsChange={(spellSlots) => onSetValue(participant.id, "spellSlots", spellSlots)}
+					onResourcesChange={(resources) => onSetValue(participant.id, "resources", resources)}
+				/>
+			{/if}
+		</div>
+
+		<div class="right">
 		{#if isEditable}
 			<div class="right-buttons">
 				<div 
@@ -846,6 +871,10 @@
 		outline-offset: 2px;
 	}
 
+
+	:global(.participant-resources-line) {
+		margin-bottom: 2px;
+	}
 
 	@media (max-width: 900px) {
 		.line1 {
