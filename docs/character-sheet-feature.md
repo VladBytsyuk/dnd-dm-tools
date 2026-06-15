@@ -4,7 +4,7 @@
 
 The Character Sheet feature provides a local character manager inside the plugin. It supports four main use cases:
 
-- browsing stored character sheets in the side panel
+- browsing stored character sheets in the Assistant panel
 - importing character sheets from JSON files
 - editing full character sheets in a dedicated UI
 - rendering character sheets from markdown code blocks
@@ -18,9 +18,9 @@ The current implementation is split across feature, persistence, controller, and
 ### Entry Points
 
 - `CharacterSheetFeature`
-  Creates the repository, side panel, and markdown processor for the feature.
+  Creates the repository, Assistant panel host, and markdown processor for the feature.
 - `CharacterSheetSidePanel`
-  Connects the plugin side panel host to the Svelte side-panel UI.
+  Connects the Assistant panel host to the Svelte browser UI.
 - `CharacterSheetMdCodeBlockProcessor`
   Renders a character sheet inline for the `charsheet` markdown code block.
 
@@ -28,15 +28,17 @@ The current implementation is split across feature, persistence, controller, and
 
 - `CharacterSheetRepository`
   Main application-facing gateway for listing, loading, saving, deleting, filtering, and importing character sheets.
+- `CharacterSheetStore`
+  Wraps character-sheet DAO reads and transactional save, delete, and unique-URL behavior.
 - `CharacterSheetSqlTableDao`
   Reads and writes the `character_sheets` SQL table and maps rows into full and small character-sheet models.
-- `CharacterSheetImportService`
-  Parses imported JSON, validates it, applies compatibility defaults, allocates a unique URL, and returns a normalized sheet ready for persistence.
+- `CharacterSheetImportMapper`
+  Parses imported JSON, validates it, applies compatibility defaults, and maps it into a full character sheet.
 
 ### UI Runtime
 
 - `CharacterSheetSidePanelUi.svelte`
-  Side-panel layout for browsing, searching, filtering, importing, and opening sheets.
+  Browser layout for searching, filtering, importing, and opening sheets inside the Assistant tab.
 - `CharacterSheetFullUi.svelte`
   Main full-sheet editor and renderer.
 - `CharacterSheetSmallUi.svelte`
@@ -45,7 +47,7 @@ The current implementation is split across feature, persistence, controller, and
 ### UI State Helpers
 
 - `characterSheetBrowserController`
-  Owns side-panel state such as search text, filters, grouping, current item, navigation stack, import status, and visible errors.
+  Owns browser state such as search text, filters, grouping, current item, navigation stack, import status, and visible errors.
 - `characterSheetEditorController`
   Owns the editable session for the full view, including draft state, migration-on-open, dirty tracking, save status, debounced persistence, and stale-save suppression.
 - `characterSheetSelectors`
@@ -57,15 +59,15 @@ The current implementation is split across feature, persistence, controller, and
 
 ### Import Flow
 
-1. The user starts import from the side panel.
+1. The user starts import from the character-sheet Assistant panel.
 2. `characterSheetFilePicker` returns the selected file contents.
-3. `characterSheetBrowserController` calls `CharacterSheetRepository.importCharacterSheet`.
-4. `CharacterSheetRepository` delegates parsing and normalization to `CharacterSheetImportService`.
-5. `CharacterSheetImportService` validates the JSON, applies defaults and compatibility normalization, computes metadata, and allocates a unique URL.
-6. The repository persists the resulting full sheet through `CharacterSheetSqlTableDao`.
+3. `characterSheetBrowserController` calls `CharacterSheetRepository.importFromJson`.
+4. `CharacterSheetRepository` delegates parsing and normalization to `CharacterSheetImportMapper`.
+5. The repository asks `CharacterSheetStore` to allocate a unique URL.
+6. `CharacterSheetStore` persists the normalized sheet transactionally through `CharacterSheetSqlTableDao`.
 7. The browser controller refreshes the list and opens the imported item.
 
-### Side Panel Flow
+### Assistant Panel Flow
 
 1. `CharacterSheetSidePanel` mounts `CharacterSheetSidePanelUi.svelte`.
 2. The UI reads browser state from `characterSheetBrowserController`.
@@ -96,8 +98,9 @@ Character sheets do not follow the standard plugin small/full dual-DAO storage p
 The feature uses a single SQL table, `character_sheets`, and a character-sheet-specific persistence path:
 
 - `CharacterSheetSqlTableDao` is responsible for both summary-style reads and full-sheet reads.
-- `CharacterSheetRepository` uses explicit save and delete logic for character sheets instead of relying on the generic `BaseRepository.putItem()` dual-DAO behavior used elsewhere in the codebase.
-- Summary data such as name, class, level, and race is derived from the full sheet and stored in the same table so side-panel lists and filters can be queried directly.
+- `CharacterSheetStore` owns transactional save, delete, filtered reads, and unique-URL allocation.
+- `CharacterSheetRepository` owns caching, grouping, filter collection, import mapping, and the domain-facing repository contract.
+- Summary data such as name, class, level, and race is derived from the full sheet and stored in the same table so panel lists and filters can be queried directly.
 
 This design exists because character sheets are edited and imported user data, not pre-seeded reference content.
 
@@ -105,7 +108,7 @@ This design exists because character sheets are edited and imported user data, n
 
 ### Browser State
 
-`characterSheetBrowserController` owns the state required by the side panel:
+`characterSheetBrowserController` owns the state required by the character-sheet browser:
 
 - current list or group view
 - search text
@@ -115,7 +118,7 @@ This design exists because character sheets are edited and imported user data, n
 - import progress
 - import/load errors
 
-The controller isolates side-panel behavior from the Svelte component so list refresh, navigation, and import behavior can be tested without mounting the full UI.
+The controller isolates browser behavior from the Svelte component so list refresh, navigation, and import behavior can be tested without mounting the full UI.
 
 ### Editor Session State
 
@@ -136,11 +139,11 @@ The editor controller is the only layer that should decide when persistence happ
 The feature-local contracts live in `characterSheetTypes.ts`. Important runtime types include:
 
 - `CharacterSheetGateway`
-  Persistence-facing interface used by controllers to load, save, delete, filter, and import sheets.
+  Repository-facing interface used by controllers to load, save, filter, and import sheets.
 - `CharacterSheetSessionState`
   Session state shape used by the editor controller.
 - `CharacterSheetBrowserState`
-  Side-panel state shape used by the browser controller.
+  Browser state shape used by the browser controller.
 - `CharacterEditorTextSection`
   Identifies editable free-text sections in the sheet.
 - `CharacterSubInfoField`
@@ -160,7 +163,8 @@ Current compatibility handling includes:
 
 There are two places where compatibility logic is applied:
 
-- `CharacterSheetImportService` handles imported JSON normalization before persistence
+- `CharacterSheetImportMapper` handles imported JSON normalization before persistence
+- `CharacterSheetStore` allocates collision-free URLs and persists the normalized sheet
 - `characterSheetEditorController` applies open-time migrations needed for already stored older sheets
 
 The goal is to keep persisted data usable without requiring a destructive storage migration.
@@ -184,8 +188,9 @@ The largest child blocks still represent major editing domains:
 
 Current automated coverage is strongest in the feature's TypeScript runtime layers:
 
-- import parsing and normalization: `CharacterSheetImportService`
+- import parsing and normalization: `CharacterSheetImportMapper`
 - repository behavior: `CharacterSheetRepository`
+- store persistence and unique URL behavior: `CharacterSheetStore`
 - DAO row mapping and filtering: `CharacterSheetSqlTableDao`
 - browser state handling: `characterSheetBrowserController`
 - editor session behavior: `characterSheetEditorController`

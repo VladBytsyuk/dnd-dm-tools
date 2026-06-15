@@ -11,7 +11,7 @@ import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
 export class EquipmentSidePanel extends BaseSidePanel<SmallItem, FullItem, EquipmentFilters> {
 
-    getKey(): string { return "equipment"; }
+    getKey() { return "equipment" as const; }
     getRibbonIconName(): string { return "backpack"; }
     getTitle(): string { return "Экипировка"; }
 
@@ -20,9 +20,10 @@ export class EquipmentSidePanel extends BaseSidePanel<SmallItem, FullItem, Equip
             { key: 'sources', label: 'Источник' },
         ];
 
-        mount(BaseSidePanelUi, {
+        return mount(BaseSidePanelUi, {
             target: element,
             props: {
+                panelKey: this.getKey(),
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<EquipmentFilters>(['sources']),
                 repository: this.repository,
@@ -31,6 +32,8 @@ export class EquipmentSidePanel extends BaseSidePanel<SmallItem, FullItem, Equip
                 groupTitleBuilder: (group: { sort: string }) => group.sort,
                 FullItemSlot: EquipFullUi,
                 SmallItemSlot: EquipSmallUi,
+                paginated: true,
+                pageSize: 50,
             }
         });
     }

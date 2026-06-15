@@ -58,4 +58,8 @@ export class EquipmentRepository
             .map(([type, smallEquips]) => ({ sort: type, smallItems: smallEquips } as Group<SmallItem>))
             .sort((a, b) => a.sort.localeCompare(b.sort));
     }
+
+    protected override shouldPreloadSmallItems(): boolean {
+        return false;
+    }
 }

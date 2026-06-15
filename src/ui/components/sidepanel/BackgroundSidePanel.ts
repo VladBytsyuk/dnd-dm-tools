@@ -11,18 +11,19 @@ import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
 export class BackgroundSidePanel extends BaseSidePanel<SmallBackground, FullBackground, BackgroundsFilters>{
 
-    getKey() { return 'backgrounds'; }
+    getKey() { return 'backgrounds' as const; }
     getRibbonIconName() { return 'book-a'; }
     getTitle() { return 'Предыстории'; }
 
-    async mountSvelteComponent(element: Element): Promise<void> {
+    async mountSvelteComponent(element: Element): Promise<unknown> {
         const filterConfig: FilterConfig<BackgroundsFilters>[] = [
             { key: 'sources', label: 'Источник' },
         ];
 
-        mount(BaseSidePanelUi, {
+        return mount(BaseSidePanelUi, {
             target: element,
             props: {
+                panelKey: this.getKey(),
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<BackgroundsFilters>(['sources']),
                 repository: this.repository,

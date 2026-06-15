@@ -55,20 +55,20 @@ Reusable high-level UI blocks used directly by feature screens.
 
 - `UiItemCard.svelte` is the standard small-item/list card.
 - `UiItemGroup.svelte` renders grouped small items in collapsible sections.
-- `UiSearchToolbar.svelte` renders the shared search/action row for side panels.
+- `UiSearchToolbar.svelte` renders the shared search/action row for feature panels.
 - `UiEmptyState.svelte` renders empty list and empty search states.
 - `UiDetailHeader.svelte` renders shared detail-page title, source, metadata, links, and images.
 - `UiDetailCard.svelte` renders the shared detail-page body container.
 
 ### Shared Shell and Utilities
 
-- `BaseSidePanelUi.svelte` is the generic browser shell for most repository-backed side panels.
+- `BaseSidePanelUi.svelte` is the generic browser shell for most repository-backed Assistant panels.
 - `FiltersOverlay.svelte` and `FilterBlock.svelte` provide shared filter UI.
 - `AutocompleteInput.svelte`, `HtmlBlock.svelte`, and `IconButton.svelte` are reusable support components used by multiple features.
 
 ## BaseSidePanelUi Contract
 
-`BaseSidePanelUi.svelte` is the default side-panel browser implementation for most data-backed features.
+`BaseSidePanelUi.svelte` is the default Assistant panel browser implementation for most data-backed features.
 
 It expects:
 
@@ -91,7 +91,7 @@ It owns:
 - filter overlay wiring
 - switching between list and full-item views
 
-Prefer this shell unless a feature has materially different browser behavior. `CharacterSheetSidePanelUi.svelte` and `DmScreenSidePanelUi.svelte` are current examples of justified custom side-panel implementations.
+Prefer this shell unless a feature has materially different browser behavior. `CharacterSheetSidePanelUi.svelte` and `DmScreenSidePanelUi.svelte` are current examples of justified custom panel implementations.
 
 ### Svelte 5 State Contract
 
@@ -145,8 +145,8 @@ Pattern tokens define shared UI structures built on top of the foundation tokens
 For new or refactored UI:
 
 - small entity list items should compose `UiItemCard`
-- grouped side-panel lists should compose `UiItemGroup`
-- standard repository-backed side panels should compose `BaseSidePanelUi.svelte`
+- grouped feature-panel lists should compose `UiItemGroup`
+- standard repository-backed Assistant panels should compose `BaseSidePanelUi.svelte`
 - detail pages should compose `UiDetailHeader`, `UiDetailCard`, `UiPropertyGrid`, and `UiContentSection`
 - rich HTML body fragments should use `HtmlBlock.svelte`
 

@@ -1,4 +1,4 @@
-import { expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { SmallArtifactSqlTableDao } from '../../../src/data/database/SmallArtifactSqlTableDao';
 import type { SmallArtifact } from '../../../src/domain/models/artifact/SmallArtifact';
 import type { ArtifactoryFilters } from '../../../src/domain/models/artifact/ArtifactoryFilters';
@@ -56,4 +56,15 @@ runSqlDaoBaseTests<SmallArtifact, ArtifactoryFilters>({
             expect(artifact.source.homebrew).toStrictEqual(smallArtifactWand.source.homebrew);
         },
     },
+});
+
+describe('SmallArtifactSqlTableDao pagination order', () => {
+    it('orders artifacts by the repository rarity sequence and row id', () => {
+        const dao = new SmallArtifactSqlTableDao({} as any, {} as any, {} as any);
+        const orderBy = dao.getPageOrderBy();
+
+        expect(orderBy).toContain("WHEN 'O' THEN 0");
+        expect(orderBy).toContain("WHEN 'А' THEN 5");
+        expect(orderBy).toContain('id ASC');
+    });
 });

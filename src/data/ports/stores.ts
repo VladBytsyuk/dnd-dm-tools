@@ -1,4 +1,5 @@
 import type { BaseItem } from "src/domain/models/common/BaseItem";
+import type { PageRequest, PageResult } from "src/domain/repositories/Repository";
 
 export interface ItemReadStore<
 	TSmall extends BaseItem,
@@ -7,6 +8,7 @@ export interface ItemReadStore<
 > {
 	readAllSmallItems(): Promise<TSmall[]>;
 	readFilteredSmallItems(name: string | null, filter: TFilter | null): Promise<TSmall[]>;
+	readSmallItemsPage(filter: TFilter | null, request: PageRequest): Promise<PageResult<TSmall>>;
 	readAllSmallItemNames(): Promise<string[]>;
 	readSmallItemByName(name: string): Promise<TSmall | null>;
 	readFullItemByName(name: string): Promise<TFull | null>;

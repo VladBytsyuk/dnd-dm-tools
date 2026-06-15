@@ -65,4 +65,8 @@ export class SpellbookRepository
             .sort((a, b) => a.level - b.level)
             .map(({ level, smallSpells }) => ({ sort: ""+level, smallItems: smallSpells} as Group<SmallSpell>));
     }
+
+    protected override shouldPreloadSmallItems(): boolean {
+        return false;
+    }
 }

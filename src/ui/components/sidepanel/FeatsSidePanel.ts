@@ -11,7 +11,7 @@ import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
 export class FeatsSidePanel extends BaseSidePanel<SmallFeat, FullFeat, FeatsFilters> {
 
-    getKey(): string { return "feats"; }
+    getKey() { return "feats" as const; }
     getRibbonIconName(): string { return "award"; }
     getTitle(): string { return "Черты"; }
 
@@ -20,9 +20,10 @@ export class FeatsSidePanel extends BaseSidePanel<SmallFeat, FullFeat, FeatsFilt
             { key: 'sources', label: 'Источник' },
         ];
 
-        mount(BaseSidePanelUi, {
+        return mount(BaseSidePanelUi, {
             target: element,
             props: {
+                panelKey: this.getKey(),
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<FeatsFilters>(['sources']),
                 repository: this.repository,

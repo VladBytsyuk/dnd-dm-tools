@@ -1,22 +1,32 @@
 <script lang="ts">
 	import type { BaseItem } from "src/domain/models/common/BaseItem";
+	import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
+	import { getPanelTypeColor } from "../PanelTypeColor";
+	import PanelTypeTint from "../PanelTypeTint.svelte";
 
 	interface Props {
+		panelKey: PanelKey;
 		groupTitle: string;
 		items: BaseItem[];
 		onItemClick: (item: BaseItem) => void;
 		SmallItemSlot: any;
 	}
 
-	let { groupTitle, items, onItemClick, SmallItemSlot }: Props = $props();
+	let { panelKey, groupTitle, items, onItemClick, SmallItemSlot }: Props = $props();
+	const groupColor = $derived(getPanelTypeColor(panelKey));
 </script>
 
-<div class="item-group">
+<div
+	class="item-group"
+	style={`--item-group-color: ${groupColor}; --item-group-hover-color: color-mix(in srgb, ${groupColor} 85%, white)`}
+>
 	<details open>
 		<summary class="item-group__title">{groupTitle}</summary>
 		<div class="item-group__grid">
 			{#each items as item (item.url)}
-				<SmallItemSlot smallItem={item} onItemClick={() => onItemClick(item)} />
+				<PanelTypeTint {panelKey}>
+					<SmallItemSlot smallItem={item} onItemClick={() => onItemClick(item)} />
+				</PanelTypeTint>
 			{/each}
 		</div>
 	</details>
@@ -39,7 +49,7 @@
 
 	.item-group details:hover,
 	.item-group details[open] {
-		border-color: var(--dnd-ui-accent-primary);
+		border-color: var(--item-group-color);
 	}
 
 	.item-group__title {
@@ -50,8 +60,8 @@
 		width: 100%;
 		padding: var(--dnd-ui-space-6) var(--dnd-ui-space-8) var(--dnd-ui-space-6) var(--dnd-ui-space-24);
 		margin: 0;
-		background: var(--text-accent) !important;
-		border-bottom: 2px solid var(--text-accent) !important;
+		background: var(--item-group-color) !important;
+		border-bottom: 2px solid var(--item-group-color) !important;
 		cursor: pointer;
 		transition: all var(--dnd-ui-duration-base) var(--dnd-ui-ease-standard);
 		position: relative;
@@ -74,14 +84,18 @@
 	}
 
 	.item-group__title:hover {
-		background: var(--text-accent-hover) !important;
+		background: var(--item-group-hover-color) !important;
 		color: var(--dnd-ui-text-inverse);
 	}
 
 	.item-group details[open] .item-group__title {
-		background: var(--text-accent) !important;
-		border-bottom-color: var(--text-accent) !important;
+		background: var(--item-group-color) !important;
+		border-bottom-color: var(--item-group-color) !important;
 		color: var(--dnd-ui-text-inverse);
+	}
+
+	.item-group details[open] .item-group__title:hover {
+		background: var(--item-group-hover-color) !important;
 	}
 
 	.item-group details[open] .item-group__title::before {
@@ -90,7 +104,10 @@
 
 	.item-group__grid {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: repeat(
+			auto-fit,
+			minmax(min(20rem, 100%), 1fr)
+		);
 		gap: var(--dnd-ui-space-4);
 		padding: var(--dnd-ui-space-8) 0 0;
 		background: var(--dnd-ui-pattern-group-content-bg);

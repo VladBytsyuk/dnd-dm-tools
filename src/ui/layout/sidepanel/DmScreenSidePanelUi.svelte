@@ -4,6 +4,7 @@
 	import DmScreenItemUi from "../screen/DmScreenItemUi.svelte";
 	import UiSearchToolbar from "../uikit/organisms/UiSearchToolbar.svelte";
 	import UiEmptyState from "../uikit/organisms/UiEmptyState.svelte";
+	import PanelTypeTint from "../uikit/PanelTypeTint.svelte";
 
     // ---- Props ----
     let { item, children, uiEventListener, getFilteredItems, getChildrenCount, getChildren, getFullItem } = $props();
@@ -84,7 +85,7 @@
     }
 </script>
 
-<div>
+<div class="side-panel-container">
     <UiSearchToolbar
         onbackclick={itemsStack.length > 0 ? onSearchBarBackClick : undefined}
         onvaluechange={onSearchBarValueChanged}
@@ -94,58 +95,85 @@
         isfiltersapplied={undefined}
         onaddclick={undefined}
     />
-    <div style="height:1em;"></div>
-    {#if currentChildren.length === 0 && currentItem?.description}
-        <DmScreenItemUi 
-            currentItem={currentItem}
-            uiEventListener={uiEventListener}
-        />
-    {:else if !currentItem && searchBarValue.length > 0}
-        {#if filteredItems.length === 0}
-            <UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
+    <div class="side-panel-spacer"></div>
+    <div class="side-panel-content">
+        {#if currentChildren.length === 0 && currentItem?.description}
+            <DmScreenItemUi
+                currentItem={currentItem}
+                uiEventListener={uiEventListener}
+            />
+        {:else if !currentItem && searchBarValue.length > 0}
+            {#if filteredItems.length === 0}
+                <UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
+            {:else}
+                <div class="content">
+                    {#each filteredItems as item}
+                        <PanelTypeTint panelKey="dm-screen">
+                            <DmScreenGroupUi
+                                icon={item.icon}
+                                name={item.name}
+                                source={item.source.shortName}
+                                onclick={onItemClick(item)}
+                            />
+                        </PanelTypeTint>
+                    {/each}
+                </div>
+            {/if}
         {:else}
+            {#if currentItem}
+                <h2>{currentItem.name.rus}</h2>
+            {/if}
+            {#if currentItem && currentItem.description}
+                <div class="group-description">{@html currentItem.description}</div>
+            {/if}
             <div>
-                {#each filteredItems as item}
-                    <DmScreenGroupUi
-                        icon={item.icon}
-                        name={item.name}
-                        source={item.source.shortName}
-                        onclick={onItemClick(item)}        
-                    />
+                {#each (groupedChildren()) as childGroup}
+                    <div class="group-header">{@html childGroup.subgroupName}</div>
+                    <div class="content">
+                        {#each childGroup.group as group}
+                            <PanelTypeTint panelKey="dm-screen">
+                                <DmScreenGroupUi
+                                    icon={group.icon}
+                                    name={group.name}
+                                    source={group.source.shortName}
+                                    onclick={onItemClick(group)}
+                                />
+                            </PanelTypeTint>
+                        {/each}
+                    </div>
                 {/each}
             </div>
         {/if}
-    {:else}
-        {#if currentItem}
-            <h2>{currentItem.name.rus}</h2>
-        {/if}
-        {#if currentItem && currentItem.description}
-            <div class="group-description">{@html currentItem.description}</div>
-        {/if}
-        <div>
-            {#each (groupedChildren()) as childGroup}
-                <div class="group-header">{@html childGroup.subgroupName}</div>
-                <div class="content">
-                    {#each childGroup.group as group}
-                        <DmScreenGroupUi
-                            icon={group.icon}
-                            name={group.name}
-                            source={group.source.shortName}
-                            onclick={onItemClick(group)}        
-                        />
-                    {/each}
-                </div>
-            {/each}
-        </div>
-    {/if}   
+    </div>
 </div>
 
 <style>
+    .side-panel-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .side-panel-spacer {
+        height: 1em;
+        flex-shrink: 0;
+    }
+
+    .side-panel-content {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+    }
+
     .content {
         background-color: var(--dnd-ui-surface-base);
 
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(
+            auto-fit,
+            minmax(min(20rem, 100%), 1fr)
+        );
         gap: var(--dnd-ui-space-4);
     }
 

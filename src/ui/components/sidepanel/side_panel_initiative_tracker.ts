@@ -1,93 +1,45 @@
-import { ItemView, Workspace, type WorkspaceLeaf } from "obsidian";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
-import DndStatblockPlugin from "src/main";
-import InitiativeTracker from 'src/ui/layout/tracker/InitiativeTracker.svelte';
-import { mount, unmount } from 'svelte';
+import type { BaseItem } from "src/domain/models/common/BaseItem";
+import type DndStatblockPlugin from "src/main";
+import InitiativeTracker from "src/ui/layout/tracker/InitiativeTracker.svelte";
+import { mount } from "svelte";
+import type { PanelHost, PanelSearchResult } from "./PanelHost";
 
-export function registerSidePanelInitiativeTracker(
-    plugin: DndStatblockPlugin,
-    uiEventListener: IUiEventListener,
-) {
-    plugin.registerView(
-        SIDE_PANEL_INITIATIVE_TRACKER_VIEW,
-        (leaf: WorkspaceLeaf) => new SidePanelInitiativeTrackerView(leaf, plugin, uiEventListener),
-    );
-    plugin.addRibbonIcon("swords", "Трекер инициативы", async () => {
-        openSidePanelInitiativeTracker(plugin.app.workspace)
-    });
-}
+export const INITIATIVE_TRACKER_DETACH_EVENT = "dnd-dm-tools:initiative-tracker-detach";
 
-const SIDE_PANEL_INITIATIVE_TRACKER_VIEW = "obsidian-dnd-statblock-side-panel-initiative-tracker";
+export class InitiativeTrackerPanel implements PanelHost {
+	constructor(
+		private plugin: DndStatblockPlugin,
+		private uiEventListener: IUiEventListener,
+	) {}
 
-class SidePanelInitiativeTrackerView extends ItemView {
-    
-    // ---- fields ----
-    #component: ReturnType<typeof InitiativeTracker> | undefined;
+	getKey() { return "initiative-tracker" as const; }
+	getRibbonIconName() { return "swords"; }
+	getTitle() { return "Трекер инициативы"; }
 
-    constructor(leaf: WorkspaceLeaf, private plugin: DndStatblockPlugin, private uiEventListener: IUiEventListener) {
-        super(leaf);
-    }
+	onDetach(): void {
+		document.dispatchEvent(new CustomEvent(INITIATIVE_TRACKER_DETACH_EVENT));
+	}
 
-    // ---- callbacks ----
-    getViewType() {
-        return SIDE_PANEL_INITIATIVE_TRACKER_VIEW;
-    }
+	async mount(element: Element): Promise<unknown> {
+		return mount(InitiativeTracker, {
+			target: element,
+			props: {
+				app: this.plugin.app,
+				encounter: { name: "", participants: [] },
+				isEditable: true,
+				onPortraitClick: this.uiEventListener.onBeastClick,
+				onConditionClick: this.uiEventListener.onScreenItemClick,
+				onImageRequested: async (url: string) => this.uiEventListener.onImageRequested(url),
+			},
+		});
+	}
 
-    getDisplayText() {
-        return "Трекер инициативы";
-    }
+	async search(_query: string): Promise<PanelSearchResult[]> {
+		return [];
+	}
 
-    getIcon(): string {
-        return "swords";
-    }
-
-    async onOpen() {
-        const container = this.containerEl.children[1];
-        this.#fillContainer(container);
-    }
-
-    async onClose() {
-        if (this.#component) {
-            unmount(this.#component);
-            this.#component = undefined;
-        }
-    }
-
-    // ---- private methods ----
-    #fillContainer(container: Element) {
-        container.empty();
-        const emptyEncounter = {
-            name: "",
-            participants: [],
-        }
-        this.#component = mount(InitiativeTracker, {
-            target: container,
-            props: {
-                app: this.plugin.app,
-                encounter: emptyEncounter,
-                isEditable: true,
-                onPortraitClick: this.uiEventListener.onBeastClick,
-                onConditionClick: this.uiEventListener.onScreenItemClick,
-                onImageRequested: async (it: string) => this.uiEventListener.onImageRequested(it),
-            }
-        });
-    }
-}
-
-async function openSidePanelInitiativeTracker(workspace: Workspace) {
-    let leaf: WorkspaceLeaf;
-    const sidePanelLeaves = workspace.getLeavesOfType(SIDE_PANEL_INITIATIVE_TRACKER_VIEW);
-
-    if (sidePanelLeaves?.length) {
-        leaf = sidePanelLeaves[0];
-    } else {
-        leaf = workspace.getRightLeaf(true)!!;
-    }
-
-    await leaf.setViewState({
-        type: SIDE_PANEL_INITIATIVE_TRACKER_VIEW
-    });
-
-    workspace.revealLeaf(leaf);
-    return leaf.view as SidePanelInitiativeTrackerView;
+	async resolveItem(_url: string): Promise<BaseItem | null> {
+		return null;
+	}
 }

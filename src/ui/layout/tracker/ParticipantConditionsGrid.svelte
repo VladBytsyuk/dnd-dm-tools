@@ -1,8 +1,14 @@
 <script lang="ts">
 	import { onDestroy, tick, untrack } from "svelte";
 	import { Check, CirclePlus, Info, X, Infinity, Minus, Plus } from "lucide-svelte";
-	import type { EncounterParticipantCondition } from "../../../domain/models/encounter/EncounterParticipant";
+	import type {
+		EncounterParticipantCondition,
+		EncounterParticipantResource,
+		EncounterParticipantSpellSlot,
+	} from "../../../domain/models/encounter/EncounterParticipant";
 	import { Blinded, Charmed, Deafened, Exhaustion, Frightened, Grappled, Incapacitated, Invisible, Paralyzed, Petrified, Poisoned, Prone, Restrained, Stunned, Unconscious } from "../../components/icons";
+	import { INITIATIVE_TRACKER_DETACH_EVENT } from "src/ui/components/sidepanel/side_panel_initiative_tracker";
+	import ParticipantResourcesControl from "./ParticipantResourcesControl.svelte";
 
 	type ConditionDef = {
 		url: string;
@@ -42,15 +48,24 @@
 		onOpenConditionDetails,
 		onChange,
 		onDelete,
+		onResourcesChange,
 		getRound,
 		getConditions,
+		getSpellSlots,
+		getResources,
 	} = $props<{
 		isEditable: boolean;
 		onOpenConditionDetails: (url: string) => void;
 		onChange: (condition: EncounterParticipantCondition) => void;
 		onDelete: (url: string) => void;
+		onResourcesChange: (
+			spellSlots: EncounterParticipantSpellSlot[],
+			resources: EncounterParticipantResource[],
+		) => void;
 		getRound: () => number;
 		getConditions: () => EncounterParticipantCondition[];
+		getSpellSlots: () => EncounterParticipantSpellSlot[];
+		getResources: () => EncounterParticipantResource[];
 	}>();
 
 	let openUrl: string | null = $state(null);
@@ -76,6 +91,11 @@
 		.filter((entry): entry is { definition: ConditionDef; condition: EncounterParticipantCondition } => isActive(entry.condition))
 	);
 	const inactiveConditions = $derived(conditions.filter((condition) => !isActive(conditionFor(condition.url))));
+
+	$effect(() => {
+		document.addEventListener(INITIATIVE_TRACKER_DETACH_EVENT, closePopovers);
+		return () => document.removeEventListener(INITIATIVE_TRACKER_DETACH_EVENT, closePopovers);
+	});
 
 	$effect(() => {
 		const expiredUrls = participantConditions
@@ -308,6 +328,7 @@
 				</div>
 			</div>
 		</div>
+
 	{/if}
 {/snippet}
 
@@ -361,6 +382,13 @@
 				</div>
 			{/if}
 		</div>
+
+		<ParticipantResourcesControl
+			{isEditable}
+			{onResourcesChange}
+			{getSpellSlots}
+			{getResources}
+		/>
 	{/if}
 
 	{#each activeConditions as { definition: c, condition }}

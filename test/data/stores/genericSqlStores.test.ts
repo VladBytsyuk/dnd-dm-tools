@@ -36,6 +36,7 @@ const fullItem: TestFullItem = {
 function createSmallDao(overrides: Partial<Dao<TestSmallItem, TestFilter>> = {}) {
 	return {
 		readAllItems: vi.fn().mockResolvedValue([smallItem]),
+		readItemsPage: vi.fn().mockResolvedValue({ items: [smallItem], hasMore: false }),
 		readAllItemsNames: vi.fn().mockResolvedValue([smallItem.name.rus]),
 		readItemByName: vi.fn().mockResolvedValue(smallItem),
 		readItemByUrl: vi.fn().mockResolvedValue(null),
@@ -82,6 +83,20 @@ describe("GenericSqlItemReadStore", () => {
 		await expect(store.readFilteredSmallItems("fire", filter)).resolves.toEqual([smallItem]);
 
 		expect(smallDao.readAllItems).toHaveBeenCalledWith("fire", filter);
+	});
+
+	it("reads a page of small items through the small DAO", async () => {
+		const smallDao = createSmallDao();
+		const filter = { source: "PHB" };
+		const request = { offset: 50, limit: 50 };
+		const store = createReadStore(smallDao);
+
+		await expect(store.readSmallItemsPage(filter, request)).resolves.toEqual({
+			items: [smallItem],
+			hasMore: false,
+		});
+
+		expect(smallDao.readItemsPage).toHaveBeenCalledWith(filter, request);
 	});
 
 	it("reads small names and small items by name through the small DAO", async () => {

@@ -13,7 +13,12 @@ import {
 } from "src/data/stores";
 import type { BaseItem } from "src/domain/models/common/BaseItem";
 import type { Dao } from "src/domain/Dao";
-import type { Group, Repository } from "src/domain/repositories/Repository";
+import type {
+	Group,
+	PageRequest,
+	PageResult,
+	Repository,
+} from "src/domain/repositories/Repository";
 
 export interface SimpleRepositoryDependencies<
 	TSmall extends BaseItem,
@@ -74,6 +79,7 @@ export abstract class SimpleRepository<
 	) {}
 
 	async initialize(): Promise<void> {
+		if (!this.shouldPreloadSmallItems()) return;
 		const allSmallItems = await this.dependencies.readStore.readAllSmallItems();
 		this.#smallItems = allSmallItems;
 		this.#filters = await this.collectFiltersFromAllItems(allSmallItems) ?? undefined;
@@ -116,6 +122,13 @@ export abstract class SimpleRepository<
 		}
 
 		return allSmallItems;
+	}
+
+	async getSmallItemsPage(
+		filter: TFilter | null,
+		request: PageRequest,
+	): Promise<PageResult<TSmall>> {
+		return this.dependencies.readStore.readSmallItemsPage(filter, request);
 	}
 
 	async getAllSmallItemNames(): Promise<string[]> {
@@ -202,9 +215,15 @@ export abstract class SimpleRepository<
 		return undefined;
 	}
 
+	protected shouldPreloadSmallItems(): boolean {
+		return true;
+	}
+
 	private async reloadCaches(): Promise<void> {
 		this.#smallItems = undefined;
 		this.#filters = undefined;
-		await this.initialize();
+		if (this.shouldPreloadSmallItems()) {
+			await this.initialize();
+		}
 	}
 }

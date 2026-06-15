@@ -9,9 +9,11 @@
 	import UiEmptyState from "./organisms/UiEmptyState.svelte";
 	import UiSearchToolbar from "./organisms/UiSearchToolbar.svelte";
 	import UiItemGroup from "./organisms/UiItemGroup.svelte";
+	import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
 
     // ---- Props ----
     interface Props<Small extends BaseItem, Full extends Small, F extends Filters> {
+        panelKey: PanelKey;
         initialFullItem?: Full;
         initialFilters: F;
         uiEventListener: IUiEventListener;
@@ -22,9 +24,12 @@
         SmallItemSlot: any;
         filterDisplayTransform?: (filters: F) => F;
         filterApplyTransform?: (filters: F) => F;
+        paginated?: boolean;
+        pageSize?: number;
     }
 
     let {
+        panelKey,
         initialFullItem,
         initialFilters,
         uiEventListener,
@@ -35,6 +40,8 @@
         SmallItemSlot,
         filterDisplayTransform,
         filterApplyTransform,
+        paginated = false,
+        pageSize = 50,
     }: Props<any, any, any> = $props();
 
     // ---- State ----
@@ -58,6 +65,12 @@
     let emptyFullItem = createEmptyFullItem();
     let isFiltersOverlayOpen: boolean = $state(false);
     let fullFilters: any = $state(null);
+    let loadedItems: BaseItem[] = $state([]);
+    let nextOffset = $state(0);
+    let hasMore = $state(false);
+    let isLoading = $state(false);
+    let loadError: string | null = $state(null);
+    let requestGeneration = 0;
 
     // ---- Lifecycle ----  
     onMount(() => updateGroups()); 
@@ -84,6 +97,7 @@
 
     async function handleFiltersApply(newFilters: any) {
         filters = filterApplyTransform ? filterApplyTransform(newFilters) : newFilters;
+        isFiltersOverlayOpen = false;
         await updateGroups();
     }
 
@@ -100,9 +114,90 @@
 
     // ---- private functions ----
     async function updateGroups() {
+        const generation = ++requestGeneration;
         const searchValueNormalized = searchBarValue.toLowerCase();
-        const smallItems: BaseItem[] = await repository.getFilteredSmallItems(searchValueNormalized, filters);
-        groups = await repository.groupItems(smallItems);
+        loadError = null;
+        isLoading = false;
+
+        if (paginated && searchValueNormalized.length === 0 && repository.getSmallItemsPage) {
+            loadedItems = [];
+            nextOffset = 0;
+            hasMore = true;
+            groups = [];
+            await loadNextPage(generation);
+            return;
+        }
+
+        hasMore = false;
+        isLoading = true;
+        try {
+            const smallItems: BaseItem[] = await repository.getFilteredSmallItems(searchValueNormalized, filters);
+            if (generation !== requestGeneration) return;
+            groups = await repository.groupItems(smallItems);
+        } catch (error) {
+            if (generation !== requestGeneration) return;
+            groups = [];
+            loadError = error instanceof Error ? error.message : "Не удалось загрузить список.";
+        } finally {
+            if (generation === requestGeneration) {
+                isLoading = false;
+            }
+        }
+    }
+
+    async function loadNextPage(generation = requestGeneration) {
+        if (
+            !paginated
+            || !repository.getSmallItemsPage
+            || !hasMore
+            || isLoading
+            || searchBarValue.length > 0
+        ) return;
+
+        isLoading = true;
+        loadError = null;
+        try {
+            const page = await repository.getSmallItemsPage(filters, {
+                offset: nextOffset,
+                limit: pageSize,
+            });
+            if (generation !== requestGeneration) return;
+
+            loadedItems = [...loadedItems, ...page.items];
+            nextOffset += page.items.length;
+            hasMore = page.hasMore;
+            groups = await repository.groupItems(loadedItems);
+        } catch (error) {
+            if (generation !== requestGeneration) return;
+            loadError = error instanceof Error ? error.message : "Не удалось загрузить следующую страницу.";
+        } finally {
+            if (generation === requestGeneration) {
+                isLoading = false;
+            }
+        }
+    }
+
+    function observePageEnd(node: HTMLElement) {
+        const observer = new IntersectionObserver((entries) => {
+            if (entries.some((entry) => entry.isIntersecting)) {
+                void loadNextPage();
+            }
+        }, { rootMargin: "200px" });
+        observer.observe(node);
+
+        return {
+            destroy() {
+                observer.disconnect();
+            },
+        };
+    }
+
+    function retryLoad() {
+        if (paginated && searchBarValue.length === 0 && repository.getSmallItemsPage) {
+            void loadNextPage();
+        } else {
+            void updateGroups();
+        }
     }
 </script>
 
@@ -129,7 +224,7 @@
                 onItemDelete={async (url: string) => await repository.deleteItem(url)}
             />
         </div>
-    {:else if searchBarValue.length > 0 && groups.length === 0}
+    {:else if searchBarValue.length > 0 && groups.length === 0 && !isLoading && !loadError}
         <div class="content content-empty">
             <UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
         </div>
@@ -137,12 +232,24 @@
         <div class="content">
             {#each groups as group (group.sort)}
                 <UiItemGroup
+                    {panelKey}
                     groupTitle={groupTitleBuilder(group)}
                     items={group.smallItems}
                     onItemClick={onSmallItemClick}
                     SmallItemSlot={SmallItemSlot}
                 />
             {/each}
+            {#if loadError}
+                <div class="pagination-status pagination-status-error">
+                    <span>{loadError}</span>
+                    <button type="button" onclick={retryLoad}>Повторить</button>
+                </div>
+            {:else if isLoading}
+                <div class="pagination-status" aria-live="polite">Загрузка...</div>
+            {/if}
+            {#if paginated && hasMore && !loadError && !isLoading}
+                <div class="pagination-sentinel" use:observePageEnd aria-hidden="true"></div>
+            {/if}
         </div>
     {/if}
 
@@ -189,5 +296,26 @@
 
     .content-full {
         padding-bottom: var(--dnd-ui-space-16);
+    }
+
+    .pagination-status {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: var(--dnd-ui-space-8);
+        padding: var(--dnd-ui-space-8);
+        color: var(--dnd-ui-text-secondary);
+    }
+
+    .pagination-status-error {
+        color: var(--text-error);
+    }
+
+    .pagination-status button {
+        cursor: pointer;
+    }
+
+    .pagination-sentinel {
+        min-height: 1px;
     }
 </style>

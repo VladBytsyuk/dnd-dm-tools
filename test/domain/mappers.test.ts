@@ -71,6 +71,8 @@ describe('Mappers', () => {
             expect(participant.armorClass).toEqual({ value: 15 });
             expect(participant.passivePerception).toBe(10);
             expect(participant.side).toBe('enemy');
+            expect(participant.spellSlots).toEqual([]);
+            expect(participant.resources).toEqual([]);
         });
 
         it('should calculate passive perception from wisdom modifier if perception skill is missing', () => {

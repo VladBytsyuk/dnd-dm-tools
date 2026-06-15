@@ -102,6 +102,19 @@ export class SmallMonsterSqlTableDao extends Dao<SmallMonster, BestiaryFilters> 
         }
     }
 
+    override getPageOrderBy(): string {
+        return `
+            CASE
+                WHEN challenge_rating = '—' THEN -1
+                WHEN instr(challenge_rating, '/') > 0 THEN
+                    CAST(substr(challenge_rating, 1, instr(challenge_rating, '/') - 1) AS REAL)
+                    / CAST(substr(challenge_rating, instr(challenge_rating, '/') + 1) AS REAL)
+                ELSE CAST(challenge_rating AS REAL)
+            END ASC,
+            id ASC
+        `;
+    }
+
     async updateItem(item: SmallMonster): Promise<void> {
         try {
             this.database.exec(`

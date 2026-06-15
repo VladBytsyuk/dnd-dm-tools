@@ -11,7 +11,7 @@ import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
 export class BestiarySidePanel extends BaseSidePanel<SmallMonster, FullMonster, BestiaryFilters> {
 
-    getKey(): string { return "bestiary"; }
+    getKey() { return "bestiary" as const; }
     getRibbonIconName(): string { return "skull"; }
     getTitle(): string { return "Бестиарий"; }
 
@@ -22,9 +22,10 @@ export class BestiarySidePanel extends BaseSidePanel<SmallMonster, FullMonster, 
             { key: 'challengeRatings', label: 'Опасность' },
         ];
 
-        mount(BaseSidePanelUi, {
+        return mount(BaseSidePanelUi, {
             target: element,
             props: {
+                panelKey: this.getKey(),
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<BestiaryFilters>(['types', 'challengeRatings', 'sources']),
                 repository: this.repository,
@@ -33,6 +34,8 @@ export class BestiarySidePanel extends BaseSidePanel<SmallMonster, FullMonster, 
                 groupTitleBuilder: (group: { sort: string }) => `Опасность ${group.sort}`,
                 FullItemSlot: MonsterFullUi,
                 SmallItemSlot: MonsterSmallUi,
+                paginated: true,
+                pageSize: 50,
             },
         });
     }

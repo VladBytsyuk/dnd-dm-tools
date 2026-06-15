@@ -11,20 +11,21 @@ import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
 export class ArtifactorySidePanel extends BaseSidePanel<SmallArtifact, FullArtifact, ArtifactoryFilters>{
 
-    getKey() { return 'artifactory'; }
+    getKey() { return 'artifactory' as const; }
     getRibbonIconName() { return 'wand'; }
     getTitle() { return 'Магические предметы'; }
 
-    async mountSvelteComponent(element: Element): Promise<void> {
+    async mountSvelteComponent(element: Element): Promise<unknown> {
         const filterConfig: FilterConfig<ArtifactoryFilters>[] = [
             { key: 'sources', label: 'Источник' },
             { key: 'types', label: 'Типы' },
             { key: 'rarities', label: 'Редкость' },
         ];
 
-        mount(BaseSidePanelUi, {
+        return mount(BaseSidePanelUi, {
             target: element,
             props: {
+                panelKey: this.getKey(),
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<ArtifactoryFilters>(['types', 'sources', 'rarities']),
                 repository: this.repository,
@@ -33,6 +34,8 @@ export class ArtifactorySidePanel extends BaseSidePanel<SmallArtifact, FullArtif
                 groupTitleBuilder: (group: { sort: string }) => group.sort,
                 FullItemSlot: ArtifactFullUi,
                 SmallItemSlot: ArtifactSmallUi,
+                paginated: true,
+                pageSize: 50,
             },
         });
     }

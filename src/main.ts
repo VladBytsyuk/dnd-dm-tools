@@ -5,7 +5,7 @@ import { registerAddEncounterCommand } from './ui/components/command/add_encount
 import { UiEventListener } from './data/ui_event_listener';
 import type { IUiEventListener } from './domain/listeners/ui_event_listener';
 import DB from './data/database/DB';
-import { registerSidePanelInitiativeTracker } from './ui/components/sidepanel/side_panel_initiative_tracker';
+import { InitiativeTrackerPanel } from './ui/components/sidepanel/side_panel_initiative_tracker';
 import { ArsenalFeature } from './ui/components/feature/ArsenalFeature';
 import type { BaseFeature } from './ui/components/feature/BaseFeature';
 import { BestiaryFeature } from './ui/components/feature/BestiaryFeature';
@@ -19,6 +19,12 @@ import { FeatFeature } from './ui/components/feature/FeatFeature';
 import { RaceFeature } from './ui/components/feature/RaceFeature';
 import { ClassesFeature } from './ui/components/feature/ClassesFeature';
 import { CharacterSheetFeature } from './ui/components/feature/CharacterSheetFeature';
+import {
+	loadAssistantWorkspace,
+	type AssistantWorkspaceState,
+} from './domain/models/assistant/AssistantWorkspace';
+import { PanelManager } from './ui/components/sidepanel/PanelManager';
+import type { PanelHost } from './ui/components/sidepanel/PanelHost';
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -38,13 +44,19 @@ export default class DndStatblockPlugin extends Plugin {
 	spellbookFeature: SpellbookFeature;
 	dmScreenFeature: DmScreenFeature;
 	private features: BaseFeature<any, any, any>[];
+	private assistantWorkspace: AssistantWorkspaceState;
+	panelManager: PanelManager;
+	private shouldResetLegacyViews = false;
 
 	#uiEventListener: IUiEventListener;
 
 	// ---- callbacks ----
 	async onload() {
-		this.#initialize(() => {
-			registerSidePanelInitiativeTracker(this, this.#uiEventListener);
+		const loadResult = loadAssistantWorkspace(await this.loadData());
+		this.assistantWorkspace = loadResult.workspace;
+		this.shouldResetLegacyViews = loadResult.shouldResetLegacyViews;
+
+		await this.#initialize(() => {
 			registerEncounterMdCodeBlockProcessor(
 				this, 
 				this.bestiaryFeature.repository!,
@@ -60,6 +72,11 @@ export default class DndStatblockPlugin extends Plugin {
 	onunload() {
 		this.#dispose();
 		console.log("dnd-dm-tools has been unloaded.");
+	}
+
+	async persistAssistantWorkspace(workspace: AssistantWorkspaceState): Promise<void> {
+		this.assistantWorkspace = workspace;
+		await this.saveData(workspace);
 	}
 
 	// ---- private methods ----
@@ -111,12 +128,25 @@ export default class DndStatblockPlugin extends Plugin {
 			this.classesFeature,
 			this.characterSheetFeature,
 		];
-		this.features.forEach(feature => feature.initialize());
+		await Promise.all(this.features.map(feature => feature.initialize()));
+
+		this.panelManager = new PanelManager(
+			this,
+			() => this.assistantWorkspace,
+			(workspace) => this.persistAssistantWorkspace(workspace),
+		);
+		const panels: PanelHost[] = this.features
+			.map((feature) => feature.sidePanel)
+			.filter((panel): panel is NonNullable<typeof panel> => Boolean(panel));
+		panels.push(new InitiativeTrackerPanel(this, this.#uiEventListener));
+		await this.panelManager.register(panels, this.shouldResetLegacyViews);
+		await this.persistAssistantWorkspace(this.assistantWorkspace);
 		
 		callback();
 	}
 
 	#dispose() {
+		this.panelManager.dispose();
 		this.features.forEach(feature => feature.dispose());
 	}
 }

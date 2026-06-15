@@ -3,6 +3,7 @@ import type { Database, SqlValue } from "sql.js";
 import type { BaseItem } from "./models/common/BaseItem";
 import type { Initializable } from "./Initializable";
 import { console } from "inspector";
+import type { PageRequest, PageResult } from "./repositories/Repository";
 
 export interface WhereClauseData {
     whereClauses: string[];
@@ -152,6 +153,49 @@ export abstract class Dao<T extends BaseItem, F> implements Initializable {
             console.error(`Error reading items from ${this.getTableName()}:`, error);
             throw error;
         }
+    }
+
+    async readItemsPage(filters: F | null, request: PageRequest): Promise<PageResult<T>> {
+        try {
+            const whereClauses: string[] = [];
+            const params: SqlValue[] = [];
+
+            if (filters) {
+                const filterByFiltersResult = await this.filterByFilters(filters);
+                whereClauses.push(...filterByFiltersResult.whereClauses);
+                params.push(...filterByFiltersResult.params);
+            }
+
+            let query = `SELECT * FROM ${this.getTableName()}`;
+            if (whereClauses.length > 0) {
+                query += ` WHERE ${whereClauses.join(' AND ')}`;
+            }
+            query += ` ORDER BY ${this.getPageOrderBy()} LIMIT ? OFFSET ?;`;
+
+            const result = this.database.exec(query, [
+                ...params,
+                request.limit + 1,
+                request.offset,
+            ]);
+            if (!result || result.length === 0 || result[0].values.length === 0) {
+                return { items: [], hasMore: false };
+            }
+
+            const rows = result[0].values;
+            const hasMore = rows.length > request.limit;
+            const pageRows = hasMore ? rows.slice(0, request.limit) : rows;
+            return {
+                items: await Promise.all(pageRows.map((row) => this.mapSqlValues(row))),
+                hasMore,
+            };
+        } catch (error) {
+            console.error(`Error reading page from ${this.getTableName()}:`, error);
+            throw error;
+        }
+    }
+
+    getPageOrderBy(): string {
+        return "id ASC";
     }
 
     async readAllItemsNames(): Promise<string[]> {

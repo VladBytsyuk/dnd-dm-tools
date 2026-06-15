@@ -1,21 +1,21 @@
-import { ItemView, type WorkspaceLeaf } from "obsidian";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type { Filters } from "src/domain/models/common/Filters";
 import type { BaseItem } from "src/domain/models/common/BaseItem";
 import type { Repository } from "src/domain/repositories/Repository";
 import type DndStatblockPlugin from "src/main";
+import type { PanelHost, PanelSearchResult } from "./PanelHost";
+import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
+import { sortItemsBySearchRelevance } from "./OmniSearchRanking";
 
-export abstract class BaseSidePanel<ST extends BaseItem, FT extends ST, F extends Filters> {
+export abstract class BaseSidePanel<ST extends BaseItem, FT extends ST, F extends Filters> implements PanelHost {
 
-    abstract getKey(): string;
+    abstract getKey(): PanelKey;
     abstract getRibbonIconName(): string;
     abstract getTitle(): string;
 
-    abstract mountSvelteComponent(element: Element): Promise<void>;
+    abstract mountSvelteComponent(element: Element): Promise<unknown>;
 
-    private viewId = `obsidian-dnd-statblock-side-panel-${this.getKey()}`;
     public fullItem: FT | undefined = undefined;
-    private sidePanelItemView: SidePanelItemView<ST, FT, F>;
 
     constructor(
         public plugin: DndStatblockPlugin,
@@ -23,76 +23,27 @@ export abstract class BaseSidePanel<ST extends BaseItem, FT extends ST, F extend
         public uiEventListener: IUiEventListener,
     ) {}
 
-    register() {
-        this.plugin.registerView(
-            this.viewId,
-            (leaf: WorkspaceLeaf) => {
-                this.sidePanelItemView = new SidePanelItemView<ST, FT, F>(
-                    leaf,
-                    this.viewId,
-                    this.getTitle(),
-                    this.getRibbonIconName(),
-                    async (target: Element) => await this.mountSvelteComponent(target),
-                )
-                return this.sidePanelItemView;
-            },
-        );
-        this.plugin.addRibbonIcon(this.getRibbonIconName(), this.getTitle(), async () => this.open(undefined));
-    }
-
     async open(fullItem: FT | undefined) {
-        this.fullItem = fullItem;
-
-        let leaf: WorkspaceLeaf;
-        const sidePanelLeaves = this.plugin.app.workspace.getLeavesOfType(this.viewId);
-
-        if (sidePanelLeaves?.length) {
-            leaf = sidePanelLeaves[0];
-        } else {
-            leaf = this.plugin.app.workspace.getRightLeaf(true)!!;
-        }
-
-        await leaf.setViewState({
-            type: this.viewId,
-        });
-
-        this.plugin.app.workspace.revealLeaf(leaf);
-
-        const sidePanelView = leaf.view as SidePanelItemView<ST, FT, F>;
-        await sidePanelView.onOpen();
-        return sidePanelView;
-    }
-}
-
-class SidePanelItemView<ST extends BaseItem, FT extends ST, F extends Filters> extends ItemView {
-
-    constructor(
-        leaf: WorkspaceLeaf,
-        private viewId: string,
-        private title: string,
-        private ribbonIconName: string,
-        private onMountSvelteComponent: (target: Element) => Promise<void>,
-    ) {
-        super(leaf);
+        await this.plugin.panelManager.openItem(this.getKey(), fullItem);
     }
 
-    getViewType(): string {
-        return this.viewId;
+    async mount(element: Element, item?: BaseItem): Promise<unknown> {
+        this.fullItem = item as FT | undefined;
+        return await this.mountSvelteComponent(element);
     }
 
-    getDisplayText(): string {
-        return this.title;
+    async search(query: string): Promise<PanelSearchResult[]> {
+        const items = await this.repository.getFilteredSmallItems(query, null);
+        return sortItemsBySearchRelevance(items, query).slice(0, 25).map((item) => ({
+            panelKey: this.getKey(),
+            url: item.url,
+            title: item.name.rus || item.name.eng,
+            subtitle: item.name.eng && item.name.eng !== item.name.rus ? item.name.eng : "",
+            item,
+        }));
     }
 
-    getIcon(): string {
-        return this.ribbonIconName;
+    async resolveItem(url: string): Promise<FT | null> {
+        return await this.repository.getFullItemByUrl(url);
     }
-
-    async onOpen() {
-        const container = this.containerEl.children[1];
-        container.empty();
-        await this.onMountSvelteComponent(container);
-    }
-
-    async onClose() {}
 }

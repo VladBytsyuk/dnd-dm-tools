@@ -108,6 +108,22 @@ export class SmallArtifactSqlTableDao extends Dao<SmallArtifact, ArtifactoryFilt
         }
     }
 
+    override getPageOrderBy(): string {
+        return `
+            CASE rarity_short
+                WHEN 'O' THEN 0
+                WHEN 'Н' THEN 1
+                WHEN 'Р' THEN 2
+                WHEN 'OР' THEN 3
+                WHEN 'Л' THEN 4
+                WHEN 'А' THEN 5
+                WHEN '~' THEN 6
+                ELSE 7
+            END ASC,
+            id ASC
+        `;
+    }
+
     async updateItem(item: SmallArtifact): Promise<void> {
         try {
             this.database.exec(`

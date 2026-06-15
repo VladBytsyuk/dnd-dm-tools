@@ -11,7 +11,7 @@ import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
 export class SpellBookSidePanel extends BaseSidePanel<SmallSpell, FullSpell, SpellbookFilters> {
 
-    getKey(): string { return "spellbook"; }
+    getKey() { return "spellbook" as const; }
     getRibbonIconName(): string { return "sparkles"; }
     getTitle(): string { return "Книга заклинаний"; }
 
@@ -22,9 +22,10 @@ export class SpellBookSidePanel extends BaseSidePanel<SmallSpell, FullSpell, Spe
             { key: 'schools', label: 'Школы' },
         ];
 
-        mount(BaseSidePanelUi, {
+        return mount(BaseSidePanelUi, {
             target: element,
             props: {
+                panelKey: this.getKey(),
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<SpellbookFilters>(['schools', 'levels', 'classes', 'sources']),
                 repository: this.repository,
@@ -33,6 +34,8 @@ export class SpellBookSidePanel extends BaseSidePanel<SmallSpell, FullSpell, Spe
                 groupTitleBuilder: (group: { sort: string }) => group.sort !== "0" ? `Круг ${group.sort}` : "Заговоры",
                 FullItemSlot: SpellFullUi,
                 SmallItemSlot: SpellSmallUi,
+                paginated: true,
+                pageSize: 50,
             },
         });
     }

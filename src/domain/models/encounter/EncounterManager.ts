@@ -1,7 +1,12 @@
 import { deepCopy } from "src/domain/utils/object_utils";
 import { d20, roll } from "src/domain/dice";
 import type { Encounter } from "./Encounter";
-import type { EncounterParticipant, EncounterParticipantCondition } from "./EncounterParticipant";
+import type {
+    EncounterParticipant,
+    EncounterParticipantCondition,
+    EncounterParticipantResource,
+    EncounterParticipantSpellSlot,
+} from "./EncounterParticipant";
 
 export const MAX_HISTORY_SIZE = 50;
 
@@ -193,6 +198,8 @@ export class EncounterManager {
                 side: "neutral",
                 isDead: false,
                 conditions: [],
+                spellSlots: [],
+                resources: [],
                 colorHex: "#94a3b8",
             };
     
@@ -305,6 +312,20 @@ export class EncounterManager {
                 }
                 return p;
             });
+        });
+    }
+
+    setParticipantResources(
+        participantId: number,
+        spellSlots: EncounterParticipantSpellSlot[],
+        resources: EncounterParticipantResource[],
+    ) {
+        this.update(state => {
+            state.encounter.participants = state.encounter.participants.map((participant) =>
+                participant.id === participantId
+                    ? { ...participant, spellSlots, resources }
+                    : participant,
+            );
         });
     }
 

@@ -288,6 +288,8 @@ describe('EncounterManager', () => {
             manager.addParticipant();
             expect(manager.current.encounter.participants).toHaveLength(3);
             expect(manager.current.encounter.participants[2].id).toBe(Math.random());
+            expect(manager.current.encounter.participants[2].spellSlots).toEqual([]);
+            expect(manager.current.encounter.participants[2].resources).toEqual([]);
             expect(onUpdateMock).toHaveBeenCalledTimes(1);
         });
 
@@ -348,14 +350,40 @@ describe('EncounterManager', () => {
 
         it('should paste participants with new random IDs', () => {
             const newParticipants: EncounterParticipant[] = [
-                { ...participant1, id: 3 },
+                {
+                    ...participant1,
+                    id: 3,
+                    spellSlots: [{ level: 1, total: 4, used: 2 }],
+                    resources: [{ id: 'rage', name: 'Rage', total: 3, used: 1 }],
+                },
                 { ...participant2, id: 4 },
             ];
             manager.pasteParticipants(newParticipants);
             expect(manager.current.encounter.participants).toHaveLength(4); // initial 2 + new 2
             expect(manager.current.encounter.participants[2].id).not.toBe(3); // Should have new random ID
             expect(manager.current.encounter.participants[3].id).not.toBe(4); // Should have new random ID
+            expect(manager.current.encounter.participants[2].spellSlots).toEqual(newParticipants[0].spellSlots);
+            expect(manager.current.encounter.participants[2].resources).toEqual(newParticipants[0].resources);
             expect(onUpdateMock).toHaveBeenCalledTimes(1);
+        });
+
+        it('should set participant spell slots and resources in one undoable change', () => {
+            const spellSlots = [{ level: 3 as const, total: 2, used: 1 }];
+            const resources = [{ id: 'ki', name: 'Ki', total: 5, used: 2 }];
+
+            manager.setParticipantResources(participant1.id, spellSlots, resources);
+
+            expect(manager.current.encounter.participants[0].spellSlots).toEqual(spellSlots);
+            expect(manager.current.encounter.participants[0].resources).toEqual(resources);
+            expect(onUpdateMock).toHaveBeenCalledTimes(1);
+
+            manager.undo();
+            expect(manager.current.encounter.participants[0].spellSlots).toBeUndefined();
+            expect(manager.current.encounter.participants[0].resources).toBeUndefined();
+
+            manager.redo();
+            expect(manager.current.encounter.participants[0].spellSlots).toEqual(spellSlots);
+            expect(manager.current.encounter.participants[0].resources).toEqual(resources);
         });
 
         it('should set a condition for a participant', () => {

@@ -120,6 +120,10 @@ export class SmallSpellSqlTableDao extends Dao<SmallSpell, SpellbookFilters> {
         }
     }
 
+    override getPageOrderBy(): string {
+        return "level ASC, id ASC";
+    }
+
     async updateItem(item: SmallSpell): Promise<void> {
         try {
             this.database.exec(`

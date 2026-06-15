@@ -82,6 +82,10 @@ export class SmallItemSqlTableDao extends Dao<SmallItem, EquipmentFilters> {
         }
     }
 
+    override getPageOrderBy(): string {
+        return "rus_name COLLATE NOCASE ASC, id ASC";
+    }
+
     async updateItem(item: SmallItem): Promise<void> {
         try {
             this.database.exec(`

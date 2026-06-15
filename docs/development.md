@@ -10,7 +10,7 @@
 
 ```bash
 # Clone the repository
-git clone <repo-url>
+git clone https://github.com/VladBytsyuk/dnd-dm-tools.git
 cd dnd-dm-tools
 
 # Install dependencies
@@ -20,7 +20,7 @@ npm install
 npm run dev
 ```
 
-For local testing, symlink or copy the plugin into your Obsidian vault's `.obsidian/plugins/dnd-dm-tools/` directory.
+For local testing, run `npm run release`, then symlink or copy `.release/dnd-dm-tools/` into your Obsidian vault's `.obsidian/plugins/dnd-dm-tools/` directory.
 
 ## Build Commands
 

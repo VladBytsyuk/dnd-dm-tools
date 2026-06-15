@@ -11,19 +11,20 @@ import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
 export class ArmorySidePanel extends BaseSidePanel<SmallArmor, FullArmor, ArmoryFilters> {
 
-    getKey() { return 'armory'; }
+    getKey() { return 'armory' as const; }
     getRibbonIconName() { return 'shield'; }
     getTitle() { return 'Броня'; }
 
-    async mountSvelteComponent(element: Element): Promise<void> {
+    async mountSvelteComponent(element: Element): Promise<unknown> {
         const filterConfig: FilterConfig<ArmoryFilters>[] = [
             { key: 'sources', label: 'Источник' },
             { key: 'types', label: 'Типы' },
         ];
 
-        mount(BaseSidePanelUi, {
+        return mount(BaseSidePanelUi, {
             target: element,
             props: {
+                panelKey: this.getKey(),
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<ArmoryFilters>(['types', 'sources']),
                 repository: this.repository,

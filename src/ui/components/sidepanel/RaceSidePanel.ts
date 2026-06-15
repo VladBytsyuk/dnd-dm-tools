@@ -11,7 +11,7 @@ import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
 export class RaceSidePanel extends BaseSidePanel<SmallRace, FullRace, RaceFilters> {
 
-    getKey(): string { return "races"; }
+    getKey() { return "races" as const; }
     getRibbonIconName(): string { return "users"; }
     getTitle(): string { return "Расы"; }
 
@@ -70,9 +70,10 @@ export class RaceSidePanel extends BaseSidePanel<SmallRace, FullRace, RaceFilter
             abilities: filters.abilities.map(name => russianToAbility[name] || name),
         });
 
-        mount(BaseSidePanelUi, {
+        return mount(BaseSidePanelUi, {
             target: element,
             props: {
+                panelKey: this.getKey(),
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<RaceFilters>(['abilities', 'types', 'sources']),
                 repository: this.repository,

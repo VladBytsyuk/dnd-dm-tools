@@ -123,6 +123,27 @@ export function runSqlDaoBaseTests<TItem extends BaseItem, TFilters>(cfg: DaoTes
             expect(mockDatabase.exec).toHaveBeenCalled();
         });
 
+        it('should request one extra row when reading a page', async () => {
+            await dao.readItemsPage(cfg.filters, { offset: 50, limit: 25 });
+
+            const [sql, params] = (mockDatabase.exec as any).mock.calls[0];
+            expect(sql).toContain('ORDER BY');
+            expect(sql).toContain('LIMIT ? OFFSET ?');
+            expect(params.slice(-2)).toEqual([26, 50]);
+        });
+
+        it('should report another page when the extra row exists', async () => {
+            (mockDatabase.exec as any).mockReturnValueOnce([{
+                columns: [],
+                values: [cfg.mapCase.sqlValues, cfg.mapCase.sqlValues],
+            }]);
+
+            const result = await dao.readItemsPage(cfg.filters, { offset: 0, limit: 1 });
+
+            expect(result.items).toHaveLength(1);
+            expect(result.hasMore).toBe(true);
+        });
+
         it('should make sql query when reading all items names', async () => {
             await dao.readAllItemsNames();
             expect(mockDatabase.exec).toHaveBeenCalled();
