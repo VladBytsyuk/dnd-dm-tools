@@ -11,7 +11,7 @@ Feature
 ├── Repository (data access)
 │   ├── SmallDao (list queries)
 │   └── FullDao (detail queries)
-├── SidePanel (browsing UI)
+├── PanelHost (Assistant browsing UI)
 ├── CodeBlockProcessor (markdown rendering)
 └── Commands (editor commands)
 ```
@@ -45,9 +45,10 @@ export abstract class BaseFeature<ST, FT, F> implements Initializable {
 When `initialize()` is called on a feature:
 
 1. `repository.initialize()` — prepares data access
-2. `sidePanel.register()` — registers the Obsidian view
-3. `codeBlockProcessor.register()` — registers the markdown processor
-4. Commands are registered with Obsidian's command palette
+2. `codeBlockProcessor.register()` — registers the markdown processor
+3. Commands are registered with Obsidian's command palette
+
+After all features initialize, `src/main.ts` passes their side-panel hosts to `PanelManager`. `PanelManager` registers the single **Помощник ДМа** Obsidian view and mounts each host in an Assistant tab.
 
 ## Concrete Example: RaceFeature
 
@@ -57,7 +58,7 @@ When `initialize()` is called on a feature:
 export class RaceFeature extends BaseFeature<SmallRace, FullRace, RaceFilters> {
 
     createRepository(database: DB): Repository<SmallRace, FullRace, RaceFilters> {
-        return new RacesRepository(database);
+        return createRacesRepository(database);
     }
 
     createSidePanel(plugin, repository, uiEventListener): BaseSidePanel<...> {
@@ -78,7 +79,7 @@ export class RaceFeature extends BaseFeature<SmallRace, FullRace, RaceFilters> {
 
 Each entity has two representations:
 
-- **SmallXxx** — Minimal data for list views (name, URL, key attributes). Used in side panel lists and search results.
+- **SmallXxx** — Minimal data for list views (name, URL, key attributes). Used in Assistant panel lists and search results.
 - **FullXxx** — Complete entity with all details. Used in statblock rendering and detail views.
 
 `FullXxx extends SmallXxx`, so a full item can be used wherever a small item is expected.
@@ -107,8 +108,8 @@ The repository's `getFilteredSmallItems(name, filter)` method applies both text 
 Code block processors let users embed entity statblocks in markdown notes using fenced code blocks. Each processor:
 
 1. Extends `BaseMdCodeBlockProcessor`
-2. Registers a code block language identifier (e.g., `dnd-race`)
-3. Parses the code block content (typically a URL or name)
+2. Registers a code block language identifier (e.g., `race`)
+3. Parses YAML containing `name.rus`; when `name.eng` is absent, `name.rus` is resolved as the repository URL
 4. Fetches the full item from the repository
 5. Renders a Svelte component into the markdown preview
 
@@ -119,5 +120,6 @@ Features are registered in `src/main.ts` in the `#initialize()` method:
 1. Feature is instantiated with `plugin`, `database`, and `uiEventListener`
 2. Feature is added to the `features` array
 3. `feature.initialize()` is called on all features
+4. Its side-panel host is included in the `PanelManager.register()` call
 
 See [Adding a New Feature](./adding-new-feature.md) for the full registration checklist.

@@ -88,7 +88,7 @@ Use the shared UIKit by default:
 
 - `UiItemCard` for list items.
 - `UiDetailHeader`, `UiDetailCard`, `UiPropertyGrid`, and `UiContentSection` for detail pages.
-- `BaseSidePanelUi.svelte` for standard repository-backed browse/search side panels.
+- `BaseSidePanelUi.svelte` for standard repository-backed browse/search panels.
 
 ### 7. Side Panel
 
@@ -96,14 +96,16 @@ Create `src/ui/components/sidepanel/NewTypeSidePanel.ts`:
 
 - Extends `BaseSidePanel`.
 - Usually mounts `src/ui/layout/uikit/BaseSidePanelUi.svelte` with feature-specific slots and config.
-- Defines the Obsidian view type identifier.
+- Defines a unique `PanelKey`, title, icon, search behavior, item resolution, and Svelte mount behavior for the Assistant.
+
+Add the new key to `PANEL_KEYS` in `src/domain/models/assistant/AssistantWorkspace.ts`. Feature panels do not register independent Obsidian views.
 
 ### 8. Code Block Processor
 
 Create `src/ui/components/processor/NewTypeMdCodeBlockProcessor.ts`:
 
 - Extends `BaseMdCodeBlockProcessor`.
-- Defines the fenced code block language, for example `dnd-newtype`.
+- Defines the fenced code block language, for example `newtype`.
 
 ### 9. Feature Class
 
@@ -156,6 +158,8 @@ Add `createNewTypeRepository(database: DB, options?: RepositoryFactoryServices)`
 3. Add it to the `features` array.
 4. Add a lazy getter in `UiEventListener` construction if cross-feature navigation is needed.
 
+The feature's non-null side panel is collected automatically into the `PanelManager.register()` panel list.
+
 ### Link Listener
 
 When rendered HTML should open the new feature from links:
@@ -181,6 +185,7 @@ Add copy/paste helpers in `src/data/clipboard.ts` only when the feature needs cl
 - [ ] Repository factory added.
 - [ ] Svelte UI components added using shared UIKit where possible.
 - [ ] Side panel added.
+- [ ] Assistant `PanelKey` added.
 - [ ] Code block processor added.
 - [ ] Feature class added.
 - [ ] DAOs registered in `DB.ts`.

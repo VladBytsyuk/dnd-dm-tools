@@ -44,7 +44,7 @@ Test files use the `.test.ts` extension.
 - **Globals:** enabled (`describe`, `it`, `expect` available without imports)
 - **Setup:** `test/setup.ts` runs before all tests
 - **Path aliases:** `@` and `src` resolve to `src/`, `obsidian` resolves to the mock
-- **Coverage exclusions:** node_modules, dist, `.d.ts` files, mocks, Svelte files, all of `src/ui/`
+- **Coverage exclusions:** dependencies, generated output, type declarations, mocks, CSS/WASM assets, and Svelte component files
 
 ## Obsidian API Mocking
 
@@ -78,7 +78,9 @@ Coverage reports are generated in `coverage/` with text, HTML, and lcov formats.
 - Type definitions (`*.d.ts`)
 - Mocks (`__mocks__/`)
 - Svelte components (`src/**/*.svelte`)
-- All UI code (`src/ui/**`)
+- CSS and WASM assets
+
+TypeScript helpers and controllers under `src/ui/` remain eligible for coverage; only `.svelte` component files are excluded.
 
 ## CI Integration
 

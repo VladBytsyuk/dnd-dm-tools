@@ -10,7 +10,7 @@ For the shared design system and reusable Svelte primitives, see [UIKit](./uikit
 src/ui/
 ├── components/
 │   ├── feature/           # Feature orchestrators (BaseFeature + implementations)
-│   ├── sidepanel/         # Side panel classes (BaseSidePanel + implementations)
+│   ├── sidepanel/         # Assistant manager and panel hosts
 │   ├── processor/         # Markdown code block processors
 │   ├── modals/            # Obsidian modal dialogs (editing, confirmation)
 │   ├── command/           # Editor commands
@@ -21,7 +21,8 @@ src/ui/
 │   ├── weapon/            # Weapon components
 │   ├── armor/             # Armor components
 │   ├── tracker/           # Initiative tracker UI
-│   ├── sidepanel/         # Side panel layout components
+│   ├── omni/              # Assistant workspace, tabs, search, and tile layout
+│   ├── sidepanel/         # Feature panel layout components
 │   ├── race/              # Race components
 │   └── uikit/             # Shared UI kit and browser shell
 │       ├── atoms/         # Small reusable visual primitives
@@ -112,7 +113,7 @@ Avoid these warning-prone patterns:
 | `XxxSmallUi.svelte` | List item component | `RaceSmallUi.svelte` |
 | `XxxFullUi.svelte` | Full detail/statblock component | `RaceFullUi.svelte` |
 | `XxxHeaderFullUi.svelte` | Extended header variant | `RaceHeaderFullUi.svelte` |
-| `XxxUi.svelte` | General component | `TrackerUi.svelte` |
+| `XxxUi.svelte` | General component | `InitiativeTracker.svelte` |
 
 Feature folders still use `XxxSmallUi.svelte` and `XxxFullUi.svelte`, but shared header/list/detail chrome should default to UIKit components instead of feature-local wrappers.
 
@@ -149,26 +150,29 @@ The shared browser/detail composition now looks like this:
 
 - `UiItemCard` renders the reusable small-item/list card.
 - `UiItemGroup` renders grouped lists in collapsible sections.
-- `UiSearchToolbar` renders the shared side-panel search/action row.
+- `UiSearchToolbar` renders the shared feature-panel search/action row.
 - `UiDetailHeader` renders the shared detail header, copy actions, source row, and image gallery.
 - `UiDetailCard`, `UiPropertyGrid`, and `UiContentSection` render the standard detail-body structure.
-- `BaseSidePanelUi` is the generic browser shell used by most data-backed entity side panels.
+- `BaseSidePanelUi` is the generic browser shell used by most data-backed Assistant panels.
 
-## Side Panel System
+## Assistant Panel System
 
-Side panels provide the primary browsing interface for each entity type.
+The plugin exposes one Obsidian `ItemView`, **Помощник ДМа**, managed by `PanelManager`. It provides global search, tabs, and one- or two-tile layouts.
 
 ### BaseSidePanel
 
 Each side panel extends `BaseSidePanel` and:
 
-1. Registers an Obsidian `ItemView` with a unique view type
-2. Renders a Svelte component into the view container
-3. Provides `open(fullItem)` to display a specific item's details
+1. Implements the `PanelHost` contract with a unique `PanelKey`, title, and icon
+2. Mounts its Svelte browser into an Assistant tab
+3. Provides search and item resolution for global Assistant search
+4. Routes `open(fullItem)` through `PanelManager`
+
+`PanelManager` alone registers the Obsidian view and ribbon icon. It also persists tab order, active tabs, focused tile, split ratio, and layout.
 
 ### Shared Browser Shell
 
-Most feature side panels now use `src/ui/layout/uikit/BaseSidePanelUi.svelte` as the shared browser shell instead of maintaining a fully custom side-panel Svelte implementation.
+Most feature panels use `src/ui/layout/uikit/BaseSidePanelUi.svelte` as the shared browser shell instead of maintaining a fully custom Svelte implementation.
 
 `BaseSidePanelUi` owns:
 
@@ -191,7 +195,7 @@ Features provide the domain-specific parts through props:
 
 ### Registration
 
-Side panels are created by the feature class's `createSidePanel()` method and registered during `feature.initialize()`.
+Panel hosts are created by each feature's `createSidePanel()` method. After feature initialization, `src/main.ts` collects non-null hosts and registers them with `PanelManager`.
 
 ## Code Block Processors
 
@@ -202,8 +206,9 @@ Code block processors render entity statblocks inline in markdown notes.
 Users add fenced code blocks with a specific language identifier:
 
 ````markdown
-```dnd-race
-url-of-the-race
+```race
+name:
+  rus: race-url
 ```
 ````
 
@@ -213,7 +218,7 @@ Each processor extends `BaseMdCodeBlockProcessor` and:
 
 1. Defines a code block language identifier
 2. Registers with Obsidian's `registerMarkdownCodeBlockProcessor()`
-3. Parses code block content (URL or name)
+3. Parses YAML and resolves `name.rus` through the repository when a full embedded object is not provided
 4. Fetches the full item via the repository
 5. Mounts a Svelte component to render the statblock
 
@@ -227,13 +232,13 @@ Modal dialogs (`src/ui/components/modals/`) extend Obsidian's `Modal` class for:
 
 ## Filter Overlays
 
-Filters are implemented as Svelte overlay components within side panels rather than modal dialogs:
+Filters are implemented as Svelte overlay components within feature panels rather than modal dialogs:
 
 ### FiltersOverlay Component
 
 `src/ui/layout/uikit/FiltersOverlay.svelte` is a generic overlay component that:
 
-- Renders as a fixed-position overlay within the side panel
+- Renders as a fixed-position overlay within the feature panel
 - Accepts `filterConfig` defining which filters to display
 - Supports optional transformation functions for UI display (e.g., translating technical keys to readable names)
 - Provides visual feedback for selected filters and changes
@@ -244,7 +249,7 @@ Filters are implemented as Svelte overlay components within side panels rather t
 
 ### Filter Configuration
 
-Features that use `BaseSidePanelUi` pass a `filterConfig` array into the shared shell. Feature-specific side panels may still define their own filter configuration locally.
+Features that use `BaseSidePanelUi` pass a `filterConfig` array into the shared shell. Feature-specific panels may still define their own filter configuration locally.
 
 Each filter config entry specifies:
 
