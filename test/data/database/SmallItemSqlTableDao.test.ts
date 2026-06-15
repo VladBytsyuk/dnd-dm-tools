@@ -1,4 +1,4 @@
-import { expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { SmallItemSqlTableDao } from '../../../src/data/database/SmallItemSqlTableDao';
 import type { SmallItem } from '../../../src/domain/models/items/SmallItem';
 import type { EquipmentFilters } from '../../../src/domain/models/items/EquipmentFilters';
@@ -43,4 +43,12 @@ runSqlDaoBaseTests<SmallItem, EquipmentFilters>({
             expect(item.source.homebrew).toStrictEqual(smallItemPoison.source.homebrew);
         },
     },
+});
+
+describe('SmallItemSqlTableDao pagination order', () => {
+    it('orders equipment by Russian name and row id', () => {
+        const dao = new SmallItemSqlTableDao({} as any, {} as any, {} as any);
+
+        expect(dao.getPageOrderBy()).toBe('rus_name COLLATE NOCASE ASC, id ASC');
+    });
 });

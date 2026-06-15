@@ -6,6 +6,7 @@ import { runBaseRepositoryTests } from "./BaseRepository";
 import { equipmentFilters, smallItemAbacus, smallItemLyre, smallItemPoison } from "../../__mocks__/domain/models/items/small_items_items";
 import { fullItemAbacus, fullItemLyre, fullItemPoison } from "../../__mocks__/domain/models/items/full_items_items";
 import { mockDatabase } from "../../__mocks__/dao/mock_item_dao";
+import { describe, expect, it, vi } from "vitest";
 
 runBaseRepositoryTests<SmallItem, FullItem, EquipmentFilters>({
     title: 'Repository: Equipment',
@@ -34,4 +35,31 @@ runBaseRepositoryTests<SmallItem, FullItem, EquipmentFilters>({
         smallItem: smallItemLyre as SmallItem,
         fullItem: fullItemLyre as FullItem,
     }
+});
+
+describe("EquipmentRepository pagination", () => {
+    it("does not preload all equipment during initialization", async () => {
+        const database = mockDatabase(
+            [smallItemAbacus, smallItemLyre, smallItemPoison],
+            [fullItemAbacus, fullItemLyre, fullItemPoison],
+        );
+        const readAllSpy = vi.spyOn(database.smallItemDao, "readAllItems");
+        const repository = new EquipmentRepository(database);
+
+        await repository.initialize();
+
+        expect(readAllSpy).not.toHaveBeenCalled();
+    });
+
+    it("returns the requested equipment page", async () => {
+        const repository = new EquipmentRepository(mockDatabase(
+            [smallItemAbacus, smallItemLyre, smallItemPoison],
+            [fullItemAbacus, fullItemLyre, fullItemPoison],
+        ));
+
+        await expect(repository.getSmallItemsPage(null, { offset: 1, limit: 1 })).resolves.toEqual({
+            items: [smallItemLyre],
+            hasMore: true,
+        });
+    });
 });

@@ -32,6 +32,8 @@ export class EquipmentSidePanel extends BaseSidePanel<SmallItem, FullItem, Equip
                 groupTitleBuilder: (group: { sort: string }) => group.sort,
                 FullItemSlot: EquipFullUi,
                 SmallItemSlot: EquipSmallUi,
+                paginated: true,
+                pageSize: 50,
             }
         });
     }

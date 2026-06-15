@@ -34,6 +34,8 @@ export class ArtifactorySidePanel extends BaseSidePanel<SmallArtifact, FullArtif
                 groupTitleBuilder: (group: { sort: string }) => group.sort,
                 FullItemSlot: ArtifactFullUi,
                 SmallItemSlot: ArtifactSmallUi,
+                paginated: true,
+                pageSize: 50,
             },
         });
     }
