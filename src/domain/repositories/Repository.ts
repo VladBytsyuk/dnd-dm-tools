@@ -10,6 +10,10 @@ export interface Repository<SmallItem extends BaseItem, FullItem extends SmallIt
         name: string | null, 
         filter: Filter | null,
     ): Promise<SmallItem[]>;
+    getSmallItemsPage?(
+        filter: Filter | null,
+        request: PageRequest,
+    ): Promise<PageResult<SmallItem>>;
 
     getAllSmallItemNames(): Promise<string[]>;
 
@@ -28,4 +32,14 @@ export interface Repository<SmallItem extends BaseItem, FullItem extends SmallIt
 export interface Group<SmallItem> {
     sort: string;
     smallItems: SmallItem[];
+}
+
+export interface PageRequest {
+    offset: number;
+    limit: number;
+}
+
+export interface PageResult<Item> {
+    items: Item[];
+    hasMore: boolean;
 }

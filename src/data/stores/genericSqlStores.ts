@@ -1,6 +1,7 @@
 import type { ItemReadStore, ItemWriteStore, TransactionalStore } from "src/data/ports";
 import type { Dao } from "src/domain/Dao";
 import type { BaseItem } from "src/domain/models/common/BaseItem";
+import type { PageRequest, PageResult } from "src/domain/repositories/Repository";
 
 export class GenericSqlItemReadStore<
 	TSmall extends BaseItem,
@@ -18,6 +19,13 @@ export class GenericSqlItemReadStore<
 
 	async readFilteredSmallItems(name: string | null, filter: TFilter | null): Promise<TSmall[]> {
 		return this.smallItemDao.readAllItems(name, filter);
+	}
+
+	async readSmallItemsPage(
+		filter: TFilter | null,
+		request: PageRequest,
+	): Promise<PageResult<TSmall>> {
+		return this.smallItemDao.readItemsPage(filter, request);
 	}
 
 	async readAllSmallItemNames(): Promise<string[]> {

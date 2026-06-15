@@ -65,6 +65,10 @@ export function mockItemDao<
 >(items: Item[]): Dao<Item, Filter> {
     return {
         readAllItems: async (name, filters) => items.filter(item => !name || item.name.rus === name),
+        readItemsPage: async (_filters, request) => ({
+            items: items.slice(request.offset, request.offset + request.limit),
+            hasMore: request.offset + request.limit < items.length,
+        }),
         readAllItemsNames: async () => items.map(item => item.name.rus),
         readItemByName: async (name: string) => items.find(item => item.name.rus === name) || null,
         readItemByUrl: async (url: string) => items.find(item => item.url === url) || null,

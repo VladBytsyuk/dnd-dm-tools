@@ -11,6 +11,7 @@ import type {
 	SmallItemProjector,
 	TransactionalStore,
 } from "src/data/ports";
+import type { PageRequest, PageResult } from "src/domain/repositories/Repository";
 import type { BaseItem } from "src/domain/models/common/BaseItem";
 
 export interface TestDoubleCall {
@@ -203,6 +204,7 @@ export class ItemReadStoreDouble<
 	readonly calls: TestDoubleCall[] = [];
 	allSmallItems: TSmall[] = [];
 	filteredSmallItems: TSmall[] = [];
+	smallItemsPage: PageResult<TSmall> = { items: [], hasMore: false };
 	smallItemNames: string[] = [];
 	smallItemsByName = new Map<string, TSmall | null>();
 	fullItemsByName = new Map<string, TFull | null>();
@@ -218,6 +220,17 @@ export class ItemReadStoreDouble<
 	async readFilteredSmallItems(name: string | null, filter: TFilter | null): Promise<TSmall[]> {
 		this.record("readFilteredSmallItems", [name, filter]);
 		return [...this.filteredSmallItems];
+	}
+
+	async readSmallItemsPage(
+		filter: TFilter | null,
+		request: PageRequest,
+	): Promise<PageResult<TSmall>> {
+		this.record("readSmallItemsPage", [filter, request]);
+		return {
+			items: [...this.smallItemsPage.items],
+			hasMore: this.smallItemsPage.hasMore,
+		};
 	}
 
 	async readAllSmallItemNames(): Promise<string[]> {

@@ -34,6 +34,8 @@ export class SpellBookSidePanel extends BaseSidePanel<SmallSpell, FullSpell, Spe
                 groupTitleBuilder: (group: { sort: string }) => group.sort !== "0" ? `Круг ${group.sort}` : "Заговоры",
                 FullItemSlot: SpellFullUi,
                 SmallItemSlot: SpellSmallUi,
+                paginated: true,
+                pageSize: 50,
             },
         });
     }

@@ -77,4 +77,8 @@ export class BestiaryRepository
     createEmptyFullItem(): FullMonster | undefined {
         return EmptyFullMonster();
     }
+
+    protected override shouldPreloadSmallItems(): boolean {
+        return false;
+    }
 }

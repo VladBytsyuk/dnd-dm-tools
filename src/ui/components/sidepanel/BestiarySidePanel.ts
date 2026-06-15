@@ -34,6 +34,8 @@ export class BestiarySidePanel extends BaseSidePanel<SmallMonster, FullMonster, 
                 groupTitleBuilder: (group: { sort: string }) => `Опасность ${group.sort}`,
                 FullItemSlot: MonsterFullUi,
                 SmallItemSlot: MonsterSmallUi,
+                paginated: true,
+                pageSize: 50,
             },
         });
     }
