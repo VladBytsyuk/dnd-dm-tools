@@ -106,7 +106,7 @@
             {#if filteredItems.length === 0}
                 <UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
             {:else}
-                <div>
+                <div class="content">
                     {#each filteredItems as item}
                         <PanelTypeTint panelKey="dm-screen">
                             <DmScreenGroupUi
@@ -170,7 +170,10 @@
         background-color: var(--dnd-ui-surface-base);
 
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(
+            auto-fit,
+            minmax(min(20rem, 100%), 1fr)
+        );
         gap: var(--dnd-ui-space-4);
     }
 

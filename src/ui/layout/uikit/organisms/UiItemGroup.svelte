@@ -95,7 +95,10 @@
 
 	.item-group__grid {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: repeat(
+			auto-fit,
+			minmax(min(20rem, 100%), 1fr)
+		);
 		gap: var(--dnd-ui-space-4);
 		padding: var(--dnd-ui-space-8) 0 0;
 		background: var(--dnd-ui-pattern-group-content-bg);
