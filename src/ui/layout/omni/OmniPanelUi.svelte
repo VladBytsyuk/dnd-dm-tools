@@ -324,18 +324,6 @@
 				value={query}
 				oninput={(event) => updateSearch(event.currentTarget.value)}
 			/>
-			{#if results.length}
-				<div class="omni-search-results" aria-label="Результаты поиска">
-					{#each results as result (`${result.panelKey}:${result.url}`)}
-						<div class="omni-search-results__item">
-							<OmniSearchResult
-								{result}
-								onSelect={() => selectResult(result)}
-							/>
-						</div>
-					{/each}
-				</div>
-			{/if}
 		</div>
 		<div class="omni-toolbar__icons" aria-label="Открыть панель">
 			{#each panels as panel (panel.key)}
@@ -379,6 +367,19 @@
 			</div>
 		</div>
 	</div>
+
+	{#if results.length}
+		<div class="omni-search-results" aria-label="Результаты поиска">
+			{#each results as result (`${result.panelKey}:${result.url}`)}
+				<div class="omni-search-results__item">
+					<OmniSearchResult
+						{result}
+						onSelect={() => selectResult(result)}
+					/>
+				</div>
+			{/each}
+		</div>
+	{/if}
 
 	<div
 		bind:this={tilesElement}
@@ -538,8 +539,8 @@
 		min-height: 0;
 	}
 	.omni {
-		display: flex;
-		flex-direction: column;
+		display: grid;
+		grid-template-rows: auto minmax(0, 1fr);
 		align-self: stretch;
 		width: 100%;
 		max-width: 100%;
@@ -577,18 +578,16 @@
 		color: var(--dnd-ui-text-primary);
 	}
 	.omni-search-results {
-		position: absolute;
 		z-index: 20;
-		top: 100%;
-		left: 0;
-		right: 0;
+		grid-row: 2;
+		grid-column: 1;
+		min-height: 0;
 		display: grid !important;
 		grid-template-columns: repeat(
 			auto-fit,
 			minmax(min(20rem, 100%), 1fr)
 		) !important;
 		gap: var(--dnd-ui-space-4);
-		max-height: 22rem;
 		overflow: auto;
 		padding: var(--dnd-ui-space-4);
 		background: var(--background-primary);
@@ -651,7 +650,8 @@
 		}
 	}
 	.tiles {
-		flex: 1;
+		grid-row: 2;
+		grid-column: 1;
 		display: grid;
 		grid-template-rows: minmax(0, 1fr);
 	}
