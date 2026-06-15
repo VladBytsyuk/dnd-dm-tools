@@ -121,20 +121,6 @@
 		persist();
 	}
 
-	function reorderTab(
-		tile: AssistantTileState,
-		key: PanelKey,
-		offset: -1 | 1,
-	) {
-		const currentIndex = tile.tabs.indexOf(key);
-		const nextIndex = currentIndex + offset;
-		if (currentIndex < 0 || nextIndex < 0 || nextIndex >= tile.tabs.length)
-			return;
-		tile.tabs.splice(currentIndex, 1);
-		tile.tabs.splice(nextIndex, 0, key);
-		persist();
-	}
-
 	function changeLayout() {
 		if (workspace.layout === "single") {
 			workspace.layout = "vertical-split";
@@ -298,45 +284,28 @@
 							>
 								<button
 									type="button"
+									class="tab-title"
 									role="tab"
 									aria-selected={tile.activeTab === key}
 									onclick={() =>
 										activate(tile, key, tileIndex)}
 								>
-									{panelByKey.get(key)?.title ?? key}
+									<span
+										class="tab-icon"
+										use:obsidianIcon={panelByKey.get(key)
+											?.icon ?? "panel-top"}
+									></span>
+									<span>{panelByKey.get(key)?.title ?? key}</span>
 								</button>
 								<button
 									type="button"
-									title="Переместить влево"
-									disabled={tabIndex === 0}
-									onclick={() => reorderTab(tile, key, -1)}
-									>‹</button
-								>
-								<button
-									type="button"
-									title="Переместить вправо"
-									disabled={tabIndex === tile.tabs.length - 1}
-									onclick={() => reorderTab(tile, key, 1)}
-									>›</button
-								>
-								{#if workspace.layout === "vertical-split"}
-									<button
-										type="button"
-										title="Переместить в другую область"
-										onclick={() =>
-											moveTab(
-												key,
-												tileIndex,
-												tileIndex === 0 ? 1 : 0,
-											)}>↕</button
-									>
-								{/if}
-								<button
-									type="button"
+									class="tab-close"
 									title="Закрыть"
+									aria-label={`Закрыть ${panelByKey.get(key)?.title ?? key}`}
 									onclick={() => closeTab(tile, key)}
-									>×</button
 								>
+									<span use:obsidianIcon={"x"}></span>
+								</button>
 							</div>
 						{/each}
 					</div>
@@ -504,6 +473,7 @@
 	}
 	.tabs {
 		display: flex;
+		gap: var(--dnd-ui-space-4);
 		overflow-x: auto;
 		flex: 0 0 auto;
 	}
@@ -512,6 +482,7 @@
 		font-weight: 700;
 	}
 	.tab {
+		position: relative;
 		display: flex;
 		flex: 0 0 auto;
 		border-bottom: 2px solid transparent;
@@ -522,6 +493,64 @@
 	.tab button {
 		border: 0;
 		box-shadow: none;
+	}
+	.tab-title {
+		display: flex;
+		align-items: center;
+		gap: var(--dnd-ui-space-4);
+		padding-right: 2rem;
+		background: transparent;
+	}
+	.tab-title:hover,
+	.tab-title:focus-visible {
+		background: transparent;
+	}
+	.tab-icon,
+	.tab-icon :global(svg) {
+		width: 1rem;
+		height: 1rem;
+	}
+	.tab-close span,
+	.tab-close :global(svg) {
+		width: 0.75rem;
+		height: 0.75rem;
+	}
+	.tab-icon {
+		display: flex;
+		flex: 0 0 auto;
+		align-items: center;
+		justify-content: center;
+	}
+	.tab-close {
+		position: absolute;
+		top: 50%;
+		right: var(--dnd-ui-space-2);
+		transform: translateY(-50%);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.25rem;
+		height: 1.25rem;
+		padding: 0;
+		border-radius: 50%;
+		background: var(--color-red);
+		color: white;
+		opacity: 0;
+		pointer-events: none;
+	}
+	.tab:hover .tab-close,
+	.tab:focus-within .tab-close {
+		opacity: 1;
+		pointer-events: auto;
+	}
+	.tab-close:hover,
+	.tab-close:focus-visible {
+		background: color-mix(in srgb, var(--color-red) 85%, black);
+		color: white;
+	}
+	.tab-close :global(svg),
+	.tab-close :global(svg *) {
+		stroke: currentColor;
 	}
 	.body {
 		flex: 1;
