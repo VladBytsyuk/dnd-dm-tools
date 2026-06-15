@@ -402,7 +402,13 @@
 		min-width: 720px;
 	}
 	.omni-toolbar__search input {
+		height: 3em;
 		width: 100%;
+		padding: 0.5rem;
+		border: 1px solid var(--dnd-ui-border-subtle);
+		border-radius: var(--dnd-ui-radius-lg);
+		background-color: var(--dnd-ui-surface-muted-strong);
+		color: var(--dnd-ui-text-primary);
 	}
 	.omni-search-results {
 		position: absolute;
