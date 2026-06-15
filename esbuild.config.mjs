@@ -20,6 +20,7 @@ const context = await esbuild.context({
 	entryPoints: ["src/main.ts"],
 	bundle: true,
 	loader: {
+		'.svg': 'text',
 		'.wasm': 'binary',
 	},
 	external: [

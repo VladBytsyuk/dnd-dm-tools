@@ -1,5 +1,6 @@
-import { ItemView, type WorkspaceLeaf } from "obsidian";
+import { addIcon, ItemView, type WorkspaceLeaf } from "obsidian";
 import { mount, unmount } from "svelte";
+import omniIcon from "src/assets/icon.svg";
 import type { BaseItem } from "src/domain/models/common/BaseItem";
 import {
 	PANEL_KEYS,
@@ -12,6 +13,7 @@ import type { PanelHost, PanelSearchResult } from "./PanelHost";
 import { sortPanelResultsBySearchRelevance } from "./OmniSearchRanking";
 
 export const OMNI_VIEW_ID = "dnd-dm-tools-omni";
+const OMNI_ICON_ID = "dnd-dm-tools-omni";
 const LEGACY_VIEW_PREFIX = "obsidian-dnd-statblock-side-panel-";
 
 export class PanelManager {
@@ -26,6 +28,7 @@ export class PanelManager {
 	) {}
 
 	async register(panels: PanelHost[], shouldResetLegacyViews: boolean): Promise<void> {
+		addIcon(OMNI_ICON_ID, omniIcon);
 		for (const panel of panels) {
 			if (this.panels.has(panel.getKey())) throw new Error(`Duplicate panel key: ${panel.getKey()}`);
 			this.panels.set(panel.getKey(), panel);
@@ -34,7 +37,7 @@ export class PanelManager {
 			this.assistantView = new AssistantItemView(leaf, this);
 			return this.assistantView;
 		});
-		this.plugin.addRibbonIcon("layout-dashboard", "Помощник ДМа", () => this.openAssistant());
+		this.plugin.addRibbonIcon(OMNI_ICON_ID, "Помощник ДМа", () => this.openAssistant());
 
 		if (shouldResetLegacyViews) {
 			this.detachLegacyViews();
@@ -139,7 +142,7 @@ class AssistantItemView extends ItemView {
 
 	getViewType() { return OMNI_VIEW_ID; }
 	getDisplayText() { return "Помощник ДМа"; }
-	getIcon() { return "layout-dashboard"; }
+	getIcon() { return OMNI_ICON_ID; }
 
 	async onOpen() {
 		this.render();
