@@ -25,6 +25,7 @@ export interface AssistantTileState {
 export interface AssistantWorkspaceState {
 	layout: AssistantLayout;
 	focusedTile: 0 | 1;
+	splitRatio: number;
 	tiles: [AssistantTileState, AssistantTileState];
 }
 
@@ -37,6 +38,7 @@ export function createDefaultAssistantWorkspace(): AssistantWorkspaceState {
 	return {
 		layout: "single",
 		focusedTile: 0,
+		splitRatio: 0.5,
 		tiles: [
 			{ tabs: [], activeTab: null },
 			{ tabs: [], activeTab: null },
@@ -93,6 +95,13 @@ export function loadAssistantWorkspace(value: unknown): AssistantWorkspaceLoadRe
 		workspace: {
 			layout,
 			focusedTile: layout === "single" ? 0 : storedWorkspace?.focusedTile === 1 ? 1 : 0,
+			splitRatio:
+				typeof storedWorkspace?.splitRatio === "number" &&
+				Number.isFinite(storedWorkspace.splitRatio) &&
+				storedWorkspace.splitRatio >= 0.15 &&
+				storedWorkspace.splitRatio <= 0.85
+					? storedWorkspace.splitRatio
+					: 0.5,
 			tiles: [firstTile, secondTile],
 		},
 		shouldResetLegacyViews: false,

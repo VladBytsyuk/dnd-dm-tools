@@ -13,6 +13,12 @@
 		getTabInsertionPosition,
 		normalizeTabInsertionPosition,
 	} from "./OmniTabDrag";
+	import {
+		clampTileRatio,
+		getTileRatioFromPointer,
+		MAX_TILE_RATIO,
+		MIN_TILE_RATIO,
+	} from "./OmniTileResize";
 
 	type PanelSummary = { key: PanelKey; title: string; icon: string };
 	type DraggedTab = { key: PanelKey; tileIndex: 0 | 1 };
@@ -47,6 +53,7 @@
 	let results = $state<PanelSearchResult[]>([]);
 	let draggedTab = $state<DraggedTab | null>(null);
 	let dropIndicator = $state<DropIndicator | null>(null);
+	let tilesElement: HTMLElement;
 	let searchSequence = 0;
 
 	const panelByKey = $derived(
@@ -58,8 +65,61 @@
 	}
 
 	function setFocusedTile(index: 0 | 1) {
+		if (workspace.focusedTile === index) return;
 		workspace.focusedTile = index;
 		persist();
+	}
+
+	function setSplitRatio(ratio: number, shouldPersist = false) {
+		workspace.splitRatio = clampTileRatio(ratio);
+		if (shouldPersist) persist();
+	}
+
+	function updateSplitRatioFromPointer(clientY: number) {
+		const rect = tilesElement.getBoundingClientRect();
+		setSplitRatio(
+			getTileRatioFromPointer(clientY, rect.top, rect.height),
+		);
+	}
+
+	function startSplitResize(event: PointerEvent) {
+		event.preventDefault();
+		const separator = event.currentTarget as HTMLElement;
+		separator.setPointerCapture(event.pointerId);
+		updateSplitRatioFromPointer(event.clientY);
+	}
+
+	function resizeSplit(event: PointerEvent) {
+		const separator = event.currentTarget as HTMLElement;
+		if (!separator.hasPointerCapture(event.pointerId)) return;
+		updateSplitRatioFromPointer(event.clientY);
+	}
+
+	function finishSplitResize(event: PointerEvent) {
+		const separator = event.currentTarget as HTMLElement;
+		if (!separator.hasPointerCapture(event.pointerId)) return;
+		updateSplitRatioFromPointer(event.clientY);
+		separator.releasePointerCapture(event.pointerId);
+		persist();
+	}
+
+	function cancelSplitResize(event: PointerEvent) {
+		const separator = event.currentTarget as HTMLElement;
+		if (separator.hasPointerCapture(event.pointerId))
+			separator.releasePointerCapture(event.pointerId);
+		persist();
+	}
+
+	function resizeSplitWithKeyboard(event: KeyboardEvent) {
+		let nextRatio = workspace.splitRatio;
+		if (event.key === "ArrowUp") nextRatio -= 0.05;
+		else if (event.key === "ArrowDown") nextRatio += 0.05;
+		else if (event.key === "Home") nextRatio = MIN_TILE_RATIO;
+		else if (event.key === "End") nextRatio = MAX_TILE_RATIO;
+		else return;
+
+		event.preventDefault();
+		setSplitRatio(nextRatio, true);
 	}
 
 	function openPanel(key: PanelKey) {
@@ -316,15 +376,40 @@
 		</div>
 	</div>
 
-	<div class:split={workspace.layout === "vertical-split"} class="tiles">
+	<div
+		bind:this={tilesElement}
+		class="tiles"
+		style:grid-template-rows={workspace.layout === "vertical-split"
+			? `${workspace.splitRatio}fr 1px ${1 - workspace.splitRatio}fr`
+			: undefined}
+	>
 		{#each workspace.tiles as tile, rawIndex}
 			{@const tileIndex = rawIndex as 0 | 1}
 			{#if tileIndex === 0 || workspace.layout === "vertical-split"}
+				{#if tileIndex === 1}
+					<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+					<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+					<div
+						class="split-separator"
+						role="separator"
+						tabindex="0"
+						aria-label="Изменить высоту областей"
+						aria-orientation="horizontal"
+						aria-valuemin={Math.round(MIN_TILE_RATIO * 100)}
+						aria-valuemax={Math.round(MAX_TILE_RATIO * 100)}
+						aria-valuenow={Math.round(workspace.splitRatio * 100)}
+						onpointerdown={startSplitResize}
+						onpointermove={resizeSplit}
+						onpointerup={finishSplitResize}
+						onpointercancel={cancelSplitResize}
+						onkeydown={resizeSplitWithKeyboard}
+					></div>
+				{/if}
 				<section
-					class:focused={workspace.focusedTile === tileIndex}
 					class="tile"
 					role="group"
-					aria-label={`Область ${tileIndex + 1}`}
+					onpointerdown={() => setFocusedTile(tileIndex)}
+					onfocusin={() => setFocusedTile(tileIndex)}
 					ondragover={(event) => onTileDragOver(event, tileIndex)}
 					ondragleave={(event) =>
 						clearDropIndicator(event, tileIndex)}
@@ -339,7 +424,6 @@
 						}
 						role="tablist"
 						tabindex="-1"
-						aria-label={`Область ${tileIndex + 1}`}
 						ondragover={(event) => {
 							event.stopPropagation();
 							updateDropIndicator(
@@ -359,19 +443,6 @@
 							);
 						}}
 					>
-						<button
-							type="button"
-							class="focus-tile"
-							class:drop-after={
-								dropIndicator?.tileIndex === tileIndex &&
-								dropIndicator.boundary === 0 &&
-								tile.tabs.length === 0
-							}
-							aria-pressed={workspace.focusedTile === tileIndex}
-							onclick={() => setFocusedTile(tileIndex)}
-						>
-							{tileIndex + 1}
-						</button>
 						{#each tile.tabs as key, tabIndex (key)}
 							<div
 								class:active={tile.activeTab === key}
@@ -579,19 +650,33 @@
 		flex: 1;
 		display: grid;
 		grid-template-rows: minmax(0, 1fr);
-		gap: var(--dnd-ui-space-4);
-	}
-	.tiles.split {
-		grid-template-rows: repeat(2, minmax(0, 1fr));
 	}
 	.tile {
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;
-		border: 1px solid transparent;
 	}
-	.tile.focused {
-		border-color: var(--interactive-accent);
+	.split-separator {
+		position: relative;
+		z-index: 4;
+		width: 100%;
+		height: 1px;
+		padding: 0;
+		border: 0;
+		border-radius: 0;
+		background: rgb(128 128 128 / 0.55);
+		box-shadow: none;
+		cursor: row-resize;
+		touch-action: none;
+	}
+	.split-separator::before {
+		content: "";
+		position: absolute;
+		inset: -4px 0;
+	}
+	.split-separator:focus-visible {
+		outline: 2px solid var(--interactive-accent);
+		outline-offset: 2px;
 	}
 	.tabs {
 		display: flex;
@@ -612,8 +697,7 @@
 		outline-offset: -2px;
 	}
 	.tab.drop-before::before,
-	.tab.drop-after::after,
-	.focus-tile.drop-after::after {
+	.tab.drop-after::after {
 		content: "";
 		position: absolute;
 		z-index: 3;
@@ -628,14 +712,8 @@
 	.tab.drop-before::before {
 		left: -2px;
 	}
-	.tab.drop-after::after,
-	.focus-tile.drop-after::after {
+	.tab.drop-after::after {
 		right: -2px;
-	}
-	.focus-tile {
-		position: relative;
-		flex: 0 0 auto;
-		font-weight: 700;
 	}
 	.tab {
 		position: relative;

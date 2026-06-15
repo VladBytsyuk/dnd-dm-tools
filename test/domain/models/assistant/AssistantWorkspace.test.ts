@@ -9,6 +9,7 @@ describe("AssistantWorkspace", () => {
 		expect(createDefaultAssistantWorkspace()).toEqual({
 			layout: "single",
 			focusedTile: 0,
+			splitRatio: 0.5,
 			tiles: [
 				{ tabs: [], activeTab: null },
 				{ tabs: [], activeTab: null },
@@ -34,6 +35,7 @@ describe("AssistantWorkspace", () => {
 		expect(result.workspace).toEqual({
 			layout: "vertical-split",
 			focusedTile: 1,
+			splitRatio: 0.5,
 			tiles: [
 				{ tabs: ["bestiary"], activeTab: "bestiary" },
 				{ tabs: ["spellbook"], activeTab: "spellbook" },
@@ -88,6 +90,7 @@ describe("AssistantWorkspace", () => {
 		expect(result.workspace).toEqual({
 			layout: "vertical-split",
 			focusedTile: 1,
+			splitRatio: 0.5,
 			tiles: [
 				{ tabs: ["bestiary", "spellbook"], activeTab: "bestiary" },
 				{ tabs: ["initiative-tracker"], activeTab: "initiative-tracker" },
@@ -111,4 +114,28 @@ describe("AssistantWorkspace", () => {
 			{ tabs: [], activeTab: null },
 		]);
 	});
+
+	it("preserves a valid split ratio", () => {
+		const result = loadAssistantWorkspace({
+			layout: "vertical-split",
+			focusedTile: 0,
+			splitRatio: 0.7,
+			tiles: [],
+		});
+
+		expect(result.workspace.splitRatio).toBe(0.7);
+	});
+
+	it.each([undefined, null, "0.7", Number.NaN, 0.1, 0.9])(
+		"normalizes an invalid split ratio: %s",
+		(splitRatio) => {
+			const result = loadAssistantWorkspace({
+				layout: "vertical-split",
+				splitRatio,
+				tiles: [],
+			});
+
+			expect(result.workspace.splitRatio).toBe(0.5);
+		},
+	);
 });
