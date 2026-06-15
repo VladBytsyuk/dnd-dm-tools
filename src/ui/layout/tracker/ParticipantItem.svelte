@@ -11,6 +11,7 @@
 	} from "../../../domain/models/encounter/EncounterParticipant";
 	import ParticipantConditionsGrid from "./ParticipantConditionsGrid.svelte";
 	import ParticipantResourcesRow from "./ParticipantResourcesRow.svelte";
+	import { INITIATIVE_TRACKER_DETACH_EVENT } from "src/ui/components/sidepanel/side_panel_initiative_tracker";
 	import { onMount } from "svelte";
 
 	let {
@@ -235,6 +236,12 @@
 		document.addEventListener("click", onDoc, true);
 
 		return () => document.removeEventListener("click", onDoc, true);
+	});
+
+	$effect(() => {
+		const closeColorPicker = () => (isColorPickerOpen = false);
+		document.addEventListener(INITIATIVE_TRACKER_DETACH_EVENT, closeColorPicker);
+		return () => document.removeEventListener(INITIATIVE_TRACKER_DETACH_EVENT, closeColorPicker);
 	});
 
 </script>

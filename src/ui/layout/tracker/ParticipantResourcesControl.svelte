@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onDestroy, tick } from "svelte";
 	import { Plus, Save, Sparkles, Trash2, X } from "lucide-svelte";
+	import { INITIATIVE_TRACKER_DETACH_EVENT } from "src/ui/components/sidepanel/side_panel_initiative_tracker";
 	import type {
 		EncounterParticipantResource,
 		EncounterParticipantSpellSlot,
@@ -38,6 +39,11 @@
 	onDestroy(() => {
 		portalRoot?.remove();
 		portalRoot = null;
+	});
+
+	$effect(() => {
+		document.addEventListener(INITIATIVE_TRACKER_DETACH_EVENT, close);
+		return () => document.removeEventListener(INITIATIVE_TRACKER_DETACH_EVENT, close);
 	});
 
 	function normalizeCount(value: number) {

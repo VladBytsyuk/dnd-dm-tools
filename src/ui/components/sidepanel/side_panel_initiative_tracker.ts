@@ -5,6 +5,8 @@ import InitiativeTracker from "src/ui/layout/tracker/InitiativeTracker.svelte";
 import { mount } from "svelte";
 import type { PanelHost, PanelSearchResult } from "./PanelHost";
 
+export const INITIATIVE_TRACKER_DETACH_EVENT = "dnd-dm-tools:initiative-tracker-detach";
+
 export class InitiativeTrackerPanel implements PanelHost {
 	constructor(
 		private plugin: DndStatblockPlugin,
@@ -14,6 +16,10 @@ export class InitiativeTrackerPanel implements PanelHost {
 	getKey() { return "initiative-tracker" as const; }
 	getRibbonIconName() { return "swords"; }
 	getTitle() { return "Трекер инициативы"; }
+
+	onDetach(): void {
+		document.dispatchEvent(new CustomEvent(INITIATIVE_TRACKER_DETACH_EVENT));
+	}
 
 	async mount(element: Element): Promise<unknown> {
 		return mount(InitiativeTracker, {

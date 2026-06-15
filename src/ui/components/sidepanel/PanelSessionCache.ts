@@ -13,6 +13,7 @@ export class PanelSessionCache {
 	constructor(
 		private mountComponent: (key: PanelKey, element: Element) => Promise<unknown>,
 		private unmountComponent: (component: unknown) => void,
+		private onDetach: (key: PanelKey) => void = () => {},
 	) {}
 
 	async attach(key: PanelKey, target: Element): Promise<() => void> {
@@ -21,9 +22,9 @@ export class PanelSessionCache {
 		await session.mounting;
 
 		return () => {
-			if (session.container.parentElement === target) {
-				session.container.remove();
-			}
+			if (session.container.parentElement !== target) return;
+			this.onDetach(key);
+			session.container.remove();
 		};
 	}
 

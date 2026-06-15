@@ -7,6 +7,7 @@
 		EncounterParticipantSpellSlot,
 	} from "../../../domain/models/encounter/EncounterParticipant";
 	import { Blinded, Charmed, Deafened, Exhaustion, Frightened, Grappled, Incapacitated, Invisible, Paralyzed, Petrified, Poisoned, Prone, Restrained, Stunned, Unconscious } from "../../components/icons";
+	import { INITIATIVE_TRACKER_DETACH_EVENT } from "src/ui/components/sidepanel/side_panel_initiative_tracker";
 	import ParticipantResourcesControl from "./ParticipantResourcesControl.svelte";
 
 	type ConditionDef = {
@@ -90,6 +91,11 @@
 		.filter((entry): entry is { definition: ConditionDef; condition: EncounterParticipantCondition } => isActive(entry.condition))
 	);
 	const inactiveConditions = $derived(conditions.filter((condition) => !isActive(conditionFor(condition.url))));
+
+	$effect(() => {
+		document.addEventListener(INITIATIVE_TRACKER_DETACH_EVENT, closePopovers);
+		return () => document.removeEventListener(INITIATIVE_TRACKER_DETACH_EVENT, closePopovers);
+	});
 
 	$effect(() => {
 		const expiredUrls = participantConditions

@@ -13,10 +13,10 @@ import OmniPanelUi from "src/ui/layout/omni/OmniPanelUi.svelte";
 import type { PanelHost, PanelSearchResult } from "./PanelHost";
 import { sortPanelResultsBySearchRelevance } from "./OmniSearchRanking";
 import { PanelSessionCache } from "./PanelSessionCache";
+import { detachLegacyPanelViews } from "./LegacyPanelViews";
 
 export const OMNI_VIEW_ID = "dnd-dm-tools-omni";
 const OMNI_ICON_ID = "dnd-dm-tools-omni";
-const LEGACY_VIEW_PREFIX = "obsidian-dnd-statblock-side-panel-";
 
 export class PanelManager {
 	private panels = new Map<PanelKey, PanelHost>();
@@ -27,6 +27,7 @@ export class PanelManager {
 		(component) => {
 			void unmount(component as Record<string, any>);
 		},
+		(key) => this.panels.get(key)?.onDetach?.(),
 	);
 
 	constructor(
@@ -46,9 +47,9 @@ export class PanelManager {
 			return this.assistantView;
 		});
 		this.plugin.addRibbonIcon(OMNI_ICON_ID, "Помощник ДМа", () => this.openAssistant());
+		this.detachLegacyViews();
 
 		if (shouldResetLegacyViews) {
-			this.detachLegacyViews();
 			await this.openAssistant();
 		}
 	}
@@ -135,9 +136,7 @@ export class PanelManager {
 	}
 
 	private detachLegacyViews(): void {
-		for (const key of PANEL_KEYS) {
-			this.plugin.app.workspace.detachLeavesOfType(`${LEGACY_VIEW_PREFIX}${key}`);
-		}
+		detachLegacyPanelViews(this.plugin.app.workspace);
 	}
 
 	private async openAssistant(): Promise<void> {

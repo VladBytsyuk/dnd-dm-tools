@@ -48,6 +48,47 @@ describe("PanelSessionCache", () => {
 		expect(unmountComponent).toHaveBeenCalledWith(components[0]);
 	});
 
+	it("runs detach cleanup without unmounting the panel", async () => {
+		const component = {};
+		const mountComponent = vi.fn().mockResolvedValue(component);
+		const unmountComponent = vi.fn();
+		const onDetach = vi.fn();
+		const cache = new PanelSessionCache(
+			mountComponent,
+			unmountComponent,
+			onDetach,
+		);
+		const target = document.createElement("div");
+
+		const detach = await cache.attach("initiative-tracker", target);
+		detach();
+		await cache.attach("initiative-tracker", target);
+
+		expect(onDetach).toHaveBeenCalledOnce();
+		expect(onDetach).toHaveBeenCalledWith("initiative-tracker");
+		expect(unmountComponent).not.toHaveBeenCalled();
+		expect(mountComponent).toHaveBeenCalledOnce();
+	});
+
+	it("does not run stale detach cleanup after the panel was reattached elsewhere", async () => {
+		const component = {};
+		const onDetach = vi.fn();
+		const cache = new PanelSessionCache(
+			vi.fn().mockResolvedValue(component),
+			vi.fn(),
+			onDetach,
+		);
+		const firstTarget = document.createElement("div");
+		const secondTarget = document.createElement("div");
+
+		const detachFirst = await cache.attach("initiative-tracker", firstTarget);
+		await cache.attach("initiative-tracker", secondTarget);
+		detachFirst();
+
+		expect(secondTarget.querySelector(".omni-panel-session")).not.toBeNull();
+		expect(onDetach).not.toHaveBeenCalled();
+	});
+
 	it("unmounts a panel that finishes mounting after it was discarded", async () => {
 		let resolveMount: (component: unknown) => void = () => {};
 		const component = {};

@@ -10,6 +10,7 @@ export interface PanelSearchResult {
 }
 
 export interface PanelHost {
+	onDetach?(): void;
 	getKey(): PanelKey;
 	getRibbonIconName(): string;
 	getTitle(): string;
