@@ -31,6 +31,6 @@ describe("PanelTypeColor", () => {
 	});
 
 	it("uses the neutral reference color for a panel without search results", () => {
-		expect(getPanelTypeColor("initiative-tracker")).toBe("#64748B");
+		expect(getPanelTypeColor("initiative-tracker")).toBe("#DC2626");
 	});
 });

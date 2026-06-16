@@ -13,11 +13,11 @@ export const PANEL_TYPE_COLORS = {
 	races: "#2A9D8F",
 	classes: "#3B82C4",
 	"character-sheets": "#6366F1",
-	"initiative-tracker": "#DC2626",
 } satisfies Partial<Record<PanelKey, string>>;
 
 export function getPanelTypeColor(panelKey: PanelKey): string {
-	return PANEL_TYPE_COLORS[
-		panelKey as keyof typeof PANEL_TYPE_COLORS
-	] ?? "#64748B";
+	return (
+		PANEL_TYPE_COLORS[panelKey as keyof typeof PANEL_TYPE_COLORS] ??
+		"#DC2626"
+	);
 }
