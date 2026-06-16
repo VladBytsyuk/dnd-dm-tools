@@ -1,5 +1,20 @@
 import { parse, stringify } from 'yaml';
 
+export class Component {
+  onload() {}
+  onunload() {}
+}
+
+export class MarkdownRenderChild extends Component {
+  constructor(public containerEl: HTMLElement) {
+    super();
+  }
+}
+
+export type MarkdownPostProcessorContext = {
+  addChild: (child: MarkdownRenderChild) => void;
+};
+
 export class TFile {
   constructor(
     public path: string,
@@ -25,7 +40,26 @@ export type Command = { id: string; name: string; callback?: () => void };
 export class Plugin {
   constructor(public app: App/*, public manifest?: any*/) {}
   commands: Command[] = [];
+  markdownPostProcessors: Function[] = [];
+  domEvents: Array<{ el: EventTarget; type: string; callback: EventListener; options?: boolean | AddEventListenerOptions }> = [];
+  editorExtensions: unknown[] = [];
   addCommand(cmd: Command) { this.commands.push(cmd); return cmd; }
+  registerMarkdownPostProcessor(postProcessor: Function) {
+    this.markdownPostProcessors.push(postProcessor);
+    return postProcessor;
+  }
+  registerDomEvent(
+    el: EventTarget,
+    type: string,
+    callback: EventListener,
+    options?: boolean | AddEventListenerOptions
+  ) {
+    this.domEvents.push({ el, type, callback, options });
+    el.addEventListener(type, callback, options);
+  }
+  registerEditorExtension(extension: unknown) {
+    this.editorExtensions.push(extension);
+  }
   async onload() {}
   async onunload() {}
 }

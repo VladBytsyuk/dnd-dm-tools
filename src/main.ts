@@ -1,6 +1,7 @@
 import { Plugin } from 'obsidian';
 import { registerThemeChangeListener } from './ui/theme';
 import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor/encounter_md_code_block_processor';
+import { registerNoteLinkProcessor } from './ui/components/processor/note_link_processor';
 import { registerAddEncounterCommand } from './ui/components/command/add_encounter_command';
 import { UiEventListener } from './data/ui_event_listener';
 import type { IUiEventListener } from './domain/listeners/ui_event_listener';
@@ -63,6 +64,7 @@ export default class DndStatblockPlugin extends Plugin {
 				this.dmScreenFeature.repository!,
 				this.#uiEventListener,
 			);
+			registerNoteLinkProcessor(this, this.#uiEventListener);
 			registerAddEncounterCommand(this);
 			registerThemeChangeListener();
 			console.log("dnd-dm-tools has been loaded.");

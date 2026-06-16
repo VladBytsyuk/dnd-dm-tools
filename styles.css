@@ -463,6 +463,23 @@ detail-tooltip a:hover {
     border-bottom-style: solid;
 }
 
+.dnd-note-link {
+    color: var(--link-color, var(--text-accent));
+    text-decoration: none;
+    border-bottom: 1px dotted currentColor;
+    cursor: pointer;
+}
+
+.dnd-note-link:hover {
+    color: var(--link-color-hover, var(--text-accent-hover));
+    border-bottom-style: solid;
+}
+
+.dnd-note-link:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+}
+
 /* Typography within HTML content */
 .class-html-content > * + * {
     margin-top: 4px;

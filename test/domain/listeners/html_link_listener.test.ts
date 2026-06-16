@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { registerHtmlLinkListener, HtmlLinkListener } from '../../../src/domain/listeners/html_link_listener';
+import {
+    getDndEntityLinkListener,
+    registerHtmlLinkListener,
+    type HtmlLinkListener,
+    resolveDndEntityLink,
+} from '../../../src/domain/listeners/html_link_listener';
 
 function dispatchLinkClick(link: HTMLAnchorElement) {
     link.dispatchEvent(new Event('click', { bubbles: true, cancelable: true }));
@@ -9,16 +14,7 @@ describe('html_link_listener', () => {
     let mockHtmlLinkListener: HtmlLinkListener;
     let mockNode: HTMLElement;
     beforeEach(() => {
-        mockHtmlLinkListener = {
-            onBeastClick: vi.fn(),
-            onSpellClick: vi.fn(),
-            onWeaponClick: vi.fn(),
-            onArmorClick: vi.fn(),
-            onItemClick: vi.fn(),
-            onArtifactClick: vi.fn(),
-            onBackgroundClick: vi.fn(),
-            onScreenItemClick: vi.fn(),
-        };
+        mockHtmlLinkListener = createMockHtmlLinkListener();
 
         mockNode = document.createElement('div');
         document.body.appendChild(mockNode);
@@ -145,4 +141,55 @@ describe('html_link_listener', () => {
 
         expect(mockHtmlLinkListener.onBeastClick).not.toHaveBeenCalled();
     });
+
+    it('should resolve every supported entity prefix', async () => {
+        const cases: [string, keyof HtmlLinkListener][] = [
+            ['/bestiary/goblin', 'onBeastClick'],
+            ['/spells/fireball', 'onSpellClick'],
+            ['/screens/conditions', 'onScreenItemClick'],
+            ['/weapons/sword', 'onWeaponClick'],
+            ['/armors/leather', 'onArmorClick'],
+            ['/backgrounds/urchin', 'onBackgroundClick'],
+            ['/feats/sharpshooter', 'onFeatClick'],
+            ['/races/elf', 'onRaceClick'],
+            ['/classes/fighter', 'onClassClick'],
+            ['/character-sheets/hero', 'onCharacterSheetClick'],
+            ['/items/magic/ring', 'onArtifactClick'],
+            ['/items/rope', 'onItemClick'],
+        ];
+
+        for (const [url, method] of cases) {
+            await resolveDndEntityLink(mockHtmlLinkListener, url);
+            expect(mockHtmlLinkListener[method]).toHaveBeenCalledWith(url);
+        }
+    });
+
+    it('should prefer magic items before regular items', async () => {
+        await resolveDndEntityLink(mockHtmlLinkListener, '/items/magic/ring');
+
+        expect(mockHtmlLinkListener.onArtifactClick).toHaveBeenCalledWith('/items/magic/ring');
+        expect(mockHtmlLinkListener.onItemClick).not.toHaveBeenCalled();
+    });
+
+    it('should return null for unsupported entity prefixes', () => {
+        expect(getDndEntityLinkListener(mockHtmlLinkListener, '/unknown/page')).toBeNull();
+        expect(resolveDndEntityLink(mockHtmlLinkListener, '/unknown/page')).toBeNull();
+    });
 });
+
+function createMockHtmlLinkListener(): HtmlLinkListener {
+    return {
+        onBeastClick: vi.fn(async () => {}),
+        onSpellClick: vi.fn(async () => {}),
+        onWeaponClick: vi.fn(async () => {}),
+        onArmorClick: vi.fn(async () => {}),
+        onItemClick: vi.fn(async () => {}),
+        onArtifactClick: vi.fn(async () => {}),
+        onBackgroundClick: vi.fn(async () => {}),
+        onFeatClick: vi.fn(async () => {}),
+        onRaceClick: vi.fn(async () => {}),
+        onClassClick: vi.fn(async () => {}),
+        onCharacterSheetClick: vi.fn(async () => {}),
+        onScreenItemClick: vi.fn(async () => {}),
+    };
+}
