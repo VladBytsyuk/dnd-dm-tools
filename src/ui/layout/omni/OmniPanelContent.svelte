@@ -30,8 +30,10 @@
 
 <style>
 	.omni-panel-content {
-		height: 100%;
-		min-height: 0;
-		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		min-height: 100%;
+		overflow: visible;
+		width: 100%;
 	}
 </style>

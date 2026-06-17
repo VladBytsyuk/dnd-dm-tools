@@ -322,6 +322,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
+		box-sizing: border-box;
 		padding: 8px;
 		min-width: 380px;
 		container-type: inline-size;
@@ -333,6 +334,7 @@
 		align-items: center;
 		justify-content: space-between;
 		gap: 10px;
+		flex: 0 0 auto;
 		box-sizing: border-box;
 		border-radius: 12px;
 		background: var(--background-secondary);

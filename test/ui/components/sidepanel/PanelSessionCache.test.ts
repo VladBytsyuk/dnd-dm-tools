@@ -17,11 +17,18 @@ describe("PanelSessionCache", () => {
 		const detachFirst = await cache.attach("spellbook", firstTarget);
 		const input = firstTarget.querySelector("input")!;
 		input.value = "fireball";
+		const session = firstTarget.querySelector<HTMLElement>(".omni-panel-session")!;
 
 		const detachSecond = await cache.attach("spellbook", secondTarget);
 		detachFirst();
 
 		expect(mountComponent).toHaveBeenCalledOnce();
+		expect(session.style.display).toBe("flex");
+		expect(session.style.flex).toBe("1 1 auto");
+		expect(session.style.flexDirection).toBe("column");
+		expect(session.style.minHeight).toBe("100%");
+		expect(session.style.overflow).toBe("visible");
+		expect(session.style.width).toBe("100%");
 		expect(secondTarget.querySelector("input")).toBe(input);
 		expect(input.value).toBe("fireball");
 		expect(unmountComponent).not.toHaveBeenCalled();

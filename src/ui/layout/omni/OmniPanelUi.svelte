@@ -788,8 +788,12 @@
 		stroke: currentColor;
 	}
 	.body {
+		display: flex;
+		flex-direction: column;
 		flex: 1;
-		overflow: hidden;
+		min-height: 0;
+		overflow-x: hidden;
+		overflow-y: auto;
 		padding-top: 2px;
 		box-sizing: border-box;
 	}

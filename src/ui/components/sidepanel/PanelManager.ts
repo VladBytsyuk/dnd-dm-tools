@@ -172,7 +172,12 @@ class AssistantItemView extends ItemView {
 
 	private render(): void {
 		if (this.component) unmount(this.component);
-		const container = this.containerEl.children[1];
+		const container = this.containerEl.children[1] as HTMLElement;
+		container.style.display = "flex";
+		container.style.flexDirection = "column";
+		container.style.height = "100%";
+		container.style.minHeight = "0";
+		container.style.overflow = "hidden";
 		container.empty();
 		this.component = mount(OmniPanelUi, {
 			target: container,
