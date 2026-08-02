@@ -1,0 +1,526 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "LongStoryShort required character API",
+    "version": "2026-08-03",
+    "description": "OpenAPI artifact for the LongStoryShort API surface required by dnd-dm-tools Obsidian plugin character browsing. This contract is inferred from public LongStoryShort frontend behavior plus authenticated read-only response evidence; it is not an official LongStoryShort API specification.",
+    "contact": {
+      "name": "Long Story Short",
+      "url": "https://longstoryshort.app"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.longstoryshort.app",
+      "description": "LongStoryShort API"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Authentication endpoints required to obtain and verify the bearer token used by the character API."
+    },
+    {
+      "name": "Characters",
+      "description": "Read-only character sheet endpoints required by the Obsidian plugin client."
+    }
+  ],
+  "paths": {
+    "/auth/login/email/": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "loginWithEmail",
+        "summary": "Log in with email and password",
+        "description": "Returns an access token accepted by authenticated LongStoryShort API endpoints. The plugin must not persist the password.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailLoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailLoginResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          }
+        }
+      }
+    },
+    "/auth/user/": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "getCurrentUser",
+        "summary": "Get current authenticated user",
+        "description": "Verifies the bearer token and returns account state used by the LongStoryShort frontend.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authenticated user data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LssAuthUser"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/character/list/": {
+      "get": {
+        "tags": [
+          "Characters"
+        ],
+        "operationId": "listCharacterSheets",
+        "summary": "List character sheets",
+        "description": "Returns all character sheet records available to the authenticated LongStoryShort account. The response includes enough data for a plugin-side list and also includes the stringified character sheet payload.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Character sheet records.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LssCharacterSheetSummary"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/character/{id}/": {
+      "get": {
+        "tags": [
+          "Characters"
+        ],
+        "operationId": "getCharacterSheet",
+        "summary": "Get character sheet",
+        "description": "Returns a single character sheet record by LongStoryShort character id.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "LongStoryShort character id.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$",
+              "example": "658ded7cf2bd044142897fb6"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Character sheet record.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LssCharacterSheet"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "LongStoryShort JWT access token."
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Missing, expired, or invalid bearer token.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/LssError"
+            },
+            "example": {
+              "statusCode": 401,
+              "message": "Unauthorized"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource was not found or is not visible to the authenticated user.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/LssError"
+            },
+            "example": {
+              "statusCode": 404,
+              "message": "Cannot GET /character/000000000000000000000000/",
+              "error": "Not Found"
+            }
+          }
+        }
+      },
+      "UnprocessableEntity": {
+        "description": "Request body was syntactically valid JSON but failed API validation.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/LssError"
+            },
+            "example": {
+              "statusCode": 422,
+              "message": "Unprocessable Entity"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "EmailLoginRequest": {
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "LongStoryShort account email."
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 1,
+            "description": "LongStoryShort account password. The plugin must send it only for login and must not persist it."
+          }
+        }
+      },
+      "EmailLoginResponse": {
+        "type": "object",
+        "required": [
+          "accessToken"
+        ],
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "JWT bearer token used for authenticated API calls."
+          }
+        }
+      },
+      "LssAuthUser": {
+        "type": "object",
+        "description": "Authenticated LongStoryShort user object. Exact field set is inferred from frontend usage and may include provider account fields.",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "LongStoryShort user id."
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "name": {
+            "type": "string"
+          },
+          "googleId": {
+            "type": "string"
+          },
+          "discord": {
+            "description": "Discord account binding state returned by the API.",
+            "oneOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "yandex": {
+            "description": "Yandex account binding state returned by the API.",
+            "oneOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "LssCharacterSheetSummary": {
+        "type": "object",
+        "description": "Character sheet record observed in GET /character/list/ responses.",
+        "required": [
+          "_id",
+          "createdAt",
+          "data",
+          "edition",
+          "playerId",
+          "sheetEdition",
+          "spells",
+          "tags",
+          "updatedAt"
+        ],
+        "properties": {
+          "_id": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{24}$"
+          },
+          "__v": {
+            "type": "integer",
+            "description": "Mongo-style document version observed in API responses."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "data": {
+            "type": "string",
+            "description": "Stringified JSON character sheet payload. Observed payload has jsonType \"character\" and includes sections such as name, info, stats, vitality, text, spells, weaponsList, coins, and conditions."
+          },
+          "disabledBlocks": {
+            "$ref": "#/components/schemas/LssDisabledBlocks"
+          },
+          "edition": {
+            "$ref": "#/components/schemas/LssEdition"
+          },
+          "lastWriterSessionId": {
+            "type": "string"
+          },
+          "playerId": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{24}$"
+          },
+          "rooms": {
+            "type": "array",
+            "description": "Rooms associated with the character. Kept opaque because room payload shape is not required for the plugin client.",
+            "items": {
+              "type": "object"
+            }
+          },
+          "sheetEdition": {
+            "$ref": "#/components/schemas/LssEdition"
+          },
+          "spells": {
+            "$ref": "#/components/schemas/LssCharacterSpells"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "LssCharacterSheet": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/LssCharacterSheetSummary"
+          },
+          {
+            "type": "object",
+            "description": "Character sheet record observed in GET /character/{id}/ responses.",
+            "properties": {
+              "access": {
+                "type": "string",
+                "description": "Access state observed on character detail responses."
+              },
+              "linkAccess": {
+                "type": "string",
+                "description": "Link access state observed on character detail responses."
+              }
+            }
+          }
+        ]
+      },
+      "LssCharacterSpells": {
+        "type": "object",
+        "required": [
+          "book",
+          "edition",
+          "mode",
+          "prepared"
+        ],
+        "properties": {
+          "book": {
+            "type": "array",
+            "description": "Spell ids in the character spellbook.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "edition": {
+            "$ref": "#/components/schemas/LssEdition"
+          },
+          "mode": {
+            "type": "string",
+            "description": "Observed values include cards and text.",
+            "enum": [
+              "cards",
+              "text"
+            ]
+          },
+          "prepared": {
+            "type": "array",
+            "description": "Prepared spell ids.",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "LssDisabledBlocks": {
+        "type": "object",
+        "required": [
+          "_id",
+          "info-left",
+          "info-right",
+          "notes-left",
+          "notes-right",
+          "subinfo-left",
+          "subinfo-right"
+        ],
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "info-left": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "info-right": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes-left": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes-right": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "subinfo-left": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "subinfo-right": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "LssEdition": {
+        "type": "string",
+        "description": "D&D edition identifier observed in LSS character responses.",
+        "enum": [
+          "2014",
+          "2024"
+        ]
+      },
+      "LssError": {
+        "type": "object",
+        "required": [
+          "message",
+          "statusCode"
+        ],
+        "properties": {
+          "statusCode": {
+            "type": "integer"
+          },
+          "message": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          },
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
