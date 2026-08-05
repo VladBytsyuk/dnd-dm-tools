@@ -4,7 +4,7 @@ import path from "node:path";
 const repoRoot = path.resolve(import.meta.dirname, "..");
 const ttgRoot = process.env.TTG_CORE_API_PATH ?? "/tmp/ttg-core-api";
 const javaRoot = path.join(ttgRoot, "src/main/java");
-const outputPath = path.join(repoRoot, "docs/ttg-openapi.json");
+const outputPath = path.join(repoRoot, "docs/integrations/ttg-openapi.json");
 
 const PRIMITIVE_SCHEMAS = new Map([
 	["String", { type: "string" }],
