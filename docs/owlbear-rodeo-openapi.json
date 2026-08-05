@@ -1,0 +1,290 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Owlbear Rodeo extension hosting API",
+    "version": "2026-08-03",
+    "description": "OpenAPI artifact for the HTTP files required to host an Owlbear Rodeo extension for dnd-dm-tools integration. Owlbear Rodeo runtime APIs are exposed through the @owlbear-rodeo/sdk JavaScript API inside hosted iframes, not through these HTTP endpoints.",
+    "contact": {
+      "name": "Owlbear Rodeo",
+      "url": "https://docs.owlbear.rodeo/extensions/getting-started/"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://example.com/owlbear",
+      "description": "Example hosted extension origin. Replace with the deployed extension base URL."
+    }
+  ],
+  "tags": [
+    {
+      "name": "Extension Hosting",
+      "description": "Static files fetched by Owlbear Rodeo to install and render the extension."
+    }
+  ],
+  "paths": {
+    "/manifest.json": {
+      "get": {
+        "tags": [
+          "Extension Hosting"
+        ],
+        "operationId": "getExtensionManifest",
+        "summary": "Get Owlbear extension manifest",
+        "description": "Returns the manifest file that Owlbear Rodeo users link to when installing the extension.",
+        "responses": {
+          "200": {
+            "description": "Owlbear Rodeo extension manifest.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwlbearManifest"
+                },
+                "example": {
+                  "name": "DnD DM Tools",
+                  "version": "0.1.0",
+                  "manifest_version": 1,
+                  "description": "DnD DM Tools integration for Owlbear Rodeo.",
+                  "icon": "/assets/icon.svg",
+                  "author": "dnd-dm-tools",
+                  "homepage_url": "https://example.com/owlbear",
+                  "action": {
+                    "title": "DnD DM Tools",
+                    "icon": "/assets/icon.svg",
+                    "popover": "/popover.html",
+                    "width": 360,
+                    "height": 540
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/popover.html": {
+      "get": {
+        "tags": [
+          "Extension Hosting"
+        ],
+        "operationId": "getActionPopover",
+        "summary": "Get action popover HTML",
+        "description": "Returns the HTML page embedded by Owlbear Rodeo when the extension action is opened.",
+        "responses": {
+          "200": {
+            "description": "Popover HTML document.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/background.html": {
+      "get": {
+        "tags": [
+          "Extension Hosting"
+        ],
+        "operationId": "getBackgroundPage",
+        "summary": "Get optional background page",
+        "description": "Returns an optional background page referenced by manifest.background_url when persistent extension behavior is required.",
+        "responses": {
+          "200": {
+            "description": "Background HTML document.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Background page is not provided by this extension."
+          }
+        }
+      }
+    },
+    "/assets/{assetPath}": {
+      "get": {
+        "tags": [
+          "Extension Hosting"
+        ],
+        "operationId": "getExtensionAsset",
+        "summary": "Get extension asset",
+        "description": "Returns a static asset referenced by the manifest, popover, or background page. For nested assets, the path segment should be URL encoded or served by the hosting platform's static file routing.",
+        "parameters": [
+          {
+            "name": "assetPath",
+            "in": "path",
+            "required": true,
+            "description": "Relative asset file name or encoded asset path.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "examples": [
+                "icon.svg",
+                "app.js",
+                "styles.css"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Static extension asset.",
+            "content": {
+              "image/svg+xml": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/css": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/javascript": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Asset not found."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "OwlbearManifest": {
+        "type": "object",
+        "required": [
+          "description",
+          "manifest_version",
+          "name",
+          "version"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 45,
+            "description": "The extension name shown by Owlbear Rodeo."
+          },
+          "version": {
+            "type": "string",
+            "description": "Extension version."
+          },
+          "manifest_version": {
+            "type": "integer",
+            "description": "Target Owlbear Rodeo manifest version.",
+            "example": 1
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "Short extension description."
+          },
+          "icon": {
+            "type": "string",
+            "description": "Optional icon URL or path."
+          },
+          "author": {
+            "type": "string",
+            "description": "Optional extension author."
+          },
+          "homepage_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Optional extension homepage URL."
+          },
+          "action": {
+            "$ref": "#/components/schemas/OwlbearManifestAction"
+          },
+          "background_url": {
+            "type": "string",
+            "description": "Optional URL to load as a background page."
+          },
+          "permissions": {
+            "type": "array",
+            "description": "Optional permissions applied to extension iframes.",
+            "items": {
+              "$ref": "#/components/schemas/OwlbearManifestPermission"
+            }
+          }
+        }
+      },
+      "OwlbearManifestAction": {
+        "type": "object",
+        "required": [
+          "icon",
+          "popover",
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Initial title of the action."
+          },
+          "icon": {
+            "type": "string",
+            "description": "Initial action icon URL or path."
+          },
+          "popover": {
+            "type": "string",
+            "description": "URL of the popover page loaded into an iframe."
+          },
+          "width": {
+            "type": "number",
+            "description": "Optional maximum popover width."
+          },
+          "height": {
+            "type": "number",
+            "description": "Optional maximum popover height."
+          }
+        }
+      },
+      "OwlbearManifestPermission": {
+        "type": "object",
+        "required": [
+          "name",
+          "reason"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/OwlbearManifestPermissionName"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Reason the extension iframe needs this permission."
+          }
+        }
+      },
+      "OwlbearManifestPermissionName": {
+        "type": "string",
+        "enum": [
+          "clipboard-write",
+          "clipboard-read",
+          "autoplay",
+          "bluetooth",
+          "camera",
+          "microphone",
+          "usb",
+          "display-capture",
+          "hid"
+        ]
+      }
+    }
+  }
+}

@@ -3,16 +3,24 @@
   "info": {
     "title": "LongStoryShort required character API",
     "version": "2026-08-03",
-    "description": "OpenAPI artifact for the LongStoryShort API surface required by dnd-dm-tools Obsidian plugin character browsing. This contract is inferred from public LongStoryShort frontend behavior plus authenticated read-only response evidence; it is not an official LongStoryShort API specification.",
+    "description": "OpenAPI artifact for the LongStoryShort integration surfaces relevant to dnd-dm-tools. Authenticated REST endpoints in this file are inferred from public LongStoryShort frontend behavior plus authenticated read-only response evidence; iframe, VTT bridge, dataset, and character format entries are summarized from official LongStoryShort developer documentation.",
     "contact": {
       "name": "Long Story Short",
       "url": "https://longstoryshort.app"
     }
   },
+  "externalDocs": {
+    "description": "LongStoryShort developer documentation",
+    "url": "https://longstoryshort.app/doc/developers/"
+  },
   "servers": [
     {
       "url": "https://api.longstoryshort.app",
       "description": "LongStoryShort API"
+    },
+    {
+      "url": "https://longstoryshort.app",
+      "description": "LongStoryShort public site, iframe host, schemas, and static dataset artifacts"
     }
   ],
   "tags": [
@@ -23,8 +31,51 @@
     {
       "name": "Characters",
       "description": "Read-only character sheet endpoints required by the Obsidian plugin client."
+    },
+    {
+      "name": "Embedding",
+      "description": "Official iframe entrypoints for embedding LongStoryShort character sheets in VTT or campaign tools."
+    },
+    {
+      "name": "VTT Bridge",
+      "description": "SDK and postMessage contracts for communication between an embedded sheet and its host application."
+    },
+    {
+      "name": "Schemas",
+      "description": "Official public JSON Schema artifacts for character and dataset validation."
+    },
+    {
+      "name": "Datasets",
+      "description": "Official public SRD dataset artifacts."
     }
   ],
+  "x-lss-integration-notes": {
+    "sdkPackage": "@longstoryshort/vtt-sdk",
+    "sdkLicense": "MIT",
+    "embedding": {
+      "originAllowlistRequired": true,
+      "recommendedOrigin": "https://longstoryshort.app",
+      "iframeSandboxConstant": "SHEET_IFRAME_SANDBOX",
+      "iframeSandboxValue": "allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-modals",
+      "iframeAllow": "clipboard-write"
+    },
+    "bridgeEvents": {
+      "stable": [
+        "dnd:roll"
+      ],
+      "reservedExperimental": [
+        "dnd:manifest",
+        "dnd:command",
+        "dnd:health"
+      ]
+    },
+    "sourceReferences": [
+      "https://longstoryshort.app/doc/developers/",
+      "https://longstoryshort.app/doc/developers/embedding/",
+      "https://longstoryshort.app/doc/developers/datasets/",
+      "https://longstoryshort.app/doc/developers/characters/"
+    ]
+  },
   "paths": {
     "/auth/login/email/": {
       "post": {
@@ -172,6 +223,285 @@
           }
         }
       }
+    },
+    "/iframe/characters/list/": {
+      "get": {
+        "tags": [
+          "Embedding"
+        ],
+        "operationId": "getCharacterListIframe",
+        "summary": "Embed character list iframe",
+        "description": "Returns the embeddable LongStoryShort character list page. Hosts should use the SDK sandbox settings documented in x-lss-integration-notes and must be allowed by LongStoryShort before production embedding.",
+        "servers": [
+          {
+            "url": "https://longstoryshort.app"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Character list iframe HTML document.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/iframe/characters/digital/{id}/": {
+      "get": {
+        "tags": [
+          "Embedding"
+        ],
+        "operationId": "getDigitalCharacterIframe",
+        "summary": "Embed digital character sheet iframe",
+        "description": "Returns the embeddable digital character sheet page for a LongStoryShort character id.",
+        "servers": [
+          {
+            "url": "https://longstoryshort.app"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "LongStoryShort character id.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$",
+              "example": "658ded7cf2bd044142897fb6"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Digital character sheet iframe HTML document.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Character sheet was not found or is not visible to the iframe viewer."
+          }
+        }
+      }
+    },
+    "/iframe/characters/builder/{id}/": {
+      "get": {
+        "tags": [
+          "Embedding"
+        ],
+        "operationId": "getCharacterBuilderIframe",
+        "summary": "Embed character builder iframe",
+        "description": "Returns the embeddable LongStoryShort character builder page for a character id.",
+        "servers": [
+          {
+            "url": "https://longstoryshort.app"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "LongStoryShort character id.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{24}$",
+              "example": "658ded7cf2bd044142897fb6"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Character builder iframe HTML document.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Character sheet was not found or is not visible to the iframe viewer."
+          }
+        }
+      }
+    },
+    "/schema/v1/character.json": {
+      "get": {
+        "tags": [
+          "Schemas"
+        ],
+        "operationId": "getCharacterJsonSchema",
+        "summary": "Get character JSON Schema",
+        "description": "Returns the official JSON Schema for LongStoryShort character JSON documents.",
+        "servers": [
+          {
+            "url": "https://longstoryshort.app"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/JsonSchemaDocument"
+          }
+        }
+      }
+    },
+    "/schema/v1/character-example.json": {
+      "get": {
+        "tags": [
+          "Schemas"
+        ],
+        "operationId": "getCharacterJsonExample",
+        "summary": "Get character JSON example",
+        "description": "Returns an official example LongStoryShort character JSON document.",
+        "servers": [
+          {
+            "url": "https://longstoryshort.app"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Example character JSON document.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LssCharacterDocumentEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/schema/v1/wizard-dataset.json": {
+      "get": {
+        "tags": [
+          "Schemas"
+        ],
+        "operationId": "getWizardDatasetJsonSchema",
+        "summary": "Get wizard dataset JSON Schema",
+        "description": "Returns the official JSON Schema for LongStoryShort wizard datasets.",
+        "servers": [
+          {
+            "url": "https://longstoryshort.app"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/JsonSchemaDocument"
+          }
+        }
+      }
+    },
+    "/schema/v1/dataset-{entity}.json": {
+      "get": {
+        "tags": [
+          "Schemas"
+        ],
+        "operationId": "getDatasetEntityJsonSchema",
+        "summary": "Get dataset entity JSON Schema",
+        "description": "Returns an official JSON Schema for one LongStoryShort dataset entity type.",
+        "servers": [
+          {
+            "url": "https://longstoryshort.app"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "entity",
+            "in": "path",
+            "required": true,
+            "description": "Dataset entity schema name.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "class",
+                "subclass",
+                "race",
+                "subrace",
+                "background",
+                "feat"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/JsonSchemaDocument"
+          }
+        }
+      }
+    },
+    "/schema/v1/grant.json": {
+      "get": {
+        "tags": [
+          "Schemas"
+        ],
+        "operationId": "getGrantJsonSchema",
+        "summary": "Get grant JSON Schema",
+        "description": "Returns the official JSON Schema for LongStoryShort grant data.",
+        "servers": [
+          {
+            "url": "https://longstoryshort.app"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/JsonSchemaDocument"
+          }
+        }
+      }
+    },
+    "/datasets/srd-2014.json": {
+      "get": {
+        "tags": [
+          "Datasets"
+        ],
+        "operationId": "getSrd2014Dataset",
+        "summary": "Get SRD 2014 dataset",
+        "description": "Returns the official LongStoryShort SRD 2014 dataset JSON artifact.",
+        "servers": [
+          {
+            "url": "https://longstoryshort.app"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/LssDatasetDocument"
+          }
+        }
+      }
+    },
+    "/datasets/srd-2024.json": {
+      "get": {
+        "tags": [
+          "Datasets"
+        ],
+        "operationId": "getSrd2024Dataset",
+        "summary": "Get SRD 2024 dataset",
+        "description": "Returns the official LongStoryShort SRD 2024 dataset JSON artifact.",
+        "servers": [
+          {
+            "url": "https://longstoryshort.app"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/LssDatasetDocument"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -226,6 +556,33 @@
             }
           }
         }
+      },
+      "JsonSchemaDocument": {
+        "description": "Official LongStoryShort JSON Schema document.",
+        "content": {
+          "application/schema+json": {
+            "schema": {
+              "type": "object",
+              "description": "JSON Schema document. Kept opaque here so this OpenAPI artifact links to the official source of truth instead of vendoring the schema."
+            }
+          },
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "description": "JSON Schema document. Kept opaque here so this OpenAPI artifact links to the official source of truth instead of vendoring the schema."
+            }
+          }
+        }
+      },
+      "LssDatasetDocument": {
+        "description": "Official LongStoryShort dataset JSON document.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/LssWizardDataset"
+            }
+          }
+        }
       }
     },
     "schemas": {
@@ -258,6 +615,396 @@
           "accessToken": {
             "type": "string",
             "description": "JWT bearer token used for authenticated API calls."
+          }
+        }
+      },
+      "LssCharacterDataOverview": {
+        "type": "object",
+        "description": "Partial overview of the stringified character data payload. Use the official character JSON Schema for complete validation.",
+        "properties": {
+          "jsonType": {
+            "type": "string",
+            "enum": [
+              "character"
+            ]
+          },
+          "name": {
+            "description": "Character name block or value as defined by the official schema.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object"
+              }
+            ]
+          },
+          "info": {
+            "type": "object",
+            "description": "Character descriptive and rules information."
+          },
+          "stats": {
+            "type": "object",
+            "description": "Ability scores and related statistics."
+          },
+          "vitality": {
+            "type": "object",
+            "description": "Hit points, hit dice, death saves, and similar vitality data."
+          },
+          "text": {
+            "type": "object",
+            "description": "Free-text notes and sheet text blocks."
+          },
+          "spells": {
+            "type": "object",
+            "description": "Spellcasting data embedded in the character JSON payload."
+          },
+          "weaponsList": {
+            "type": "array",
+            "description": "Weapon entries embedded in the character JSON payload.",
+            "items": {
+              "type": "object"
+            }
+          },
+          "coins": {
+            "type": "object",
+            "description": "Currency data embedded in the character JSON payload."
+          },
+          "conditions": {
+            "type": "array",
+            "description": "Condition entries embedded in the character JSON payload.",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "LssCharacterDocumentEnvelope": {
+        "type": "object",
+        "description": "LongStoryShort character JSON document envelope. The complete public contract is the official /schema/v1/character.json JSON Schema.",
+        "required": [
+          "data",
+          "edition",
+          "jsonType",
+          "sheetEdition",
+          "spells"
+        ],
+        "properties": {
+          "jsonType": {
+            "type": "string",
+            "enum": [
+              "character"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "description": "Character document format version when present."
+          },
+          "edition": {
+            "$ref": "#/components/schemas/LssEdition"
+          },
+          "sheetEdition": {
+            "$ref": "#/components/schemas/LssEdition"
+          },
+          "data": {
+            "description": "Character sheet payload. In REST character records this has been observed as stringified JSON; in character JSON examples it may be represented as structured JSON.",
+            "oneOf": [
+              {
+                "type": "string",
+                "description": "Stringified JSON payload."
+              },
+              {
+                "$ref": "#/components/schemas/LssCharacterDataOverview"
+              }
+            ]
+          },
+          "disabledBlocks": {
+            "$ref": "#/components/schemas/LssDisabledBlocks"
+          },
+          "spells": {
+            "$ref": "#/components/schemas/LssCharacterSpells"
+          }
+        }
+      },
+      "LssIframeSandboxRequirements": {
+        "type": "object",
+        "description": "Recommended iframe attributes for LongStoryShort embedded sheets.",
+        "required": [
+          "allow",
+          "sandbox"
+        ],
+        "properties": {
+          "sandbox": {
+            "type": "string",
+            "example": "allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms allow-modals"
+          },
+          "allow": {
+            "type": "string",
+            "example": "clipboard-write"
+          },
+          "originAllowlistRequired": {
+            "type": "boolean",
+            "description": "Whether the host origin must be allowed by LongStoryShort before production embedding.",
+            "default": true
+          }
+        }
+      },
+      "LssVttMessageEnvelope": {
+        "type": "object",
+        "description": "Base postMessage envelope used by the LongStoryShort VTT SDK bridge.",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Namespaced bridge event or command type.",
+            "example": "dnd:roll"
+          },
+          "payload": {
+            "type": "object",
+            "description": "Type-specific event or command payload."
+          },
+          "requestId": {
+            "type": "string",
+            "description": "Optional correlation id for request/response style bridge messages."
+          },
+          "source": {
+            "type": "string",
+            "description": "Optional sender identifier."
+          }
+        }
+      },
+      "LssVttRollEvent": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/LssVttMessageEnvelope"
+          },
+          {
+            "type": "object",
+            "description": "Stable SDK event emitted when an embedded sheet requests a dice roll in the host VTT.",
+            "required": [
+              "type",
+              "payload"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "dnd:roll"
+                ]
+              },
+              "payload": {
+                "$ref": "#/components/schemas/LssVttRollPayload"
+              }
+            }
+          }
+        ]
+      },
+      "LssVttRollPayload": {
+        "type": "object",
+        "description": "Dice roll payload. The SDK should be treated as the runtime source of truth for exact payload evolution.",
+        "required": [
+          "formula"
+        ],
+        "properties": {
+          "formula": {
+            "type": "string",
+            "description": "Dice formula requested by the embedded sheet.",
+            "example": "1d20+5"
+          },
+          "label": {
+            "type": "string",
+            "description": "Human-readable roll label."
+          },
+          "characterId": {
+            "type": "string",
+            "description": "Character id associated with the roll when available."
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional SDK-provided roll metadata."
+          }
+        }
+      },
+      "LssVttManifestEvent": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/LssVttMessageEnvelope"
+          },
+          {
+            "type": "object",
+            "description": "Reserved or experimental bridge event describing host capabilities.",
+            "required": [
+              "type",
+              "payload"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "dnd:manifest"
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  },
+                  "capabilities": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "LssVttHealthEvent": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/LssVttMessageEnvelope"
+          },
+          {
+            "type": "object",
+            "description": "Reserved or experimental bridge health/status event.",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "dnd:health"
+                ]
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "example": "ready"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "LssVttCommand": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/LssVttMessageEnvelope"
+          },
+          {
+            "type": "object",
+            "description": "Reserved or experimental command envelope sent between a host and embedded LongStoryShort sheet.",
+            "required": [
+              "type",
+              "payload"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "dnd:command"
+                ]
+              },
+              "payload": {
+                "$ref": "#/components/schemas/LssVttCommandPayload"
+              }
+            }
+          }
+        ]
+      },
+      "LssVttCommandPayload": {
+        "type": "object",
+        "description": "Command payload wrapper. Command names and payloads should be validated against the SDK version used by the integration.",
+        "required": [
+          "command"
+        ],
+        "properties": {
+          "command": {
+            "type": "string",
+            "example": "hp.adjust"
+          },
+          "params": {
+            "type": "object"
+          }
+        }
+      },
+      "LssVttHpAdjustCommandPayload": {
+        "type": "object",
+        "description": "Example command params for adjusting character hit points.",
+        "required": [
+          "characterId",
+          "delta"
+        ],
+        "properties": {
+          "characterId": {
+            "type": "string"
+          },
+          "delta": {
+            "type": "integer",
+            "description": "Positive or negative hit point adjustment."
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "LssWizardDataset": {
+        "type": "object",
+        "description": "LongStoryShort dataset artifact. Kept intentionally broad; validate concrete files against the official dataset schemas.",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "edition": {
+            "$ref": "#/components/schemas/LssEdition"
+          },
+          "classes": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "subclasses": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "races": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "subraces": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "backgrounds": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "feats": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
           }
         }
       },
