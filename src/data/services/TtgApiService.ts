@@ -60,6 +60,14 @@ function lastSegment(value: string): string {
 	return segments[segments.length - 1] ?? "";
 }
 
+function normalizeLookupText(value: string): string {
+	return trimSlashes(value)
+		.toLocaleLowerCase("ru-RU")
+		.replace(/[_-]+/g, " ")
+		.replace(/\s+/g, " ")
+		.trim();
+}
+
 function endpointFromUrl(url: string): TtgEndpoint {
 	const normalized = trimSlashes(url);
 	const parts = normalized.split("/").filter(Boolean);
@@ -283,10 +291,7 @@ export class TtgApiService {
 		const compatible = candidates.filter((item) =>
 			isCompatibleEdition(item, true) && matchesSourceBooks(item, sourceBooks)
 		);
-		const match = compatible.find((item) => matchesUrlOrName(item, requestedUrl, endpoint.slug))
-			?? compatible[0]
-			?? candidates.find((item) => isCompatibleEdition(item, true))
-			?? null;
+		const match = compatible.find((item) => matchesUrlOrName(item, requestedUrl, endpoint.slug)) ?? null;
 
 		const matchUrl = typeof match?.url === "string" ? match.url : null;
 		return matchUrl ? lastSegment(matchUrl) : null;
@@ -327,16 +332,28 @@ function matchesSourceBooks(item: TtgJsonObject, sourceBooks: Set<string>): bool
 }
 
 function matchesUrlOrName(item: TtgJsonObject, requestedUrl: string, slug: string): boolean {
-	if (typeof item.url === "string" && (trimSlashes(item.url) === trimSlashes(requestedUrl) || lastSegment(item.url) === slug)) {
-		return true;
+	const normalizedRequestedUrl = normalizeLookupText(requestedUrl);
+	const normalizedSlug = normalizeLookupText(slug);
+	if (typeof item.url === "string") {
+		const normalizedItemUrl = normalizeLookupText(item.url);
+		const normalizedItemSlug = normalizeLookupText(lastSegment(item.url));
+		if (
+			normalizedItemUrl === normalizedRequestedUrl
+			|| normalizedItemSlug === normalizedSlug
+			|| normalizedItemSlug.startsWith(`${normalizedSlug} `)
+		) {
+			return true;
+		}
+	}
+	if (normalizedSlug.length === 0) {
+		return false;
 	}
 	const name = item.name;
 	if (!name || typeof name !== "object" || Array.isArray(name)) return false;
 	const nameRecord = name as TtgJsonObject;
-	const normalizedSlug = slug.toLocaleLowerCase("ru-RU").replace(/[_-]/g, " ");
 	return [nameRecord.eng, nameRecord.rus]
 		.filter((value): value is string => typeof value === "string")
-		.some((value) => value.toLocaleLowerCase("ru-RU") === normalizedSlug);
+		.some((value) => normalizeLookupText(value) === normalizedSlug);
 }
 
 function sourceTokens(source: TtgJsonObject): string[] {

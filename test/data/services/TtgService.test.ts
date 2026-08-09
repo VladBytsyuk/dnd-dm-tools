@@ -106,6 +106,44 @@ describe("TtgApiService", () => {
 		});
 	});
 
+	it("does not resolve unrelated broad v2 magic item search results", async () => {
+		const requestUrl = vi.spyOn(obsidian, "requestUrl")
+			.mockResolvedValueOnce({
+				status: 404,
+				json: { message: "missing" },
+			} as any)
+			.mockResolvedValueOnce({
+				status: 200,
+				json: [
+					{
+						url: "ammunition-1-2-or-3-dmg",
+						name: { rus: "Боеприпас +1, +2 или +3", eng: "Ammunition +1, +2, or +3" },
+						source: { name: { label: "DMG" } },
+						srdVersion: "2014",
+					},
+				],
+			} as any)
+			.mockResolvedValueOnce({
+				status: 404,
+				json: { message: "missing legacy item" },
+			} as any);
+
+		const result = await new TtgApiService().postJson("/items/magic/everbright_lantern");
+
+		expect(result.ok).toBe(false);
+		expect(requestUrl).toHaveBeenCalledTimes(3);
+		expect(requestUrl).toHaveBeenNthCalledWith(3, {
+			url: "https://ttg.club/api/v1/items/magic/everbright_lantern",
+			method: "POST",
+			body: undefined,
+			contentType: undefined,
+		});
+		expect(requestUrl).not.toHaveBeenCalledWith({
+			url: "https://new.ttg.club/api/v2/magic-items/ammunition-1-2-or-3-dmg",
+			method: "GET",
+		});
+	});
+
 	it("falls back to legacy detail when a v2 direct response is 2024 content", async () => {
 		const requestUrl = vi.spyOn(obsidian, "requestUrl")
 			.mockResolvedValueOnce({
@@ -284,7 +322,7 @@ describe("TtgApiService", () => {
 			} as any)
 			.mockResolvedValueOnce({
 				status: 200,
-				json: [{ url: "/spells/ognennyj-shar", srdVersion: "2014" }],
+				json: [{ url: "/spells/ognennyj-shar", name: { rus: "Огненный шар", eng: "Fireball" }, srdVersion: "2014" }],
 			} as any)
 			.mockResolvedValueOnce({
 				status: 404,
