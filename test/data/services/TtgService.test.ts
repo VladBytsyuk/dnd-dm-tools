@@ -538,7 +538,37 @@ describe("TtgService", () => {
 				associatedUrl: "/backgrounds/fragment/199",
 				associatedHtml: "<section>Оккультист</section>",
 			},
-			});
+		});
+	});
+
+	it("uses background description when associated HTML cannot be loaded", async () => {
+		vi.spyOn(obsidian, "requestUrl")
+			.mockResolvedValueOnce({
+				status: 200,
+				json: {
+					url: "/backgrounds/fragment/110",
+					name: { rus: "Истец", eng: "Plaintiff" },
+					description: "<p>Вы стали жертвой судебного инцидента.</p>",
+				},
+			} as any)
+			.mockResolvedValueOnce({
+				status: 404,
+				text: "missing fragment",
+			} as any);
+
+		const result = await new TtgService().getBackgroundWithHtml("/backgrounds/plaintiff");
+
+		expect(result).toMatchObject({
+			ok: true,
+			value: {
+				item: {
+					name: { rus: "Истец", eng: "Plaintiff" },
+					description: "<p>Вы стали жертвой судебного инцидента.</p>",
+				},
+				associatedUrl: "/backgrounds/fragment/110",
+				associatedHtml: "<p>Вы стали жертвой судебного инцидента.</p>",
+			},
+		});
 	});
 
 	it("adapts v2 magic item JSON to the artifact domain shape", async () => {

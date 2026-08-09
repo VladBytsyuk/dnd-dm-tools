@@ -73,7 +73,7 @@ export class TtgService implements FullItemReadService<TtgJsonObject, TtgApiRequ
 			value: {
 				item: itemResult.value,
 				associatedUrl,
-				associatedHtml: htmlResult.ok ? htmlResult.value : undefined,
+				associatedHtml: htmlResult.ok ? htmlResult.value : getStringProperty(itemResult.value, "description"),
 			},
 		};
 	}
