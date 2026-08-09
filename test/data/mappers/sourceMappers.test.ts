@@ -133,6 +133,42 @@ describe("TTG source mappers", () => {
 		expect(mapped.associatedHtml).toBe("<section>Acolyte</section>");
 	});
 
+	it("defaults missing legacy background fields before persistence", () => {
+		const mapped = new BackgroundMapper().map(
+			{
+				name: { rus: "Прислужник", eng: "Acolyte" },
+				url: "/backgrounds/fragment/1",
+				source: {
+					shortName: "PHB",
+					name: "Книга игрока",
+					group: { name: "Официальные источники", shortName: "Basic" },
+				},
+				skills: ["Проницательность", "Религия"],
+				equipments: ["Священный символ"],
+				startGold: 15,
+				description: "<p>Вы провели свою жизнь, служа в храме.</p>",
+			},
+			"/backgrounds/acolyte"
+		);
+
+		expect(mapped).toMatchObject({
+			name: { rus: "Прислужник", eng: "Acolyte" },
+			url: "/backgrounds/acolyte",
+			associatedUrl: "/backgrounds/fragment/1",
+			source: {
+				shortName: "PHB",
+				name: "Книга игрока",
+				group: { name: "Официальные источники", shortName: "Basic" },
+				homebrew: false,
+			},
+			skills: ["Проницательность", "Религия"],
+			toolOwnership: "",
+			equipments: ["Священный символ"],
+			startGold: 15,
+			description: "<p>Вы провели свою жизнь, служа в храме.</p>",
+		});
+	});
+
 	it("maps DM screen description refresh responses with URL fallback", () => {
 		const mapped = new DmScreenDescriptionMapper().map(
 			{

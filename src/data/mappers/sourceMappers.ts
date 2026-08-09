@@ -91,9 +91,16 @@ export class BackgroundMapper implements FullItemMapper<Partial<FullBackground>,
 
 		return {
 			...response,
+			name: normalizeName(response.name),
 			url,
 			associatedUrl,
 			associatedHtml: response.associatedHtml,
+			source: normalizeSource(response.source),
+			skills: response.skills ?? [],
+			toolOwnership: response.toolOwnership ?? "",
+			equipments: response.equipments ?? [],
+			startGold: response.startGold ?? 0,
+			description: response.description ?? "",
 		} as FullBackground;
 	}
 }
