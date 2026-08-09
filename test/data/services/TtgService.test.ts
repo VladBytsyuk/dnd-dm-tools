@@ -106,6 +106,32 @@ describe("TtgApiService", () => {
 		});
 	});
 
+	it("falls back to legacy detail when a v2 direct response is 2024 content", async () => {
+		const requestUrl = vi.spyOn(obsidian, "requestUrl")
+			.mockResolvedValueOnce({
+				status: 200,
+				json: {
+					url: "fireball-phb",
+					srdVersion: "5.2.1",
+					name: { rus: "Огненный шар", eng: "Fireball" },
+				},
+			} as any)
+			.mockResolvedValueOnce({
+				status: 200,
+				json: { url: "/spells/fireball", srdVersion: "2014" },
+			} as any);
+
+		const result = await new TtgApiService().postJson("/spells/fireball");
+
+		expect(result).toEqual({ ok: true, value: { url: "/spells/fireball", srdVersion: "2014" } });
+		expect(requestUrl).toHaveBeenNthCalledWith(2, {
+			url: "https://ttg.club/api/v1/spells/fireball",
+			method: "POST",
+			body: undefined,
+			contentType: undefined,
+		});
+	});
+
 	it("falls back to legacy detail when Obsidian throws a v2 404 request error", async () => {
 		const requestUrl = vi.spyOn(obsidian, "requestUrl")
 			.mockRejectedValueOnce(new Error("Request failed, status 404"))
@@ -212,6 +238,41 @@ describe("TtgApiService", () => {
 				conditionImmunities: [],
 				actions: [{ name: "Семя пламени", value: "<p>Огонь.</p>" }],
 			}),
+		});
+	});
+
+	it("falls back to legacy detail when v2 search candidates do not prove 2014 compatibility", async () => {
+		const requestUrl = vi.spyOn(obsidian, "requestUrl")
+			.mockResolvedValueOnce({
+				status: 404,
+				json: { message: "missing" },
+			} as any)
+			.mockResolvedValueOnce({
+				status: 200,
+				json: [
+					{
+						url: "wand-of-orcus-dmg",
+						name: { rus: "Палочка Оркуса", eng: "Wand of Orcus" },
+						source: { name: { label: "DMG" } },
+					},
+				],
+			} as any)
+			.mockResolvedValueOnce({
+				status: 200,
+				json: { url: "/items/magic/wand_of_orcus", name: { rus: "Палочка Оркуса", eng: "Wand of Orcus" } },
+			} as any);
+
+		const result = await new TtgApiService().postJson("/items/magic/wand_of_orcus");
+
+		expect(result).toEqual({
+			ok: true,
+			value: { url: "/items/magic/wand_of_orcus", name: { rus: "Палочка Оркуса", eng: "Wand of Orcus" } },
+		});
+		expect(requestUrl).toHaveBeenNthCalledWith(3, {
+			url: "https://ttg.club/api/v1/items/magic/wand_of_orcus",
+			method: "POST",
+			body: undefined,
+			contentType: undefined,
 		});
 	});
 
@@ -420,6 +481,52 @@ describe("TtgService", () => {
 				associatedUrl: "/backgrounds/fragment/199",
 				associatedHtml: "<section>Оккультист</section>",
 			},
+			});
+	});
+
+	it("adapts v2 magic item JSON to the artifact domain shape", async () => {
+		vi.spyOn(obsidian, "requestUrl").mockResolvedValueOnce({
+			status: 200,
+			json: {
+				url: "wand-of-orcus-dmg",
+				srdVersion: "2014",
+				name: { rus: "Палочка Оркуса", eng: "Wand of Orcus" },
+				source: {
+					name: { label: "DMG", rus: "Руководство мастера", eng: "Dungeon Master's Guide" },
+					group: { label: "Basic", rus: "Официальные источники" },
+				},
+				category: "волшебная палочка",
+				rarity: "артефакт",
+				attunement: true,
+				image: "/s3/magic-items/wand-of-orcus.webp",
+				description: [
+					"Созданная и используемая самим Оркусом.",
+					{ type: "list", content: ["Случайные свойства"] },
+				],
+			},
+		} as any);
+
+		const result = await new TtgService().getFullItem("/items/magic/wand_of_orcus");
+
+		expect(result).toEqual({
+			ok: true,
+			value: expect.objectContaining({
+				name: { rus: "Палочка Оркуса", eng: "Wand of Orcus" },
+				url: "/items/magic/wand_of_orcus",
+				type: { name: "волшебная палочка" },
+				price: { dmg: null, xge: null },
+				rarity: { type: "artifact", name: "артефакт", short: "А" },
+				customization: true,
+				source: expect.objectContaining({
+					shortName: "DMG",
+					name: "Руководство мастера",
+					group: { name: "Официальные источники", shortName: "Basic" },
+				}),
+				detailType: [{ name: "волшебная палочка", type: "волшебная палочка", url: null }],
+				cost: { dmg: null, xge: null },
+				images: ["https://new.ttg.club/s3/magic-items/wand-of-orcus.webp"],
+				description: "Созданная и используемая самим Оркусом.Случайные свойства",
+			}),
 		});
 	});
 

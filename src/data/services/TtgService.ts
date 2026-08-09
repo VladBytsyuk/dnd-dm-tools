@@ -201,10 +201,15 @@ function adaptV2Response(url: string, response: TtgJsonObject): TtgJsonObject {
 			return {
 				...base,
 				type: { name: asString(response.category) ?? asString(response.subtitle) ?? "" },
-				price: response.price ?? { amount: 0, currency: "" },
-				rarity: response.rarity ?? { name: "" },
+				price: normalizePrice(response.price),
+				rarity: normalizeRarity(response.rarity),
+				customization: typeof response.attunement === "boolean"
+					? response.attunement
+					: Boolean(response.customization),
 				description: markupToString(response.description),
-				images: Array.isArray(response.images) ? response.images : [],
+				detailType: normalizeDetailTypes(response.category),
+				cost: normalizePrice(response.cost),
+				images: normalizeImages(response.images ?? response.image),
 			};
 		}
 		return {
@@ -295,15 +300,88 @@ function normalizeSource(value: unknown): { shortName: string; name: string; gro
 	const object = asObject(value);
 	const sourceName = normalizeName(object?.name ?? object);
 	const groupName = normalizeName(object?.group);
+	const sourceObject = asObject(object?.name);
+	const groupObject = asObject(object?.group);
 	return {
-		shortName: asString(object?.shortName) ?? sourceName.eng ?? sourceName.rus,
+		shortName: asString(object?.shortName)
+			?? asString(object?.label)
+			?? asString(sourceObject?.label)
+			?? sourceName.eng
+			?? sourceName.rus,
 		name: sourceName.rus || sourceName.eng,
 		group: {
 			name: groupName.rus || groupName.eng,
-			shortName: groupName.eng || groupName.rus,
+			shortName: asString(groupObject?.label) ?? (groupName.eng || groupName.rus),
 		},
 		homebrew: typeof object?.homebrew === "boolean" ? object.homebrew : undefined,
 	};
+}
+
+function normalizePrice(value: unknown): { dmg: string | null; xge: string | null } {
+	const object = asObject(value);
+	if (object) {
+		return {
+			dmg: asString(object.dmg) ?? asString(object.dmgPrice) ?? null,
+			xge: asString(object.xge) ?? asString(object.xgePrice) ?? null,
+		};
+	}
+	const price = asString(value);
+	return {
+		dmg: price ?? null,
+		xge: null,
+	};
+}
+
+function normalizeRarity(value: unknown): { type: string; name: string; short: string } {
+	const object = asObject(value);
+	if (object) {
+		const name = asString(object.name) ?? asString(object.label) ?? "";
+		return {
+			type: asString(object.type) ?? rarityType(name),
+			name,
+			short: asString(object.short) ?? rarityShort(name),
+		};
+	}
+	const name = asString(value) ?? "";
+	return {
+		type: rarityType(name),
+		name,
+		short: rarityShort(name),
+	};
+}
+
+function rarityType(name: string): string {
+	const normalized = name.toLocaleLowerCase("ru-RU");
+	if (normalized.includes("необыч")) return "uncommon";
+	if (normalized.includes("обыч")) return "common";
+	if (normalized.includes("очень ред")) return "very_rare";
+	if (normalized.includes("ред")) return "rare";
+	if (normalized.includes("легендар")) return "legendary";
+	if (normalized.includes("артефакт")) return "artifact";
+	return "";
+}
+
+function rarityShort(name: string): string {
+	const normalized = name.toLocaleLowerCase("ru-RU");
+	if (normalized.includes("необыч")) return "Н";
+	if (normalized.includes("обыч")) return "O";
+	if (normalized.includes("очень ред")) return "OР";
+	if (normalized.includes("ред")) return "Р";
+	if (normalized.includes("легендар")) return "Л";
+	if (normalized.includes("артефакт")) return "А";
+	return "";
+}
+
+function normalizeDetailTypes(value: unknown): Array<{ name: string; type: string; url: string | null }> | undefined {
+	const name = asString(value);
+	return name ? [{ name, type: name, url: null }] : undefined;
+}
+
+function normalizeImages(value: unknown): string[] {
+	const images = Array.isArray(value) ? value : value ? [value] : [];
+	return images
+		.filter((image): image is string => typeof image === "string" && image.length > 0)
+		.map((image) => image.startsWith("/") ? `https://new.ttg.club${image}` : image);
 }
 
 function markupToString(value: unknown): string {

@@ -171,6 +171,9 @@ export class TtgApiService {
 			}
 
 			const result = await this.readObjectResponse(directResult.response);
+			if (result.ok && !isCompatibleEdition(result.value)) {
+				return await this.requestLegacyJson(endpoint.legacyUrl, options);
+			}
 			return result.ok ? result : await this.requestLegacyJson(endpoint.legacyUrl, options);
 		} catch (error) {
 			return { ok: false, reason: "network", error };
@@ -226,11 +229,11 @@ export class TtgApiService {
 			item !== null && typeof item === "object" && !Array.isArray(item)
 		);
 		const compatible = candidates.filter((item) =>
-			isCompatibleEdition(item) && matchesSourceBooks(item, sourceBooks)
+			isCompatibleEdition(item, true) && matchesSourceBooks(item, sourceBooks)
 		);
 		const match = compatible.find((item) => matchesUrlOrName(item, requestedUrl, endpoint.slug))
 			?? compatible[0]
-			?? candidates.find(isCompatibleEdition)
+			?? candidates.find((item) => isCompatibleEdition(item, true))
 			?? null;
 
 		const matchUrl = typeof match?.url === "string" ? match.url : null;
@@ -256,9 +259,11 @@ export class TtgApiService {
 	}
 }
 
-function isCompatibleEdition(item: TtgJsonObject): boolean {
+function isCompatibleEdition(item: TtgJsonObject, requireEvidence = false): boolean {
 	const srdVersion = item.srdVersion;
-	return typeof srdVersion !== "string" || !srdVersion.includes("2024");
+	if (typeof srdVersion !== "string") return !requireEvidence;
+	const normalized = srdVersion.toLocaleLowerCase("ru-RU");
+	return normalized.includes("2014") || normalized.startsWith("5.1");
 }
 
 function matchesSourceBooks(item: TtgJsonObject, sourceBooks: Set<string>): boolean {
