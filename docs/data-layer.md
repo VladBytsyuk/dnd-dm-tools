@@ -60,10 +60,13 @@ Stores are the place for transaction boundaries and persistence-specific behavio
 Services in `src/data/services/` fetch or import raw source data and return `ServiceResult` values.
 
 - `TtgApiService` and `TtgHtmlService` are the only data-layer modules that import Obsidian `requestUrl`.
-- `TtgService` composes API and HTML calls for full-item retrieval.
+- `TtgApiService` maps plugin URLs to TTG runtime endpoints, prefers TTG v2, and falls back to legacy v1 when v2 detail/search lookup fails.
+- `TtgService` composes API and HTML calls for full-item retrieval and adapts TTG v2 DTOs into the domain shapes used by repositories and UI components.
 - Seed services read static data imported from `src/assets/data`.
 
 Repositories consume service ports; they do not call Obsidian HTTP APIs directly.
+
+See [TTG Integration](./integrations/ttg-integration.md) for endpoint routing, D&D 5e 2014 filtering, fallback behavior, and response adaptation rules.
 
 ## Mappers and Projectors
 

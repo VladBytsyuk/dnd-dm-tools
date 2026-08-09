@@ -7,7 +7,7 @@ import type { Type } from "src/domain/models/common/Type";
 import type { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import type { FullFeat } from "src/domain/models/feat/FullFeat";
 import type { FullItem } from "src/domain/models/items/FullItem";
-import type { FullMonster } from "src/domain/models/monster/FullMonster";
+import { normalizeMonsterForEditing, type FullMonster } from "src/domain/models/monster/FullMonster";
 import type { FullRace } from "src/domain/models/race/FullRace";
 import type { FullSpell } from "src/domain/models/spell/FullSpell";
 import type { FullWeapon } from "src/domain/models/weapon/FullWeapon";
@@ -32,7 +32,16 @@ export class TtgFullItemMapper<TFull extends { url: string }>
 	}
 }
 
-export const monsterMapper = new TtgFullItemMapper<FullMonster>();
+export class MonsterMapper implements FullItemMapper<Partial<FullMonster>, FullMonster> {
+	map(response: Partial<FullMonster>, url: string): FullMonster {
+		return normalizeMonsterForEditing({
+			...response,
+			url: response.url ?? url,
+		} as FullMonster);
+	}
+}
+
+export const monsterMapper = new MonsterMapper();
 export const spellMapper = new TtgFullItemMapper<FullSpell>();
 export const weaponMapper = new TtgFullItemMapper<FullWeapon>();
 export const armorMapper = new TtgFullItemMapper<FullArmor>();

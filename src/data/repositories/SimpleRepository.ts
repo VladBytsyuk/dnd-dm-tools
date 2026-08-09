@@ -143,7 +143,10 @@ export abstract class SimpleRepository<
 		}
 
 		const response = await this.dependencies.service.getFullItem(url);
-		if (!response.ok) return null;
+		if (!response.ok) {
+			console.warn(`Failed to load ${url} from remote service: ${response.reason}`, response.error);
+			return null;
+		}
 
 		try {
 			const fullItem = this.dependencies.mapper.map(response.value, url);

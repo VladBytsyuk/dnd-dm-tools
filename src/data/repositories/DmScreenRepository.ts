@@ -146,7 +146,10 @@ export class DmScreenRepository implements DmScreen {
 		console.log(`Item ${url} doesn't have a description in local storage.`);
 
 		const response = await this.#service.getFullItem(url);
-		if (!response.ok) return null;
+		if (!response.ok) {
+			console.warn(`Failed to refresh DM screen item ${url} from remote service: ${response.reason}`, response.error);
+			return null;
+		}
 
 		try {
 			const fullItem = {

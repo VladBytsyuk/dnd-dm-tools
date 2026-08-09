@@ -37,6 +37,23 @@
     }>();
 
 	let isInEditMode = $state(false);
+    function needsNormalization(item: FullMonster): boolean {
+        return !item.name
+            || !item.size
+            || !item.source
+            || !item.hits
+            || !item.ability
+            || !item.senses
+            || !item.tags
+            || typeof item.type === "string";
+    }
+
+    $effect.pre(() => {
+        if (currentItem && needsNormalization(currentItem)) {
+            currentItem = normalizeMonsterForEditing(currentItem);
+        }
+    });
+
     function cloneCurrentItem() {
         return $state.snapshot(currentItem);
     }

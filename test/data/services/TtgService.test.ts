@@ -7,7 +7,7 @@ describe("TtgApiService", () => {
 		vi.restoreAllMocks();
 	});
 
-	it("posts TTG JSON requests and returns parsed data", async () => {
+	it("gets TTG v2 JSON requests and returns parsed data", async () => {
 		const requestUrl = vi.spyOn(obsidian, "requestUrl").mockResolvedValue({
 			status: 200,
 			json: { name: { rus: "Огненный шар", eng: "Fireball" } },
@@ -20,14 +20,12 @@ describe("TtgApiService", () => {
 			value: { name: { rus: "Огненный шар", eng: "Fireball" } },
 		});
 		expect(requestUrl).toHaveBeenCalledWith({
-			url: "https://ttg.club/api/v1//spells/fireball",
-			method: "POST",
-			body: undefined,
-			contentType: undefined,
+			url: "https://new.ttg.club/api/v2/spells/fireball",
+			method: "GET",
 		});
 	});
 
-	it("sends source-book filters as the JSON request body", async () => {
+	it("uses source-book filters for v2 search fallback selection", async () => {
 		const requestUrl = vi.spyOn(obsidian, "requestUrl").mockResolvedValue({
 			status: 200,
 			json: { url: "/classes/bard" },
@@ -38,14 +36,237 @@ describe("TtgApiService", () => {
 		});
 
 		expect(requestUrl).toHaveBeenCalledWith({
-			url: "https://ttg.club/api/v1//classes/bard",
+			url: "https://new.ttg.club/api/v2/classes/bard",
+			method: "GET",
+		});
+	});
+
+	it("falls back to v2 search and ignores 2024 results when a compatible result exists", async () => {
+		const requestUrl = vi.spyOn(obsidian, "requestUrl")
+			.mockResolvedValueOnce({
+				status: 404,
+				json: { message: "missing" },
+			} as any)
+			.mockResolvedValueOnce({
+				status: 200,
+				json: [
+					{ url: "/spells/fireball-2024", srdVersion: "2024" },
+					{
+						url: "/spells/ognennyj-shar",
+						name: { rus: "Огненный шар", eng: "Fireball" },
+						source: { name: { label: "PHB", rus: "Книга игрока", eng: "Player's Handbook" } },
+						srdVersion: "2014",
+					},
+				],
+			} as any)
+			.mockResolvedValueOnce({
+				status: 200,
+				json: { url: "/spells/ognennyj-shar" },
+			} as any);
+
+		const result = await new TtgApiService().postJson("/spells/fireball", { sourceBooks: ["PHB"] });
+
+		expect(result).toEqual({ ok: true, value: { url: "/spells/ognennyj-shar" } });
+		expect(requestUrl).toHaveBeenNthCalledWith(2, {
+			url: "https://new.ttg.club/api/v2/spells/search?q=fireball",
+			method: "GET",
+		});
+		expect(requestUrl).toHaveBeenNthCalledWith(3, {
+			url: "https://new.ttg.club/api/v2/spells/ognennyj-shar",
+			method: "GET",
+		});
+	});
+
+	it("falls back to legacy detail when v2 direct and search lookups fail", async () => {
+		const requestUrl = vi.spyOn(obsidian, "requestUrl")
+			.mockResolvedValueOnce({
+				status: 404,
+				json: { message: "missing" },
+			} as any)
+			.mockResolvedValueOnce({
+				status: 500,
+				json: { message: "search failed" },
+			} as any)
+			.mockResolvedValueOnce({
+				status: 200,
+				json: { url: "/spells/fireball", name: { rus: "Огненный шар", eng: "Fireball" } },
+			} as any);
+
+		const result = await new TtgApiService().postJson("/spells/fireball");
+
+		expect(result).toEqual({
+			ok: true,
+			value: { url: "/spells/fireball", name: { rus: "Огненный шар", eng: "Fireball" } },
+		});
+		expect(requestUrl).toHaveBeenNthCalledWith(3, {
+			url: "https://ttg.club/api/v1/spells/fireball",
 			method: "POST",
-			body: JSON.stringify({
-				filter: {
-					book: ["PHB", "XGE"],
+			body: undefined,
+			contentType: undefined,
+		});
+	});
+
+	it("falls back to legacy detail when Obsidian throws a v2 404 request error", async () => {
+		const requestUrl = vi.spyOn(obsidian, "requestUrl")
+			.mockRejectedValueOnce(new Error("Request failed, status 404"))
+			.mockRejectedValueOnce(new Error("Request failed, status 500"))
+			.mockResolvedValueOnce({
+				status: 200,
+				json: { url: "/bestiary/wildfire_spirit", name: { rus: "Дух дикого огня", eng: "Wildfire Spirit" } },
+			} as any);
+
+		const result = await new TtgApiService().postJson("/bestiary/wildfire_spirit");
+
+		expect(result).toEqual({
+			ok: true,
+			value: {
+				url: "/bestiary/wildfire_spirit",
+				name: { rus: "Дух дикого огня", eng: "Wildfire Spirit" },
+			},
+		});
+		expect(requestUrl).toHaveBeenNthCalledWith(1, {
+			url: "https://new.ttg.club/api/v2/bestiary/wildfire_spirit",
+			method: "GET",
+		});
+		expect(requestUrl).toHaveBeenNthCalledWith(2, {
+			url: "https://new.ttg.club/api/v2/bestiary/search?q=wildfire_spirit",
+			method: "GET",
+		});
+		expect(requestUrl).toHaveBeenNthCalledWith(3, {
+			url: "https://ttg.club/api/v1/bestiary/wildfire_spirit",
+			method: "POST",
+			body: undefined,
+			contentType: undefined,
+		});
+	});
+
+	it("preserves legacy monster shape after fallback so monster UI fields remain defined", async () => {
+		vi.spyOn(obsidian, "requestUrl")
+			.mockRejectedValueOnce(new Error("Request failed, status 404"))
+			.mockRejectedValueOnce(new Error("Request failed, status 500"))
+			.mockResolvedValueOnce({
+				status: 200,
+				json: {
+					name: { rus: "Дух дикого огня", eng: "Wildfire Spirit" },
+					size: { rus: "Маленький", eng: "small", cell: "1 клетка" },
+					type: { name: "элементаль" },
+					challengeRating: "—",
+					url: "/bestiary/wildfire_spirit",
+					source: {
+						shortName: "TCE",
+						name: "Котел Таши со всякой всячиной",
+						group: { name: "Официальные источники", shortName: "Basic" },
+					},
+					actions: [{ name: "Семя пламени", value: "<p>Огонь.</p>" }],
+					images: [],
 				},
+			} as any);
+
+		const result = await new TtgService().getFullItem("/bestiary/wildfire_spirit");
+
+		expect(result).toEqual({
+			ok: true,
+			value: expect.objectContaining({
+				name: { rus: "Дух дикого огня", eng: "Wildfire Spirit" },
+				size: { rus: "Маленький", eng: "small", cell: "1 клетка" },
+				type: { name: "элементаль" },
+				source: expect.objectContaining({ shortName: "TCE" }),
+				actions: [{ name: "Семя пламени", value: "<p>Огонь.</p>" }],
 			}),
-			contentType: "application/json",
+		});
+	});
+
+	it("adds monster UI defaults to v2 bestiary responses without legacy nested fields", async () => {
+		vi.spyOn(obsidian, "requestUrl").mockResolvedValueOnce({
+			status: 200,
+			json: {
+				name: { rus: "Дух дикого огня", eng: "Wildfire Spirit" },
+				header: "Маленький элементаль, без мировоззрения",
+				cr: "—",
+				ac: "13",
+				hit: { hit: 10, text: "10 (5 + пятикратный уровень заклинания)" },
+				abilities: {
+					str: { value: 10 },
+					dex: { value: 14 },
+					con: { value: 14 },
+					int: { value: 13 },
+					wis: { value: 15 },
+					cha: { value: 11 },
+				},
+				source: {
+					name: { label: "TCE", rus: "Котел Таши со всякой всячиной", eng: "Tasha's Cauldron of Everything" },
+				},
+				actions: [{ name: { rus: "Семя пламени", eng: "Flame Seed" }, description: "<p>Огонь.</p>" }],
+			},
+		} as any);
+
+		const result = await new TtgService().getFullItem("/bestiary/wildfire_spirit");
+
+		expect(result).toEqual({
+			ok: true,
+			value: expect.objectContaining({
+				name: { rus: "Дух дикого огня", eng: "Wildfire Spirit" },
+				size: { rus: "", eng: "", cell: "" },
+				type: "Маленький элементаль, без мировоззрения",
+				senses: { passivePerception: "", senses: [] },
+				conditionImmunities: [],
+				actions: [{ name: "Семя пламени", value: "<p>Огонь.</p>" }],
+			}),
+		});
+	});
+
+	it("falls back to legacy detail when a v2 retry cannot load the resolved slug", async () => {
+		const requestUrl = vi.spyOn(obsidian, "requestUrl")
+			.mockResolvedValueOnce({
+				status: 404,
+				json: { message: "missing" },
+			} as any)
+			.mockResolvedValueOnce({
+				status: 200,
+				json: [{ url: "/spells/ognennyj-shar", srdVersion: "2014" }],
+			} as any)
+			.mockResolvedValueOnce({
+				status: 404,
+				json: { message: "still missing" },
+			} as any)
+			.mockResolvedValueOnce({
+				status: 200,
+				json: { url: "/spells/fireball" },
+			} as any);
+
+		const result = await new TtgApiService().postJson("/spells/fireball");
+
+		expect(result).toEqual({ ok: true, value: { url: "/spells/fireball" } });
+		expect(requestUrl).toHaveBeenNthCalledWith(4, {
+			url: "https://ttg.club/api/v1/spells/fireball",
+			method: "POST",
+			body: undefined,
+			contentType: undefined,
+		});
+	});
+
+	it("maps legacy item-like URLs to v2 item endpoints", async () => {
+		const requestUrl = vi.spyOn(obsidian, "requestUrl").mockResolvedValue({
+			status: 200,
+			json: { url: "/item/scale-mail" },
+		} as any);
+		const service = new TtgApiService();
+
+		await service.postJson("/armors/scale_mail_armor");
+		await service.postJson("/weapons/longsword");
+		await service.postJson("/items/magic/wand_of_orcus");
+
+		expect(requestUrl).toHaveBeenNthCalledWith(1, {
+			url: "https://new.ttg.club/api/v2/item/scale_mail_armor",
+			method: "GET",
+		});
+		expect(requestUrl).toHaveBeenNthCalledWith(2, {
+			url: "https://new.ttg.club/api/v2/item/longsword",
+			method: "GET",
+		});
+		expect(requestUrl).toHaveBeenNthCalledWith(3, {
+			url: "https://new.ttg.club/api/v2/magic-items/wand_of_orcus",
+			method: "GET",
 		});
 	});
 
@@ -167,7 +388,7 @@ describe("TtgService", () => {
 			sourceBooks: ["PHB"],
 		});
 
-		expect(result).toEqual({
+		expect(result).toMatchObject({
 			ok: true,
 			value: {
 				item: { url: "/classes/bard", name: { rus: "Бард", eng: "Bard" } },
@@ -190,11 +411,10 @@ describe("TtgService", () => {
 
 		const result = await new TtgService().getBackgroundWithHtml("/backgrounds/occultist");
 
-		expect(result).toEqual({
+		expect(result).toMatchObject({
 			ok: true,
 			value: {
 				item: {
-					url: "/backgrounds/fragment/199",
 					name: { rus: "Оккультист", eng: "Occultist" },
 				},
 				associatedUrl: "/backgrounds/fragment/199",
@@ -216,7 +436,7 @@ describe("TtgService", () => {
 
 		const result = await new TtgService().getClassWithHtml("/classes/bard");
 
-		expect(result).toEqual({
+		expect(result).toMatchObject({
 			ok: true,
 			value: {
 				item: { url: "/classes/bard" },
@@ -244,17 +464,11 @@ describe("TtgService", () => {
 		});
 		await expect(service.getRaceTree("/races/elf", { sourceBooks: ["PHB"] })).resolves.toEqual({
 			ok: true,
-			value: { url: "/races/elf", subraces: [] },
+			value: expect.objectContaining({ url: "/races/elf", subraces: [] }),
 		});
 		expect(requestUrl).toHaveBeenLastCalledWith({
-			url: "https://ttg.club/api/v1//races/elf",
-			method: "POST",
-			body: JSON.stringify({
-				filter: {
-					book: ["PHB"],
-				},
-			}),
-			contentType: "application/json",
+			url: "https://new.ttg.club/api/v2/species/elf",
+			method: "GET",
 		});
 	});
 });

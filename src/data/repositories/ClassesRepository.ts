@@ -159,7 +159,10 @@ export class ClassesRepository
 		const response = await this.#service.getFullItem(url, {
 			sourceBooks: ClassesRepository.CLASS_SOURCE_BOOKS,
 		});
-		if (!response.ok) return null;
+		if (!response.ok) {
+			console.warn(`Failed to load class ${url} from remote service: ${response.reason}`, response.error);
+			return null;
+		}
 
 		try {
 			const fullItem = this.#mapper.map(response.value, url);
