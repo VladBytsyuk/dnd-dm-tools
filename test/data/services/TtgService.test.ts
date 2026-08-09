@@ -531,6 +531,62 @@ describe("TtgService", () => {
 		});
 	});
 
+	it("prefers class description over associated fragment HTML", async () => {
+		vi.spyOn(obsidian, "requestUrl")
+			.mockResolvedValueOnce({
+				status: 200,
+				json: {
+					url: "bard-phb",
+					name: { rus: "Бард", eng: "Bard" },
+					description: "<p>Описание класса.</p>",
+				},
+			} as any)
+			.mockResolvedValueOnce({
+				status: 200,
+				text: "<html><body><div id=\"root\"></div></body></html>",
+			} as any);
+
+		const result = await new TtgService().getClassWithHtml("/classes/bard");
+
+		expect(result).toMatchObject({
+			ok: true,
+			value: {
+				item: {
+					name: { rus: "Бард", eng: "Bard" },
+					associatedHtml: "<p>Описание класса.</p>",
+				},
+				associatedUrl: "/classes/fragment/bard",
+				associatedHtml: "<p>Описание класса.</p>",
+			},
+		});
+	});
+
+	it("uses class description when associated HTML is blank", async () => {
+		vi.spyOn(obsidian, "requestUrl")
+			.mockResolvedValueOnce({
+				status: 200,
+				json: {
+					url: "fighter-phb",
+					name: { rus: "Воин", eng: "Fighter" },
+					description: "<p>Описание воина.</p>",
+				},
+			} as any)
+			.mockResolvedValueOnce({
+				status: 200,
+				text: " \n\t ",
+			} as any);
+
+		const result = await new TtgService().getClassWithHtml("/classes/fighter");
+
+		expect(result).toMatchObject({
+			ok: true,
+			value: {
+				associatedUrl: "/classes/fragment/fighter",
+				associatedHtml: "<p>Описание воина.</p>",
+			},
+		});
+	});
+
 	it("returns background JSON with associated HTML from the item URL", async () => {
 		vi.spyOn(obsidian, "requestUrl")
 			.mockResolvedValueOnce({

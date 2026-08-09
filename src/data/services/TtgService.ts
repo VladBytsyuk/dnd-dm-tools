@@ -53,13 +53,16 @@ export class TtgService implements FullItemReadService<TtgJsonObject, TtgApiRequ
 		const apiUrl = getStringProperty(itemResult.value, "url") ?? url;
 		const associatedUrl = buildClassFragmentUrl(apiUrl);
 		const htmlResult = await this.htmlService.getHtml(associatedUrl);
+		const itemHtml = getNonBlankStringProperty(itemResult.value, "associatedHtml")
+			?? getNonBlankStringProperty(itemResult.value, "description");
 
 		return {
 			ok: true,
 			value: {
 				item: itemResult.value,
 				associatedUrl,
-				associatedHtml: htmlResult.ok ? htmlResult.value : undefined,
+				associatedHtml: itemHtml
+					?? (htmlResult.ok && htmlResult.value.trim() ? htmlResult.value : undefined),
 			},
 		};
 	}

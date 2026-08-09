@@ -215,6 +215,51 @@ describe('ClassesRepository - Full Item Fetch Characterization', () => {
         expect(service.calls).toEqual([]);
     });
 
+    it('should refresh cached full class when associated HTML is empty', async () => {
+        const staleClass = {
+            ...fullClassBard,
+            associatedHtml: undefined,
+        };
+        const refreshedClass = {
+            ...fullClassBard,
+            associatedHtml: "<article>Бард</article>",
+        };
+        const updateItem = vi.fn();
+        const readItemByUrl = vi.fn()
+            .mockResolvedValueOnce(staleClass)
+            .mockResolvedValueOnce(staleClass);
+        const mockDb = {
+            smallClassDao: {
+                readAllItems: vi.fn().mockResolvedValue([smallClassBard]),
+                readAllItemsNames: vi.fn().mockResolvedValue(["Бард"]),
+                readItemByName: vi.fn().mockResolvedValue(smallClassBard),
+                readItemByUrl: vi.fn().mockResolvedValue(smallClassBard),
+                readArchetypesByParentUrl: vi.fn().mockResolvedValue([]),
+            },
+            fullClassDao: {
+                readItemByUrl,
+                readItemByName: vi.fn().mockResolvedValue(null),
+                createItem: vi.fn(),
+                updateItem,
+            },
+            transaction: vi.fn(async (callback: () => Promise<void>) => {
+                await callback();
+            }),
+        };
+        const service = new FullItemReadServiceDouble<any>().succeed({
+            item: { ...staleClass },
+            associatedUrl: "/classes/fragment/bard",
+            associatedHtml: "<article>Бард</article>",
+        });
+        const repo = new ClassesRepository(mockDb as any, service);
+
+        const result = await repo.getFullItemByUrl("/classes/bard");
+
+        expect(result).toEqual(refreshedClass);
+        expect(service.calls).toHaveLength(1);
+        expect(updateItem).toHaveBeenCalledWith(refreshedClass);
+    });
+
     it('should fetch an uncached archetype by name using the archetype small item URL', async () => {
         const remoteArchetype = {
             ...fullArchetypeValor,
