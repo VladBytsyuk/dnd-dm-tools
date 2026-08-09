@@ -616,6 +616,31 @@ describe("TtgService", () => {
 		});
 	});
 
+	it("prefers background description over non-empty associated HTML", async () => {
+		vi.spyOn(obsidian, "requestUrl")
+			.mockResolvedValueOnce({
+				status: 200,
+				json: {
+					url: "/backgrounds/fragment/111",
+					name: { rus: "Стажёр Конкурента", eng: "Rival Intern" },
+					description: "<p>Вы были стажёром в конкурирующей компании.</p>",
+				},
+			} as any)
+			.mockResolvedValueOnce({
+				status: 200,
+				text: "<html><body><div id=\"root\"></div></body></html>",
+			} as any);
+
+		const result = await new TtgService().getBackgroundWithHtml("/backgrounds/rival_intern");
+
+		expect(result).toMatchObject({
+			ok: true,
+			value: {
+				associatedHtml: "<p>Вы были стажёром в конкурирующей компании.</p>",
+			},
+		});
+	});
+
 	it("adapts v2 magic item JSON to the artifact domain shape", async () => {
 		vi.spyOn(obsidian, "requestUrl").mockResolvedValueOnce({
 			status: 200,

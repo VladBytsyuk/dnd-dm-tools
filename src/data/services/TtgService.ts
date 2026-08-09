@@ -13,6 +13,11 @@ function getStringProperty(source: TtgJsonObject, key: string): string | undefin
 	return typeof value === "string" ? value : undefined;
 }
 
+function getNonBlankStringProperty(source: TtgJsonObject, key: string): string | undefined {
+	const value = getStringProperty(source, key);
+	return value?.trim() ? value : undefined;
+}
+
 function buildClassFragmentUrl(classUrl: string): string {
 	if (classUrl.includes("/fragment/")) return classUrl;
 
@@ -73,9 +78,8 @@ export class TtgService implements FullItemReadService<TtgJsonObject, TtgApiRequ
 			value: {
 				item: itemResult.value,
 				associatedUrl,
-				associatedHtml: htmlResult.ok && htmlResult.value.trim()
-					? htmlResult.value
-					: getStringProperty(itemResult.value, "description"),
+				associatedHtml: getNonBlankStringProperty(itemResult.value, "description")
+					?? (htmlResult.ok && htmlResult.value.trim() ? htmlResult.value : undefined),
 			},
 		};
 	}
