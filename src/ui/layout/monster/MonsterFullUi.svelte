@@ -16,7 +16,9 @@
 	import { Plus } from 'lucide-svelte';
 	import { EmptyTag } from '../../../domain/models/common/Tag';
 	import { Notice } from 'obsidian';
-	import { getMonsterFromClipboard } from '../../../data/clipboard';
+	import { getFromClipboard, getMonsterFromClipboard } from '../../../data/clipboard';
+	import type { FullWeapon } from "src/domain/models/weapon/FullWeapon";
+	import { createMonsterWeaponAction } from "src/domain/models/monster/monsterWeaponAction";
 
     let { 
 		currentItem, 
@@ -95,6 +97,21 @@
             new Notice(`Ошибка удаления`);
         }
     };
+
+	async function pasteWeapon(item: FullMonster) {
+		const weapon = await getFromClipboard<FullWeapon>("weapon");
+		if (!weapon) return undefined;
+
+		try {
+			const action = createMonsterWeaponAction(item, weapon);
+			new Notice(`Оружие «${action.name}» добавлено.`);
+			return action;
+		} catch (error) {
+			const message = error instanceof Error ? error.message : "Не удалось добавить оружие.";
+			new Notice(message);
+			return undefined;
+		}
+	}
 </script>
   
 {#if currentItem}
@@ -134,15 +151,15 @@
 
         <!-- Action Blocks -->
         {#if isInEditMode || notEmpty(currentItem.actions)}
-            <MonsterAbilities title="Действия" items={currentItem.actions} {isInEditMode} {uiEventListener} onItemsChange={it => currentItem.actions = it} />
+            <MonsterAbilities title="Действия" items={currentItem.actions} {isInEditMode} {uiEventListener} onItemsChange={it => currentItem.actions = it} onPaste={() => pasteWeapon(currentItem)} />
         {/if}
 
         {#if isInEditMode || notEmpty(currentItem.bonusActions)}
-            <MonsterAbilities title="Бонусные действия" items={currentItem.bonusActions} {isInEditMode} {uiEventListener} onItemsChange={it => currentItem.bonusActions = it} />
+            <MonsterAbilities title="Бонусные действия" items={currentItem.bonusActions} {isInEditMode} {uiEventListener} onItemsChange={it => currentItem.bonusActions = it} onPaste={() => pasteWeapon(currentItem)} />
         {/if}
 
         {#if isInEditMode || notEmpty(currentItem.reactions)}
-            <MonsterAbilities title="Реакции" items={currentItem.reactions} {isInEditMode} {uiEventListener} onItemsChange={it => currentItem.reactions = it} />
+            <MonsterAbilities title="Реакции" items={currentItem.reactions} {isInEditMode} {uiEventListener} onItemsChange={it => currentItem.reactions = it} onPaste={() => pasteWeapon(currentItem)} />
         {/if}
 
 

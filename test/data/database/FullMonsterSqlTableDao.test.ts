@@ -40,7 +40,7 @@ const sampleMonster: FullMonster = {
         { "name":"Ловкий побег", "value":"Описание"}
     ],
     "actions":[
-        { "name":"Скимитар", "value":"Описание скимитара" },
+        { "name":"Скимитар", "value":"Описание скимитара", "weaponUrl":"/weapons/scimitar" },
         { "name":"Короткий лук", "value":"Описание короткого лука" }
     ],
     "description":"Описание",

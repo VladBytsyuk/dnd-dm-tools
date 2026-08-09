@@ -112,6 +112,16 @@
         }
     }
 
+    async function onItemDelete(url: string): Promise<boolean> {
+        const deleteSucceed = await repository.deleteItem(url);
+        if (!deleteSucceed) return false;
+
+        itemsStack = itemsStack.filter((item) => item.url !== url);
+        currentItem = undefined;
+        await updateGroups();
+        return true;
+    }
+
     // ---- private functions ----
     async function updateGroups() {
         const generation = ++requestGeneration;
@@ -221,7 +231,7 @@
                 isEditable=true
                 onClose={() => currentItem = undefined}
                 onItemSave={async (item: any) => await repository.putItem(item)}
-                onItemDelete={async (url: string) => await repository.deleteItem(url)}
+                {onItemDelete}
             />
         </div>
     {:else if searchBarValue.length > 0 && groups.length === 0 && !isLoading && !loadError}

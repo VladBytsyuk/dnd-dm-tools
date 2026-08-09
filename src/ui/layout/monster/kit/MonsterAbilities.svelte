@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plus, X } from 'lucide-svelte';
+	import { ClipboardPaste, Plus, X } from 'lucide-svelte';
 	import HtmlBlock from '../../uikit/HtmlBlock.svelte';
 	import type { IUiEventListener } from '../../../../domain/listeners/ui_event_listener';
 	import { EmptyNamedValue, type NamedValue } from '../../../../domain/models/common/Skill';
@@ -11,15 +11,19 @@
         items,
         isInEditMode,
 		uiEventListener,
-        onItemsChange = () => {}
+		onItemsChange = () => {},
+		onPaste,
 	} = $props<{
         title?: string;
         description?: string;
         items: NamedValue[];
         isInEditMode: boolean;
         uiEventListener: IUiEventListener;
-        onItemsChange: (items: string[]) => {};
+		onItemsChange: (items: NamedValue[]) => void;
+		onPaste?: () => NamedValue | undefined | Promise<NamedValue | undefined>;
     }>();
+
+	let pastePending = $state(false);
 
     const addItem = () => {
         items ? items.push(EmptyNamedValue()) : items = [EmptyNamedValue()];
@@ -29,11 +33,33 @@
         items.splice(index, 1);
         onItemsChange(items);
     }
+	const pasteItem = async () => {
+		if (!onPaste || pastePending) return;
+		pastePending = true;
+		try {
+			const item = await onPaste();
+			if (item) {
+				items = [...(items ?? []), item];
+				onItemsChange(items);
+			}
+		} finally {
+			pastePending = false;
+		}
+	}
+	const openWeapon = (event: MouseEvent, url: string) => {
+		event.preventDefault();
+		void uiEventListener.onWeaponClick(url);
+	}
 </script>
 
 <div class="property-block">
     {#if title}
-        <div class="block-header">{title}</div>
+		<div class="block-header">
+			<span>{title}</span>
+			{#if isInEditMode && onPaste}
+				<IconButton icon={ClipboardPaste} size={16} hint="Вставить оружие из буфера обмена" onClick={pasteItem}/>
+			{/if}
+		</div>
     {/if}
 
     {#if isInEditMode}
@@ -55,7 +81,11 @@
                 </div>
                 <textarea class="textarealike editable" bind:value={item.value} rows="3"></textarea>
             {:else}
-                <span class="base-info-item-title">{item.name}.</span>
+				{#if 'weaponUrl' in item && typeof item.weaponUrl === 'string' && item.weaponUrl.startsWith('/weapons/')}
+					<a class="base-info-item-title" href={item.weaponUrl} onclick={(event) => openWeapon(event, item.weaponUrl)}>{item.name}</a>.
+				{:else}
+					<span class="base-info-item-title">{item.name}.</span>
+				{/if}
                 <HtmlBlock class="base-info-item-value" htmlContent={item.value} uiEventListener={uiEventListener} />
             {/if}
         </div>
@@ -101,7 +131,14 @@
         font-size: 16px;
         margin: 0.5em 0 0.5em;
         padding: 0 0 8px;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
     }
+
+	.block-header :global(.icon-button) { flex: 0 0 auto; }
+	.base-info-item-title[href] { cursor: pointer; }
 
 	.inputlike {
         height: 15px;

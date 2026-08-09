@@ -13,6 +13,7 @@ import type { Tag } from "../common/Tag";
 import { EmptyName, type Name } from "../common/Name";
 import { EmptySource } from "../common/Source";
 import type { Type } from "../common/Type";
+import type { MonsterCombatAction } from "./MonsterCombatAction";
 
 export interface FullMonster extends SmallMonster {
     size?: Size;
@@ -34,9 +35,9 @@ export interface FullMonster extends SmallMonster {
     senses?: Senses;
     languages?: string[];
     feats?: NamedValue[];
-    actions?: NamedValue[];
-    bonusActions?: NamedValue[];
-    reactions?: NamedValue[];
+    actions?: MonsterCombatAction[];
+    bonusActions?: MonsterCombatAction[];
+    reactions?: MonsterCombatAction[];
     legendary?: Legendary;
     mythic?: Legendary;
     lair?: Lair,
