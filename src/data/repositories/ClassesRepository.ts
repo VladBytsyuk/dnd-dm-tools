@@ -151,7 +151,7 @@ export class ClassesRepository
 
 	override async getFullItemByUrl(url: string): Promise<FullClass | null> {
 		const cachedFullItem = await this.#classStore.readFullClassByUrl(url);
-		if (cachedFullItem) {
+		if (cachedFullItem && hasClassContent(cachedFullItem)) {
 			console.log(`Loaded ${url} from local storage.`);
 			return cachedFullItem;
 		}
@@ -159,7 +159,10 @@ export class ClassesRepository
 		const response = await this.#service.getFullItem(url, {
 			sourceBooks: ClassesRepository.CLASS_SOURCE_BOOKS,
 		});
-		if (!response.ok) return null;
+		if (!response.ok) {
+			console.warn(`Failed to load class ${url} from remote service: ${response.reason}`, response.error);
+			return null;
+		}
 
 		try {
 			const fullItem = this.#mapper.map(response.value, url);
@@ -174,7 +177,7 @@ export class ClassesRepository
 
 	override async getFullItemByName(name: string): Promise<FullClass | null> {
 		const cachedFullItem = await this.#classStore.readFullClassByName(name);
-		if (cachedFullItem) return cachedFullItem;
+		if (cachedFullItem && hasClassContent(cachedFullItem)) return cachedFullItem;
 
 		const smallClassByName = await this.#classStore.readSmallClassByName(name);
 		if (smallClassByName) return await this.getFullItemBySmallItem(smallClassByName);
@@ -228,4 +231,8 @@ export class ClassesRepository
 				return a.sort.localeCompare(b.sort);
 			});
 	}
+}
+
+function hasClassContent(item: FullClass): boolean {
+	return Boolean(item.associatedHtml?.trim());
 }

@@ -53,6 +53,8 @@ Add these pieces as needed:
 - A specialized store in `src/data/stores/` only when generic small/full persistence is not enough.
 - A specialized service wrapper only when the TTG request differs from the default `TtgService.getFullItem()` flow.
 
+For TTG-backed features, keep endpoint routing inside `TtgApiService` and response-shape adaptation inside `TtgService` or the feature mapper. Do not build TTG URLs in repositories, DAOs, or Svelte components. See [TTG Integration](./integrations/ttg-integration.md).
+
 ### 5. Repository
 
 Create `src/data/repositories/NewTypeRepository.ts`.

@@ -157,7 +157,10 @@ export class RacesRepository
 		const response = await this.#service.getFullItem(url, {
 			sourceBooks: RacesRepository.RACE_SOURCE_BOOKS,
 		});
-		if (!response.ok) return null;
+		if (!response.ok) {
+			console.warn(`Failed to load race ${url} from remote service: ${response.reason}`, response.error);
+			return null;
+		}
 
 		try {
 			const fullRace = this.#mapper.map(response.value, url);

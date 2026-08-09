@@ -106,9 +106,22 @@
     }
 
     async function onSmallItemClick(smallItem: BaseItem) {
-        currentItem = await repository.getFullItemBySmallItem(smallItem) ?? undefined;
-        if (currentItem) {
-            itemsStack.push(currentItem);
+        isLoading = true;
+        loadError = null;
+        try {
+            currentItem = await repository.getFullItemBySmallItem(smallItem) ?? undefined;
+            if (currentItem) {
+                itemsStack.push(currentItem);
+            } else {
+                loadError = "Не удалось загрузить элемент.";
+                console.warn(`Failed to open item ${smallItem.url}.`);
+            }
+        } catch (error) {
+            currentItem = undefined;
+            loadError = error instanceof Error ? error.message : "Не удалось загрузить элемент.";
+            console.error(`Failed to open item ${smallItem.url}.`, error);
+        } finally {
+            isLoading = false;
         }
     }
 

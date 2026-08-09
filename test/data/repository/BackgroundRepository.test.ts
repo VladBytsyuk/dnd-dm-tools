@@ -130,6 +130,10 @@ describe('BackgroundRepository - Associated HTML Characterization', () => {
             url: "/backgrounds/occultist",
             associatedUrl: "/backgrounds/fragment/199",
             associatedHtml: "<section>Оккультист</section>",
+            source: {
+                ...remoteBackground.source,
+                homebrew: false,
+            },
         });
         expect(writeStore.calls[0]).toMatchObject({
             method: "saveFetchedFull",
