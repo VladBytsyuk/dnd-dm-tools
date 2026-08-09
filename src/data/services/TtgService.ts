@@ -86,7 +86,25 @@ export class TtgService implements FullItemReadService<TtgJsonObject, TtgApiRequ
 		url: string,
 		options?: TtgApiRequestOptions,
 	): Promise<ServiceResult<TtgJsonObject>> {
-		return await this.getFullItem(url, options);
+		const itemResult = await this.getFullItem(url, options);
+		if (!itemResult.ok) return itemResult;
+		if (Array.isArray(itemResult.value.subraces)) return itemResult;
+
+		const associatedUrl = getStringProperty(itemResult.value, "associatedUrl") ?? url;
+		const lineagesResult = await this.apiService.getJsonArray(`${associatedUrl}/lineages`, options);
+		if (!lineagesResult.ok || lineagesResult.value.length === 0) {
+			return itemResult;
+		}
+
+		return {
+			ok: true,
+			value: {
+				...itemResult.value,
+				subraces: lineagesResult.value.map((lineage) =>
+					adaptV2Response(buildRacePluginUrl(asString(lineage.url) ?? ""), lineage)
+				),
+			},
+		};
 	}
 }
 
@@ -127,12 +145,13 @@ function adaptV2Response(url: string, response: TtgJsonObject): TtgJsonObject {
 		const properties = asObject(response.properties);
 		return {
 			...base,
+			associatedUrl: buildRacePluginUrl(asString(response.url) ?? ""),
 			abilities: response.abilities ?? [],
 			type: { name: asString(properties?.type) ?? readObjectString(response.type, ["name"]) ?? "" },
 			description: markupToString(response.description),
 			size: asString(properties?.size) ?? asString(response.size) ?? "",
 			speed: normalizeSpeed(properties?.speed ?? response.speed),
-			skills: response.skills ?? [],
+			skills: normalizeTags(response.skills ?? response.features),
 			subraces: Array.isArray(response.subraces)
 				? response.subraces
 				: Array.isArray(response.lineages)
@@ -157,7 +176,7 @@ function adaptV2Response(url: string, response: TtgJsonObject): TtgJsonObject {
 			damageResistances: splitList(response.damageResistances ?? response.resistance),
 			damageImmunities: splitList(response.damageImmunities ?? response.immunity),
 			conditionImmunities: splitList(response.conditionImmunities),
-			senses: normalizeSenses(response.senses),
+			senses: normalizeSenses(response.senses ?? response.sense),
 			languages: splitList(response.languages),
 			feats: normalizeNamedValues(response.feats ?? response.traits),
 			actions: normalizeNamedValues(response.actions),
@@ -263,6 +282,13 @@ function isLegacyResponse(response: TtgJsonObject): boolean {
 
 function firstSegment(url: string): string {
 	return url.replace(/^\/+/, "").split("/")[0] ?? "";
+}
+
+function buildRacePluginUrl(slug: string): string {
+	const normalized = slug.replace(/^\/+/, "");
+	if (!normalized) return "/races";
+	if (normalized.startsWith("races/")) return `/${normalized}`;
+	return `/races/${normalized}`;
 }
 
 function asObject(value: unknown): TtgJsonObject | null {
@@ -404,7 +430,22 @@ function normalizeDice(value: unknown): string {
 
 function normalizeSpeed(value: unknown): Array<{ value?: number; name?: string; additional?: string }> {
 	if (Array.isArray(value)) return value as Array<{ value?: number; name?: string; additional?: string }>;
-	if (typeof value === "string" && value) return [{ name: value }];
+	if (typeof value === "string" && value) {
+		return value
+			.split(",")
+			.map((part) => part.trim())
+			.filter(Boolean)
+			.map((part) => {
+				const value = parseLeadingNumber(part);
+				const name = part.replace(/\d+.*$/, "").trim();
+				const additionalMatch = part.match(/\(([^)]+)\)/);
+				return {
+					name,
+					value,
+					additional: additionalMatch?.[1],
+				};
+			});
+	}
 	return [];
 }
 
@@ -433,8 +474,10 @@ function normalizeHits(value: unknown): { average: number; formula?: string; tex
 
 function normalizeAbilities(value: unknown): Record<string, number> {
 	const object = asObject(value);
-	const ability = (key: string) => {
-		const entry = object?.[key];
+	const ability = (...keys: string[]) => {
+		const entry = keys
+			.map((key) => object?.[key])
+			.find((candidate) => candidate !== undefined);
 		if (typeof entry === "number") return entry;
 		const nested = asObject(entry);
 		return asNumber(nested?.value) ?? asNumber(nested?.score) ?? 10;
@@ -444,12 +487,26 @@ function normalizeAbilities(value: unknown): Record<string, number> {
 		dex: ability("dex"),
 		con: ability("con"),
 		int: ability("int"),
-		wiz: ability("wiz") || ability("wis"),
-		cha: ability("cha"),
+		wiz: ability("wiz", "wis"),
+		cha: ability("cha", "chr"),
 	};
 }
 
 function normalizeSenses(value: unknown): { passivePerception: string; senses: Array<{ name: string; value: number }> } {
+	if (typeof value === "string") {
+		const passive = value.match(/пассив\D+(\d+)/i)?.[1] ?? "";
+		const senses = value
+			.split(",")
+			.map((part) => part.trim())
+			.filter((part) => part && !/пассив/i.test(part))
+			.map((part) => ({
+				name: part.replace(/\d+.*$/, "").trim(),
+				value: parseLeadingNumber(part) ?? 0,
+			}))
+			.filter((sense) => sense.name || sense.value);
+		return { passivePerception: passive, senses };
+	}
+
 	const object = asObject(value);
 	if (!object) return { passivePerception: "", senses: [] };
 
@@ -465,6 +522,17 @@ function normalizeSenses(value: unknown): { passivePerception: string; senses: A
 			})
 			: [],
 	};
+}
+
+function normalizeTags(value: unknown): Array<{ name: string; description: string }> {
+	if (!Array.isArray(value)) return [];
+	return value.map((item) => {
+		const object = asObject(item);
+		return {
+			name: object ? normalizeName(object.name).rus || asString(object.url) || "" : String(item),
+			description: object ? markupToString(object.description ?? object.value ?? object.text) : "",
+		};
+	});
 }
 
 function normalizeNamedValues(value: unknown): Array<{ name: string; value: string }> {

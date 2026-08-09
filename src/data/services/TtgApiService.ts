@@ -69,13 +69,19 @@ function endpointFromUrl(url: string): TtgEndpoint {
 	if (prefix === "screens") {
 		return { resource: "screens", slug, legacy: true, legacyUrl: normalized };
 	}
+	if (prefix === "races" && parts[2] === "lineages") {
+		return { resource: `species/${encodeURIComponent(second ?? "")}`, slug: "lineages", legacy: false, legacyUrl: normalized };
+	}
 	if (prefix === "races") {
 		return { resource: "species", slug, legacy: false, legacyUrl: normalized };
 	}
 	if (prefix === "items" && second === "magic") {
 		return { resource: "magic-items", slug, legacy: false, legacyUrl: normalized };
 	}
-	if (prefix === "items" || prefix === "equipment" || prefix === "weapons" || prefix === "armor" || prefix === "armors") {
+	if (prefix === "weapons" || prefix === "armor" || prefix === "armors") {
+		return { resource: normalized, slug, legacy: true, legacyUrl: normalized };
+	}
+	if (prefix === "items" || prefix === "equipment") {
 		return { resource: "item", slug, legacy: false, legacyUrl: normalized };
 	}
 
@@ -119,6 +125,15 @@ export class TtgApiService {
 		return endpoint.legacy
 			? await this.requestLegacyJson(endpoint.legacyUrl, options)
 			: await this.requestV2Json(endpoint, options);
+	}
+
+	async getJsonArray(
+		url: string,
+		options?: TtgApiRequestOptions,
+	): Promise<ServiceResult<TtgJsonObject[]>> {
+		const endpoint = endpointFromUrl(url);
+		if (endpoint.legacy) return { ok: false, reason: "not-found" };
+		return await this.requestV2JsonArray(endpoint, options);
 	}
 
 	async postJson(
@@ -199,6 +214,43 @@ export class TtgApiService {
 
 		const retryReadResult = await this.readObjectResponse(retryResult.response);
 		return retryReadResult.ok ? retryReadResult : await this.requestLegacyJson(endpoint.legacyUrl, options);
+	}
+
+	private async requestV2JsonArray(
+		endpoint: TtgEndpoint,
+		_options?: TtgApiRequestOptions,
+	): Promise<ServiceResult<TtgJsonObject[]>> {
+		try {
+			const result = await requestJsonUrl({
+				url: buildV2Url(endpoint),
+				method: "GET",
+			});
+			if (!result.ok) {
+				return result.status ? statusFailure(result.status) : { ok: false, reason: "network", error: result.error };
+			}
+			if (result.response.status !== 200) {
+				return statusFailure(result.response.status);
+			}
+
+			let value: unknown;
+			try {
+				value = typeof result.response.json === "function"
+					? await (result.response.json as () => unknown | Promise<unknown>)()
+					: await result.response.json;
+			} catch (error) {
+				return { ok: false, reason: "invalid-response", error };
+			}
+			if (!Array.isArray(value)) return { ok: false, reason: "invalid-response" };
+
+			return {
+				ok: true,
+				value: value.filter((item): item is TtgJsonObject =>
+					item !== null && typeof item === "object" && !Array.isArray(item)
+				),
+			};
+		} catch (error) {
+			return { ok: false, reason: "network", error };
+		}
 	}
 
 	private async resolveSlug(

@@ -306,26 +306,45 @@ describe("TtgApiService", () => {
 		});
 	});
 
-	it("maps legacy item-like URLs to v2 item endpoints", async () => {
+	it("keeps weapon and armor URLs on the legacy endpoint", async () => {
+		const requestUrl = vi.spyOn(obsidian, "requestUrl").mockResolvedValue({
+			status: 200,
+			json: { url: "/weapons/longsword" },
+		} as any);
+		const service = new TtgApiService();
+
+		await service.postJson("/armors/scale_mail_armor");
+		await service.postJson("/weapons/longsword");
+
+		expect(requestUrl).toHaveBeenNthCalledWith(1, {
+			url: "https://ttg.club/api/v1/armors/scale_mail_armor",
+			method: "POST",
+			body: undefined,
+			contentType: undefined,
+		});
+		expect(requestUrl).toHaveBeenNthCalledWith(2, {
+			url: "https://ttg.club/api/v1/weapons/longsword",
+			method: "POST",
+			body: undefined,
+			contentType: undefined,
+		});
+	});
+
+	it("maps generic and magic item URLs to v2 item endpoints", async () => {
 		const requestUrl = vi.spyOn(obsidian, "requestUrl").mockResolvedValue({
 			status: 200,
 			json: { url: "/item/scale-mail" },
 		} as any);
 		const service = new TtgApiService();
 
-		await service.postJson("/armors/scale_mail_armor");
-		await service.postJson("/weapons/longsword");
+		await service.postJson("/items/rope");
 		await service.postJson("/items/magic/wand_of_orcus");
 
 		expect(requestUrl).toHaveBeenNthCalledWith(1, {
-			url: "https://new.ttg.club/api/v2/item/scale_mail_armor",
+			url: "https://new.ttg.club/api/v2/item/rope",
 			method: "GET",
 		});
 		expect(requestUrl).toHaveBeenNthCalledWith(2, {
-			url: "https://new.ttg.club/api/v2/item/longsword",
-			method: "GET",
-		});
-		expect(requestUrl).toHaveBeenNthCalledWith(3, {
 			url: "https://new.ttg.club/api/v2/magic-items/wand_of_orcus",
 			method: "GET",
 		});
@@ -526,6 +545,124 @@ describe("TtgService", () => {
 				cost: { dmg: null, xge: null },
 				images: ["https://new.ttg.club/s3/magic-items/wand-of-orcus.webp"],
 				description: "Созданная и используемая самим Оркусом.Случайные свойства",
+			}),
+		});
+	});
+
+	it("maps v2 species features and lineages into the race tree", async () => {
+		const requestUrl = vi.spyOn(obsidian, "requestUrl")
+			.mockResolvedValueOnce({
+				status: 200,
+				json: {
+					url: "elf-phb",
+					srdVersion: "2014",
+					name: { rus: "Эльф", eng: "Elf" },
+					source: {
+						name: { label: "PHB", rus: "Книга игрока", eng: "Player Handbook" },
+						group: { label: "Basic", rus: "Официальные источники" },
+					},
+					properties: { type: "Гуманоид", size: "Средний", speed: "30 футов" },
+					features: [
+						{
+							name: { rus: "Тёмное зрение", eng: "Darkvision" },
+							description: ["У вас есть тёмное зрение."],
+						},
+					],
+				},
+			} as any)
+			.mockResolvedValueOnce({
+				status: 200,
+				json: [
+					{
+						url: "high-elf-phb",
+						srdVersion: "2014",
+						name: { rus: "Высший эльф", eng: "High Elf" },
+						source: {
+							name: { label: "PHB", rus: "Книга игрока", eng: "Player Handbook" },
+							group: { label: "Basic", rus: "Официальные источники" },
+						},
+						properties: { type: "Гуманоид", size: "Средний", speed: "30 футов" },
+						features: [
+							{
+								name: { rus: "Заговор", eng: "Cantrip" },
+								description: ["Вы знаете один заговор."],
+							},
+						],
+					},
+				],
+			} as any);
+
+		const result = await new TtgService().getRaceTree("/races/elf");
+
+		expect(result).toEqual({
+			ok: true,
+			value: expect.objectContaining({
+				name: { rus: "Эльф", eng: "Elf" },
+				url: "/races/elf",
+				associatedUrl: "/races/elf-phb",
+				speed: [{ name: "", value: 30, additional: undefined }],
+				skills: [{ name: "Тёмное зрение", description: "У вас есть тёмное зрение." }],
+				subraces: [
+					expect.objectContaining({
+						name: { rus: "Высший эльф", eng: "High Elf" },
+						url: "/races/high-elf-phb",
+						skills: [{ name: "Заговор", description: "Вы знаете один заговор." }],
+					}),
+				],
+			}),
+		});
+		expect(requestUrl).toHaveBeenNthCalledWith(2, {
+			url: "https://new.ttg.club/api/v2/species/elf-phb/lineages",
+			method: "GET",
+		});
+	});
+
+	it("parses v2 bestiary ability, speed, and sense fields", async () => {
+		vi.spyOn(obsidian, "requestUrl").mockResolvedValueOnce({
+			status: 200,
+			json: {
+				url: "baboon-mm",
+				srdVersion: "2014",
+				name: { rus: "Бабуин", eng: "Baboon" },
+				header: "Маленький зверь, без мировоззрения",
+				source: {
+					name: { label: "MM", rus: "Бестиарий", eng: "Monster Manual" },
+					group: { label: "Basic", rus: "Официальные источники" },
+				},
+				abilities: {
+					str: { value: 8 },
+					dex: { value: 14 },
+					con: { value: 11 },
+					int: { value: 4 },
+					wis: { value: 12 },
+					chr: { value: 6 },
+				},
+				speed: "30 фт., лазая 30 фт.",
+				sense: "тёмное зрение 60 фт., пассивная внимательность 11",
+			},
+		} as any);
+
+		const result = await new TtgService().getFullItem("/bestiary/baboon");
+
+		expect(result).toEqual({
+			ok: true,
+			value: expect.objectContaining({
+				ability: {
+					str: 8,
+					dex: 14,
+					con: 11,
+					int: 4,
+					wiz: 12,
+					cha: 6,
+				},
+				speed: [
+					{ name: "", value: 30, additional: undefined },
+					{ name: "лазая", value: 30, additional: undefined },
+				],
+				senses: {
+					passivePerception: "11",
+					senses: [{ name: "тёмное зрение", value: 60 }],
+				},
 			}),
 		});
 	});
