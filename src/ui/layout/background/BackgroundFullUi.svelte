@@ -37,12 +37,6 @@
 	/>
 	<UiPropertyGrid items={properties} {uiEventListener} />
 
-	{#if currentItem.description}
-		<UiContentSection className="background-details__content">
-			<HtmlBlock htmlContent={currentItem.description} uiEventListener={uiEventListener} />
-		</UiContentSection>
-	{/if}
-
 	{#if currentItem.associatedHtml}
 		<UiContentSection className="background-details__content">
 			<HtmlBlock htmlContent={currentItem.associatedHtml} uiEventListener={uiEventListener} />
@@ -50,7 +44,7 @@
 	{/if}
 
 	{#if currentItem.personalization}
-		<UiContentSection title="Персонализация" className="background-details__content">
+		<UiContentSection className="background-details__content">
 			<HtmlBlock htmlContent={currentItem.personalization} uiEventListener={uiEventListener} />
 		</UiContentSection>
 	{/if}
