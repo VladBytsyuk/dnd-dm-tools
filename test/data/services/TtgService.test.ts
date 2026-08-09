@@ -48,6 +48,10 @@ describe("TtgApiService", () => {
 				json: { message: "missing" },
 			} as any)
 			.mockResolvedValueOnce({
+				status: 404,
+				json: { message: "missing legacy" },
+			} as any)
+			.mockResolvedValueOnce({
 				status: 200,
 				json: [
 					{ url: "/spells/fireball-2024", srdVersion: "2024" },
@@ -68,24 +72,26 @@ describe("TtgApiService", () => {
 
 		expect(result).toEqual({ ok: true, value: { url: "/spells/ognennyj-shar" } });
 		expect(requestUrl).toHaveBeenNthCalledWith(2, {
+			url: "https://ttg.club/api/v1/spells/fireball",
+			method: "POST",
+			body: JSON.stringify({ filter: { book: ["PHB"] } }),
+			contentType: "application/json",
+		});
+		expect(requestUrl).toHaveBeenNthCalledWith(3, {
 			url: "https://new.ttg.club/api/v2/spells/search?q=fireball",
 			method: "GET",
 		});
-		expect(requestUrl).toHaveBeenNthCalledWith(3, {
+		expect(requestUrl).toHaveBeenNthCalledWith(4, {
 			url: "https://new.ttg.club/api/v2/spells/ognennyj-shar",
 			method: "GET",
 		});
 	});
 
-	it("falls back to legacy detail when v2 direct and search lookups fail", async () => {
+	it("falls back to legacy detail before v2 search when v2 direct lookup fails", async () => {
 		const requestUrl = vi.spyOn(obsidian, "requestUrl")
 			.mockResolvedValueOnce({
 				status: 404,
 				json: { message: "missing" },
-			} as any)
-			.mockResolvedValueOnce({
-				status: 500,
-				json: { message: "search failed" },
 			} as any)
 			.mockResolvedValueOnce({
 				status: 200,
@@ -98,7 +104,8 @@ describe("TtgApiService", () => {
 			ok: true,
 			value: { url: "/spells/fireball", name: { rus: "Огненный шар", eng: "Fireball" } },
 		});
-		expect(requestUrl).toHaveBeenNthCalledWith(3, {
+		expect(requestUrl).toHaveBeenCalledTimes(2);
+		expect(requestUrl).toHaveBeenNthCalledWith(2, {
 			url: "https://ttg.club/api/v1/spells/fireball",
 			method: "POST",
 			body: undefined,
@@ -113,6 +120,10 @@ describe("TtgApiService", () => {
 				json: { message: "missing" },
 			} as any)
 			.mockResolvedValueOnce({
+				status: 404,
+				json: { message: "missing legacy item" },
+			} as any)
+			.mockResolvedValueOnce({
 				status: 200,
 				json: [
 					{
@@ -122,21 +133,21 @@ describe("TtgApiService", () => {
 						srdVersion: "2014",
 					},
 				],
-			} as any)
-			.mockResolvedValueOnce({
-				status: 404,
-				json: { message: "missing legacy item" },
 			} as any);
 
 		const result = await new TtgApiService().postJson("/items/magic/everbright_lantern");
 
 		expect(result.ok).toBe(false);
 		expect(requestUrl).toHaveBeenCalledTimes(3);
-		expect(requestUrl).toHaveBeenNthCalledWith(3, {
+		expect(requestUrl).toHaveBeenNthCalledWith(2, {
 			url: "https://ttg.club/api/v1/items/magic/everbright_lantern",
 			method: "POST",
 			body: undefined,
 			contentType: undefined,
+		});
+		expect(requestUrl).toHaveBeenNthCalledWith(3, {
+			url: "https://new.ttg.club/api/v2/magic-items/search?q=everbright_lantern",
+			method: "GET",
 		});
 		expect(requestUrl).not.toHaveBeenCalledWith({
 			url: "https://new.ttg.club/api/v2/magic-items/ammunition-1-2-or-3-dmg",
@@ -173,7 +184,6 @@ describe("TtgApiService", () => {
 	it("falls back to legacy detail when Obsidian throws a v2 404 request error", async () => {
 		const requestUrl = vi.spyOn(obsidian, "requestUrl")
 			.mockRejectedValueOnce(new Error("Request failed, status 404"))
-			.mockRejectedValueOnce(new Error("Request failed, status 500"))
 			.mockResolvedValueOnce({
 				status: 200,
 				json: { url: "/bestiary/wildfire_spirit", name: { rus: "Дух дикого огня", eng: "Wildfire Spirit" } },
@@ -193,10 +203,6 @@ describe("TtgApiService", () => {
 			method: "GET",
 		});
 		expect(requestUrl).toHaveBeenNthCalledWith(2, {
-			url: "https://new.ttg.club/api/v2/bestiary/search?q=wildfire_spirit",
-			method: "GET",
-		});
-		expect(requestUrl).toHaveBeenNthCalledWith(3, {
 			url: "https://ttg.club/api/v1/bestiary/wildfire_spirit",
 			method: "POST",
 			body: undefined,
@@ -207,7 +213,6 @@ describe("TtgApiService", () => {
 	it("preserves legacy monster shape after fallback so monster UI fields remain defined", async () => {
 		vi.spyOn(obsidian, "requestUrl")
 			.mockRejectedValueOnce(new Error("Request failed, status 404"))
-			.mockRejectedValueOnce(new Error("Request failed, status 500"))
 			.mockResolvedValueOnce({
 				status: 200,
 				json: {
@@ -279,11 +284,15 @@ describe("TtgApiService", () => {
 		});
 	});
 
-	it("falls back to legacy detail when v2 search candidates do not prove 2014 compatibility", async () => {
+	it("returns legacy failure when v2 search candidates do not prove 2014 compatibility", async () => {
 		const requestUrl = vi.spyOn(obsidian, "requestUrl")
 			.mockResolvedValueOnce({
 				status: 404,
 				json: { message: "missing" },
+			} as any)
+			.mockResolvedValueOnce({
+				status: 404,
+				json: { message: "missing legacy" },
 			} as any)
 			.mockResolvedValueOnce({
 				status: 200,
@@ -294,31 +303,33 @@ describe("TtgApiService", () => {
 						source: { name: { label: "DMG" } },
 					},
 				],
-			} as any)
-			.mockResolvedValueOnce({
-				status: 200,
-				json: { url: "/items/magic/wand_of_orcus", name: { rus: "Палочка Оркуса", eng: "Wand of Orcus" } },
 			} as any);
 
 		const result = await new TtgApiService().postJson("/items/magic/wand_of_orcus");
 
-		expect(result).toEqual({
-			ok: true,
-			value: { url: "/items/magic/wand_of_orcus", name: { rus: "Палочка Оркуса", eng: "Wand of Orcus" } },
-		});
-		expect(requestUrl).toHaveBeenNthCalledWith(3, {
+		expect(result.ok).toBe(false);
+		expect(requestUrl).toHaveBeenCalledTimes(3);
+		expect(requestUrl).toHaveBeenNthCalledWith(2, {
 			url: "https://ttg.club/api/v1/items/magic/wand_of_orcus",
 			method: "POST",
 			body: undefined,
 			contentType: undefined,
 		});
+		expect(requestUrl).toHaveBeenNthCalledWith(3, {
+			url: "https://new.ttg.club/api/v2/magic-items/search?q=wand_of_orcus",
+			method: "GET",
+		});
 	});
 
-	it("falls back to legacy detail when a v2 retry cannot load the resolved slug", async () => {
+	it("returns legacy failure when a last-resort v2 retry cannot load the resolved slug", async () => {
 		const requestUrl = vi.spyOn(obsidian, "requestUrl")
 			.mockResolvedValueOnce({
 				status: 404,
 				json: { message: "missing" },
+			} as any)
+			.mockResolvedValueOnce({
+				status: 404,
+				json: { message: "missing legacy" },
 			} as any)
 			.mockResolvedValueOnce({
 				status: 200,
@@ -327,20 +338,24 @@ describe("TtgApiService", () => {
 			.mockResolvedValueOnce({
 				status: 404,
 				json: { message: "still missing" },
-			} as any)
-			.mockResolvedValueOnce({
-				status: 200,
-				json: { url: "/spells/fireball" },
 			} as any);
 
 		const result = await new TtgApiService().postJson("/spells/fireball");
 
-		expect(result).toEqual({ ok: true, value: { url: "/spells/fireball" } });
-		expect(requestUrl).toHaveBeenNthCalledWith(4, {
+		expect(result.ok).toBe(false);
+		expect(requestUrl).toHaveBeenNthCalledWith(2, {
 			url: "https://ttg.club/api/v1/spells/fireball",
 			method: "POST",
 			body: undefined,
 			contentType: undefined,
+		});
+		expect(requestUrl).toHaveBeenNthCalledWith(3, {
+			url: "https://new.ttg.club/api/v2/spells/search?q=fireball",
+			method: "GET",
+		});
+		expect(requestUrl).toHaveBeenNthCalledWith(4, {
+			url: "https://new.ttg.club/api/v2/spells/ognennyj-shar",
+			method: "GET",
 		});
 	});
 

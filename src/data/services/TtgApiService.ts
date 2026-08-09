@@ -184,13 +184,13 @@ export class TtgApiService {
 			});
 			if (!directResult.ok) {
 				if (directResult.status === 404) {
-					return await this.requestResolvedOrLegacyJson(endpoint, options);
+					return await this.requestLegacyOrResolvedJson(endpoint, options);
 				}
 				return await this.requestLegacyJson(endpoint.legacyUrl, options);
 			}
 
 			if (directResult.response.status === 404) {
-				return await this.requestResolvedOrLegacyJson(endpoint, options);
+				return await this.requestLegacyOrResolvedJson(endpoint, options);
 			}
 
 			const result = await this.readObjectResponse(directResult.response);
@@ -203,13 +203,24 @@ export class TtgApiService {
 		}
 	}
 
-	private async requestResolvedOrLegacyJson(
+	private async requestLegacyOrResolvedJson(
+		endpoint: TtgEndpoint,
+		options?: TtgApiRequestOptions,
+	): Promise<ServiceResult<TtgJsonObject>> {
+		const legacyResult = await this.requestLegacyJson(endpoint.legacyUrl, options);
+		if (legacyResult.ok) return legacyResult;
+
+		const resolvedResult = await this.requestResolvedJson(endpoint, options);
+		return resolvedResult.ok ? resolvedResult : legacyResult;
+	}
+
+	private async requestResolvedJson(
 		endpoint: TtgEndpoint,
 		options?: TtgApiRequestOptions,
 	): Promise<ServiceResult<TtgJsonObject>> {
 		const resolvedSlug = await this.resolveSlug(endpoint, options);
 		if (!resolvedSlug || resolvedSlug === endpoint.slug) {
-			return await this.requestLegacyJson(endpoint.legacyUrl, options);
+			return statusFailure(404);
 		}
 
 		const retryResult = await requestJsonUrl({
@@ -217,11 +228,10 @@ export class TtgApiService {
 			method: "GET",
 		});
 		if (!retryResult.ok) {
-			return await this.requestLegacyJson(endpoint.legacyUrl, options);
+			return retryResult.status ? statusFailure(retryResult.status) : { ok: false, reason: "network", error: retryResult.error };
 		}
 
-		const retryReadResult = await this.readObjectResponse(retryResult.response);
-		return retryReadResult.ok ? retryReadResult : await this.requestLegacyJson(endpoint.legacyUrl, options);
+		return await this.readObjectResponse(retryResult.response);
 	}
 
 	private async requestV2JsonArray(
