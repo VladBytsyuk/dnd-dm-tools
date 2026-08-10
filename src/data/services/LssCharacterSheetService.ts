@@ -13,8 +13,9 @@ export function createLssCharacterListIframeUrl(): string {
 	return "https://longstoryshort.app/iframe/characters/list/";
 }
 
-export function createLssCharacterIframeUrl(idOrUrl: string): string {
-	const id = extractLssCharacterId(idOrUrl) ?? idOrUrl;
+export function createLssCharacterIframeUrl(idOrUrl: string): string | null {
+	const id = extractLssCharacterId(idOrUrl);
+	if (!id) return null;
 	return `https://longstoryshort.app/iframe/characters/digital/${id}/`;
 }
 

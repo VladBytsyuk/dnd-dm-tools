@@ -4,6 +4,7 @@ import type { FullMonster } from "./models/monster/FullMonster";
 import type { EncounterParticipant } from "./models/encounter/EncounterParticipant";
 import type { FullCharacterSheet } from "./models/character";
 import { SPELL_LEVEL_KEYS } from "./models/character/CharacterSpellbook";
+import { calculateSpellSlotProgression } from "./utils/characterSpellcasting";
 
 export const mapMonsterToEncounterParticipant = (monster: FullMonster): EncounterParticipant => {
     const newName = monster.name.rus
@@ -92,17 +93,23 @@ export const mapCharacterSheetToEncounterParticipant = (
 };
 
 function mapCharacterSpellSlots(character: FullCharacterSheet): EncounterParticipant["spellSlots"] {
-	const levels = character.data.spells?.levels;
+	const spellbook = character.data.spells;
+	const levels = spellbook?.levels;
 	if (!levels) return [];
 
-	return SPELL_LEVEL_KEYS
+	const classes = Array.isArray(character.data.info?.classes?.value)
+		? character.data.info.classes.value
+		: [];
+	const slotProgression = calculateSpellSlotProgression(classes);
+	const standardSlots = SPELL_LEVEL_KEYS
 		.filter((levelKey) => levelKey !== "0")
 		.map((levelKey) => {
 			const level = levels[levelKey];
-			const total = readNumber(level?.slotCountOverride);
+			const spellLevel = Number(levelKey) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+			const total = readNumber(level?.slotCountOverride) ?? slotProgression.slots[spellLevel] ?? 0;
 			if (!total || total <= 0) return null;
 			return {
-				level: Number(levelKey) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9,
+				level: spellLevel,
 				total,
 				used: Array.isArray(level.slotsUsed)
 					? level.slotsUsed.filter(Boolean).length
@@ -110,6 +117,23 @@ function mapCharacterSpellSlots(character: FullCharacterSheet): EncounterPartici
 			};
 		})
 		.filter((slot): slot is NonNullable<typeof slot> => slot !== null);
+	const pactProgression = slotProgression.pact;
+	if (!pactProgression) return standardSlots;
+
+	const pact = spellbook.pact;
+	const pactTotal = readNumber(pact?.slotCountOverride) ?? pactProgression.slotCount;
+	if (pactTotal <= 0) return standardSlots;
+
+	return [
+		...standardSlots,
+		{
+			level: pactProgression.slotLevel as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9,
+			total: pactTotal,
+			used: Array.isArray(pact?.slotsUsed)
+				? pact.slotsUsed.filter(Boolean).length
+				: 0,
+		},
+	];
 }
 
 function mapCharacterResources(character: FullCharacterSheet): EncounterParticipant["resources"] {

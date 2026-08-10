@@ -500,6 +500,7 @@
 								<div
 									class="body-panel"
 									class:active={tile.activeTab === key}
+									class:iframe-panel={key === "character-sheets"}
 									hidden={tile.activeTab !== key}
 								>
 									<OmniPanelContent
@@ -601,8 +602,12 @@
 		min-width: 0;
 		width: 100%;
 		max-width: 100%;
-		overflow: hidden;
+		overflow-x: hidden;
+		overflow-y: auto;
 		box-sizing: border-box;
+	}
+	.body-panel.iframe-panel {
+		overflow: hidden;
 	}
 	.body-panel.active {
 		display: flex;

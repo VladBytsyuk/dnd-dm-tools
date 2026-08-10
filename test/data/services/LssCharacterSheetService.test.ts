@@ -20,6 +20,10 @@ describe("LssCharacterSheetService", () => {
 			.toBe("https://longstoryshort.app/iframe/characters/digital/658ded7cf2bd044142897fb6/");
 	});
 
+	it("does not build an iframe URL for legacy slug-based sheets", () => {
+		expect(createLssCharacterIframeUrl("sir-test")).toBeNull();
+	});
+
 	it("builds the configured list iframe URL", () => {
 		expect(createLssCharacterListIframeUrl())
 			.toBe("https://longstoryshort.app/iframe/characters/list/");

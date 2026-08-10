@@ -74,13 +74,22 @@
 		>
 			<ArrowLeft size={18} aria-hidden="true" />
 		</button>
-		<iframe
-			title={`LongStoryShort: ${name}`}
-			src={iframeUrl}
-			sandbox={LSS_CHARACTER_IFRAME_SANDBOX}
-			allow={LSS_CHARACTER_IFRAME_ALLOW}
-			referrerpolicy="no-referrer"
-		></iframe>
+		{#if iframeUrl}
+			<iframe
+				title={`LongStoryShort: ${name}`}
+				src={iframeUrl}
+				sandbox={LSS_CHARACTER_IFRAME_SANDBOX}
+				allow={LSS_CHARACTER_IFRAME_ALLOW}
+				referrerpolicy="no-referrer"
+			></iframe>
+		{:else}
+			<div class="character-sheet-legacy">
+				<div class="character-sheet-legacy__title">Старый локальный лист персонажа</div>
+				<div class="character-sheet-legacy__text">
+					Этот лист не содержит идентификатор LongStoryShort и не может быть открыт в LSS iframe.
+				</div>
+			</div>
+		{/if}
 	</div>
 </div>
 
@@ -172,6 +181,23 @@
 
 	.character-sheet-back :global(svg) {
 		stroke: currentColor;
+	}
+
+	.character-sheet-legacy {
+		display: grid;
+		flex: 1 1 auto;
+		min-height: 0;
+		place-content: center;
+		gap: 8px;
+		padding: 24px;
+		text-align: center;
+		color: var(--text-muted);
+		background: var(--background-secondary);
+	}
+
+	.character-sheet-legacy__title {
+		color: var(--text-normal);
+		font-weight: 600;
 	}
 
 	iframe {
