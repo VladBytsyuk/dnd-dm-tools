@@ -1,26 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { CharacterSheetRepository } from "../../../src/data/repositories/CharacterSheetRepository";
 import { EmptyFullCharacterSheet } from "../../../src/domain/models/character/FullCharacterSheet";
-import { stringifyCharacterData, type FullCharacterSheet } from "../../../src/domain/models/character";
-
-function createImportJson(name: string): string {
-	const sheet = EmptyFullCharacterSheet();
-	sheet.data.name.value = name;
-	sheet.data.info.charClass.value = "Wizard";
-	sheet.data.info.level.value = 3;
-	sheet.data.info.race.value = "Human";
-	sheet.data.info.playerName.value = "Player";
-
-	return JSON.stringify({
-		tags: [],
-		disabledBlocks: sheet.disabledBlocks,
-		edition: sheet.edition,
-		spells: sheet.spells,
-		data: stringifyCharacterData(sheet).data,
-		jsonType: "character",
-		version: sheet.version,
-	});
-}
+import type { FullCharacterSheet } from "../../../src/domain/models/character";
 
 function createCharacterSheetRepository() {
 	const storedItems: FullCharacterSheet[] = [];
@@ -64,18 +45,6 @@ function createCharacterSheetRepository() {
 }
 
 describe("CharacterSheetRepository", () => {
-	it("should keep imported character sheets distinct when names normalize to the same slug", async () => {
-		const { repository, storedItems } = createCharacterSheetRepository();
-
-		const first = await repository.importFromJson(createImportJson("Sir Test"));
-		const second = await repository.importFromJson(createImportJson("Sir-Test!!"));
-
-		expect(first.url).toBe("sir-test");
-		expect(second.url).toBe("sir-test-2");
-		expect(storedItems).toHaveLength(2);
-		expect(storedItems.map((item) => item.url)).toEqual(["sir-test", "sir-test-2"]);
-	});
-
 	it("should save a new character sheet through the character sheet DAO only", async () => {
 		const { repository, characterSheetDao, storedItems } = createCharacterSheetRepository();
 		const sheet = EmptyFullCharacterSheet();

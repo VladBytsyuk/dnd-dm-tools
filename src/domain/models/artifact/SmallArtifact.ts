@@ -1,4 +1,3 @@
-import type { Name } from "../common/Name";
 import type { Price } from "../common/Price";
 import type { Rarity } from "../common/Rarity";
 import type { Source } from "../common/Source";

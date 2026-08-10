@@ -249,27 +249,6 @@ export class CharacterSheetStore {
 		return this.characterSheetDao.readFullItemByUrl(url);
 	}
 
-	async isUrlAvailable(url: string): Promise<boolean> {
-		return (await this.characterSheetDao.readItemByUrl(url)) === null;
-	}
-
-	async generateUniqueUrl(name: string): Promise<string> {
-		const baseUrl = this.generateUrl(name);
-		let candidate = baseUrl;
-		let suffix = 2;
-
-		while (!(await this.isUrlAvailable(candidate))) {
-			candidate = `${baseUrl}-${suffix}`;
-			suffix += 1;
-		}
-
-		return candidate;
-	}
-
-	async saveImportedSheet(sheet: FullCharacterSheet): Promise<void> {
-		await this.saveSheet(sheet);
-	}
-
 	async saveSheet(sheet: FullCharacterSheet): Promise<void> {
 		await this.transactions.transaction(async () => {
 			const existing = await this.characterSheetDao.readItemByUrl(sheet.url);
@@ -288,16 +267,5 @@ export class CharacterSheetStore {
 				await this.characterSheetDao.deleteItemByUrl(url);
 			}
 		});
-	}
-
-	private generateUrl(name: string): string {
-		const normalized = name
-			.toLowerCase()
-			.replace(/\s+/g, "-")
-			.replace(/[^a-zа-я0-9-]/gi, "")
-			.replace(/-+/g, "-")
-			.replace(/^-|-$/g, "");
-
-		return normalized || "character";
 	}
 }

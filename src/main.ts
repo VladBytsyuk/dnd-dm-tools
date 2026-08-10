@@ -21,9 +21,12 @@ import { RaceFeature } from './ui/components/feature/RaceFeature';
 import { ClassesFeature } from './ui/components/feature/ClassesFeature';
 import { CharacterSheetFeature } from './ui/components/feature/CharacterSheetFeature';
 import {
-	loadAssistantWorkspace,
 	type AssistantWorkspaceState,
 } from './domain/models/assistant/AssistantWorkspace';
+import {
+	loadPluginSettings,
+	type PluginSettingsState,
+} from './domain/models/settings/PluginSettings';
 import { PanelManager } from './ui/components/sidepanel/PanelManager';
 import type { PanelHost } from './ui/components/sidepanel/PanelHost';
 
@@ -40,12 +43,13 @@ export default class DndStatblockPlugin extends Plugin {
 	featFeature: FeatFeature;
 	raceFeature: RaceFeature;
 	classesFeature: ClassesFeature;
-	characterSheetFeature: CharacterSheetFeature;
+	characterSheetFeature: CharacterSheetFeature | null = null;
 	bestiaryFeature: BestiaryFeature;
 	spellbookFeature: SpellbookFeature;
 	dmScreenFeature: DmScreenFeature;
 	private features: BaseFeature<any, any, any>[];
 	private assistantWorkspace: AssistantWorkspaceState;
+	private settings: PluginSettingsState;
 	panelManager: PanelManager;
 	private shouldResetLegacyViews = false;
 
@@ -53,8 +57,9 @@ export default class DndStatblockPlugin extends Plugin {
 
 	// ---- callbacks ----
 	async onload() {
-		const loadResult = loadAssistantWorkspace(await this.loadData());
-		this.assistantWorkspace = loadResult.workspace;
+		const loadResult = loadPluginSettings(await this.loadData());
+		this.settings = loadResult.settings;
+		this.assistantWorkspace = this.settings.workspace;
 		this.shouldResetLegacyViews = loadResult.shouldResetLegacyViews;
 
 		await this.#initialize(() => {
@@ -78,7 +83,21 @@ export default class DndStatblockPlugin extends Plugin {
 
 	async persistAssistantWorkspace(workspace: AssistantWorkspaceState): Promise<void> {
 		this.assistantWorkspace = workspace;
-		await this.saveData(workspace);
+		await this.updateSettings({ workspace });
+	}
+
+	getSettings(): PluginSettingsState {
+		return this.settings;
+	}
+
+	async updateSettings(patch: Partial<PluginSettingsState>): Promise<void> {
+		this.settings = {
+			...this.settings,
+			...patch,
+			schemaVersion: 2,
+		};
+		this.assistantWorkspace = this.settings.workspace;
+		await this.saveData(this.settings);
 	}
 
 	// ---- private methods ----

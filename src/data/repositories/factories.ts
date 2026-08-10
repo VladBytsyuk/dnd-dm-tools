@@ -11,7 +11,6 @@ import {
 	spellMapper,
 	weaponMapper,
 } from "src/data/mappers/sourceMappers";
-import { CharacterSheetImportMapper } from "src/data/mappers/characterSheetImportMapper";
 import type { FullItemMapper, FullItemReadService, ServiceResult } from "src/data/ports";
 import { smallItemProjectors } from "src/data/projectors/smallItemProjectors";
 import type { TtgApiRequestOptions, TtgItemWithHtml, TtgJsonObject } from "src/data/services";
@@ -43,8 +42,6 @@ import type { BackgroundsFilters } from "src/domain/models/background/Background
 import type { FullClass } from "src/domain/models/class/FullClass";
 import type { SmallClass } from "src/domain/models/class/SmallClass";
 import type { ClassesFilters } from "src/domain/models/class/ClassesFilters";
-import type { FullCharacterSheet, SmallCharacterSheet, CharacterSheetFilters } from "src/domain/models/character";
-import type { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import type { FullFeat } from "src/domain/models/feat/FullFeat";
 import type { SmallFeat } from "src/domain/models/feat/SmallFeat";
 import type { FeatsFilters } from "src/domain/models/feat/FeatsFilters";
@@ -289,9 +286,7 @@ export function createDmScreenRepository(database: DB, options: RepositoryFactor
 
 export function createCharacterSheetRepository(database: DB): CharacterSheetRepository {
 	const dependencies: CharacterSheetRepositoryDependencies = {
-		database,
 		store: new CharacterSheetStore(database.characterSheetDao, new DbTransactionalStore(database)),
-		importMapper: new CharacterSheetImportMapper(),
 	};
 	return new CharacterSheetRepository(dependencies);
 }

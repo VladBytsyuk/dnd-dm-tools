@@ -261,23 +261,7 @@ describe("CharacterSheetStore", () => {
 		expect(characterSheetDao.readFullItemByUrl).toHaveBeenCalledWith("sir-test");
 	});
 
-	it("generates unique import URLs from existing sheets", async () => {
-		const existingUrls = new Set(["sir-test", "sir-test-2"]);
-		const characterSheetDao = {
-			createItem: vi.fn(),
-			deleteItemByUrl: vi.fn(),
-			readAllSmallItems: vi.fn(),
-			readFullItemByUrl: vi.fn(),
-			readItemByUrl: vi.fn(async (url: string) => (existingUrls.has(url) ? characterSheet() : null)),
-			updateItem: vi.fn(),
-		};
-		const store = new CharacterSheetStore(characterSheetDao as any, new TransactionalStoreSpy());
-
-		await expect(store.generateUniqueUrl("Sir Test!!")).resolves.toBe("sir-test-3");
-		await expect(store.isUrlAvailable("new-url")).resolves.toBe(true);
-	});
-
-	it("saves imported sheets and deletes sheets in transactions", async () => {
+	it("saves sheets and deletes sheets in transactions", async () => {
 		const sheet = characterSheet();
 		const stored = new Map<string, FullCharacterSheet>();
 		const characterSheetDao = {
@@ -297,7 +281,7 @@ describe("CharacterSheetStore", () => {
 		const transactions = new TransactionalStoreSpy();
 		const store = new CharacterSheetStore(characterSheetDao as any, transactions);
 
-		await store.saveImportedSheet(sheet);
+		await store.saveSheet(sheet);
 		await store.deleteByUrl(sheet.url);
 
 		expect(characterSheetDao.createItem).toHaveBeenCalledWith(sheet);

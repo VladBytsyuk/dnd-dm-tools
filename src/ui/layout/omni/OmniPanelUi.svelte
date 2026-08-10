@@ -495,13 +495,20 @@
 						{/each}
 					</div>
 					<div class="body">
-						{#if tile.activeTab}
-							{#key tile.activeTab}
-								<OmniPanelContent
-									panelKey={tile.activeTab}
-									{mountPanel}
-								/>
-							{/key}
+						{#if tile.tabs.length}
+							{#each tile.tabs as key (key)}
+								<div
+									class="body-panel"
+									class:active={tile.activeTab === key}
+									class:iframe-panel={key === "character-sheets"}
+									hidden={tile.activeTab !== key}
+								>
+									<OmniPanelContent
+										panelKey={key}
+										{mountPanel}
+									/>
+								</div>
+							{/each}
 						{:else}
 							<div class="empty">
 								<strong>Откройте панель</strong>
@@ -522,7 +529,8 @@
 	.omni,
 	.tiles,
 	.tile,
-	.body {
+	.body,
+	.body-panel {
 		min-height: 0;
 	}
 	.omni {
@@ -585,6 +593,29 @@
 	}
 	.omni-search-results__item :global(> *) {
 		height: 100%;
+	}
+	.body-panel {
+		display: none;
+		flex: 1 1 auto;
+		flex-direction: column;
+		height: 100%;
+		min-width: 0;
+		width: 100%;
+		max-width: 100%;
+		overflow-x: hidden;
+		overflow-y: auto;
+		box-sizing: border-box;
+	}
+	.body-panel.iframe-panel {
+		overflow: hidden;
+	}
+	.body-panel.active {
+		display: flex;
+	}
+	.body-panel :global(> *) {
+		flex: 1 1 auto;
+		min-height: 0;
+		width: 100%;
 	}
 	.omni-toolbar__icons {
 		display: flex !important;
@@ -790,10 +821,10 @@
 	.body {
 		display: flex;
 		flex-direction: column;
-		flex: 1;
+		flex: 1 1 auto;
+		height: 100%;
 		min-height: 0;
-		overflow-x: hidden;
-		overflow-y: auto;
+		overflow: hidden;
 		padding-top: 2px;
 		box-sizing: border-box;
 	}

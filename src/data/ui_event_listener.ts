@@ -30,7 +30,7 @@ export class UiEventListener implements IUiEventListener {
         private featFeatureProvider: () => BaseFeature<any, any, any>,
         private raceFeatureProvider: () => RaceFeature,
         private classesFeatureProvider: () => ClassesFeature,
-        private characterSheetFeatureProvider: () => CharacterSheetFeature,
+        private characterSheetFeatureProvider: () => CharacterSheetFeature | null,
         private dmScreenFeatureProvider: () => DmScreenFeature,
     ) {
         this.onBeastClick = this.onBeastClick.bind(this);
@@ -45,6 +45,7 @@ export class UiEventListener implements IUiEventListener {
         this.onRaceClick = this.onRaceClick.bind(this);
         this.onClassClick = this.onClassClick.bind(this);
         this.onCharacterSheetClick = this.onCharacterSheetClick.bind(this);
+        this.isCharacterSheetLinkEnabled = this.isCharacterSheetLinkEnabled.bind(this);
     }
 
     // ---- methods ----
@@ -93,7 +94,12 @@ export class UiEventListener implements IUiEventListener {
     }
 
     async onCharacterSheetClick(url: string): Promise<void> {
+        if (!this.characterSheetFeatureProvider()) return;
         this.onClick(this.characterSheetFeatureProvider, url);
+    }
+
+    isCharacterSheetLinkEnabled(): boolean {
+        return Boolean(this.characterSheetFeatureProvider());
     }
 
     onDiceRoll(label: string, value: RollTraceResult): void {
@@ -104,7 +110,7 @@ export class UiEventListener implements IUiEventListener {
         return await getImageSource(this.app, imageUrl);
     }
 
-    private async onClick(featureProvider: () => BaseFeature<any, any, any>, url: string): Promise<void> {
+    private async onClick(featureProvider: () => BaseFeature<any, any, any> | null, url: string): Promise<void> {
         const feature = featureProvider();
         if (!feature) return;
         await feature.onItemClick(url);

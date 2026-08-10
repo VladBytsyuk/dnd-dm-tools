@@ -1,6 +1,6 @@
 import { Notice, parseYaml, stringifyYaml } from "obsidian";
 import type { Encounter } from "src/domain/models/encounter/Encounter";
-import { mapMonsterToEncounterParticipant } from "src/domain/mappers";
+import { mapCharacterSheetToEncounterParticipant, mapMonsterToEncounterParticipant } from "src/domain/mappers";
 import type { FullSpell } from "src/domain/models/spell/FullSpell";
 import type { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import type { FullMonster } from "src/domain/models/monster/FullMonster";
@@ -13,6 +13,7 @@ import type { FullBackground } from "src/domain/models/background/FullBackground
 import type { FullFeat } from "../domain/models/feat/FullFeat";
 import type { FullRace } from "../domain/models/race/FullRace";
 import type { FullClass } from "../domain/models/class/FullClass";
+import type { FullCharacterSheet } from "src/domain/models/character";
 
 // ---- Copy to clipboard ----
 export function copyTextToClipboard(text: string, ignoreNotice: boolean = false) {
@@ -72,6 +73,13 @@ export function copyClassToClipboard(classItem: FullClass) {
     copyToClipboard(classItem, classItem.name.rus, "dnd-class");
 }
 
+export function copyCharacterSheetToClipboard(character: FullCharacterSheet): boolean {
+    const participant = mapCharacterSheetToEncounterParticipant(character);
+    if (!participant) return false;
+    copyToClipboard(participant, participant.name, "encounter-participant");
+    return true;
+}
+
 function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string, additionalContent: string | null = null, ignoreNotice: boolean = false) {
     const yaml = stringifyYaml(obj);
     const content = `\`\`\`${codeBlockName}\n${additionalContent ? `${additionalContent}\n`: ''}${yaml}\n\`\`\``
@@ -95,6 +103,9 @@ export async function getMonsterFromClipboard(ignoreNotice: boolean = false): Pr
 }
 
 export async function getEncounterParticipantFromClipboard(ignoreNotice: boolean = false): Promise<EncounterParticipant | undefined> {
+    const characterParticipant = await getFromClipboard<EncounterParticipant>("encounter-participant", true);
+    if (characterParticipant) return characterParticipant;
+
     const monster = await getFromClipboard<FullMonster>("statblock");
     if (monster) {
         return mapMonsterToEncounterParticipant(monster);
@@ -115,7 +126,7 @@ export async function getClassFromClipboard(ignoreNotice: boolean = false): Prom
     return undefined;
 }
 
-export async function getFromClipboard<T>(blockName: string): Promise<T | undefined> {
+export async function getFromClipboard<T>(blockName: string, ignoreNotice: boolean = false): Promise<T | undefined> {
     try {
         const clipboard = (await navigator.clipboard.readText())
             .replace(/\r\n?/g, "\n")
@@ -129,7 +140,7 @@ export async function getFromClipboard<T>(blockName: string): Promise<T | undefi
         return obj;
     } catch(e) {
         console.error(`Failed to read text from clipboard: ${e}`);
-        new Notice(`Не удалось прочитать данные из буфера обмена`);   
+        if (!ignoreNotice) new Notice(`Не удалось прочитать данные из буфера обмена`);
         return undefined;
     }
 }

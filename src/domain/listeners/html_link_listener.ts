@@ -11,6 +11,7 @@ export interface HtmlLinkListener {
     onRaceClick: (url: string) => Promise<void>;
     onClassClick: (url: string) => Promise<void>;
     onCharacterSheetClick: (url: string) => Promise<void>;
+    isCharacterSheetLinkEnabled?: () => boolean;
     onScreenItemClick: (url: string) => Promise<void>;
 }
 
@@ -72,7 +73,9 @@ function getDndEntityLinkListeners(htmlLinkListener: HtmlLinkListener): DndEntit
         LinkListener('/feats/', htmlLinkListener.onFeatClick),
         LinkListener('/races/', htmlLinkListener.onRaceClick),
         LinkListener('/classes/', htmlLinkListener.onClassClick),
-        LinkListener('/character-sheets/', htmlLinkListener.onCharacterSheetClick),
+        ...(htmlLinkListener.isCharacterSheetLinkEnabled?.() ?? true
+            ? [LinkListener('/character-sheets/', htmlLinkListener.onCharacterSheetClick)]
+            : []),
         LinkListener('/items/magic/', htmlLinkListener.onArtifactClick),
         LinkListener('/items/', htmlLinkListener.onItemClick),
     ];

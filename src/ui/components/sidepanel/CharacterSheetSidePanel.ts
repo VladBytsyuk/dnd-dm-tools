@@ -2,7 +2,6 @@ import { mount } from "svelte";
 import CharacterSheetSidePanelUi from "src/ui/layout/character/CharacterSheetSidePanelUi.svelte";
 import type { SmallCharacterSheet, FullCharacterSheet, CharacterSheetFilters } from "src/domain/models/character";
 import { BaseSidePanel } from "./BaseSidePanel";
-import { CharacterSheetRepository } from "src/data/repositories/CharacterSheetRepository";
 
 export class CharacterSheetSidePanel extends BaseSidePanel<
 	SmallCharacterSheet,
@@ -22,13 +21,24 @@ export class CharacterSheetSidePanel extends BaseSidePanel<
 	}
 
 	async mountSvelteComponent(element: Element) {
+		const host = element as HTMLElement;
+		host.style.display = "flex";
+		host.style.flex = "1 1 auto";
+		host.style.flexDirection = "column";
+		host.style.height = "100%";
+		host.style.minHeight = "0";
+		host.style.width = "100%";
+		host.style.maxWidth = "none";
+		host.style.overflow = "hidden";
+
 		return mount(CharacterSheetSidePanelUi, {
 			target: element,
 			props: {
 				initialFullItem: this.fullItem,
-				repository: this.repository as CharacterSheetRepository,
-				uiEventListener: this.uiEventListener,
-				plugin: this.plugin,
+				onBackToList: async () => {
+					this.plugin.panelManager.discardPanel(this.getKey());
+					await this.open(undefined);
+				},
 			},
 		});
 	}

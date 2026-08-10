@@ -1,4 +1,4 @@
-import type { Field, CharacterInfo, CharacterSubInfo, SpellsInfo } from "./CharacterInfo";
+import type { CharacterInfo, CharacterSubInfo, SpellsInfo } from "./CharacterInfo";
 import type { CharacterStats, CharacterSaves } from "./CharacterStats";
 import type { CharacterSkills } from "./CharacterSkills";
 import type { CharacterVitality } from "./CharacterVitality";
