@@ -1,5 +1,5 @@
 import type { SmallFeat } from "src/domain/models/feat/SmallFeat";
-import { BaseFeature, type FeatureCommand } from "./BaseFeature";
+import { BaseFeature } from "./BaseFeature";
 import type { FullFeat } from "src/domain/models/feat/FullFeat";
 import type { FeatsFilters } from "src/domain/models/feat/FeatsFilters";
 import type DB from "src/data/database/DB";

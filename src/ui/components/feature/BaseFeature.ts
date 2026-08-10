@@ -32,15 +32,15 @@ export abstract class BaseFeature<
     }
 
     createRepository(
-        database: DB,
+        _database: DB,
     ): Repository<ST, FT, F> | null {
         return null;
     }
 
     createSidePanel(
-        plugin: DndStatblockPlugin,
-        repository: Repository<ST, FT, F>,
-        uiEventListener: IUiEventListener,
+        _plugin: DndStatblockPlugin,
+        _repository: Repository<ST, FT, F>,
+        _uiEventListener: IUiEventListener,
     ): BaseSidePanel<ST, FT, F> | null {
         return null;
     }

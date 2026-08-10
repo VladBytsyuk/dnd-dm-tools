@@ -209,7 +209,7 @@ export abstract class Dao<T extends BaseItem, F> implements Initializable {
         }
     }
 
-    async filterByName(name: string): Promise<WhereClauseData> {
+    async filterByName(_name: string): Promise<WhereClauseData> {
         return WhereClauseData([], []);
     }
 

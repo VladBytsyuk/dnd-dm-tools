@@ -186,30 +186,3 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
         }
     }
 }
-
-interface DmScreenGroup {
-    name: Name;
-    url: string;
-    order: number;
-    source: Source;
-    group?: string;
-    icon?: string;
-    description?: string;
-    children?: DmScreenGroup[];
-} 
-
-interface SourceGroup {
-    name: string;
-    shortName: string;
-}
-
-interface Source {
-    shortName: string;
-    name: string;
-    group: SourceGroup;
-}
-
-interface Name {
-    rus: string;
-    eng: string;
-}

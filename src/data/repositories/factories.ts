@@ -42,8 +42,6 @@ import type { BackgroundsFilters } from "src/domain/models/background/Background
 import type { FullClass } from "src/domain/models/class/FullClass";
 import type { SmallClass } from "src/domain/models/class/SmallClass";
 import type { ClassesFilters } from "src/domain/models/class/ClassesFilters";
-import type { FullCharacterSheet, SmallCharacterSheet, CharacterSheetFilters } from "src/domain/models/character";
-import type { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import type { FullFeat } from "src/domain/models/feat/FullFeat";
 import type { SmallFeat } from "src/domain/models/feat/SmallFeat";
 import type { FeatsFilters } from "src/domain/models/feat/FeatsFilters";

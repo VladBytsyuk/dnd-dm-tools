@@ -10,7 +10,6 @@ import {
 	type CharacterSpellLevelState,
 	type CharacterSpellPactState,
 	type CharacterSpellbookState,
-	type SpellLevelKey,
 	SPELL_LEVEL_KEYS,
 } from "./CharacterSpellbook";
 
