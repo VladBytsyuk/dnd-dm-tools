@@ -15,6 +15,17 @@ export class CharacterSheetFeature extends BaseFeature<
 	FullCharacterSheet,
 	CharacterSheetFilters
 > {
+	constructor(
+		plugin: DndStatblockPlugin,
+		database: DB,
+		uiEventListener: IUiEventListener,
+	) {
+		super(plugin, database, uiEventListener);
+		this.repository = this.createRepository(database);
+		this.sidePanel = this.createSidePanel(plugin, this.repository, uiEventListener);
+		this.codeBlockProcessor = this.createCodeBlockProcessor();
+	}
+
 	createRepository(database: DB): Repository<SmallCharacterSheet, FullCharacterSheet, CharacterSheetFilters> {
 		return createCharacterSheetRepository(database);
 	}

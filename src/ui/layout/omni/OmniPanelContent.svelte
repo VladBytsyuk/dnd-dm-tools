@@ -32,8 +32,10 @@
 	.omni-panel-content {
 		display: flex;
 		flex-direction: column;
-		min-height: 100%;
-		overflow: visible;
+		flex: 1 1 auto;
+		height: 100%;
+		min-height: 0;
+		overflow: hidden;
 		width: 100%;
 	}
 </style>

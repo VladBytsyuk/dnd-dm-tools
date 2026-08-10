@@ -26,8 +26,9 @@ describe("PanelSessionCache", () => {
 		expect(session.style.display).toBe("flex");
 		expect(session.style.flex).toBe("1 1 auto");
 		expect(session.style.flexDirection).toBe("column");
-		expect(session.style.minHeight).toBe("100%");
-		expect(session.style.overflow).toBe("visible");
+		expect(session.style.height).toBe("100%");
+		expect(session.style.minHeight).toBe("0");
+		expect(session.style.overflow).toBe("hidden");
 		expect(session.style.width).toBe("100%");
 		expect(secondTarget.querySelector("input")).toBe(input);
 		expect(input.value).toBe("fireball");

@@ -1,185 +1,115 @@
 <script lang="ts">
-	import { isFiltersEmpty } from "src/domain/models/common/Filters";
+	import { ArrowLeft } from "lucide-svelte";
 	import CharacterSheetFullUi from "./CharacterSheetFullUi.svelte";
-	import CharacterSheetSmallUi from "./CharacterSheetSmallUi.svelte";
-	import type { SidePanelProps } from "src/domain/utils/props/SidePanelProps";
-	import type { FilterConfig } from "src/domain/utils/FilterConfig";
-	import type { SmallCharacterSheet } from "../../../domain/models/character/SmallCharacterSheet";
 	import type { FullCharacterSheet } from "../../../domain/models/character/FullCharacterSheet";
-	import type { CharacterSheetFilters } from "../../../domain/models/character/CharacterSheetFilters";
-	import type { CharacterSheetRepository } from "../../../data/repositories/CharacterSheetRepository";
-	import type DndStatblockPlugin from "../../../main";
-	import FiltersOverlay from "../uikit/FiltersOverlay.svelte";
-	import UiSearchToolbar from "../uikit/organisms/UiSearchToolbar.svelte";
-	import UiItemGroup from "../uikit/organisms/UiItemGroup.svelte";
-	import UiEmptyState from "../uikit/organisms/UiEmptyState.svelte";
-	import type { CharacterSheetBrowserState } from "../../../data/repositories/characterSheetTypes";
-	import { onMount } from "svelte";
-	import { CharacterSheetBrowserController } from "./characterSheetBrowserController";
-	import { pickJsonFileText } from "./characterSheetFilePicker";
+	import {
+		LSS_CHARACTER_IFRAME_ALLOW,
+		LSS_CHARACTER_IFRAME_SANDBOX,
+		createLssCharacterListIframeUrl,
+	} from "../../../data/services/LssCharacterSheetService";
 
-	let {
-		initialFullItem,
-		repository,
-		uiEventListener,
-		plugin,
-	}: SidePanelProps<
-		SmallCharacterSheet,
-		FullCharacterSheet,
-		CharacterSheetFilters,
-		CharacterSheetRepository
-	> & {
-		plugin: DndStatblockPlugin;
-		repository: CharacterSheetRepository;
-	} = $props();
-
-	const filterConfig: FilterConfig<CharacterSheetFilters>[] = [
-		{ key: "classes", label: "Класс" },
-		{ key: "levels", label: "Уровень" },
-		{ key: "races", label: "Раса" },
-	];
-
-	function createBrowserController() {
-		return new CharacterSheetBrowserController(repository, {
-			onStateChange: (state) => {
-				browserState = state;
-			},
-		});
+	interface Props {
+		initialFullItem?: FullCharacterSheet;
+		onBackToList?: () => void;
 	}
 
-	const browserController = createBrowserController();
+	let { initialFullItem, onBackToList }: Props = $props();
 
-	let browserState = $state<CharacterSheetBrowserState>(browserController.getState());
+	const listIframeUrl = createLssCharacterListIframeUrl();
+	let listReloadKey = $state(0);
 
-	onMount(async () => {
-		browserController.initialize(initialFullItem);
-		await browserController.refreshGroups();
-	});
-
-	function onSearchBarBackClick() {
-		browserController.goBack();
-	}
-
-	async function onSearchBarValueChanged(value: string) {
-		await browserController.updateSearch(value);
-	}
-
-	async function onSearchBarFiltersClick() {
-		await browserController.openFilters();
-	}
-
-	async function handleFiltersApply(newFilters: CharacterSheetFilters) {
-		await browserController.applyFilters(newFilters);
-	}
-
-	function handleFiltersClose() {
-		browserController.closeFilters();
-	}
-
-	async function onSmallItemClick(smallItem: SmallCharacterSheet) {
-		await browserController.openSmallItem(smallItem);
-	}
-
-	async function onImportClick() {
-		const text = await pickJsonFileText();
-		if (!text) return;
-		await browserController.importFromText(text);
+	function showList() {
+		if (initialFullItem) {
+			onBackToList?.();
+			return;
+		}
+		listReloadKey += 1;
 	}
 </script>
 
-<div class="side-panel-container">
-	<UiSearchToolbar
-		onbackclick={browserState.currentItem ? onSearchBarBackClick : undefined}
-		onvaluechange={onSearchBarValueChanged}
-		isvaluechangable={() => !browserState.currentItem}
-		onclearclick={() => browserController.clearError()}
-		onfiltersclick={browserState.currentItem ? undefined : onSearchBarFiltersClick}
-		isfiltersapplied={() => !isFiltersEmpty(browserState.filters)}
-		onaddclick={onImportClick}
-	/>
-	<div class="side-panel-spacer"></div>
-
-	{#if browserState.errorMessage}
-		<div class="browser-status browser-status-error">{browserState.errorMessage}</div>
-	{:else if browserState.status === "importing"}
-		<div class="browser-status">Импорт персонажа...</div>
-	{/if}
-
-	{#if browserState.currentItem}
-		<CharacterSheetFullUi
-			currentItem={browserState.currentItem}
-			{uiEventListener}
-			{repository}
-			{plugin}
-		/>
-	{:else if browserState.searchBarValue.length > 0 && browserState.groups.length === 0}
-		<div class="side-panel-content side-panel-content-empty">
-			<UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
-		</div>
+<div class="character-sheet-panel">
+	{#if initialFullItem}
+		<CharacterSheetFullUi currentItem={initialFullItem} {onBackToList} />
 	{:else}
-		<div class="side-panel-content">
-			{#each browserState.groups as group (group.sort)}
-				<UiItemGroup
-					panelKey="character-sheets"
-					groupTitle={group.sort}
-					items={group.smallItems}
-					onItemClick={onSmallItemClick}
-					SmallItemSlot={CharacterSheetSmallUi}
-				/>
-			{/each}
+		<div class="character-sheet-iframe-wrap">
+			<button
+				type="button"
+				class="character-sheet-back"
+				title="Назад к списку"
+				aria-label="Назад к списку"
+				onclick={showList}
+			>
+				<ArrowLeft size={18} aria-hidden="true" />
+			</button>
+			{#key listReloadKey}
+				<iframe
+					title="LongStoryShort: список персонажей"
+					src={listIframeUrl}
+					sandbox={LSS_CHARACTER_IFRAME_SANDBOX}
+					allow={LSS_CHARACTER_IFRAME_ALLOW}
+					referrerpolicy="no-referrer"
+				></iframe>
+			{/key}
 		</div>
-	{/if}
-
-	{#if browserState.isFiltersOverlayOpen && browserState.fullFilters}
-		<FiltersOverlay
-			fullFilters={browserState.fullFilters}
-			initialFilters={browserState.filters}
-			{filterConfig}
-			onApply={handleFiltersApply}
-			onClose={handleFiltersClose}
-		/>
 	{/if}
 </div>
 
 <style>
-	.side-panel-container {
+	.character-sheet-panel {
 		display: flex;
 		flex-direction: column;
 		height: 100%;
+		min-height: 0;
+		width: 100%;
+		overflow: hidden;
+		background: var(--background-primary);
+	}
+
+	.character-sheet-iframe-wrap {
+		display: flex;
+		position: relative;
+		flex: 1 1 auto;
+		min-height: 0;
+		width: 100%;
 		overflow: hidden;
 	}
 
-	.side-panel-content {
+	.character-sheet-back {
+		position: absolute;
+		z-index: 2;
+		top: 8px;
+		left: 8px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 32px;
+		height: 32px;
+		padding: 0;
+		border: 1px solid rgb(255 255 255 / 0.22);
+		border-radius: 50%;
+		background: rgb(0 0 0 / 0.38);
+		color: white;
+		box-shadow: 0 1px 8px rgb(0 0 0 / 0.28);
+		backdrop-filter: blur(6px);
+	}
+
+	.character-sheet-back:hover,
+	.character-sheet-back:focus-visible {
+		background: rgb(0 0 0 / 0.52);
+		color: white;
+	}
+
+	.character-sheet-back :global(svg) {
+		stroke: currentColor;
+	}
+
+	iframe {
+		width: 100%;
+		height: 100%;
 		flex: 1;
 		min-height: 0;
-		overflow-y: auto;
-		display: flex;
-		flex-direction: column;
-		gap: 1em;
-		position: relative;
-		z-index: 1;
-	}
-
-	.side-panel-spacer {
-		height: 1em;
-		flex-shrink: 0;
-	}
-
-	.side-panel-content-empty {
-		justify-content: flex-start;
-		gap: 0;
-	}
-
-	.browser-status {
-		margin-bottom: 12px;
-		padding: 8px 12px;
-		border-radius: 6px;
+		border: 0;
+		border-radius: 0;
 		background: var(--background-secondary);
-		color: var(--text-muted);
-	}
-
-	.browser-status-error {
-		background: var(--background-modifier-error);
-		color: var(--text-on-accent);
 	}
 </style>

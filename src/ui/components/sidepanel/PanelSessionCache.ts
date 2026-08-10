@@ -53,8 +53,9 @@ export class PanelSessionCache {
 		container.style.display = "flex";
 		container.style.flex = "1 1 auto";
 		container.style.flexDirection = "column";
-		container.style.minHeight = "100%";
-		container.style.overflow = "visible";
+		container.style.height = "100%";
+		container.style.minHeight = "0";
+		container.style.overflow = "hidden";
 		container.style.width = "100%";
 
 		const session: PanelSession = {

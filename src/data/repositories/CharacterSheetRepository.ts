@@ -1,6 +1,7 @@
 import { CharacterSheetImportMapper } from "src/data/mappers/characterSheetImportMapper";
 import type { FullItemMapper } from "src/data/ports";
 import { smallItemProjectors } from "src/data/projectors/smallItemProjectors";
+import { createMinimalLssCharacterSheet } from "src/data/services/LssCharacterSheetService";
 import { CharacterSheetStore, DbTransactionalStore } from "src/data/stores";
 import { createFilters } from "src/domain/models/common/Filters";
 import type {
@@ -160,7 +161,8 @@ export class CharacterSheetRepository
 	}
 
 	async getFullItemByUrl(url: string): Promise<FullCharacterSheet | null> {
-		return await this.#store.readFullItemByUrl(url);
+		const stored = await this.#store.readFullItemByUrl(url);
+		return stored ?? createMinimalLssCharacterSheet(url);
 	}
 
 	async getFullItemByName(name: string): Promise<FullCharacterSheet | null> {
@@ -215,6 +217,11 @@ export class CharacterSheetRepository
 	private async reloadCaches(): Promise<void> {
 		this.#smallItems = undefined;
 		this.#filters = undefined;
-		await this.initialize();
+		const allSmallItems = await this.getAllSmallItems();
+		this.#filters = await this.collectFiltersFromAllItems(allSmallItems) ?? undefined;
 	}
+}
+
+function isLssCharacterSheetUrl(url: string): boolean {
+	return /^\/character-sheets\/[0-9a-fA-F]{24}$/.test(url);
 }
