@@ -1,5 +1,3 @@
-import { CharacterSheetImportMapper } from "src/data/mappers/characterSheetImportMapper";
-import type { FullItemMapper } from "src/data/ports";
 import { smallItemProjectors } from "src/data/projectors/smallItemProjectors";
 import { createMinimalLssCharacterSheet } from "src/data/services/LssCharacterSheetService";
 import { CharacterSheetStore, DbTransactionalStore } from "src/data/stores";
@@ -11,11 +9,6 @@ import type {
 } from "src/domain/models/character";
 import { EmptyFullCharacterSheet } from "src/domain/models/character/FullCharacterSheet";
 import type { Group, Repository } from "src/domain/repositories/Repository";
-import type { CharacterSheetGateway } from "./characterSheetTypes";
-
-type SmallDaoLike<TSmall, TFilter> = {
-	readAllItems(name: string | null, filter: TFilter | null): Promise<TSmall[]>;
-};
 
 type CharacterSheetRepositoryDatabase = {
 	transaction(callback: (...args: any[]) => Promise<void>): Promise<void> | void;
@@ -30,55 +23,29 @@ type CharacterSheetRepositoryDatabase = {
 		readItemByUrl(url: string): Promise<FullCharacterSheet | null>;
 		updateItem(item: FullCharacterSheet): Promise<void>;
 	};
-	smallRaceDao?: SmallDaoLike<unknown, unknown>;
-	smallBackgroundDao?: SmallDaoLike<unknown, unknown>;
-	smallClassDao?: SmallDaoLike<unknown, unknown>;
-	smallItemDao?: SmallDaoLike<unknown, unknown>;
-	smallArtifactDao?: SmallDaoLike<unknown, unknown>;
-	smallArmorDao?: SmallDaoLike<unknown, unknown>;
-	smallSpellDao?: SmallDaoLike<unknown, unknown>;
-	fullArmorDao?: unknown;
-	fullArtifactDao?: unknown;
-	fullItemDao?: unknown;
-	fullSpellDao?: unknown;
 };
 
 export interface CharacterSheetRepositoryDependencies {
-	database: CharacterSheetRepositoryDatabase;
 	store: CharacterSheetStore;
-	importMapper: FullItemMapper<string, FullCharacterSheet>;
 }
 
 export class CharacterSheetRepository
-	implements Repository<SmallCharacterSheet, FullCharacterSheet, CharacterSheetFilters>, CharacterSheetGateway
+	implements Repository<SmallCharacterSheet, FullCharacterSheet, CharacterSheetFilters>
 {
 	#smallItems?: SmallCharacterSheet[];
 	#filters?: CharacterSheetFilters;
 	readonly #store: CharacterSheetStore;
-	readonly #importMapper: FullItemMapper<string, FullCharacterSheet>;
-	private readonly database: CharacterSheetRepositoryDatabase;
 
 	constructor(databaseOrDependencies: CharacterSheetRepositoryDatabase | CharacterSheetRepositoryDependencies) {
 		if ("store" in databaseOrDependencies) {
-			this.database = databaseOrDependencies.database;
 			this.#store = databaseOrDependencies.store;
-			this.#importMapper = databaseOrDependencies.importMapper;
 			return;
 		}
 
-		this.database = databaseOrDependencies;
 		this.#store = new CharacterSheetStore(
 			databaseOrDependencies.characterSheetDao,
 			new DbTransactionalStore(databaseOrDependencies),
 		);
-		this.#importMapper = new CharacterSheetImportMapper();
-	}
-
-	/**
-	 * Kept for the character sheet editor/linking surface, which still reads related DAOs directly.
-	 */
-	getDatabase(): any {
-		return this.database;
 	}
 
 	async initialize(): Promise<void> {
@@ -178,14 +145,6 @@ export class CharacterSheetRepository
 		return await this.getFullItemByUrl(smallItem.url);
 	}
 
-	async importFromJson(jsonContent: string): Promise<FullCharacterSheet> {
-		const fullSheet = this.#importMapper.map(jsonContent, "");
-		fullSheet.url = await this.#store.generateUniqueUrl(fullSheet.name.rus || fullSheet.name.eng);
-		await this.#store.saveImportedSheet(fullSheet);
-		await this.reloadCaches();
-		return fullSheet;
-	}
-
 	async putItem(fullItem: FullCharacterSheet): Promise<boolean> {
 		if (!fullItem.url) {
 			console.warn("Cannot put character sheet without URL");
@@ -220,8 +179,4 @@ export class CharacterSheetRepository
 		const allSmallItems = await this.getAllSmallItems();
 		this.#filters = await this.collectFiltersFromAllItems(allSmallItems) ?? undefined;
 	}
-}
-
-function isLssCharacterSheetUrl(url: string): boolean {
-	return /^\/character-sheets\/[0-9a-fA-F]{24}$/.test(url);
 }

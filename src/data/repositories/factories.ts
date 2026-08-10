@@ -11,7 +11,6 @@ import {
 	spellMapper,
 	weaponMapper,
 } from "src/data/mappers/sourceMappers";
-import { CharacterSheetImportMapper } from "src/data/mappers/characterSheetImportMapper";
 import type { FullItemMapper, FullItemReadService, ServiceResult } from "src/data/ports";
 import { smallItemProjectors } from "src/data/projectors/smallItemProjectors";
 import type { TtgApiRequestOptions, TtgItemWithHtml, TtgJsonObject } from "src/data/services";
@@ -289,9 +288,7 @@ export function createDmScreenRepository(database: DB, options: RepositoryFactor
 
 export function createCharacterSheetRepository(database: DB): CharacterSheetRepository {
 	const dependencies: CharacterSheetRepositoryDependencies = {
-		database,
 		store: new CharacterSheetStore(database.characterSheetDao, new DbTransactionalStore(database)),
-		importMapper: new CharacterSheetImportMapper(),
 	};
 	return new CharacterSheetRepository(dependencies);
 }
