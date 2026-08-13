@@ -2,7 +2,9 @@ import OBR, { buildImage, buildShape, buildText } from "@owlbear-rodeo/sdk";
 import { deriveMarkers, layoutMarkers } from "./overlays";
 import {
 	OWLBEAR_ENCOUNTER_ID_KEY,
+	OWLBEAR_DEAD_OVERLAY_KEY,
 	OWLBEAR_MARKER_KIND_KEY,
+	OWLBEAR_MARKER_LAYOUT_KEY,
 	OWLBEAR_PARTICIPANT_ID_KEY,
 	OWLBEAR_SNAPSHOT_ID_KEY,
 	OWLBEAR_TOKEN_RING_KEY,
@@ -43,7 +45,10 @@ type ResolvedImage = {
 const DEFAULT_TOKEN_SIZE = 100;
 const STATUS_ICON_SIZE = 100;
 const TURN_HIGHLIGHT_Z_INDEX = 1;
+const TOKEN_RING_Z_INDEX = -1;
+const DEAD_OVERLAY_Z_INDEX = 100;
 const MARKER_Z_INDEX = 2_000_000_000_000;
+const MARKER_LAYOUT_VERSION = 2;
 
 export async function pushSnapshotToScene(
 	snapshot: OwlbearEncounterSnapshot,
@@ -55,7 +60,17 @@ export async function pushSnapshotToScene(
 	}
 
 	const sceneItems = await OBR.scene.items.getItems() as SceneItem[];
-	const linkedTokens = findLinkedTokens(sceneItems, snapshot);
+	const staleTokenIds = findStaleTokenIds(sceneItems, snapshot);
+	if (staleTokenIds.length > 0) {
+		const staleItems = await OBR.scene.items.getItems((item: SceneItem) =>
+			staleTokenIds.includes(item.id) || staleTokenIds.includes(item.attachedTo ?? "")
+		) as SceneItem[];
+		await OBR.scene.items.deleteItems(staleItems.map((item) => item.id));
+	}
+	const currentSceneItems = staleTokenIds.length > 0
+		? await OBR.scene.items.getItems() as SceneItem[]
+		: sceneItems;
+	const linkedTokens = findLinkedTokens(currentSceneItems, snapshot);
 	const previousParticipants = new Map(previousSnapshot?.participants.map((participant) => [participant.participantId, participant]));
 	const images = new Map<number, ResolvedImage>();
 	for (const participant of snapshot.participants) {
@@ -86,7 +101,10 @@ export async function pushSnapshotToScene(
 				if (hasTokenVisualChange(participant, previousParticipant)) {
 					await updateImageToken(existing, participant, snapshot, resolvedImage, tokenSize);
 				}
-				if (hasMarkerChange(participant, previousParticipant, snapshot.round, previousSnapshot?.round)) {
+				if (
+					hasMarkerChange(participant, previousParticipant, snapshot.round, previousSnapshot?.round)
+					|| await needsMarkerLayoutMigration(existing.id, snapshot.encounterId, participant, snapshot.round)
+				) {
 					const bounds = await OBR.scene.items.getItemBounds([existing.id]);
 					await replaceMarkers(existing.id, participant, snapshot, bounds.center, Math.max(bounds.width, bounds.height), gridDpi);
 				}
@@ -132,6 +150,22 @@ function hasMarkerChange(
 ): boolean {
 	if (!previous || previousRound == null) return true;
 	return JSON.stringify(deriveMarkers(participant, round)) !== JSON.stringify(deriveMarkers(previous, previousRound));
+}
+
+async function needsMarkerLayoutMigration(
+	tokenId: string,
+	encounterId: string,
+	participant: OwlbearParticipantSnapshot,
+	round: number,
+): Promise<boolean> {
+	const expectedMarkers = deriveMarkers(participant, round);
+	const statusItems = await OBR.scene.items.getItems((item: SceneItem) =>
+		item.attachedTo === tokenId
+		&& item.metadata?.[OWLBEAR_ENCOUNTER_ID_KEY] === encounterId
+		&& (Boolean(item.metadata?.[OWLBEAR_MARKER_KIND_KEY]) || item.metadata?.[OWLBEAR_DEAD_OVERLAY_KEY] === true)
+	) as SceneItem[];
+	if (expectedMarkers.length > 0 && statusItems.length === 0) return true;
+	return statusItems.some((item) => item.metadata?.[OWLBEAR_MARKER_LAYOUT_KEY] !== MARKER_LAYOUT_VERSION);
 }
 
 function hasTurnHighlightChange(
@@ -180,7 +214,7 @@ function findLinkedTokens(items: SceneItem[], snapshot: OwlbearEncounterSnapshot
 	}
 	for (const item of items) {
 		const metadata = item.metadata ?? {};
-		if (metadata[OWLBEAR_MARKER_KIND_KEY]) continue;
+		if (metadata[OWLBEAR_MARKER_KIND_KEY] || metadata[OWLBEAR_DEAD_OVERLAY_KEY] === true) continue;
 		if (metadata[OWLBEAR_ENCOUNTER_ID_KEY] !== snapshot.encounterId) continue;
 		const participantId = metadata[OWLBEAR_PARTICIPANT_ID_KEY];
 		if (typeof participantId !== "number" || !participantIds.has(participantId) || linked.has(participantId)) continue;
@@ -189,12 +223,25 @@ function findLinkedTokens(items: SceneItem[], snapshot: OwlbearEncounterSnapshot
 	for (const item of items) {
 		if (item.type !== "IMAGE" || linked.size === participantIds.size) break;
 		const metadata = item.metadata ?? {};
-		if (metadata[OWLBEAR_MARKER_KIND_KEY]) continue;
+		if (metadata[OWLBEAR_MARKER_KIND_KEY] || metadata[OWLBEAR_DEAD_OVERLAY_KEY] === true) continue;
 		const participantId = metadata[OWLBEAR_PARTICIPANT_ID_KEY];
 		if (typeof participantId !== "number" || !participantIds.has(participantId) || linked.has(participantId)) continue;
 		linked.set(participantId, item);
 	}
 	return linked;
+}
+
+export function findStaleTokenIds(items: SceneItem[], snapshot: OwlbearEncounterSnapshot): string[] {
+	const participantIds = new Set(snapshot.participants.map((participant) => participant.participantId));
+	return items
+		.filter((item) => item.type === "IMAGE")
+		.filter((item) => item.metadata?.[OWLBEAR_ENCOUNTER_ID_KEY] === snapshot.encounterId)
+		.filter((item) => !item.metadata?.[OWLBEAR_MARKER_KIND_KEY])
+		.filter((item) => {
+			const participantId = item.metadata?.[OWLBEAR_PARTICIPANT_ID_KEY];
+			return typeof participantId === "number" && !participantIds.has(participantId);
+		})
+		.map((item) => item.id);
 }
 
 async function updateImageToken(
@@ -232,8 +279,11 @@ async function updateImageToken(
 	if (attachments.length > 0) {
 		await OBR.scene.items.updateItems(attachments as never[], (items: any[]) => {
 			for (const draft of items) {
-				draft.width = tokenSize + 8;
-				draft.height = tokenSize + 8;
+				draft.width = tokenSize;
+				draft.height = tokenSize;
+				draft.layer = "CHARACTER";
+				draft.zIndex = TOKEN_RING_Z_INDEX;
+				draft.disableAutoZIndex = true;
 				if (draft.style) {
 					draft.style.strokeColor = participantColor(participant);
 				}
@@ -253,15 +303,18 @@ async function replaceMarkers(
 	const overlays = await OBR.scene.items.getItems((item: SceneItem) =>
 		item.attachedTo === tokenId
 		&& item.metadata?.[OWLBEAR_ENCOUNTER_ID_KEY] === snapshot.encounterId
-		&& Boolean(item.metadata?.[OWLBEAR_MARKER_KIND_KEY])
+		&& (Boolean(item.metadata?.[OWLBEAR_MARKER_KIND_KEY]) || item.metadata?.[OWLBEAR_DEAD_OVERLAY_KEY] === true)
 	) as SceneItem[];
 
 	if (overlays.length > 0) {
 		await OBR.scene.items.deleteItems(overlays.map((overlay) => overlay.id));
 	}
 
-	const markers = buildMarkerItems(tokenId, participant, snapshot, center, diameter, gridDpi);
-	if (markers.length > 0) await OBR.scene.items.addItems(markers as never[]);
+	const statusItems = [
+		...buildDeadOverlay(tokenId, participant, snapshot, center, diameter),
+		...buildMarkerItems(tokenId, participant, snapshot, center, diameter, gridDpi),
+	];
+	if (statusItems.length > 0) await OBR.scene.items.addItems(statusItems as never[]);
 }
 
 function buildTokenItems(participant: OwlbearParticipantSnapshot, snapshot: OwlbearEncounterSnapshot, position: { x: number; y: number }, tokenSize: number, gridDpi: number, image: ResolvedImage) {
@@ -270,6 +323,7 @@ function buildTokenItems(participant: OwlbearParticipantSnapshot, snapshot: Owlb
 		token,
 		buildTokenRing(participant, snapshot, position, token.id, tokenSize),
 		...buildTurnHighlight(token.id, participant, snapshot, position, tokenSize),
+		...buildDeadOverlay(token.id, participant, snapshot, position, tokenSize),
 		...buildMarkerItems(token.id, participant, snapshot, position, tokenSize, gridDpi),
 	];
 }
@@ -298,9 +352,11 @@ function buildTokenImage(participant: OwlbearParticipantSnapshot, snapshot: Owlb
 function buildTokenRing(participant: OwlbearParticipantSnapshot, snapshot: OwlbearEncounterSnapshot, position: { x: number; y: number }, tokenId: string, tokenSize: number) {
 	return buildShape()
 		.shapeType("CIRCLE")
-		.width(tokenSize + 8)
-		.height(tokenSize + 8)
+		.width(tokenSize)
+		.height(tokenSize)
 		.layer("CHARACTER")
+		.zIndex(TOKEN_RING_Z_INDEX)
+		.disableAutoZIndex(true)
 		.position(position)
 		.attachedTo(tokenId)
 		.locked(true)
@@ -315,6 +371,41 @@ function buildTokenRing(participant: OwlbearParticipantSnapshot, snapshot: Owlbe
 			strokeDash: [],
 		})
 		.build();
+}
+
+function buildDeadOverlay(
+	tokenId: string,
+	participant: OwlbearParticipantSnapshot,
+	snapshot: OwlbearEncounterSnapshot,
+	position: { x: number; y: number },
+	diameter: number,
+) {
+	if (!participant.isDead) return [];
+	return [buildShape()
+		.shapeType("CIRCLE")
+		.width(diameter)
+		.height(diameter)
+		.position(position)
+		.attachedTo(tokenId)
+		.layer("ATTACHMENT")
+		.zIndex(DEAD_OVERLAY_Z_INDEX)
+		.disableAutoZIndex(true)
+		.locked(true)
+		.disableHit(true)
+		.metadata({
+			...tokenMetadata(participant, snapshot),
+			[OWLBEAR_DEAD_OVERLAY_KEY]: true,
+			[OWLBEAR_MARKER_LAYOUT_KEY]: MARKER_LAYOUT_VERSION,
+		})
+		.style({
+			fillColor: "#000000",
+			fillOpacity: 0.45,
+			strokeColor: "#000000",
+			strokeOpacity: 0,
+			strokeWidth: 0,
+			strokeDash: [],
+		})
+		.build()];
 }
 
 async function replaceTurnHighlight(
@@ -380,7 +471,11 @@ function buildMarkerItems(
 	const iconDpi = STATUS_ICON_SIZE * effectiveGridDpi / imageSize;
 	return layoutMarkers(deriveMarkers(participant, snapshot.round), diameter).flatMap(({ marker, x, y }, index) => {
 		const position = { x: center.x + x, y: center.y + y };
-		const metadata = { ...tokenMetadata(participant, snapshot), [OWLBEAR_MARKER_KIND_KEY]: marker.kind satisfies MarkerKind };
+		const metadata = {
+			...tokenMetadata(participant, snapshot),
+			[OWLBEAR_MARKER_KIND_KEY]: marker.kind satisfies MarkerKind,
+			[OWLBEAR_MARKER_LAYOUT_KEY]: MARKER_LAYOUT_VERSION,
+		};
 		const zIndex = MARKER_Z_INDEX + index * 10;
 		const background = buildShape()
 			.shapeType("CIRCLE")
@@ -412,7 +507,8 @@ function buildMarkerItems(
 			.build();
 		if (marker.remainingRounds == null) return [background, icon];
 		const badgeSize = Math.max(10, iconSize * 0.55);
-		const badgePosition = { x: position.x + iconSize * 0.36, y: position.y - iconSize * 0.36 };
+		const badgePosition = getConditionBadgePosition(position, iconSize);
+		const badgeTextPosition = getConditionBadgeTextPosition(badgePosition, badgeSize);
 		const badge = buildShape()
 			.shapeType("CIRCLE")
 			.width(badgeSize)
@@ -439,7 +535,7 @@ function buildMarkerItems(
 			.fillColor("#ffffff")
 			.textAlign("CENTER")
 			.textAlignVertical("MIDDLE")
-			.position(badgePosition)
+			.position(badgeTextPosition)
 			.attachedTo(tokenId)
 			.layer("ATTACHMENT")
 			.zIndex(zIndex + 3)
@@ -450,6 +546,14 @@ function buildMarkerItems(
 			.build();
 		return [background, icon, badge, badgeText];
 	});
+}
+
+export function getConditionBadgePosition(position: { x: number; y: number }, iconSize: number) {
+	return { x: position.x + iconSize * 0.36, y: position.y + iconSize * 0.36 };
+}
+
+export function getConditionBadgeTextPosition(position: { x: number; y: number }, badgeSize: number) {
+	return { x: position.x - badgeSize / 2, y: position.y - badgeSize / 2 };
 }
 
 function statusIconUrl(icon: string) {
@@ -474,14 +578,7 @@ function createDiagnostics(
 ): OwlbearSyncDiagnostics {
 	const linked = Array.isArray(linkedTokens) ? new Map<number, SceneItem>() : linkedTokens;
 	const participantIds = new Set(snapshot.participants.map((participant) => participant.participantId));
-	const staleTokenIds = items
-		.filter((item) => item.metadata?.[OWLBEAR_ENCOUNTER_ID_KEY] === snapshot.encounterId)
-		.filter((item) => !item.metadata?.[OWLBEAR_MARKER_KIND_KEY])
-		.filter((item) => {
-			const participantId = item.metadata?.[OWLBEAR_PARTICIPANT_ID_KEY];
-			return typeof participantId === "number" && !participantIds.has(participantId);
-		})
-		.map((item) => item.id);
+	const staleTokenIds = findStaleTokenIds(items, snapshot);
 	const missingParticipantIds = snapshot.participants
 		.filter((participant) => !linked.has(participant.participantId))
 		.map((participant) => participant.participantId);
