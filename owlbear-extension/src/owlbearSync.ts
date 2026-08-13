@@ -1,15 +1,16 @@
-import OBR, { buildImage, buildLabel, buildShape } from "@owlbear-rodeo/sdk";
-import { deriveMarkers } from "./overlays";
+import OBR, { buildImage, buildShape, buildText } from "@owlbear-rodeo/sdk";
+import { deriveMarkers, layoutMarkers } from "./overlays";
 import {
 	OWLBEAR_ENCOUNTER_ID_KEY,
 	OWLBEAR_MARKER_KIND_KEY,
 	OWLBEAR_PARTICIPANT_ID_KEY,
 	OWLBEAR_SNAPSHOT_ID_KEY,
+	OWLBEAR_TOKEN_RING_KEY,
+	OWLBEAR_TURN_HIGHLIGHT_KEY,
 	type MarkerKind,
 	type OwlbearEncounterSnapshot,
 	type OwlbearParticipantSnapshot,
 	type OwlbearSyncDiagnostics,
-	type TokenMarker,
 } from "./types";
 
 type SceneItem = {
@@ -19,6 +20,12 @@ type SceneItem = {
 	position?: { x: number; y: number };
 	metadata?: Record<string, unknown>;
 	attachedTo?: string;
+	image?: {
+		url?: string;
+		mime?: string;
+		width?: number;
+		height?: number;
+	};
 };
 
 type SyncResult = {
@@ -34,8 +41,14 @@ type ResolvedImage = {
 };
 
 const DEFAULT_TOKEN_SIZE = 100;
+const STATUS_ICON_SIZE = 100;
+const TURN_HIGHLIGHT_Z_INDEX = 1;
+const MARKER_Z_INDEX = 2_000_000_000_000;
 
-export async function pushSnapshotToScene(snapshot: OwlbearEncounterSnapshot): Promise<SyncResult> {
+export async function pushSnapshotToScene(
+	snapshot: OwlbearEncounterSnapshot,
+	previousSnapshot: OwlbearEncounterSnapshot | null = null,
+): Promise<SyncResult> {
 	const sceneReady = await OBR.scene.isReady();
 	if (!sceneReady) {
 		return { diagnostics: createDiagnostics(snapshot, false, [], [], "No active Owlbear scene."), tokenLinks: [] };
@@ -43,6 +56,7 @@ export async function pushSnapshotToScene(snapshot: OwlbearEncounterSnapshot): P
 
 	const sceneItems = await OBR.scene.items.getItems() as SceneItem[];
 	const linkedTokens = findLinkedTokens(sceneItems, snapshot);
+	const previousParticipants = new Map(previousSnapshot?.participants.map((participant) => [participant.participantId, participant]));
 	const images = new Map<number, ResolvedImage>();
 	for (const participant of snapshot.participants) {
 		const image = resolveImage(participant.imageUrl, participant.imageMime, participant.imageWidth, participant.imageHeight);
@@ -58,6 +72,7 @@ export async function pushSnapshotToScene(snapshot: OwlbearEncounterSnapshot): P
 
 	for (const participant of snapshot.participants) {
 		const existing = linkedTokens.get(participant.participantId);
+		const previousParticipant = previousParticipants.get(participant.participantId);
 		const resolvedImage = images.get(participant.participantId)!;
 		if (existing) {
 			if (existing.type !== "IMAGE") {
@@ -66,15 +81,24 @@ export async function pushSnapshotToScene(snapshot: OwlbearEncounterSnapshot): P
 				) as SceneItem[];
 				await OBR.scene.items.deleteItems(attachedItems.map((item) => item.id));
 				const position = existing.position ?? center;
-				itemsToCreate.push(...await buildTokenItems(participant, snapshot, position, tokenSize, resolvedImage));
+				itemsToCreate.push(...buildTokenItems(participant, snapshot, position, tokenSize, gridDpi, resolvedImage));
 			} else {
-				await updateImageToken(existing, participant, snapshot, resolvedImage, tokenSize);
-				await replaceMarkers(existing.id, participant, snapshot);
+				if (hasTokenVisualChange(participant, previousParticipant)) {
+					await updateImageToken(existing, participant, snapshot, resolvedImage, tokenSize);
+				}
+				if (hasMarkerChange(participant, previousParticipant, snapshot.round, previousSnapshot?.round)) {
+					const bounds = await OBR.scene.items.getItemBounds([existing.id]);
+					await replaceMarkers(existing.id, participant, snapshot, bounds.center, Math.max(bounds.width, bounds.height), gridDpi);
+				}
+				if (hasTurnHighlightChange(participant.participantId, snapshot, previousSnapshot)) {
+					const bounds = await OBR.scene.items.getItemBounds([existing.id]);
+					await replaceTurnHighlight(existing.id, participant, snapshot, bounds.center, Math.max(bounds.width, bounds.height));
+				}
 			}
 		} else {
 			const position = clusterPosition(center, createdIndex, snapshot.participants.length, tokenSize);
 			createdIndex += 1;
-			itemsToCreate.push(...await buildTokenItems(participant, snapshot, position, tokenSize, resolvedImage));
+			itemsToCreate.push(...buildTokenItems(participant, snapshot, position, tokenSize, gridDpi, resolvedImage));
 		}
 	}
 
@@ -85,6 +109,41 @@ export async function pushSnapshotToScene(snapshot: OwlbearEncounterSnapshot): P
 	const refreshedItems = await OBR.scene.items.getItems() as SceneItem[];
 	const diagnostics = createDiagnostics(snapshot, true, refreshedItems, findLinkedTokens(refreshedItems, snapshot), undefined, now);
 	return { diagnostics, tokenLinks: createTokenLinks(refreshedItems, snapshot, now) };
+}
+
+function hasTokenVisualChange(
+	participant: OwlbearParticipantSnapshot,
+	previous: OwlbearParticipantSnapshot | undefined,
+): boolean {
+	return !previous
+		|| participant.name !== previous.name
+		|| participant.imageUrl !== previous.imageUrl
+		|| participant.imageMime !== previous.imageMime
+		|| participant.imageWidth !== previous.imageWidth
+		|| participant.imageHeight !== previous.imageHeight
+		|| participant.colorHex !== previous.colorHex;
+}
+
+function hasMarkerChange(
+	participant: OwlbearParticipantSnapshot,
+	previous: OwlbearParticipantSnapshot | undefined,
+	round: number,
+	previousRound: number | undefined,
+): boolean {
+	if (!previous || previousRound == null) return true;
+	return JSON.stringify(deriveMarkers(participant, round)) !== JSON.stringify(deriveMarkers(previous, previousRound));
+}
+
+function hasTurnHighlightChange(
+	participantId: number,
+	snapshot: OwlbearEncounterSnapshot,
+	previous: OwlbearEncounterSnapshot | null,
+): boolean {
+	if (!previous) return true;
+	const isHighlighted = snapshot.activeParticipantId === participantId || snapshot.nextParticipantId === participantId;
+	const wasHighlighted = previous.activeParticipantId === participantId || previous.nextParticipantId === participantId;
+	return isHighlighted !== wasHighlighted
+		|| (isHighlighted && (snapshot.activeParticipantId === participantId) !== (previous.activeParticipantId === participantId));
 }
 
 export async function reconnectScene(snapshot: OwlbearEncounterSnapshot): Promise<SyncResult> {
@@ -111,12 +170,28 @@ function createTokenLinks(items: SceneItem[], snapshot: OwlbearEncounterSnapshot
 
 function findLinkedTokens(items: SceneItem[], snapshot: OwlbearEncounterSnapshot): Map<number, SceneItem> {
 	const linked = new Map<number, SceneItem>();
+	const participantIds = new Set(snapshot.participants.map((participant) => participant.participantId));
+	const itemsById = new Map(items.map((item) => [item.id, item]));
+	for (const link of snapshot.tokenLinks) {
+		const item = itemsById.get(link.owlbearItemId);
+		if (item?.type === "IMAGE" && participantIds.has(link.participantId)) {
+			linked.set(link.participantId, item);
+		}
+	}
 	for (const item of items) {
 		const metadata = item.metadata ?? {};
 		if (metadata[OWLBEAR_MARKER_KIND_KEY]) continue;
 		if (metadata[OWLBEAR_ENCOUNTER_ID_KEY] !== snapshot.encounterId) continue;
 		const participantId = metadata[OWLBEAR_PARTICIPANT_ID_KEY];
-		if (typeof participantId !== "number") continue;
+		if (typeof participantId !== "number" || !participantIds.has(participantId) || linked.has(participantId)) continue;
+		linked.set(participantId, item);
+	}
+	for (const item of items) {
+		if (item.type !== "IMAGE" || linked.size === participantIds.size) break;
+		const metadata = item.metadata ?? {};
+		if (metadata[OWLBEAR_MARKER_KIND_KEY]) continue;
+		const participantId = metadata[OWLBEAR_PARTICIPANT_ID_KEY];
+		if (typeof participantId !== "number" || !participantIds.has(participantId) || linked.has(participantId)) continue;
 		linked.set(participantId, item);
 	}
 	return linked;
@@ -135,22 +210,24 @@ async function updateImageToken(
 			draft.metadata = tokenMetadata(participant, snapshot);
 			draft.text = { ...draft.text, plainText: participant.name, type: "PLAIN" };
 			draft.textItemType = "LABEL";
-			draft.image = {
-				...draft.image,
-				url: image.url,
-				mime: image.mime,
-				width: image.width,
-				height: image.height,
-			};
-			draft.grid = {
-				dpi: Math.max(image.width, image.height),
-				offset: { x: image.width / 2, y: image.height / 2 },
-			};
+			if (draft.image?.url !== image.url) {
+				draft.image = {
+					...draft.image,
+					url: image.url,
+					mime: image.mime,
+					width: image.width,
+					height: image.height,
+				};
+				draft.grid = {
+					dpi: Math.max(image.width, image.height),
+					offset: { x: image.width / 2, y: image.height / 2 },
+				};
+			}
 		}
 	});
 
 	const attachments = await OBR.scene.items.getItems((candidate: SceneItem) =>
-		candidate.attachedTo === item.id && candidate.type === "SHAPE"
+		candidate.attachedTo === item.id && candidate.metadata?.[OWLBEAR_TOKEN_RING_KEY] === true
 	) as SceneItem[];
 	if (attachments.length > 0) {
 		await OBR.scene.items.updateItems(attachments as never[], (items: any[]) => {
@@ -158,16 +235,21 @@ async function updateImageToken(
 				draft.width = tokenSize + 8;
 				draft.height = tokenSize + 8;
 				if (draft.style) {
-					draft.style.strokeColor = participant.isDead || participant.hpCurrent <= 0
-						? "#111827"
-						: participantColor(participant);
+					draft.style.strokeColor = participantColor(participant);
 				}
 			}
 		});
 	}
 }
 
-async function replaceMarkers(tokenId: string, participant: OwlbearParticipantSnapshot, snapshot: OwlbearEncounterSnapshot) {
+async function replaceMarkers(
+	tokenId: string,
+	participant: OwlbearParticipantSnapshot,
+	snapshot: OwlbearEncounterSnapshot,
+	center: { x: number; y: number },
+	diameter: number,
+	gridDpi: number,
+) {
 	const overlays = await OBR.scene.items.getItems((item: SceneItem) =>
 		item.attachedTo === tokenId
 		&& item.metadata?.[OWLBEAR_ENCOUNTER_ID_KEY] === snapshot.encounterId
@@ -178,16 +260,17 @@ async function replaceMarkers(tokenId: string, participant: OwlbearParticipantSn
 		await OBR.scene.items.deleteItems(overlays.map((overlay) => overlay.id));
 	}
 
-	const markers = buildMarkerLabels(tokenId, participant, snapshot);
+	const markers = buildMarkerItems(tokenId, participant, snapshot, center, diameter, gridDpi);
 	if (markers.length > 0) await OBR.scene.items.addItems(markers as never[]);
 }
 
-async function buildTokenItems(participant: OwlbearParticipantSnapshot, snapshot: OwlbearEncounterSnapshot, position: { x: number; y: number }, tokenSize: number, image: ResolvedImage) {
+function buildTokenItems(participant: OwlbearParticipantSnapshot, snapshot: OwlbearEncounterSnapshot, position: { x: number; y: number }, tokenSize: number, gridDpi: number, image: ResolvedImage) {
 	const token = buildTokenImage(participant, snapshot, position, tokenSize, image);
 	return [
 		token,
-		buildTokenRing(participant, position, token.id, tokenSize),
-		...buildMarkerLabels(token.id, participant, snapshot),
+		buildTokenRing(participant, snapshot, position, token.id, tokenSize),
+		...buildTurnHighlight(token.id, participant, snapshot, position, tokenSize),
+		...buildMarkerItems(token.id, participant, snapshot, position, tokenSize, gridDpi),
 	];
 }
 
@@ -212,7 +295,7 @@ function buildTokenImage(participant: OwlbearParticipantSnapshot, snapshot: Owlb
 		.build();
 }
 
-function buildTokenRing(participant: OwlbearParticipantSnapshot, position: { x: number; y: number }, tokenId: string, tokenSize: number) {
+function buildTokenRing(participant: OwlbearParticipantSnapshot, snapshot: OwlbearEncounterSnapshot, position: { x: number; y: number }, tokenId: string, tokenSize: number) {
 	return buildShape()
 		.shapeType("CIRCLE")
 		.width(tokenSize + 8)
@@ -220,10 +303,13 @@ function buildTokenRing(participant: OwlbearParticipantSnapshot, position: { x: 
 		.layer("CHARACTER")
 		.position(position)
 		.attachedTo(tokenId)
+		.locked(true)
+		.disableHit(true)
+		.metadata({ ...tokenMetadata(participant, snapshot), [OWLBEAR_TOKEN_RING_KEY]: true })
 		.style({
 			fillColor: "#ffffff",
 			fillOpacity: 0,
-			strokeColor: participant.isDead || participant.hpCurrent <= 0 ? "#111827" : participantColor(participant),
+			strokeColor: participantColor(participant),
 			strokeOpacity: 1,
 			strokeWidth: 5,
 			strokeDash: [],
@@ -231,34 +317,143 @@ function buildTokenRing(participant: OwlbearParticipantSnapshot, position: { x: 
 		.build();
 }
 
-function buildMarkerLabels(tokenId: string, participant: OwlbearParticipantSnapshot, snapshot: OwlbearEncounterSnapshot) {
-	return deriveMarkers(participant, snapshot.round).map((marker, index) =>
-		buildLabelItem(tokenId, participant, snapshot, marker, { x: -32 + index * 22, y: -42 })
-	);
-}
-
-function buildLabelItem(
+async function replaceTurnHighlight(
 	tokenId: string,
 	participant: OwlbearParticipantSnapshot,
 	snapshot: OwlbearEncounterSnapshot,
-	marker: TokenMarker,
-	position: { x: number; y: number },
+	center: { x: number; y: number },
+	diameter: number,
 ) {
-	const builder: any = buildLabel()
-		.plainText(marker.text)
-		.attachedTo(tokenId)
-		.position(position)
-		.layer("ATTACHMENT")
-		.name(`${participant.name} ${marker.kind}`)
-		.metadata({
-			...tokenMetadata(participant, snapshot),
-			[OWLBEAR_MARKER_KIND_KEY]: marker.kind satisfies MarkerKind,
-		})
-		.fillColor("#ffffff")
-		.backgroundColor(marker.color)
-		.backgroundOpacity(0.9);
+	const highlights = await OBR.scene.items.getItems((item: SceneItem) =>
+		item.attachedTo === tokenId && item.metadata?.[OWLBEAR_TURN_HIGHLIGHT_KEY] === true
+	) as SceneItem[];
+	if (highlights.length > 0) await OBR.scene.items.deleteItems(highlights.map((item) => item.id));
+	const nextHighlight = buildTurnHighlight(tokenId, participant, snapshot, center, diameter);
+	if (nextHighlight.length > 0) await OBR.scene.items.addItems(nextHighlight as never[]);
+}
 
-	return builder.build();
+function buildTurnHighlight(
+	tokenId: string,
+	participant: OwlbearParticipantSnapshot,
+	snapshot: OwlbearEncounterSnapshot,
+	position: { x: number; y: number },
+	diameter: number,
+) {
+	const isActive = snapshot.activeParticipantId === participant.participantId;
+	const isNext = !isActive && snapshot.nextParticipantId === participant.participantId;
+	if (!isActive && !isNext) return [];
+	const metadata = { ...tokenMetadata(participant, snapshot), [OWLBEAR_TURN_HIGHLIGHT_KEY]: true };
+	return [buildShape()
+		.shapeType("CIRCLE")
+		.width(diameter + (isActive ? 40 : 30))
+		.height(diameter + (isActive ? 40 : 30))
+		.position(position)
+		.attachedTo(tokenId)
+		.layer("ATTACHMENT")
+		.zIndex(TURN_HIGHLIGHT_Z_INDEX)
+		.disableAutoZIndex(true)
+		.locked(true)
+		.disableHit(true)
+		.metadata(metadata)
+		.style({
+			fillColor: "#000000",
+			fillOpacity: 0,
+			strokeColor: isActive ? "#fbbf24" : "#38bdf8",
+			strokeOpacity: isActive ? 1 : 0.75,
+			strokeWidth: isActive ? 4 : 3,
+			strokeDash: isActive ? [] : [6, 4],
+		})
+		.build()];
+}
+
+function buildMarkerItems(
+	tokenId: string,
+	participant: OwlbearParticipantSnapshot,
+	snapshot: OwlbearEncounterSnapshot,
+	center: { x: number; y: number },
+	diameter: number,
+	gridDpi: number,
+) {
+	const iconSize = diameter * 0.2;
+	const effectiveGridDpi = Number.isFinite(gridDpi) && gridDpi > 0 ? gridDpi : DEFAULT_TOKEN_SIZE;
+	const imageSize = Math.max(1, iconSize * 0.65);
+	const iconDpi = STATUS_ICON_SIZE * effectiveGridDpi / imageSize;
+	return layoutMarkers(deriveMarkers(participant, snapshot.round), diameter).flatMap(({ marker, x, y }, index) => {
+		const position = { x: center.x + x, y: center.y + y };
+		const metadata = { ...tokenMetadata(participant, snapshot), [OWLBEAR_MARKER_KIND_KEY]: marker.kind satisfies MarkerKind };
+		const zIndex = MARKER_Z_INDEX + index * 10;
+		const background = buildShape()
+			.shapeType("CIRCLE")
+			.width(iconSize)
+			.height(iconSize)
+			.position(position)
+			.attachedTo(tokenId)
+			.layer("ATTACHMENT")
+			.zIndex(zIndex)
+			.disableAutoZIndex(true)
+			.locked(true)
+			.disableHit(true)
+			.metadata(metadata)
+			.style({ fillColor: "#111827", fillOpacity: 0.86, strokeColor: "#f8fafc", strokeOpacity: 0.9, strokeWidth: Math.max(1, diameter * 0.015), strokeDash: [] })
+			.build();
+		const icon = buildImage(
+			{ width: STATUS_ICON_SIZE, height: STATUS_ICON_SIZE, mime: "image/svg+xml", url: statusIconUrl(marker.icon) },
+			{ dpi: iconDpi, offset: { x: STATUS_ICON_SIZE / 2, y: STATUS_ICON_SIZE / 2 } },
+		)
+			.name(`${participant.name} ${marker.kind}`)
+			.position(position)
+			.attachedTo(tokenId)
+			.layer("ATTACHMENT")
+			.zIndex(zIndex + 1)
+			.disableAutoZIndex(true)
+			.locked(true)
+			.disableHit(true)
+			.metadata(metadata)
+			.build();
+		if (marker.remainingRounds == null) return [background, icon];
+		const badgeSize = Math.max(10, iconSize * 0.55);
+		const badgePosition = { x: position.x + iconSize * 0.36, y: position.y - iconSize * 0.36 };
+		const badge = buildShape()
+			.shapeType("CIRCLE")
+			.width(badgeSize)
+			.height(badgeSize)
+			.position(badgePosition)
+			.attachedTo(tokenId)
+			.layer("ATTACHMENT")
+			.zIndex(zIndex + 2)
+			.disableAutoZIndex(true)
+			.locked(true)
+			.disableHit(true)
+			.metadata(metadata)
+			.style({ fillColor: "#2563eb", fillOpacity: 1, strokeColor: "#eff6ff", strokeOpacity: 1, strokeWidth: 1, strokeDash: [] })
+			.build();
+		const text = String(marker.remainingRounds);
+		const badgeText = buildText()
+			.plainText(text)
+			.textType("PLAIN")
+			.width(badgeSize)
+			.height(badgeSize)
+			.padding(0)
+			.fontSize(text.length > 2 ? 8 : 10)
+			.fontWeight(700)
+			.fillColor("#ffffff")
+			.textAlign("CENTER")
+			.textAlignVertical("MIDDLE")
+			.position(badgePosition)
+			.attachedTo(tokenId)
+			.layer("ATTACHMENT")
+			.zIndex(zIndex + 3)
+			.disableAutoZIndex(true)
+			.locked(true)
+			.disableHit(true)
+			.metadata(metadata)
+			.build();
+		return [background, icon, badge, badgeText];
+	});
+}
+
+function statusIconUrl(icon: string) {
+	return new URL(`/status-icons/${icon}.svg`, window.location.origin).toString();
 }
 
 function tokenMetadata(participant: OwlbearParticipantSnapshot, snapshot: OwlbearEncounterSnapshot) {

@@ -33,6 +33,7 @@ export class InitiativeTrackerPanel implements PanelHost {
 				onConditionClick: this.uiEventListener.onScreenItemClick,
 				onImageRequested: async (url: string) => this.uiEventListener.onImageRequested(url),
 				onOwlbearSnapshotCreated: async (snapshot: OwlbearEncounterSnapshot) => this.plugin.publishOwlbearSnapshot(snapshot),
+				onOwlbearTurnChanged: async (snapshot: OwlbearEncounterSnapshot) => this.plugin.publishOwlbearTurnSnapshot(snapshot),
 			},
 		});
 	}

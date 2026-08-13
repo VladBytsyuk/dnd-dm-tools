@@ -35,7 +35,7 @@
 	} from "src/domain/models/owlbear/OwlbearSync";
 	import ParticipantItem from "./ParticipantItem.svelte";
 
-	let { app, encounter, isEditable, onPortraitClick, onConditionClick, onImageRequested, onOwlbearSnapshotCreated } =
+	let { app, encounter, isEditable, onPortraitClick, onConditionClick, onImageRequested, onOwlbearSnapshotCreated, onOwlbearTurnChanged } =
 		$props<{
 			app: any;
 			encounter: Encounter;
@@ -44,6 +44,7 @@
 			onConditionClick: (url: string) => void;
 			onImageRequested: (url: string) => Promise<string>;
 			onOwlbearSnapshotCreated: (snapshot: OwlbearEncounterSnapshot) => Promise<void>;
+			onOwlbearTurnChanged: (snapshot: OwlbearEncounterSnapshot) => Promise<void>;
 		}>();
 
 	function createEncounterManager() {
@@ -53,17 +54,49 @@
 	const encounterManager = createEncounterManager();
 	const owlbearEncounterId = createEncounterId();
 
-	let state = $state({
+	let trackerState = $state({
 		current: encounterManager.current,
 		canUndo: encounterManager.canUndo,
 		canRedo: encounterManager.canRedo,
 	});
+	let owlbearSynced = $state(false);
+	let owlbearSyncVersion = 0;
+	let owlbearSyncInFlight = false;
+	let owlbearSyncTimer: number | null = null;
 
 	encounterManager.setOnUpdate(() => {
-		state.current = encounterManager.current;
-		state.canUndo = encounterManager.canUndo;
-		state.canRedo = encounterManager.canRedo;
+		trackerState.current = encounterManager.current;
+		trackerState.canUndo = encounterManager.canUndo;
+		trackerState.canRedo = encounterManager.canRedo;
+		if (owlbearSynced) {
+			queueOwlbearSync();
+		}
 	});
+
+	function queueOwlbearSync() {
+		owlbearSyncVersion += 1;
+		if (owlbearSyncInFlight || owlbearSyncTimer != null) return;
+		owlbearSyncTimer = window.setTimeout(() => {
+			owlbearSyncTimer = null;
+			void flushOwlbearSync();
+		}, 250);
+	}
+
+	async function flushOwlbearSync() {
+		owlbearSyncInFlight = true;
+		let sentVersion = -1;
+		try {
+			do {
+				sentVersion = owlbearSyncVersion;
+				await onOwlbearTurnChanged(await createOwlbearSnapshotWithImages());
+			} while (sentVersion !== owlbearSyncVersion);
+		} catch {
+			// Background sync failures must not interrupt initiative editing.
+		} finally {
+			owlbearSyncInFlight = false;
+			if (sentVersion !== owlbearSyncVersion) queueOwlbearSync();
+		}
+	}
 
 	const runEditable = (action: () => void) => {
 		if (!isEditable) return;
@@ -92,7 +125,7 @@
 
 	const onPlayNext = () => {
 		runEditable(() => {
-			if (state.current.activeParticipantIndex == null) {
+			if (trackerState.current.activeParticipantIndex == null) {
 				encounterManager.startEncounter();
 			} else {
 				encounterManager.nextStepEncounter();
@@ -121,21 +154,22 @@
 	};
 
 	const copyEncounter = async () => {
-		await copyEncounterToClipboard(state.current.encounter);
+		await copyEncounterToClipboard(trackerState.current.encounter);
 	};
 
 	const sendOwlbearSnapshot = async () => {
 		const snapshot = await createOwlbearSnapshotWithImages();
 		try {
 			await onOwlbearSnapshotCreated(snapshot);
+			owlbearSynced = true;
 			new Notice("Столкновение отправлено в Owlbear.");
 		} catch (error) {
 			new Notice(error instanceof Error ? error.message : "Не удалось отправить столкновение в Owlbear.");
 		}
 	};
 
-	const createOwlbearSnapshotWithImages = async (): Promise<OwlbearEncounterSnapshot> => {
-		const snapshot = createOwlbearEncounterSnapshot(state.current, owlbearEncounterId);
+	async function createOwlbearSnapshotWithImages(): Promise<OwlbearEncounterSnapshot> {
+		const snapshot = createOwlbearEncounterSnapshot(trackerState.current, owlbearEncounterId);
 		const participants = await Promise.all(snapshot.participants.map(async (participant) => {
 			const image = await loadParticipantImage(participant.name, participant.imageUrl);
 			return {
@@ -146,7 +180,7 @@
 			};
 		}));
 		return { ...snapshot, participants };
-	};
+	}
 
 	const loadParticipantImage = async (name: string, url: string | undefined): Promise<{ dataUrl: string; width: number; height: number }> => {
 		if (!url) throw new Error(`У участника «${name}» нет изображения токена.`);
@@ -248,7 +282,7 @@
 	};
 
 	const onToggleConcentration = (participantId: number) => {
-		const participant = state.current.encounter.participants.find((p) => p.id === participantId);
+		const participant = trackerState.current.encounter.participants.find((p) => p.id === participantId);
 		if (!participant) return;
 		setValue(participantId, "isConcentrating", !participant.isConcentrating);
 	};
@@ -269,18 +303,18 @@
 <div class="tracker">
 	<header class="topbar">
 		<div class="left">
-			<div class="roundCompact" aria-label="Раунд">{state.current.round}</div>
+			<div class="roundCompact" aria-label="Раунд">{trackerState.current.round}</div>
 
 			{#if isEditable}
 				<input
 					class="titleInput inputlike"
-					value={state.current.encounter.name ?? "Encounter"}
+					value={trackerState.current.encounter.name ?? "Encounter"}
 					oninput={(e) =>
 						setEncounterName((e.target as HTMLInputElement).value)}
 				/>
 			{:else}
 				<div class="titleText">
-					{state.current.encounter.name ?? "Encounter"}
+					{trackerState.current.encounter.name ?? "Encounter"}
 				</div>
 			{/if}
 		</div>
@@ -326,7 +360,7 @@
 				<button
 					class="btn ghost"
 					onclick={undo}
-					disabled={!state.canUndo}
+					disabled={!trackerState.canUndo}
 					aria-label="Отменить"
 				>
 					<Undo size={16} />
@@ -335,7 +369,7 @@
 				<button
 					class="btn ghost"
 					onclick={redo}
-					disabled={!state.canRedo}
+					disabled={!trackerState.canRedo}
 					aria-label="Повторить"
 				>
 					<Redo size={16} />
@@ -357,11 +391,11 @@
 				<button
 					class="btn playNext"
 					onclick={onPlayNext}
-					aria-label={state.current.activeParticipantIndex == null
+					aria-label={trackerState.current.activeParticipantIndex == null
 						? "Начать столкновение"
 						: "Следующий ход"}
 				>
-					{#if state.current.activeParticipantIndex == null}
+					{#if trackerState.current.activeParticipantIndex == null}
 						<Play size={16} />
 					{:else}
 						<StepForward size={16} />
@@ -372,18 +406,18 @@
 	</header>
 
 	<div class="tracker-content">
-		{#if state.current.encounter.participants.length === 0}
+		{#if trackerState.current.encounter.participants.length === 0}
 			<div class="empty">
 				<Skull size={18} />
 				<span>No participants yet.</span>
 			</div>
 		{:else}
 			<div class="list">
-				{#each state.current.encounter.participants as participant, index (participant.id)}
+				{#each trackerState.current.encounter.participants as participant, index (participant.id)}
 					<ParticipantItem
 						participant={participant}
 						isEditable={isEditable}
-						isActive={state.current.activeParticipantIndex === index}
+						isActive={trackerState.current.activeParticipantIndex === index}
 						onOpenStatblock={onOpenStatblock}
 						onOpenConditionDetails={onOpenConditionDetails}
 						onSetValue={setValue}
@@ -393,7 +427,7 @@
 						onConditionDelete={onConditionDelete}
 						onResourcesChange={onResourcesChange}
 						onToggleConcentration={onToggleConcentration}
-						getRound={() => state.current.round}
+						getRound={() => trackerState.current.round}
 						onImageRequested={onImageRequested}
 					/>
 				{/each}

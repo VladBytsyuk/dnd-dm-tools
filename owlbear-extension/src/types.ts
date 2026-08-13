@@ -4,6 +4,8 @@ export const OWLBEAR_PARTICIPANT_ID_KEY = `${OWLBEAR_METADATA_NAMESPACE}/partici
 export const OWLBEAR_ENCOUNTER_ID_KEY = `${OWLBEAR_METADATA_NAMESPACE}/encounterId`;
 export const OWLBEAR_SNAPSHOT_ID_KEY = `${OWLBEAR_METADATA_NAMESPACE}/snapshotId`;
 export const OWLBEAR_MARKER_KIND_KEY = `${OWLBEAR_METADATA_NAMESPACE}/markerKind`;
+export const OWLBEAR_TOKEN_RING_KEY = `${OWLBEAR_METADATA_NAMESPACE}/tokenRing`;
+export const OWLBEAR_TURN_HIGHLIGHT_KEY = `${OWLBEAR_METADATA_NAMESPACE}/turnHighlight`;
 
 export interface OwlbearEncounterSnapshot {
 	schemaVersion: 1;
@@ -12,6 +14,7 @@ export interface OwlbearEncounterSnapshot {
 	encounterName: string;
 	round: number;
 	activeParticipantId: number | null;
+	nextParticipantId: number | null;
 	createdAt: string;
 	participants: OwlbearParticipantSnapshot[];
 	tokenLinks: OwlbearTokenLink[];
@@ -62,10 +65,11 @@ export interface OwlbearSyncDiagnostics {
 	lastError?: string;
 }
 
-export type MarkerKind = "label" | "bloodied" | "defeated" | "concentration" | "condition-duration";
+export type MarkerKind = "bloodied" | "down" | "dead" | "concentration" | "condition";
 
 export interface TokenMarker {
 	kind: MarkerKind;
-	text: string;
-	color: string;
+	icon: string;
+	conditionUrl?: string;
+	remainingRounds?: number;
 }

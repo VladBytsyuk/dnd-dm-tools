@@ -7,6 +7,7 @@ describe('Clipboard', () => {
     beforeEach(() => {
         vi.spyOn(obsidian, 'stringifyYaml').mockImplementation(JSON.stringify);
         vi.spyOn(obsidian, 'parseYaml').mockImplementation(JSON.parse);
+        obsidian.Platform.isDesktopApp = false;
     });
 
     afterEach(() => {
@@ -28,6 +29,19 @@ describe('Clipboard', () => {
 
         // Assert
         expect(writeText).toHaveBeenCalledWith(text);
+    });
+
+    it('falls back to document copy when the Clipboard API rejects', async () => {
+        const text = 'Fallback text';
+        const writeText = vi.fn().mockRejectedValue(new Error('missing remote object'));
+        const execCommand = vi.fn().mockReturnValue(true);
+        Object.defineProperty(navigator, 'clipboard', { value: { writeText }, writable: true });
+        Object.defineProperty(document, 'execCommand', { value: execCommand, writable: true });
+
+        await copyTextToClipboard(text, true);
+
+        expect(writeText).toHaveBeenCalledWith(text);
+        expect(execCommand).toHaveBeenCalledWith('copy');
     });
 
     it('should copy monster to clipboard', () => {
@@ -305,4 +319,18 @@ ${yaml}
         // Assert
         expect(encounter).toEqual(encounterWithResources);
     });
+
+    it('reads an encounter from the clipboard with one action on desktop', async () => {
+        const yaml = obsidian.stringifyYaml(mockEncounter);
+        const clipboardContent = `\`\`\`encounter
+${yaml}
+\`\`\``;
+        const readText = vi.fn().mockResolvedValue(clipboardContent);
+        obsidian.Platform.isDesktopApp = true;
+        Object.defineProperty(navigator, 'clipboard', { value: { readText }, writable: true });
+
+        await expect(getEncounterFromClipboard()).resolves.toEqual(mockEncounter);
+        expect(readText).toHaveBeenCalledOnce();
+    });
+
 });

@@ -14,6 +14,7 @@ export interface OwlbearEncounterSnapshot {
 	encounterName: string;
 	round: number;
 	activeParticipantId: number | null;
+	nextParticipantId: number | null;
 	createdAt: string;
 	participants: OwlbearParticipantSnapshot[];
 	tokenLinks: OwlbearTokenLink[];
@@ -72,6 +73,9 @@ export function createOwlbearEncounterSnapshot(
 	const activeParticipant = runtimeState.activeParticipantIndex == null
 		? null
 		: runtimeState.encounter.participants[runtimeState.activeParticipantIndex] ?? null;
+	const nextParticipant = activeParticipant
+		? findNextLivingParticipant(runtimeState.encounter.participants, runtimeState.activeParticipantIndex!)
+		: null;
 	const createdAt = now.toISOString();
 
 	return {
@@ -81,6 +85,7 @@ export function createOwlbearEncounterSnapshot(
 		encounterName: runtimeState.encounter.name,
 		round: runtimeState.round,
 		activeParticipantId: activeParticipant?.id ?? null,
+		nextParticipantId: nextParticipant?.id ?? null,
 		createdAt,
 		participants: runtimeState.encounter.participants.map((participant) => ({
 			participantId: participant.id,
@@ -109,6 +114,14 @@ export function createOwlbearEncounterSnapshot(
 				lastSeenAt: createdAt,
 			})),
 	};
+}
+
+function findNextLivingParticipant(participants: Encounter["participants"], activeIndex: number) {
+	for (let offset = 1; offset < participants.length; offset += 1) {
+		const participant = participants[(activeIndex + offset) % participants.length];
+		if (!participant.isDead) return participant;
+	}
+	return null;
 }
 
 export function createEmptyOwlbearEncounterSnapshot(encounter: Encounter): OwlbearEncounterSnapshot {

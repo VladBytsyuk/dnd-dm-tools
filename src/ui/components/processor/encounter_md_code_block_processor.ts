@@ -53,6 +53,7 @@ async function encounterMdCodeBlockProcessor(
             onConditionClick: openCondition,
             onImageRequested: async (it: string) => await uiEventListener.onImageRequested(it),
             onOwlbearSnapshotCreated: async () => {},
+			onOwlbearTurnChanged: async () => {},
         },
     });
 }

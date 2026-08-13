@@ -155,10 +155,20 @@ export default class DndStatblockPlugin extends Plugin {
 	}
 
 	async publishOwlbearSnapshot(snapshot: OwlbearEncounterSnapshot): Promise<void> {
-		await this.persistLatestOwlbearSnapshot(snapshot);
+		const snapshotToPublish = this.reuseOwlbearEncounterIdentity(snapshot);
+		await this.persistLatestOwlbearSnapshot(snapshotToPublish);
 		if (!this.settings.owlbearSync.enabled) throw new Error("Интеграция с Owlbear выключена. Включите её в настройках плагина.");
 		if (!this.owlbearServer?.getStatus().running) throw new Error("Локальный сервер Owlbear не запущен.");
-		this.owlbearServer.publish(snapshot);
+		this.owlbearServer.publish(snapshotToPublish);
+	}
+
+	async publishOwlbearTurnSnapshot(snapshot: OwlbearEncounterSnapshot): Promise<void> {
+		const previous = this.settings.owlbearSync.latestSnapshot;
+		if (!previous || !hasOwlbearParticipantOverlap(previous, snapshot)) return;
+		if (!this.settings.owlbearSync.enabled || !this.owlbearServer?.getStatus().connected) return;
+		const snapshotToPublish = { ...snapshot, encounterId: previous.encounterId, tokenLinks: previous.tokenLinks };
+		await this.persistLatestOwlbearSnapshot(snapshotToPublish);
+		this.owlbearServer.publish(snapshotToPublish);
 	}
 
 	private async updateOwlbearSettings(patch: Partial<OwlbearSyncSettings>): Promise<void> {
@@ -199,6 +209,12 @@ export default class DndStatblockPlugin extends Plugin {
 		const snapshot = this.settings.owlbearSync.latestSnapshot;
 		if (!snapshot) return;
 		await this.updateOwlbearSettings({ latestSnapshot: { ...snapshot, tokenLinks: links, diagnostics } });
+	}
+
+	private reuseOwlbearEncounterIdentity(snapshot: OwlbearEncounterSnapshot): OwlbearEncounterSnapshot {
+		const previous = this.settings.owlbearSync.latestSnapshot;
+		if (!previous || !sameOwlbearParticipants(previous, snapshot)) return snapshot;
+		return { ...snapshot, encounterId: previous.encounterId, tokenLinks: previous.tokenLinks };
 	}
 
 	private getOwlbearExtensionDirectories(): string[] {
@@ -279,6 +295,18 @@ export default class DndStatblockPlugin extends Plugin {
 		this.panelManager.dispose();
 		this.features.forEach(feature => feature.dispose());
 	}
+}
+
+function sameOwlbearParticipants(left: OwlbearEncounterSnapshot, right: OwlbearEncounterSnapshot): boolean {
+	if (left.participants.length !== right.participants.length) return false;
+	const leftIds = left.participants.map((participant) => participant.participantId).sort((a, b) => a - b);
+	const rightIds = right.participants.map((participant) => participant.participantId).sort((a, b) => a - b);
+	return leftIds.every((participantId, index) => participantId === rightIds[index]);
+}
+
+function hasOwlbearParticipantOverlap(left: OwlbearEncounterSnapshot, right: OwlbearEncounterSnapshot): boolean {
+	const leftParticipantIds = new Set(left.participants.map((participant) => participant.participantId));
+	return right.participants.some((participant) => leftParticipantIds.has(participant.participantId));
 }
 
 function formatOwlbearError(error: unknown): string {

@@ -61,6 +61,7 @@ describe("OwlbearSync", () => {
 			encounterName: "Duplicate goblins",
 			round: 2,
 			activeParticipantId: 1,
+			nextParticipantId: 2,
 		});
 		expect(snapshot.participants.map((participant) => participant.participantId)).toEqual([1, 2]);
 		expect(snapshot.participants.map((participant) => participant.name)).toEqual(["Goblin", "Goblin"]);

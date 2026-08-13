@@ -1,4 +1,5 @@
 import { Notice, PluginSettingTab, Setting } from "obsidian";
+import { writeTextToClipboard } from "src/data/clipboard";
 import type DndStatblockPlugin from "src/main";
 
 export class OwlbearSettingsTab extends PluginSettingTab {
@@ -51,27 +52,11 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 	private copySetting(containerEl: HTMLElement, name: string, value: string): void {
 		new Setting(containerEl).setName(name).setDesc(value).addButton((button) => button.setButtonText("Копировать").onClick(async () => {
 			try {
-				await copyToClipboard(value);
+				await writeTextToClipboard(value);
 				new Notice(`${name} скопирован.`);
 			} catch {
 				new Notice(`Не удалось скопировать ${name}.`);
 			}
 		}));
 	}
-}
-
-async function copyToClipboard(value: string): Promise<void> {
-	if (navigator.clipboard?.writeText) {
-		await navigator.clipboard.writeText(value);
-		return;
-	}
-	const textarea = document.createElement("textarea");
-	textarea.value = value;
-	textarea.style.position = "fixed";
-	textarea.style.opacity = "0";
-	document.body.append(textarea);
-	textarea.select();
-	const copied = document.execCommand("copy");
-	textarea.remove();
-	if (!copied) throw new Error("Clipboard API unavailable");
 }

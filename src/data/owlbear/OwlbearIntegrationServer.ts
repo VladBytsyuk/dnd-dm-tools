@@ -13,6 +13,13 @@ const ASSETS: Record<string, { filename: string; contentType: string }> = {
 	"/main.js": { filename: "main.js", contentType: "text/javascript; charset=utf-8" },
 	"/icon.svg": { filename: "icon.svg", contentType: "image/svg+xml" },
 };
+const STATUS_ICON_NAMES = [
+	"bloodied", "down", "dead", "concentration", "condition",
+	"unconscious", "frightened", "exhaustion", "invisible", "incapacitated", "deafened", "petrified", "restrained", "blinded", "poisoned", "charmed", "stunned", "paralyzed", "prone", "grappled",
+];
+for (const name of STATUS_ICON_NAMES) {
+	ASSETS[`/status-icons/${name}.svg`] = { filename: `status-icons/${name}.svg`, contentType: "image/svg+xml" };
+}
 
 type IntegrationMessage = {
 	protocolVersion: number;
@@ -165,7 +172,7 @@ export class OwlbearIntegrationServer {
 			this.authenticated = true;
 			if (this.handshakeTimeout) clearTimeout(this.handshakeTimeout);
 			this.setStatus({ ...this.status, connected: true });
-			this.send({ type: "server.ready", snapshot: this.getSnapshot() ?? null });
+			this.send({ type: "server.ready", snapshot: null });
 			return;
 		}
 		if (message.type === "snapshot.request") {
@@ -220,7 +227,6 @@ export class OwlbearIntegrationServer {
 	}
 
 	private prepareSnapshot(snapshot: OwlbearEncounterSnapshot): OwlbearEncounterSnapshot {
-		this.tokenImages.clear();
 		return {
 			...snapshot,
 			participants: snapshot.participants.map((participant) => {
@@ -228,8 +234,9 @@ export class OwlbearIntegrationServer {
 				if (!image) {
 					throw new Error(`Obsidian не передал изображение для «${participant.name}».`);
 				}
-				const path = `/token-images/${encodeURIComponent(snapshot.snapshotId)}/${participant.participantId}`;
-				this.tokenImages.set(path, image);
+				const imageId = createHash("sha256").update(image.mime).update(image.bytes).digest("hex");
+				const path = `/token-images/${imageId}`;
+				if (!this.tokenImages.has(path)) this.tokenImages.set(path, image);
 				return {
 					...participant,
 					imageUrl: `http://localhost:${this.status.port}${path}`,

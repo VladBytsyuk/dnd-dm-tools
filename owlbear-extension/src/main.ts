@@ -79,7 +79,6 @@ async function onMessage(data: unknown): Promise<void> {
 		reconnectAttempts = 0;
 		lastError = undefined;
 		render();
-		send({ type: "snapshot.request" });
 	}
 	if (message.type === "snapshot.publish") await applySnapshot(message.snapshot);
 	if (message.type === "pong") { connectionStatus = "Подключено"; render(); }
@@ -87,10 +86,11 @@ async function onMessage(data: unknown): Promise<void> {
 
 async function applySnapshot(value: unknown): Promise<void> {
 	if (!isSnapshot(value)) { render(); return; }
-	state.snapshot = value;
+	const previousSnapshot = state.snapshot;
 	state.diagnostics = { ...createInitialDiagnostics(), snapshotLoaded: true, participantCount: value.participants.length };
 	try {
-		const result = await pushSnapshotToScene(value);
+		const result = await pushSnapshotToScene(value, previousSnapshot);
+		state.snapshot = value;
 		state.diagnostics = result.diagnostics;
 		lastError = result.diagnostics.lastError ? localizeSceneError(result.diagnostics.lastError) : undefined;
 		send({ type: "snapshot.applied", tokenLinks: result.tokenLinks, diagnostics: result.diagnostics });

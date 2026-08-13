@@ -1,4 +1,4 @@
-import { Notice, parseYaml, stringifyYaml } from "obsidian";
+import { Notice, stringifyYaml, parseYaml } from "obsidian";
 import type { Encounter } from "src/domain/models/encounter/Encounter";
 import { mapCharacterSheetToEncounterParticipant, mapMonsterToEncounterParticipant } from "src/domain/mappers";
 import type { FullSpell } from "src/domain/models/spell/FullSpell";
@@ -16,79 +16,109 @@ import type { FullClass } from "../domain/models/class/FullClass";
 import type { FullCharacterSheet } from "src/domain/models/character";
 
 // ---- Copy to clipboard ----
-export function copyTextToClipboard(text: string, ignoreNotice: boolean = false) {
+export async function copyTextToClipboard(text: string, ignoreNotice: boolean = false): Promise<void> {
     try {
-        navigator.clipboard.writeText(text);
+        await writeTextToClipboard(text);
         if (!ignoreNotice) new Notice(`${text} - успешно скопировано.`);
     } catch(e) {
         console.error(`Failed to save text into clipboard: ${e}`);
     }
 }
 
-export function copyMonsterToClipboard(monster: FullMonster, ignoreNotice: boolean = false) {
-    copyToClipboard(monster, monster.name.rus, "statblock", null, ignoreNotice);
+export function copyMonsterToClipboard(monster: FullMonster, ignoreNotice: boolean = false): Promise<void> {
+    return copyToClipboard(monster, monster.name.rus, "statblock", null, ignoreNotice);
 }
 
-export function copyEncounterToClipboard(encounter: Encounter) {
-    copyToClipboard(encounter, encounter.name, "encounter");
+export function copyEncounterToClipboard(encounter: Encounter): Promise<void> {
+    return copyToClipboard(encounter, encounter.name, "encounter");
 }
 
-export function copySpellToClipboard(spell: FullSpell) {
-    copyToClipboard(spell, spell.name.rus, "spell", `spell: ${spell.name.rus}`);    
+export function copySpellToClipboard(spell: FullSpell): Promise<void> {
+    return copyToClipboard(spell, spell.name.rus, "spell", `spell: ${spell.name.rus}`);
 }
 
-export function copyDmScreenItem(dmScreenItem: DmScreenItem) {
-    copyToClipboard(dmScreenItem, dmScreenItem.name.rus, "screen")
+export function copyDmScreenItem(dmScreenItem: DmScreenItem): Promise<void> {
+    return copyToClipboard(dmScreenItem, dmScreenItem.name.rus, "screen")
 }
 
-export function copyWeaponToClipboard(weapon: FullWeapon) {
-    copyToClipboard(weapon, weapon.name.rus, "weapon");
+export function copyWeaponToClipboard(weapon: FullWeapon): Promise<void> {
+    return copyToClipboard(weapon, weapon.name.rus, "weapon");
 }
 
-export function copyArmorToClipboard(armor: FullArmor) {
-    copyToClipboard(armor, armor.name.rus, "armor");
+export function copyArmorToClipboard(armor: FullArmor): Promise<void> {
+    return copyToClipboard(armor, armor.name.rus, "armor");
 }
 
-export function copyEquipmentToClipboard(equipment: FullItem) {
-    copyToClipboard(equipment, equipment.name.rus, "equip");
+export function copyEquipmentToClipboard(equipment: FullItem): Promise<void> {
+    return copyToClipboard(equipment, equipment.name.rus, "equip");
 }
 
-export function copyArtifactToClipboard(artifact: FullArtifact) {
-    copyToClipboard(artifact, artifact.name.rus, "artifact");
+export function copyArtifactToClipboard(artifact: FullArtifact): Promise<void> {
+    return copyToClipboard(artifact, artifact.name.rus, "artifact");
 }
 
-export function copyBackgroundToClipboard(background: FullBackground) {
-    copyToClipboard(background, background.name.rus, "background");
+export function copyBackgroundToClipboard(background: FullBackground): Promise<void> {
+    return copyToClipboard(background, background.name.rus, "background");
 }
 
-export function copyFeatToClipboard(feat: FullFeat) {
-    copyToClipboard(feat, feat.name.rus, "feat");
+export function copyFeatToClipboard(feat: FullFeat): Promise<void> {
+    return copyToClipboard(feat, feat.name.rus, "feat");
 }
 
-export function copyRaceToClipboard(race: FullRace) {
-    copyToClipboard(race, race.name.rus, "race");
+export function copyRaceToClipboard(race: FullRace): Promise<void> {
+    return copyToClipboard(race, race.name.rus, "race");
 }
 
-export function copyClassToClipboard(classItem: FullClass) {
-    copyToClipboard(classItem, classItem.name.rus, "dnd-class");
+export function copyClassToClipboard(classItem: FullClass): Promise<void> {
+    return copyToClipboard(classItem, classItem.name.rus, "dnd-class");
 }
 
 export function copyCharacterSheetToClipboard(character: FullCharacterSheet): boolean {
     const participant = mapCharacterSheetToEncounterParticipant(character);
     if (!participant) return false;
-    copyToClipboard(participant, participant.name, "encounter-participant");
+    void copyToClipboard(participant, participant.name, "encounter-participant");
     return true;
 }
 
-function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string, additionalContent: string | null = null, ignoreNotice: boolean = false) {
+async function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string, additionalContent: string | null = null, ignoreNotice: boolean = false): Promise<void> {
     const yaml = stringifyYaml(obj);
     const content = `\`\`\`${codeBlockName}\n${additionalContent ? `${additionalContent}\n`: ''}${yaml}\n\`\`\``
     try {
-        navigator.clipboard.writeText(content);
+        await writeTextToClipboard(content);
         if (!ignoreNotice) new Notice(`${objName} - успешно скопировано.`);
     } catch(e) {
         console.error(`Failed to save ${codeBlockName} into clipboard: ${e}`);
     }
+}
+
+export async function writeTextToClipboard(text: string): Promise<void> {
+    try {
+        await navigator.clipboard.writeText(text);
+        return;
+    } catch (clipboardError) {
+        try {
+            copyTextWithDom(text);
+        } catch {
+            throw clipboardError;
+        }
+    }
+}
+
+function copyTextWithDom(text: string): void {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    const copied = document.execCommand("copy");
+    textarea.remove();
+    if (!copied) throw new Error("Не удалось скопировать текст в буфер обмена.");
+}
+
+async function readTextFromClipboard(): Promise<string> {
+    return navigator.clipboard.readText();
 }
 
 // ---- Get from clipboard ----
@@ -128,7 +158,7 @@ export async function getClassFromClipboard(ignoreNotice: boolean = false): Prom
 
 export async function getFromClipboard<T>(blockName: string, ignoreNotice: boolean = false): Promise<T | undefined> {
     try {
-        const clipboard = (await navigator.clipboard.readText())
+        const clipboard = (await readTextFromClipboard())
             .replace(/\r\n?/g, "\n")
             .trim();
         const lines = clipboard.split("\n");
