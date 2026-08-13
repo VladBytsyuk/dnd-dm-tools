@@ -1,16 +1,10 @@
 {
 	"name": "DnD DM Tools Sync",
-	"version": "0.1.6",
+	"version": "0.1.8",
 	"manifest_version": 1,
 	"author": "TTG Club",
 	"description": "Sync DnD DM Tools initiative encounters into Owlbear Rodeo scenes.",
 	"icon": "/icon.svg",
-	"permissions": [
-		{
-			"name": "clipboard-read",
-			"reason": "Read the encounter snapshot copied from the Obsidian plugin."
-		}
-	],
 	"action": {
 		"title": "DnD DM Tools",
 		"icon": "/icon.svg",

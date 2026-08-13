@@ -16,10 +16,10 @@
 	} from "lucide-svelte";
 	import {
 		copyEncounterToClipboard,
-		copyTextToClipboard,
 		getEncounterFromClipboard,
 		getEncounterParticipantFromClipboard,
 	} from "src/data/clipboard";
+	import { Notice, requestUrl } from "obsidian";
 	import type { Encounter } from "src/domain/models/encounter/Encounter";
 	import { EncounterManager } from "src/domain/models/encounter/EncounterManager";
 	import type {
@@ -35,7 +35,7 @@
 	} from "src/domain/models/owlbear/OwlbearSync";
 	import ParticipantItem from "./ParticipantItem.svelte";
 
-	let { app: _app, encounter, isEditable, onPortraitClick, onConditionClick, onImageRequested, onOwlbearSnapshotCreated } =
+	let { app, encounter, isEditable, onPortraitClick, onConditionClick, onImageRequested, onOwlbearSnapshotCreated } =
 		$props<{
 			app: any;
 			encounter: Encounter;
@@ -124,39 +124,87 @@
 		await copyEncounterToClipboard(state.current.encounter);
 	};
 
-	const copyOwlbearSnapshot = async () => {
+	const sendOwlbearSnapshot = async () => {
 		const snapshot = await createOwlbearSnapshotWithImages();
-		await onOwlbearSnapshotCreated(snapshot);
-		copyTextToClipboard(JSON.stringify(snapshot, null, 2));
+		try {
+			await onOwlbearSnapshotCreated(snapshot);
+			new Notice("Столкновение отправлено в Owlbear.");
+		} catch (error) {
+			new Notice(error instanceof Error ? error.message : "Не удалось отправить столкновение в Owlbear.");
+		}
 	};
 
 	const createOwlbearSnapshotWithImages = async (): Promise<OwlbearEncounterSnapshot> => {
 		const snapshot = createOwlbearEncounterSnapshot(state.current, owlbearEncounterId);
-		const participants = await Promise.all(snapshot.participants.map(async (participant) => ({
-			...participant,
-			imageDataUrl: participant.imageUrl
-				? await loadImageDataUrl(participant.imageUrl)
-				: undefined,
-		})));
+		const participants = await Promise.all(snapshot.participants.map(async (participant) => {
+			const image = await loadParticipantImage(participant.name, participant.imageUrl);
+			return {
+				...participant,
+				imageDataUrl: image.dataUrl,
+				imageWidth: image.width,
+				imageHeight: image.height,
+			};
+		}));
 		return { ...snapshot, participants };
 	};
 
-	const loadImageDataUrl = async (url: string): Promise<string | undefined> => {
+	const loadParticipantImage = async (name: string, url: string | undefined): Promise<{ dataUrl: string; width: number; height: number }> => {
+		if (!url) throw new Error(`У участника «${name}» нет изображения токена.`);
 		try {
-			const resolvedUrl = await onImageRequested(url);
-			const response = await fetch(resolvedUrl);
-			if (!response.ok) return undefined;
-			const blob = await response.blob();
-			if (!blob.type.startsWith("image/")) return undefined;
-			const bytes = new Uint8Array(await blob.arrayBuffer());
-			let binary = "";
-			for (let index = 0; index < bytes.length; index += 1) {
-				binary += String.fromCharCode(bytes[index]);
+			let dataUrl: string;
+			if (/^data:image\//i.test(url)) dataUrl = url;
+			else {
+				const localPath = getVaultImagePath(url);
+				if (localPath) {
+					const bytes = new Uint8Array(await app.vault.adapter.readBinary(localPath));
+					dataUrl = createImageDataUrl(bytes, mimeForImagePath(localPath));
+				} else {
+					const response = await requestUrl({ url });
+					if (response.status < 200 || response.status >= 300) throw new Error(`HTTP ${response.status}`);
+					const mime = response.headers["content-type"]?.split(";", 1)[0] || mimeForImagePath(url);
+					if (!mime.startsWith("image/")) throw new Error("файл не является изображением");
+					dataUrl = createImageDataUrl(new Uint8Array(response.arrayBuffer), mime);
+				}
 			}
-			return `data:${blob.type};base64,${btoa(binary)}`;
-		} catch {
-			return undefined;
+			const { width, height } = await getImageDimensions(dataUrl);
+			return { dataUrl, width, height };
+		} catch (error) {
+			const reason = error instanceof Error ? error.message : "неизвестная ошибка";
+			throw new Error(`Не удалось загрузить изображение участника «${name}»: ${reason}`);
 		}
+	};
+
+	const getImageDimensions = (dataUrl: string): Promise<{ width: number; height: number }> => new Promise((resolve, reject) => {
+		const image = new Image();
+		image.onload = () => {
+			if (image.naturalWidth > 0 && image.naturalHeight > 0) {
+				resolve({ width: image.naturalWidth, height: image.naturalHeight });
+			} else reject(new Error("не удалось определить размеры изображения"));
+		};
+		image.onerror = () => reject(new Error("не удалось прочитать изображение"));
+		image.src = dataUrl;
+	});
+
+	const getVaultImagePath = (url: string): string | null => {
+		if (url.startsWith("obsidian://")) {
+			return decodeURIComponent(new URLSearchParams(url.split("?")[1]).get("file") ?? "") || null;
+		}
+		return /^(?:https?|app|data):/i.test(url) ? null : url;
+	};
+
+	const mimeForImagePath = (path: string): string => {
+		const extension = path.split(".").pop()?.toLowerCase();
+		if (extension === "jpg" || extension === "jpeg") return "image/jpeg";
+		if (extension === "webp") return "image/webp";
+		if (extension === "gif") return "image/gif";
+		if (extension === "svg") return "image/svg+xml";
+		return "image/png";
+	};
+
+	const createImageDataUrl = (bytes: Uint8Array, mime: string): string => {
+		let binary = "";
+		for (let index = 0; index < bytes.length; index += 1) binary += String.fromCharCode(bytes[index]);
+		return `data:${mime};base64,${btoa(binary)}`;
 	};
 
 	const pasteEncounter = async () => {
@@ -259,9 +307,9 @@
 			{#if isEditable}
 				<button
 					class="btn ghost"
-					onclick={copyOwlbearSnapshot}
-					aria-label="Копировать снимок для Owlbear"
-					title="Копировать снимок для Owlbear"
+					onclick={sendOwlbearSnapshot}
+					aria-label="Отправить столкновение в Owlbear"
+					title="Отправить столкновение в Owlbear"
 				>
 					<Download size={16} />
 				</button>

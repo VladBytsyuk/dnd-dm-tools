@@ -6,7 +6,7 @@
 	"scripts": {
 		"dev": "npm run copy:assets && node esbuild.config.mjs",
 		"build": "npm run copy:assets && tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && npm run owlbear:build",
-		"release": "npm run build && mkdir -p .release/dnd-dm-tools && cp main.js manifest.json sql-wasm.wasm styles.css .release/dnd-dm-tools",
+		"release": "npm run build && mkdir -p .release/dnd-dm-tools && cp main.js manifest.json sql-wasm.wasm styles.css .release/dnd-dm-tools && shx rm -rf .release/dnd-dm-tools/owlbear-extension && mkdir -p .release/dnd-dm-tools/owlbear-extension && shx cp owlbear-extension/dist/* .release/dnd-dm-tools/owlbear-extension",
 		"copy:assets": "shx cp node_modules/sql.js/dist/sql-wasm.wasm ./sql-wasm.wasm",
 		"owlbear:dev": "npm --prefix owlbear-extension run dev",
 		"owlbear:build": "npm --prefix owlbear-extension run build",

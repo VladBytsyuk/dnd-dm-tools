@@ -24,6 +24,9 @@ export interface OwlbearParticipantSnapshot {
 	name: string;
 	imageUrl?: string;
 	imageDataUrl?: string;
+	imageMime?: string;
+	imageWidth?: number;
+	imageHeight?: number;
 	initiative: number;
 	hpCurrent: number;
 	hpMax: number;

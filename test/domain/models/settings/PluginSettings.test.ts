@@ -13,7 +13,7 @@ describe("PluginSettings", () => {
 			],
 		});
 
-		expect(result.settings.schemaVersion).toBe(2);
+		expect(result.settings.schemaVersion).toBe(3);
 		expect(result.settings.workspace.layout).toBe("vertical-split");
 		expect(result.settings.workspace.tiles[0].tabs).toEqual(["bestiary"]);
 		expect(result.settings.workspace.tiles[1].tabs).toEqual(["spellbook"]);
@@ -72,5 +72,25 @@ describe("PluginSettings", () => {
 		});
 
 		expect(result.settings.owlbearSync?.latestSnapshot).toEqual(latestSnapshot);
+		expect(result.settings.owlbearSync.enabled).toBe(false);
+		expect(result.settings.owlbearSync.port).toBeNull();
+	});
+
+	it("loads persisted Owlbear connection settings", () => {
+		const result = loadPluginSettings({
+			schemaVersion: 3,
+			workspace: {
+				layout: "single", focusedTile: 0, splitRatio: 0.5,
+				tiles: [{ tabs: [], activeTab: null }, { tabs: [], activeTab: null }],
+			},
+			owlbearSync: { enabled: true, port: 43125, authToken: "a".repeat(43) },
+		});
+
+		expect(result.settings.owlbearSync).toMatchObject({ enabled: true, port: 43125, authToken: "a".repeat(43) });
+	});
+
+	it("rejects invalid persisted Owlbear ports and tokens", () => {
+		const result = loadPluginSettings({ owlbearSync: { enabled: true, port: 80, authToken: "short" } });
+		expect(result.settings.owlbearSync).toMatchObject({ enabled: true, port: null, authToken: null });
 	});
 });
