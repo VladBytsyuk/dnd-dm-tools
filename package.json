@@ -5,9 +5,12 @@
 	"main": "main.js",
 	"scripts": {
 		"dev": "npm run copy:assets && node esbuild.config.mjs",
-		"build": "npm run copy:assets && tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"build": "npm run copy:assets && tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && npm run owlbear:build",
 		"release": "npm run build && mkdir -p .release/dnd-dm-tools && cp main.js manifest.json sql-wasm.wasm styles.css .release/dnd-dm-tools",
 		"copy:assets": "shx cp node_modules/sql.js/dist/sql-wasm.wasm ./sql-wasm.wasm",
+		"owlbear:dev": "npm --prefix owlbear-extension run dev",
+		"owlbear:build": "npm --prefix owlbear-extension run build",
+		"owlbear:check": "npm --prefix owlbear-extension run check",
 		"generate:ttg-openapi": "node scripts/generate-ttg-openapi.mjs",
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"svelte-check": "svelte-check --tsconfig tsconfig.json",

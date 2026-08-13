@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Trash2, Skull, Dices, Heart, Shield, Eye, Users, Meh } from "lucide-svelte";
+	import { Trash2, Skull, Dices, Heart, Shield, Eye, Users, Meh, Brain } from "lucide-svelte";
 	import { d20, roll } from "src/domain/dice";
 	import { formatModifier } from "src/domain/modifier";
 	import { evalNumericExpression } from "src/domain/utils/mathExpression";
@@ -26,6 +26,7 @@
 		onConditionChange,
 		onConditionDelete,
 		onResourcesChange,
+		onToggleConcentration,
 		getRound,
         onImageRequested
 	} = $props<{
@@ -45,6 +46,7 @@
 			spellSlots: EncounterParticipantSpellSlot[],
 			resources: EncounterParticipantResource[],
 		) => void;
+		onToggleConcentration: (participantId: number) => void;
 		getRound: () => number;
         onImageRequested: (url: string) => Promise<string>;
 	}>();
@@ -484,6 +486,20 @@
 				getSpellSlots={() => participant.spellSlots ?? []}
 				getResources={() => participant.resources ?? []}
 			/>
+			{#if isEditable || participant.isConcentrating}
+				<div
+					class="concentration-toggle"
+					data-active={Boolean(participant.isConcentrating)}
+					aria-label="Концентрация"
+					aria-pressed={Boolean(participant.isConcentrating)}
+					role="button"
+					tabindex="0"
+					onclick={() => onToggleConcentration(participant.id)}
+					onkeydown={(e) => onActivation(e, () => onToggleConcentration(participant.id))}
+				>
+					<Brain size={18} />
+				</div>
+			{/if}
 			</div>
 
 			{#if (participant.spellSlots?.length ?? 0) > 0 || (participant.resources?.length ?? 0) > 0}
@@ -694,6 +710,27 @@
         align-items: center;
         align-content: center;
     }
+
+	.concentration-toggle {
+		display: grid;
+		place-items: center;
+		width: 32px;
+		height: 32px;
+		border-radius: 24px;
+		background: var(--background-secondary);
+		color: var(--text-muted);
+		cursor: pointer;
+	}
+
+	.concentration-toggle[data-active="true"] {
+		background: var(--interactive-accent);
+		color: var(--text-on-accent);
+	}
+
+	.concentration-toggle:focus-visible {
+		outline: 2px solid var(--interactive-accent);
+		outline-offset: 2px;
+	}
 
 	.hpwrap {
 		display: inline-flex;

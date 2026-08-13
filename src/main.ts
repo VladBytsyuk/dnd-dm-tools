@@ -27,6 +27,7 @@ import {
 	loadPluginSettings,
 	type PluginSettingsState,
 } from './domain/models/settings/PluginSettings';
+import type { OwlbearEncounterSnapshot } from './domain/models/owlbear/OwlbearSync';
 import { PanelManager } from './ui/components/sidepanel/PanelManager';
 import type { PanelHost } from './ui/components/sidepanel/PanelHost';
 
@@ -98,6 +99,15 @@ export default class DndStatblockPlugin extends Plugin {
 		};
 		this.assistantWorkspace = this.settings.workspace;
 		await this.saveData(this.settings);
+	}
+
+	async persistLatestOwlbearSnapshot(snapshot: OwlbearEncounterSnapshot): Promise<void> {
+		await this.updateSettings({
+			owlbearSync: {
+				...(this.settings.owlbearSync ?? {}),
+				latestSnapshot: snapshot,
+			},
+		});
 	}
 
 	// ---- private methods ----

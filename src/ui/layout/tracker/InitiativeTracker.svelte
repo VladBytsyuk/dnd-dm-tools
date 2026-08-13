@@ -4,6 +4,7 @@
 		StepForward,
 		ClipboardCopy,
 		ClipboardPlus,
+		Download,
 		Replace,
 		ArrowUpDown,
 		Skull,
@@ -15,6 +16,7 @@
 	} from "lucide-svelte";
 	import {
 		copyEncounterToClipboard,
+		copyTextToClipboard,
 		getEncounterFromClipboard,
 		getEncounterParticipantFromClipboard,
 	} from "src/data/clipboard";
@@ -26,9 +28,14 @@
 		EncounterParticipantResource,
 		EncounterParticipantSpellSlot,
 	} from "src/domain/models/encounter/EncounterParticipant";
+	import {
+		createEncounterId,
+		createOwlbearEncounterSnapshot,
+		type OwlbearEncounterSnapshot,
+	} from "src/domain/models/owlbear/OwlbearSync";
 	import ParticipantItem from "./ParticipantItem.svelte";
 
-	let { app: _app, encounter, isEditable, onPortraitClick, onConditionClick, onImageRequested } =
+	let { app: _app, encounter, isEditable, onPortraitClick, onConditionClick, onImageRequested, onOwlbearSnapshotCreated } =
 		$props<{
 			app: any;
 			encounter: Encounter;
@@ -36,6 +43,7 @@
 			onPortraitClick: (url: string) => void;
 			onConditionClick: (url: string) => void;
 			onImageRequested: (url: string) => Promise<string>;
+			onOwlbearSnapshotCreated: (snapshot: OwlbearEncounterSnapshot) => Promise<void>;
 		}>();
 
 	function createEncounterManager() {
@@ -43,6 +51,7 @@
 	}
 
 	const encounterManager = createEncounterManager();
+	const owlbearEncounterId = createEncounterId();
 
 	let state = $state({
 		current: encounterManager.current,
@@ -115,6 +124,41 @@
 		await copyEncounterToClipboard(state.current.encounter);
 	};
 
+	const copyOwlbearSnapshot = async () => {
+		const snapshot = await createOwlbearSnapshotWithImages();
+		await onOwlbearSnapshotCreated(snapshot);
+		copyTextToClipboard(JSON.stringify(snapshot, null, 2));
+	};
+
+	const createOwlbearSnapshotWithImages = async (): Promise<OwlbearEncounterSnapshot> => {
+		const snapshot = createOwlbearEncounterSnapshot(state.current, owlbearEncounterId);
+		const participants = await Promise.all(snapshot.participants.map(async (participant) => ({
+			...participant,
+			imageDataUrl: participant.imageUrl
+				? await loadImageDataUrl(participant.imageUrl)
+				: undefined,
+		})));
+		return { ...snapshot, participants };
+	};
+
+	const loadImageDataUrl = async (url: string): Promise<string | undefined> => {
+		try {
+			const resolvedUrl = await onImageRequested(url);
+			const response = await fetch(resolvedUrl);
+			if (!response.ok) return undefined;
+			const blob = await response.blob();
+			if (!blob.type.startsWith("image/")) return undefined;
+			const bytes = new Uint8Array(await blob.arrayBuffer());
+			let binary = "";
+			for (let index = 0; index < bytes.length; index += 1) {
+				binary += String.fromCharCode(bytes[index]);
+			}
+			return `data:${blob.type};base64,${btoa(binary)}`;
+		} catch {
+			return undefined;
+		}
+	};
+
 	const pasteEncounter = async () => {
 		if (!isEditable) return;
 
@@ -153,6 +197,12 @@
 		resources: EncounterParticipantResource[],
 	) => {
 		runEditable(() => encounterManager.setParticipantResources(participantId, spellSlots, resources));
+	};
+
+	const onToggleConcentration = (participantId: number) => {
+		const participant = state.current.encounter.participants.find((p) => p.id === participantId);
+		if (!participant) return;
+		setValue(participantId, "isConcentrating", !participant.isConcentrating);
 	};
 
 	const undo = () => {
@@ -207,6 +257,15 @@
 			</button>
 
 			{#if isEditable}
+				<button
+					class="btn ghost"
+					onclick={copyOwlbearSnapshot}
+					aria-label="Копировать снимок для Owlbear"
+					title="Копировать снимок для Owlbear"
+				>
+					<Download size={16} />
+				</button>
+
 				<button
 					class="btn ghost replaceAction"
 					onclick={pasteEncounter}
@@ -285,6 +344,7 @@
 						onConditionChange={onConditionChange}
 						onConditionDelete={onConditionDelete}
 						onResourcesChange={onResourcesChange}
+						onToggleConcentration={onToggleConcentration}
 						getRound={() => state.current.round}
 						onImageRequested={onImageRequested}
 					/>
@@ -392,13 +452,13 @@
 
 	.actions.editableActions {
 		display: grid;
-		grid-template-columns: repeat(8, 32px);
+		grid-template-columns: repeat(9, 32px);
 		justify-content: flex-end;
 	}
 
 	@container (max-width: 520px) {
 		.actions.editableActions {
-			grid-template-columns: repeat(4, 32px);
+			grid-template-columns: repeat(5, 32px);
 		}
 	}
 

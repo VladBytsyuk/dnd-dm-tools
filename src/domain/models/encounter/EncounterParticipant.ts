@@ -16,6 +16,8 @@ export interface EncounterParticipant {
     spellSlots?: EncounterParticipantSpellSlot[];
     resources?: EncounterParticipantResource[];
     colorHex?: string;
+    owlbearItemId?: string;
+    isConcentrating?: boolean;
 }
 
 export type EncounterParticipantCondition = { url: string; expiresOnRound: number | null };

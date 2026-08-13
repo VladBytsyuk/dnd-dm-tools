@@ -46,4 +46,31 @@ describe("PluginSettings", () => {
 		expect("characterSheetsEnabled" in result.settings).toBe(false);
 		expect("lss" in result.settings).toBe(false);
 	});
+
+	it("preserves the latest Owlbear snapshot when schema version is supported", () => {
+		const latestSnapshot = {
+			schemaVersion: 1,
+			snapshotId: "snapshot-1",
+			encounterId: "encounter-1",
+			encounterName: "Encounter",
+			round: 1,
+			activeParticipantId: null,
+			createdAt: "2026-08-12T10:00:00.000Z",
+			participants: [],
+			tokenLinks: [],
+		};
+
+		const result = loadPluginSettings({
+			schemaVersion: 2,
+			workspace: {
+				layout: "single",
+				focusedTile: 0,
+				splitRatio: 0.5,
+				tiles: [{ tabs: ["initiative-tracker"], activeTab: "initiative-tracker" }, { tabs: [], activeTab: null }],
+			},
+			owlbearSync: { latestSnapshot },
+		});
+
+		expect(result.settings.owlbearSync?.latestSnapshot).toEqual(latestSnapshot);
+	});
 });
