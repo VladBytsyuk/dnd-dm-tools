@@ -7,6 +7,8 @@ import type { OwlbearEncounterSnapshot, OwlbearSyncDiagnostics, OwlbearTokenLink
 
 const PROTOCOL_VERSION = 1;
 const HANDSHAKE_TIMEOUT_MS = 5_000;
+const AUTH_ERROR_CLOSE_CODE = 4001;
+const PROTOCOL_ERROR_CLOSE_CODE = 4002;
 const ASSETS: Record<string, { filename: string; contentType: string }> = {
 	"/manifest.json": { filename: "manifest.json", contentType: "application/json; charset=utf-8" },
 	"/index.html": { filename: "index.html", contentType: "text/html; charset=utf-8" },
@@ -166,9 +168,15 @@ export class OwlbearIntegrationServer {
 	}
 
 	private async handleMessage(message: IntegrationMessage): Promise<void> {
-		if (message.protocolVersion !== PROTOCOL_VERSION || typeof message.type !== "string") { this.client?.destroy(); return; }
+		if (message.protocolVersion !== PROTOCOL_VERSION || typeof message.type !== "string") {
+			this.closeClient(PROTOCOL_ERROR_CLOSE_CODE, "Несовместимая версия протокола.");
+			return;
+		}
 		if (!this.authenticated) {
-			if (message.type !== "client.hello" || message.token !== this.getToken()) { this.client?.destroy(); return; }
+			if (message.type !== "client.hello" || message.token !== this.getToken()) {
+				this.closeClient(AUTH_ERROR_CLOSE_CODE, "Неверный код сопряжения.");
+				return;
+			}
 			this.authenticated = true;
 			if (this.handshakeTimeout) clearTimeout(this.handshakeTimeout);
 			this.setStatus({ ...this.status, connected: true });
@@ -209,6 +217,16 @@ export class OwlbearIntegrationServer {
 		this.client = null;
 		this.authenticated = false;
 		if (this.status.running) this.setStatus({ ...this.status, connected: false });
+	}
+
+	private closeClient(code: number, reason: string): void {
+		if (this.handshakeTimeout) clearTimeout(this.handshakeTimeout);
+		this.handshakeTimeout = null;
+		const client = this.client;
+		this.client = null;
+		this.authenticated = false;
+		if (this.status.running) this.setStatus({ ...this.status, connected: false });
+		client?.end(createWebSocketCloseFrame(code, reason));
 	}
 
 	private origin(): string { return `http://localhost:${this.status.port}`; }
@@ -254,4 +272,12 @@ function parseImageDataUrl(value: string | undefined): { mime: string; bytes: Bu
 	const match = /^data:(image\/[a-z0-9.+-]+);base64,([a-z0-9+/=]+)$/i.exec(value ?? "");
 	if (!match) return null;
 	return { mime: match[1], bytes: Buffer.from(match[2], "base64") };
+}
+
+function createWebSocketCloseFrame(code: number, reason: string): Buffer {
+	const reasonBytes = Buffer.from(reason, "utf8").subarray(0, 123);
+	const payload = Buffer.alloc(2 + reasonBytes.length);
+	payload.writeUInt16BE(code, 0);
+	reasonBytes.copy(payload, 2);
+	return Buffer.concat([Buffer.from([0x88, payload.length]), payload]);
 }

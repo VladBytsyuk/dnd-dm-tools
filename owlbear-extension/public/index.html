@@ -23,9 +23,25 @@
 				gap: 10px;
 			}
 
+			.auth-row {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) 36px;
+				align-items: center;
+				gap: 8px;
+				min-height: 36px;
+			}
+
+			.auth-status {
+				min-width: 0;
+				padding: 0 4px;
+				font-size: 13px;
+				color: #d4d4d8;
+			}
+
 			.actions {
 				display: grid;
-				grid-template-columns: 1fr 1fr;
+				grid-template-columns: repeat(3, 36px);
+				justify-content: start;
 				gap: 8px;
 			}
 
@@ -41,17 +57,32 @@
 			}
 
 			button {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
 				border: 1px solid #3f3f46;
 				border-radius: 8px;
 				background: #27272a;
 				color: #f4f4f5;
-				padding: 8px 10px;
+				padding: 0;
 				cursor: pointer;
 			}
 
-			button.primary {
+			.icon-button {
+				width: 36px;
+				height: 36px;
+				flex: 0 0 36px;
+			}
+
+			button.active {
 				background: #2563eb;
 				border-color: #3b82f6;
+			}
+
+			button svg {
+				width: 18px;
+				height: 18px;
+				stroke: currentColor;
 			}
 
 			button:disabled {
@@ -59,13 +90,39 @@
 				cursor: not-allowed;
 			}
 
-			.status {
+			.status-panel {
 				border: 1px solid #3f3f46;
 				border-radius: 8px;
-				padding: 10px;
 				background: #202023;
+				overflow: hidden;
+			}
+
+			.status-panel[hidden] {
+				display: none;
+			}
+
+			.status-header {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 6px 6px 4px 10px;
+				font-size: 12px;
+				font-weight: 600;
+				color: #a1a1aa;
+			}
+
+			.status-header .icon-button {
+				width: 30px;
+				height: 30px;
+				flex-basis: 30px;
+				border-color: transparent;
+				background: transparent;
+			}
+
+			.status {
 				display: grid;
 				gap: 6px;
+				padding: 4px 10px 10px;
 			}
 
 			.row {
@@ -83,17 +140,31 @@
 			.error {
 				color: #fca5a5;
 			}
+
+			.row.error .value {
+				color: #fca5a5;
+			}
 		</style>
 	</head>
 	<body>
 		<main>
-			<input id="pairing-code" placeholder="Код сопряжения из Obsidian" autocomplete="off" />
-			<div class="actions">
-				<button id="connect" class="primary">Подключиться</button>
-				<button id="reconnect">Связать</button>
-				<button id="refresh">Статус</button>
+			<div class="auth-row">
+				<span id="auth-status" class="auth-status" aria-live="polite"></span>
+				<input id="pairing-code" placeholder="Код сопряжения из Obsidian" autocomplete="off" hidden />
+				<button id="edit-pairing" class="icon-button" type="button"></button>
 			</div>
-			<section class="status" id="status" aria-live="polite"></section>
+			<div class="actions">
+				<button id="connect" class="icon-button" type="button"></button>
+				<button id="reconnect" class="icon-button" type="button"></button>
+				<button id="toggle-status" class="icon-button" type="button" aria-controls="status-panel"></button>
+			</div>
+			<section class="status-panel" id="status-panel" hidden>
+				<header class="status-header">
+					<span>Статус</span>
+					<button id="copy-status" class="icon-button" type="button"></button>
+				</header>
+				<div class="status" id="status" aria-live="polite"></div>
+			</section>
 		</main>
 		<script type="module" src="./main.js"></script>
 	</body>
