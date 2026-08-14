@@ -1,5 +1,5 @@
 import OBR from "@owlbear-rodeo/sdk";
-import { pushSnapshotToScene, reconnectScene } from "./owlbearSync";
+import { pushSnapshotToScene } from "./owlbearSync";
 import { state, createInitialDiagnostics } from "./state";
 import type { OwlbearEncounterSnapshot } from "./types";
 import {
@@ -175,6 +175,12 @@ async function applySnapshot(value: unknown, snapshotId: string | undefined): Pr
 	state.diagnostics = { ...createInitialDiagnostics(), snapshotLoaded: true, participantCount: value.participants.length };
 	try {
 		const result = await pushSnapshotToScene(value, previousSnapshot);
+		if (!result.diagnostics.sceneReady) {
+			state.diagnostics = result.diagnostics;
+			lastError = localizeSceneError(result.diagnostics.lastError ?? "No active Owlbear scene.");
+			send({ type: "snapshot.failed", snapshotId, error: lastError });
+			return;
+		}
 		state.snapshot = value;
 		state.diagnostics = result.diagnostics;
 		lastError = result.diagnostics.lastError ? localizeSceneError(result.diagnostics.lastError) : undefined;
@@ -189,7 +195,10 @@ async function applySnapshot(value: unknown, snapshotId: string | undefined): Pr
 
 async function reconnectSceneItems(): Promise<void> {
 	if (!state.snapshot) throw new Error("Плагин ещё не отправил столкновение.");
-	const result = await reconnectScene(state.snapshot);
+	const result = await pushSnapshotToScene(state.snapshot, null);
+	if (!result.diagnostics.sceneReady) {
+		throw new Error(localizeSceneError(result.diagnostics.lastError ?? "No active Owlbear scene."));
+	}
 	state.diagnostics = result.diagnostics;
 	send({ type: "snapshot.applied", snapshotId: state.snapshot.snapshotId, tokenLinks: result.tokenLinks, diagnostics: result.diagnostics });
 	postState();
@@ -242,7 +251,11 @@ function cancelReconnect(): void {
 
 void OBR.onReady(async () => {
 	state.diagnostics = { ...state.diagnostics, sceneReady: await OBR.scene.isReady() };
-	OBR.scene.onReadyChange((sceneReady) => { state.diagnostics = { ...state.diagnostics, sceneReady }; postState(); });
+	OBR.scene.onReadyChange((sceneReady) => {
+		state.diagnostics = { ...state.diagnostics, sceneReady };
+		postState();
+		if (sceneReady) send({ type: "snapshot.request" });
+	});
 	readyResolve?.();
 	postState();
 });

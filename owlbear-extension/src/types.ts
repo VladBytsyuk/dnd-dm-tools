@@ -6,6 +6,7 @@ export const OWLBEAR_SNAPSHOT_ID_KEY = `${OWLBEAR_METADATA_NAMESPACE}/snapshotId
 export const OWLBEAR_MARKER_KIND_KEY = `${OWLBEAR_METADATA_NAMESPACE}/markerKind`;
 export const OWLBEAR_TOKEN_RING_KEY = `${OWLBEAR_METADATA_NAMESPACE}/tokenRing`;
 export const OWLBEAR_TURN_HIGHLIGHT_KEY = `${OWLBEAR_METADATA_NAMESPACE}/turnHighlight`;
+export const OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY = `${OWLBEAR_METADATA_NAMESPACE}/turnHighlightRole`;
 export const OWLBEAR_DEAD_OVERLAY_KEY = `${OWLBEAR_METADATA_NAMESPACE}/deadOverlay`;
 export const OWLBEAR_MARKER_LAYOUT_KEY = `${OWLBEAR_METADATA_NAMESPACE}/markerLayout`;
 
@@ -72,6 +73,7 @@ export interface OwlbearSyncDiagnostics {
 }
 
 export type MarkerKind = "bloodied" | "concentration" | "condition";
+export type TurnHighlightRole = "active" | "next";
 
 export interface TokenMarker {
 	kind: MarkerKind;

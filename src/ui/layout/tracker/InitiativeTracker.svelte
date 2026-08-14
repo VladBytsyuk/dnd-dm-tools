@@ -20,6 +20,13 @@
 		getEncounterParticipantFromClipboard,
 	} from "src/data/clipboard";
 	import { Notice, requestUrl } from "obsidian";
+	import { onDestroy } from "svelte";
+	import {
+		assertOwlbearImageDataUrlSize,
+		assertOwlbearImageSize,
+		resolveOwlbearVaultImageFile,
+		validateOwlbearRemoteImageUrl,
+	} from "src/data/owlbear/OwlbearVaultImage";
 	import type { Encounter } from "src/domain/models/encounter/Encounter";
 	import { EncounterManager } from "src/domain/models/encounter/EncounterManager";
 	import type {
@@ -33,6 +40,7 @@
 		createOwlbearEncounterSnapshot,
 		type OwlbearEncounterSnapshot,
 	} from "src/domain/models/owlbear/OwlbearSync";
+	import { OwlbearSyncScheduler } from "./OwlbearSyncScheduler";
 	import ParticipantItem from "./ParticipantItem.svelte";
 
 	let { app, encounter, isEditable, onPortraitClick, onConditionClick, onImageRequested, onOwlbearSnapshotCreated, onOwlbearTurnChanged } =
@@ -60,44 +68,24 @@
 		canRedo: encounterManager.canRedo,
 	});
 	let owlbearSynced = $state(false);
-	let owlbearSyncVersion = 0;
-	let owlbearSyncInFlight = false;
-	let owlbearSyncTimer: number | null = null;
 	const imageLoadCache = new Map<string, Promise<{ dataUrl: string; width: number; height: number }>>();
+	function createOwlbearSyncScheduler() {
+		return new OwlbearSyncScheduler(createOwlbearSnapshotWithImages, onOwlbearTurnChanged);
+	}
+	const owlbearSyncScheduler = createOwlbearSyncScheduler();
+
+	onDestroy(() => {
+		owlbearSyncScheduler.dispose();
+	});
 
 	encounterManager.setOnUpdate(() => {
 		trackerState.current = encounterManager.current;
 		trackerState.canUndo = encounterManager.canUndo;
 		trackerState.canRedo = encounterManager.canRedo;
 		if (owlbearSynced) {
-			queueOwlbearSync();
+			owlbearSyncScheduler.queue();
 		}
 	});
-
-	function queueOwlbearSync() {
-		owlbearSyncVersion += 1;
-		if (owlbearSyncInFlight || owlbearSyncTimer != null) return;
-		owlbearSyncTimer = window.setTimeout(() => {
-			owlbearSyncTimer = null;
-			void flushOwlbearSync();
-		}, 250);
-	}
-
-	async function flushOwlbearSync() {
-		owlbearSyncInFlight = true;
-		let sentVersion = -1;
-		try {
-			do {
-				sentVersion = owlbearSyncVersion;
-				await onOwlbearTurnChanged(await createOwlbearSnapshotWithImages());
-			} while (sentVersion !== owlbearSyncVersion);
-		} catch {
-			// Background sync failures must not interrupt initiative editing.
-		} finally {
-			owlbearSyncInFlight = false;
-			if (sentVersion !== owlbearSyncVersion) queueOwlbearSync();
-		}
-	}
 
 	const runEditable = (action: () => void) => {
 		if (!isEditable) return;
@@ -198,19 +186,26 @@
 	const loadParticipantImageUncached = async (name: string, url: string): Promise<{ dataUrl: string; width: number; height: number }> => {
 		try {
 			let dataUrl: string;
-			if (/^data:image\//i.test(url)) dataUrl = url;
-			else {
-				const localPath = getVaultImagePath(url);
-				if (localPath) {
-					const bytes = new Uint8Array(await app.vault.adapter.readBinary(localPath));
-					dataUrl = createImageDataUrl(bytes, mimeForImagePath(localPath));
-				} else {
-					const response = await requestUrl({ url });
-					if (response.status < 200 || response.status >= 300) throw new Error(`HTTP ${response.status}`);
-					const mime = response.headers["content-type"]?.split(";", 1)[0] || mimeForImagePath(url);
-					if (!mime.startsWith("image/")) throw new Error("файл не является изображением");
-					dataUrl = createImageDataUrl(new Uint8Array(response.arrayBuffer), mime);
-				}
+			if (/^data:image\//i.test(url)) {
+				assertOwlbearImageDataUrlSize(url);
+				dataUrl = url;
+			} else if (/^https?:\/\//i.test(url)) {
+				const remoteUrl = validateOwlbearRemoteImageUrl(url);
+				const response = await requestUrl({ url: remoteUrl });
+				if (response.status < 200 || response.status >= 300) throw new Error(`HTTP ${response.status}`);
+				const contentLength = Number(response.headers["content-length"]);
+				if (Number.isFinite(contentLength)) assertOwlbearImageSize(contentLength);
+				const mime = response.headers["content-type"]?.split(";", 1)[0] || mimeForImagePath(remoteUrl);
+				if (!mime.startsWith("image/")) throw new Error("файл не является изображением");
+				const bytes = new Uint8Array(response.arrayBuffer);
+				assertOwlbearImageSize(bytes.byteLength);
+				dataUrl = createImageDataUrl(bytes, mime);
+			} else {
+				const file = resolveOwlbearVaultImageFile(app, url);
+				assertOwlbearImageSize(file.stat.size);
+				const bytes = new Uint8Array(await app.vault.readBinary(file));
+				assertOwlbearImageSize(bytes.byteLength);
+				dataUrl = createImageDataUrl(bytes, mimeForImagePath(file.path));
 			}
 			const { width, height } = await getImageDimensions(dataUrl);
 			return { dataUrl, width, height };
@@ -230,13 +225,6 @@
 		image.onerror = () => reject(new Error("не удалось прочитать изображение"));
 		image.src = dataUrl;
 	});
-
-	const getVaultImagePath = (url: string): string | null => {
-		if (url.startsWith("obsidian://")) {
-			return decodeURIComponent(new URLSearchParams(url.split("?")[1]).get("file") ?? "") || null;
-		}
-		return /^(?:https?|app|data):/i.test(url) ? null : url;
-	};
 
 	const mimeForImagePath = (path: string): string => {
 		const extension = path.split(".").pop()?.toLowerCase();

@@ -57,6 +57,8 @@ The WebSocket protocol is version 2. Only one snapshot is in flight at a time. A
 
 Pairing is stored in browser `localStorage`. Manual disconnect suppresses automatic reconnect until the user connects again. After changing the Obsidian port, copy the new Install Link and pairing code and update the Owlbear extension.
 
+Starting a new Obsidian process intentionally replaces the persisted encounter with an empty session-reset snapshot. When the background page reconnects, that snapshot removes every token managed by the previous session, including its saved scene position. This is destructive by design: the user must explicitly send the encounter again for the new session.
+
 Token images are content-addressed by SHA-256 of MIME and bytes and served from the local `/token-images/` route. The cache is capped at 250 MB with LRU cleanup; current and in-flight encounter assets are protected. Missing, invalid, or unavailable images become generated 512×512 SVG tokens with initials and a side/participant color. Fallback use is reported in diagnostics.
 
 ## Hosting And Security

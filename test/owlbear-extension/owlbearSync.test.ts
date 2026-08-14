@@ -76,6 +76,8 @@ import {
 	OWLBEAR_MARKER_KIND_KEY,
 	OWLBEAR_PARTICIPANT_ID_KEY,
 	OWLBEAR_TOKEN_RING_KEY,
+	OWLBEAR_TURN_HIGHLIGHT_KEY,
+	OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY,
 } from "../../owlbear-extension/src/types";
 import type { OwlbearEncounterSnapshot } from "../../owlbear-extension/src/types";
 
@@ -140,11 +142,124 @@ function mockScene(initialItems: any[] = []) {
 	return items;
 }
 
+function turnHighlights(items: any[], encounterId = "encounter-1") {
+	return items.filter((item) =>
+		item.metadata?.[OWLBEAR_ENCOUNTER_ID_KEY] === encounterId
+		&& item.metadata?.[OWLBEAR_TURN_HIGHLIGHT_KEY] === true
+	);
+}
+
 afterEach(() => {
 	vi.clearAllMocks();
 });
 
 describe("Owlbear scene synchronization", () => {
+	it("creates and updates active and next participant highlights", async () => {
+		const items = mockScene();
+		const initial = snapshot([1, 2, 3]);
+		initial.activeParticipantId = 1;
+		initial.nextParticipantId = 2;
+
+		const firstSync = await pushSnapshotToScene(initial);
+
+		expect(turnHighlights(items).map((item) => [
+			item.metadata[OWLBEAR_PARTICIPANT_ID_KEY],
+			item.metadata[OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY],
+		])).toEqual([[1, "active"], [2, "next"]]);
+
+		const next = snapshot([1, 2, 3]);
+		next.activeParticipantId = 2;
+		next.nextParticipantId = 3;
+		next.tokenLinks = firstSync.tokenLinks;
+		await pushSnapshotToScene(next, initial);
+
+		expect(turnHighlights(items).map((item) => [
+			item.metadata[OWLBEAR_PARTICIPANT_ID_KEY],
+			item.metadata[OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY],
+		])).toEqual([[2, "active"], [3, "next"]]);
+	});
+
+	it("removes a stale highlight even when consecutive snapshots agree that it is not expected", async () => {
+		const items = mockScene();
+		const current = snapshot([1]);
+		const firstSync = await pushSnapshotToScene(current);
+		const token = items.find((item) => item.type === "IMAGE" && item.attachedTo == null);
+		items.push({
+			id: "stale-highlight",
+			type: "SHAPE",
+			attachedTo: token.id,
+			metadata: {
+				[OWLBEAR_ENCOUNTER_ID_KEY]: current.encounterId,
+				[OWLBEAR_PARTICIPANT_ID_KEY]: 1,
+				[OWLBEAR_TURN_HIGHLIGHT_KEY]: true,
+				[OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY]: "active",
+			},
+		});
+		current.tokenLinks = firstSync.tokenLinks;
+
+		await pushSnapshotToScene(current, current);
+
+		expect(turnHighlights(items)).toEqual([]);
+	});
+
+	it("recreates a missing highlight even when consecutive snapshots are identical", async () => {
+		const items = mockScene();
+		const current = snapshot([1]);
+		current.activeParticipantId = 1;
+		const firstSync = await pushSnapshotToScene(current);
+		const existingHighlightIndex = items.findIndex((item) => item.metadata?.[OWLBEAR_TURN_HIGHLIGHT_KEY] === true);
+		items.splice(existingHighlightIndex, 1);
+		current.tokenLinks = firstSync.tokenLinks;
+
+		await pushSnapshotToScene(current, current);
+
+		expect(turnHighlights(items)).toHaveLength(1);
+		expect(turnHighlights(items)[0].metadata[OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY]).toBe("active");
+	});
+
+	it("repairs legacy roles and removes duplicate and orphaned highlights in one reconciliation", async () => {
+		const items = mockScene();
+		const current = snapshot([1, 2]);
+		current.activeParticipantId = 1;
+		current.nextParticipantId = 2;
+		const firstSync = await pushSnapshotToScene(current);
+		const activeHighlight = turnHighlights(items).find((item) => item.metadata[OWLBEAR_PARTICIPANT_ID_KEY] === 1);
+		activeHighlight.metadata[OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY] = "next";
+		const legacyDuplicate = { ...structuredClone(activeHighlight), id: "duplicate-highlight" };
+		delete legacyDuplicate.metadata[OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY];
+		items.push(legacyDuplicate);
+		items.push({
+			id: "orphan-highlight",
+			type: "SHAPE",
+			attachedTo: "missing-token",
+			metadata: {
+				[OWLBEAR_ENCOUNTER_ID_KEY]: current.encounterId,
+				[OWLBEAR_PARTICIPANT_ID_KEY]: 999,
+				[OWLBEAR_TURN_HIGHLIGHT_KEY]: true,
+				[OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY]: "active",
+			},
+		});
+		items.push({
+			id: "other-encounter-highlight",
+			type: "SHAPE",
+			attachedTo: "other-token",
+			metadata: {
+				[OWLBEAR_ENCOUNTER_ID_KEY]: "encounter-2",
+				[OWLBEAR_TURN_HIGHLIGHT_KEY]: true,
+			},
+		});
+		current.tokenLinks = firstSync.tokenLinks;
+
+		await pushSnapshotToScene(current, current);
+
+		expect(turnHighlights(items).map((item) => [
+			item.metadata[OWLBEAR_PARTICIPANT_ID_KEY],
+			item.metadata[OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY],
+		])).toEqual([[2, "next"], [1, "active"]]);
+		expect(items.some((item) => item.id === "orphan-highlight")).toBe(false);
+		expect(items.some((item) => item.id === "other-encounter-highlight")).toBe(true);
+	});
+
 	it("finds only stale token images in the current encounter", () => {
 		const current = snapshot([1]);
 		const items = [
@@ -288,5 +403,59 @@ describe("Owlbear scene synchronization", () => {
 			expect(items.filter((item) => item.type === "IMAGE" && item.attachedTo == null)).toHaveLength(1);
 			previous = next;
 		}
+	});
+
+	it("uses a constant number of scene reads for an unchanged encounter", async () => {
+		mockScene();
+		const current = snapshot([1, 2, 3, 4]);
+		const firstSync = await pushSnapshotToScene(current);
+		current.tokenLinks = firstSync.tokenLinks;
+		sdkMock.obr.scene.items.getItems.mockClear();
+		sdkMock.obr.scene.items.addItems.mockClear();
+		sdkMock.obr.scene.items.deleteItems.mockClear();
+		sdkMock.obr.scene.items.updateItems.mockClear();
+
+		await pushSnapshotToScene(current, current);
+
+		expect(sdkMock.obr.scene.items.getItems).toHaveBeenCalledTimes(2);
+		expect(sdkMock.obr.scene.items.addItems).not.toHaveBeenCalled();
+		expect(sdkMock.obr.scene.items.deleteItems).not.toHaveBeenCalled();
+		expect(sdkMock.obr.scene.items.updateItems).not.toHaveBeenCalled();
+	});
+
+	it("recreates all missing token rings in one addItems call", async () => {
+		const items = mockScene();
+		const current = snapshot([1, 2, 3]);
+		const firstSync = await pushSnapshotToScene(current);
+		current.tokenLinks = firstSync.tokenLinks;
+		for (let index = items.length - 1; index >= 0; index -= 1) {
+			if (items[index].metadata?.[OWLBEAR_TOKEN_RING_KEY] === true) items.splice(index, 1);
+		}
+		sdkMock.obr.scene.items.addItems.mockClear();
+
+		await pushSnapshotToScene(current, current);
+
+		expect(sdkMock.obr.scene.items.addItems).toHaveBeenCalledTimes(1);
+		expect(items.filter((item) => item.metadata?.[OWLBEAR_TOKEN_RING_KEY] === true)).toHaveLength(3);
+	});
+
+	it("batches visual and marker updates across all participants", async () => {
+		mockScene();
+		const initial = snapshot([1, 2, 3, 4]);
+		const firstSync = await pushSnapshotToScene(initial);
+		const bloodied = snapshot([1, 2, 3, 4]);
+		for (const participant of bloodied.participants) participant.hpCurrent = 4;
+		bloodied.tokenLinks = firstSync.tokenLinks;
+		sdkMock.obr.scene.items.getItems.mockClear();
+		sdkMock.obr.scene.items.addItems.mockClear();
+		sdkMock.obr.scene.items.deleteItems.mockClear();
+		sdkMock.obr.scene.items.updateItems.mockClear();
+
+		await pushSnapshotToScene(bloodied, initial);
+
+		expect(sdkMock.obr.scene.items.getItems).toHaveBeenCalledTimes(2);
+		expect(sdkMock.obr.scene.items.updateItems).toHaveBeenCalledTimes(2);
+		expect(sdkMock.obr.scene.items.addItems).toHaveBeenCalledTimes(1);
+		expect(sdkMock.obr.scene.items.deleteItems).not.toHaveBeenCalled();
 	});
 });

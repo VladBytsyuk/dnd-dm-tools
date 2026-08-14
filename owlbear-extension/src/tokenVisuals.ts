@@ -30,13 +30,12 @@ export function getTokenVisualConfig(participant: Pick<OwlbearParticipantSnapsho
 export function resolveTokenVisualImage(participant: OwlbearParticipantSnapshot, image: TokenImage): TokenImage {
 	const visual = getTokenVisualConfig(participant);
 	if (visual.state === "normal") return image;
-
-	const url = new URL(image.url);
-	url.searchParams.set("visual", visual.state);
-	url.searchParams.set("visualVersion", TOKEN_VISUAL_VERSION);
 	const scale = Math.min(1, MAX_VISUAL_SIZE / Math.max(image.width, image.height));
 	const width = Math.max(1, Math.round(image.width * scale));
 	const height = Math.max(1, Math.round(image.height * scale));
+	const url = new URL(image.url);
+	url.searchParams.set("visual", visual.state);
+	url.searchParams.set("visualVersion", TOKEN_VISUAL_VERSION);
 	url.searchParams.set("width", String(width));
 	url.searchParams.set("height", String(height));
 	return {

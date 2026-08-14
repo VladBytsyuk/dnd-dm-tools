@@ -10,10 +10,12 @@ import {
 	OWLBEAR_SNAPSHOT_ID_KEY,
 	OWLBEAR_TOKEN_RING_KEY,
 	OWLBEAR_TURN_HIGHLIGHT_KEY,
+	OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY,
 	type MarkerKind,
 	type OwlbearEncounterSnapshot,
 	type OwlbearParticipantSnapshot,
 	type OwlbearSyncDiagnostics,
+	type TurnHighlightRole,
 } from "./types";
 
 type SceneItem = {
@@ -95,6 +97,8 @@ export async function pushSnapshotToScene(
 		images.set(participant.participantId, resolveTokenVisualImage(participant, image));
 	}
 	const itemsToCreate: unknown[] = [];
+	const markerIdsToDelete = new Set<string>();
+	const tokenUpdates = new Map<string, { participant: OwlbearParticipantSnapshot; image: ResolvedImage }>();
 	const now = new Date().toISOString();
 	const center = await OBR.viewport.getPosition();
 	const gridDpi = await OBR.scene.grid.getDpi();
@@ -106,26 +110,25 @@ export async function pushSnapshotToScene(
 		const previousParticipant = previousParticipants.get(participant.participantId);
 		const resolvedImage = images.get(participant.participantId)!;
 		if (existing) {
-			if (existing.type !== "IMAGE") {
-				const attachedItems = await OBR.scene.items.getItems((item: SceneItem) =>
-					item.id === existing.id || item.attachedTo === existing.id
-				) as SceneItem[];
-				await OBR.scene.items.deleteItems(attachedItems.map((item) => item.id));
-				const position = existing.position ?? center;
-				itemsToCreate.push(...buildTokenItems(participant, snapshot, position, tokenSize, gridDpi, resolvedImage));
-			} else {
-				await updateImageToken(existing, participant, snapshot, resolvedImage, tokenSize);
-				if (
-					hasMarkerChange(participant, previousParticipant, snapshot.round, previousSnapshot?.round)
-					|| await needsMarkerLayoutMigration(existing.id, snapshot.encounterId, participant, snapshot.round)
-				) {
-					const geometry = tokenGeometry(existing, tokenSize, gridDpi);
-					await replaceMarkers(existing.id, participant, snapshot, geometry.center, geometry.diameter, gridDpi);
-				}
-				if (hasTurnHighlightChange(participant.participantId, snapshot, previousSnapshot)) {
-					const geometry = tokenGeometry(existing, tokenSize, gridDpi);
-					await replaceTurnHighlight(existing.id, participant, snapshot, geometry.center, geometry.diameter);
-				}
+			if (hasTokenVisualChange(participant, previousParticipant)) {
+				tokenUpdates.set(existing.id, { participant, image: resolvedImage });
+			}
+			if (
+				hasMarkerChange(participant, previousParticipant, snapshot.round, previousSnapshot?.round)
+				|| needsMarkerLayoutMigration(currentSceneItems, existing.id, snapshot.encounterId, participant, snapshot.round)
+			) {
+				const geometry = tokenGeometry(existing, tokenSize, gridDpi);
+				queueMarkerReplacement(
+					currentSceneItems,
+					existing.id,
+					participant,
+					snapshot,
+					geometry.center,
+					geometry.diameter,
+					gridDpi,
+					markerIdsToDelete,
+					itemsToCreate,
+				);
 			}
 		} else {
 			const position = clusterPosition(center, createdIndex, snapshot.participants.length, tokenSize);
@@ -133,12 +136,17 @@ export async function pushSnapshotToScene(
 			itemsToCreate.push(...buildTokenItems(participant, snapshot, position, tokenSize, gridDpi, resolvedImage));
 		}
 	}
+	if (markerIdsToDelete.size > 0) {
+		await OBR.scene.items.deleteItems([...markerIdsToDelete]);
+	}
+	await updateImageTokens(currentSceneItems, linkedTokens, tokenUpdates, snapshot, tokenSize, itemsToCreate);
 
 	if (itemsToCreate.length > 0) {
 		await OBR.scene.items.addItems(itemsToCreate as never[]);
 	}
 
 	const refreshedItems = await OBR.scene.items.getItems() as SceneItem[];
+	await reconcileTurnHighlights(snapshot, refreshedItems, tokenSize, gridDpi);
 	const diagnostics = createDiagnostics(snapshot, true, refreshedItems, findLinkedTokens(refreshedItems, snapshot), undefined, now);
 	return { diagnostics, tokenLinks: createTokenLinks(refreshedItems, snapshot, now) };
 }
@@ -153,7 +161,9 @@ function hasTokenVisualChange(
 		|| participant.imageMime !== previous.imageMime
 		|| participant.imageWidth !== previous.imageWidth
 		|| participant.imageHeight !== previous.imageHeight
-		|| participant.colorHex !== previous.colorHex;
+		|| participant.colorHex !== previous.colorHex
+		|| participant.hpCurrent !== previous.hpCurrent
+		|| participant.isDead !== previous.isDead;
 }
 
 function hasMarkerChange(
@@ -166,46 +176,22 @@ function hasMarkerChange(
 	return JSON.stringify(deriveMarkers(participant, round)) !== JSON.stringify(deriveMarkers(previous, previousRound));
 }
 
-async function needsMarkerLayoutMigration(
+function needsMarkerLayoutMigration(
+	items: SceneItem[],
 	tokenId: string,
 	encounterId: string,
 	participant: OwlbearParticipantSnapshot,
 	round: number,
-): Promise<boolean> {
+): boolean {
 	const expectedMarkers = deriveMarkers(participant, round);
-	const statusItems = await OBR.scene.items.getItems((item: SceneItem) =>
+	const statusItems = items.filter((item) =>
 		item.attachedTo === tokenId
 		&& item.metadata?.[OWLBEAR_ENCOUNTER_ID_KEY] === encounterId
 		&& (Boolean(item.metadata?.[OWLBEAR_MARKER_KIND_KEY]) || item.metadata?.[OWLBEAR_DEAD_OVERLAY_KEY] === true)
-	) as SceneItem[];
+	);
 	if (statusItems.some((item) => item.metadata?.[OWLBEAR_MARKER_KIND_KEY] === "dead" || item.metadata?.[OWLBEAR_MARKER_KIND_KEY] === "down" || item.metadata?.[OWLBEAR_DEAD_OVERLAY_KEY] === true)) return true;
 	if (expectedMarkers.length > 0 && statusItems.length === 0) return true;
 	return statusItems.some((item) => item.metadata?.[OWLBEAR_MARKER_LAYOUT_KEY] !== MARKER_LAYOUT_VERSION);
-}
-
-function hasTurnHighlightChange(
-	participantId: number,
-	snapshot: OwlbearEncounterSnapshot,
-	previous: OwlbearEncounterSnapshot | null,
-): boolean {
-	if (!previous) return true;
-	const isHighlighted = snapshot.activeParticipantId === participantId || snapshot.nextParticipantId === participantId;
-	const wasHighlighted = previous.activeParticipantId === participantId || previous.nextParticipantId === participantId;
-	return isHighlighted !== wasHighlighted
-		|| (isHighlighted && (snapshot.activeParticipantId === participantId) !== (previous.activeParticipantId === participantId));
-}
-
-export async function reconnectScene(snapshot: OwlbearEncounterSnapshot): Promise<SyncResult> {
-	const sceneReady = await OBR.scene.isReady();
-	if (!sceneReady) {
-		return { diagnostics: createDiagnostics(snapshot, false, [], [], "No active Owlbear scene."), tokenLinks: [] };
-	}
-
-	const sceneItems = await OBR.scene.items.getItems() as SceneItem[];
-	return {
-		diagnostics: createDiagnostics(snapshot, true, sceneItems, findLinkedTokens(sceneItems, snapshot)),
-		tokenLinks: createTokenLinks(sceneItems, snapshot, new Date().toISOString()),
-	};
 }
 
 function createTokenLinks(items: SceneItem[], snapshot: OwlbearEncounterSnapshot, lastSeenAt: string): OwlbearEncounterSnapshot["tokenLinks"] {
@@ -276,42 +262,57 @@ export function findStaleTokenIds(items: SceneItem[], snapshot: OwlbearEncounter
 		.map((item) => item.id);
 }
 
-async function updateImageToken(
-	item: SceneItem,
-	participant: OwlbearParticipantSnapshot,
+async function updateImageTokens(
+	items: SceneItem[],
+	linkedTokens: Map<number, SceneItem>,
+	updates: Map<string, { participant: OwlbearParticipantSnapshot; image: ResolvedImage }>,
 	snapshot: OwlbearEncounterSnapshot,
-	image: ResolvedImage,
 	tokenSize: number,
+	itemsToCreate: unknown[],
 ) {
-	await OBR.scene.items.updateItems([item] as never[], (items: any[]) => {
-		for (const draft of items) {
-			draft.name = participant.name;
-			draft.zIndex = TOKEN_IMAGE_Z_INDEX;
-			draft.disableAutoZIndex = true;
-			draft.metadata = tokenMetadata(participant, snapshot);
-			draft.text = { ...draft.text, plainText: participant.name, type: "PLAIN" };
-			draft.textItemType = "LABEL";
-			if (draft.image?.url !== image.url) {
-				draft.image = {
-					...draft.image,
-					url: image.url,
-					mime: image.mime,
-					width: image.width,
-					height: image.height,
-				};
-				draft.grid = {
-					dpi: Math.max(image.width, image.height),
-					offset: { x: image.width / 2, y: image.height / 2 },
-				};
+	if (updates.size > 0) {
+		const tokens = items.filter((item) => updates.has(item.id));
+		await OBR.scene.items.updateItems(tokens as never[], (drafts: any[]) => {
+			for (const draft of drafts) {
+				const update = updates.get(draft.id);
+				if (!update) continue;
+				const { participant, image } = update;
+				draft.name = participant.name;
+				draft.zIndex = TOKEN_IMAGE_Z_INDEX;
+				draft.disableAutoZIndex = true;
+				draft.metadata = tokenMetadata(participant, snapshot);
+				draft.text = { ...draft.text, plainText: participant.name, type: "PLAIN" };
+				draft.textItemType = "LABEL";
+				if (draft.image?.url !== image.url) {
+					draft.image = {
+						...draft.image,
+						url: image.url,
+						mime: image.mime,
+						width: image.width,
+						height: image.height,
+					};
+					draft.grid = {
+						dpi: Math.max(image.width, image.height),
+						offset: { x: image.width / 2, y: image.height / 2 },
+					};
+				}
 			}
-		}
-	});
-	const attachments = await OBR.scene.items.getItems((candidate: SceneItem) =>
-		candidate.attachedTo === item.id && candidate.metadata?.[OWLBEAR_TOKEN_RING_KEY] === true
-	) as SceneItem[];
-	if (attachments.length > 0) {
-		await OBR.scene.items.updateItems(attachments as never[], (items: any[]) => {
-			for (const draft of items) {
+		});
+	}
+
+	const participantsByTokenId = new Map<string, OwlbearParticipantSnapshot>();
+	for (const participant of snapshot.participants) {
+		const token = linkedTokens.get(participant.participantId);
+		if (token) participantsByTokenId.set(token.id, participant);
+	}
+	const rings = items.filter((item) => item.metadata?.[OWLBEAR_TOKEN_RING_KEY] === true && item.attachedTo && participantsByTokenId.has(item.attachedTo));
+	const ringTokenIds = new Set(rings.map((ring) => ring.attachedTo!));
+	const ringsToUpdate = rings.filter((ring) => ring.attachedTo && updates.has(ring.attachedTo));
+	if (ringsToUpdate.length > 0) {
+		await OBR.scene.items.updateItems(ringsToUpdate as never[], (drafts: any[]) => {
+			for (const draft of drafts) {
+				const participant = participantsByTokenId.get(draft.attachedTo);
+				if (!participant) continue;
 				draft.width = tokenSize;
 				draft.height = tokenSize;
 				draft.layer = "CHARACTER";
@@ -323,28 +324,33 @@ async function updateImageToken(
 			}
 		});
 	}
+	for (const [participantId, token] of linkedTokens) {
+		if (ringTokenIds.has(token.id)) continue;
+		const participant = snapshot.participants.find((candidate) => candidate.participantId === participantId);
+		if (!participant) continue;
+		itemsToCreate.push(buildTokenRing(participant, snapshot, token.position ?? { x: 0, y: 0 }, token.id, tokenSize));
+	}
 }
 
-async function replaceMarkers(
+function queueMarkerReplacement(
+	items: SceneItem[],
 	tokenId: string,
 	participant: OwlbearParticipantSnapshot,
 	snapshot: OwlbearEncounterSnapshot,
 	center: { x: number; y: number },
 	diameter: number,
 	gridDpi: number,
-) {
-	const overlays = await OBR.scene.items.getItems((item: SceneItem) =>
+	markerIdsToDelete: Set<string>,
+	itemsToCreate: unknown[],
+): void {
+	const overlays = items.filter((item) =>
 		item.attachedTo === tokenId
 		&& item.metadata?.[OWLBEAR_ENCOUNTER_ID_KEY] === snapshot.encounterId
 		&& (Boolean(item.metadata?.[OWLBEAR_MARKER_KIND_KEY]) || item.metadata?.[OWLBEAR_DEAD_OVERLAY_KEY] === true)
-	) as SceneItem[];
+	);
 
-	if (overlays.length > 0) {
-		await OBR.scene.items.deleteItems(overlays.map((overlay) => overlay.id));
-	}
-
-	const statusItems = buildMarkerItems(tokenId, participant, snapshot, center, diameter, gridDpi);
-	if (statusItems.length > 0) await OBR.scene.items.addItems(statusItems as never[]);
+	for (const overlay of overlays) markerIdsToDelete.add(overlay.id);
+	itemsToCreate.push(...buildMarkerItems(tokenId, participant, snapshot, center, diameter, gridDpi));
 }
 
 function buildTokenItems(participant: OwlbearParticipantSnapshot, snapshot: OwlbearEncounterSnapshot, position: { x: number; y: number }, tokenSize: number, gridDpi: number, image: ResolvedImage) {
@@ -402,19 +408,55 @@ function buildTokenRing(participant: OwlbearParticipantSnapshot, snapshot: Owlbe
 		.build();
 }
 
-async function replaceTurnHighlight(
-	tokenId: string,
-	participant: OwlbearParticipantSnapshot,
+async function reconcileTurnHighlights(
 	snapshot: OwlbearEncounterSnapshot,
-	center: { x: number; y: number },
-	diameter: number,
-) {
-	const highlights = await OBR.scene.items.getItems((item: SceneItem) =>
-		item.attachedTo === tokenId && item.metadata?.[OWLBEAR_TURN_HIGHLIGHT_KEY] === true
-	) as SceneItem[];
-	if (highlights.length > 0) await OBR.scene.items.deleteItems(highlights.map((item) => item.id));
-	const nextHighlight = buildTurnHighlight(tokenId, participant, snapshot, center, diameter);
-	if (nextHighlight.length > 0) await OBR.scene.items.addItems(nextHighlight as never[]);
+	items: SceneItem[],
+	defaultDiameter: number,
+	gridDpi: number,
+): Promise<void> {
+	const linkedTokens = findLinkedTokens(items, snapshot);
+	const linkedTokenIds = new Set([...linkedTokens.values()].map((item) => item.id));
+	const highlights = items.filter((item) =>
+		item.metadata?.[OWLBEAR_ENCOUNTER_ID_KEY] === snapshot.encounterId
+		&& item.metadata?.[OWLBEAR_TURN_HIGHLIGHT_KEY] === true
+	);
+	const highlightsByTokenId = new Map<string, SceneItem[]>();
+	const idsToDelete = new Set<string>();
+	const itemsToAdd: unknown[] = [];
+
+	for (const highlight of highlights) {
+		if (!highlight.attachedTo || !linkedTokenIds.has(highlight.attachedTo)) {
+			idsToDelete.add(highlight.id);
+			continue;
+		}
+		const tokenHighlights = highlightsByTokenId.get(highlight.attachedTo) ?? [];
+		tokenHighlights.push(highlight);
+		highlightsByTokenId.set(highlight.attachedTo, tokenHighlights);
+	}
+
+	for (const participant of snapshot.participants) {
+		const token = linkedTokens.get(participant.participantId);
+		if (!token) continue;
+		const expectedRole = getTurnHighlightRole(participant.participantId, snapshot);
+		const tokenHighlights = highlightsByTokenId.get(token.id) ?? [];
+		if (expectedRole === null) {
+			for (const highlight of tokenHighlights) idsToDelete.add(highlight.id);
+			continue;
+		}
+		if (
+			tokenHighlights.length === 1
+			&& tokenHighlights[0].metadata?.[OWLBEAR_PARTICIPANT_ID_KEY] === participant.participantId
+			&& tokenHighlights[0].metadata?.[OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY] === expectedRole
+		) {
+			continue;
+		}
+		for (const highlight of tokenHighlights) idsToDelete.add(highlight.id);
+		const geometry = tokenGeometry(token, defaultDiameter, gridDpi);
+		itemsToAdd.push(...buildTurnHighlight(token.id, participant, snapshot, geometry.center, geometry.diameter));
+	}
+
+	if (idsToDelete.size > 0) await OBR.scene.items.deleteItems([...idsToDelete]);
+	if (itemsToAdd.length > 0) await OBR.scene.items.addItems(itemsToAdd as never[]);
 }
 
 function buildTurnHighlight(
@@ -424,10 +466,14 @@ function buildTurnHighlight(
 	position: { x: number; y: number },
 	diameter: number,
 ) {
-	const isActive = snapshot.activeParticipantId === participant.participantId;
-	const isNext = !isActive && snapshot.nextParticipantId === participant.participantId;
-	if (!isActive && !isNext) return [];
-	const metadata = { ...tokenMetadata(participant, snapshot), [OWLBEAR_TURN_HIGHLIGHT_KEY]: true };
+	const role = getTurnHighlightRole(participant.participantId, snapshot);
+	if (role === null) return [];
+	const isActive = role === "active";
+	const metadata = {
+		...tokenMetadata(participant, snapshot),
+		[OWLBEAR_TURN_HIGHLIGHT_KEY]: true,
+		[OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY]: role,
+	};
 	return [buildShape()
 		.shapeType("CIRCLE")
 		.width(diameter + (isActive ? 32 : 20))
@@ -449,6 +495,12 @@ function buildTurnHighlight(
 			strokeDash: [],
 		})
 		.build()];
+}
+
+function getTurnHighlightRole(participantId: number, snapshot: OwlbearEncounterSnapshot): TurnHighlightRole | null {
+	if (snapshot.activeParticipantId === participantId) return "active";
+	if (snapshot.nextParticipantId === participantId) return "next";
+	return null;
 }
 
 function buildMarkerItems(
@@ -607,9 +659,6 @@ function participantColor(participant: OwlbearParticipantSnapshot) {
 
 function resolveImage(url: string | undefined, mime: string | undefined, width: number | undefined, height: number | undefined): ResolvedImage | null {
 	if (!url || !mime || !mime.startsWith("image/") || !isImageDimension(width) || !isImageDimension(height)) return null;
-	if (/^data:image\//i.test(url)) {
-		return { url, mime, width, height };
-	}
 	return /^https?:\/\//i.test(url) ? { url, mime, width, height } : null;
 }
 

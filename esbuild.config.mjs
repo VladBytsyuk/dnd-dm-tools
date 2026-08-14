@@ -19,6 +19,9 @@ const context = await esbuild.context({
 	},
 	entryPoints: ["src/main.ts"],
 	bundle: true,
+	alias: {
+		ws: "./node_modules/ws/index.js",
+	},
 	loader: {
 		'.svg': 'text',
 		'.wasm': 'binary',

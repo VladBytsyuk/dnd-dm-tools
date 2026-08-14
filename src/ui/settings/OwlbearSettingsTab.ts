@@ -43,6 +43,9 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 			}));
 		const status = this.plugin.getOwlbearServerStatus();
 		containerEl.createEl("p", { text: `Статус: ${status.running ? (status.connected ? "расширение подключено" : "ожидание расширения") : "выключено"}${status.error ? `. Ошибка: ${status.error}` : ""}` });
+		containerEl.createEl("p", {
+			text: "Новая сессия Obsidian намеренно сбрасывает прежнее столкновение: после подключения Owlbear удалит созданные интеграцией токены вместе с их позициями. Отправьте нужное столкновение из трекера заново.",
+		});
 		if (settings.enabled && settings.port && settings.authToken) {
 			this.copySetting(containerEl, "Install Link", this.plugin.getOwlbearInstallLink());
 			this.copySetting(containerEl, "Код сопряжения", this.plugin.getOwlbearPairingCode());

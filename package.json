@@ -28,6 +28,7 @@
 		"@testing-library/user-event": "^14.6.1",
 		"@types/node": "^20.19.11",
 		"@types/sql.js": "^1.4.9",
+		"@types/ws": "^8.18.1",
 		"@typescript-eslint/eslint-plugin": "5.29.0",
 		"@typescript-eslint/parser": "5.29.0",
 		"builtin-modules": "3.3.0",
@@ -47,6 +48,7 @@
 	"dependencies": {
 		"lucide-svelte": "^0.477.0",
 		"sql.js": "^1.13.0",
+		"ws": "^8.21.1",
 		"yaml": "^2.7.0"
 	}
 }

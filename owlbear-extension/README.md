@@ -33,6 +33,7 @@ The production root build also creates both Owlbear entry points and copies them
 - Managed stale tokens from the current encounter are removed automatically.
 - New tokens are placed near the current Owlbear viewport center.
 - Every applied snapshot is acknowledged by `snapshotId`.
+- A new Obsidian process intentionally publishes a session-reset snapshot. On reconnect, all tokens managed by the previous session are removed, including their saved positions. Send the encounter again to start the new session.
 
 ## Images and fallback tokens
 
