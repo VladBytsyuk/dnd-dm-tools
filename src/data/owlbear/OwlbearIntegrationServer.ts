@@ -20,7 +20,7 @@ const ASSETS: Record<string, { filename: string; contentType: string }> = {
 	"/icon.svg": { filename: "icon.svg", contentType: "image/svg+xml" },
 };
 const STATUS_ICON_NAMES = [
-	"bloodied", "down", "dead", "concentration", "condition",
+	"bloodied", "concentration", "condition",
 	"unconscious", "frightened", "exhaustion", "invisible", "incapacitated", "deafened", "petrified", "restrained", "blinded", "poisoned", "charmed", "stunned", "paralyzed", "prone", "grappled",
 ];
 for (const name of STATUS_ICON_NAMES) ASSETS[`/status-icons/${name}.svg`] = { filename: `status-icons/${name}.svg`, contentType: "image/svg+xml" };

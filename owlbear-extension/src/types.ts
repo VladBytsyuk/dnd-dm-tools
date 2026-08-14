@@ -71,7 +71,7 @@ export interface OwlbearSyncDiagnostics {
 	fallbackParticipantIds: number[];
 }
 
-export type MarkerKind = "bloodied" | "down" | "dead" | "concentration" | "condition";
+export type MarkerKind = "bloodied" | "concentration" | "condition";
 
 export interface TokenMarker {
 	kind: MarkerKind;

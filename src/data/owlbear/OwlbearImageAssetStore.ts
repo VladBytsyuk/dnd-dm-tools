@@ -108,6 +108,12 @@ export function createTokenVisualSvg(mime: string, bytes: Buffer, state: TokenVi
 		? { darkeningOpacity: 0.8, tokenOpacity: 0.5 }
 		: { darkeningOpacity: 0.5, tokenOpacity: 0.75 };
 	const source = `data:${mime};base64,${bytes.toString("base64")}`;
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><defs><image id="source" href="${source}" width="${width}" height="${height}" preserveAspectRatio="none"/><mask id="alpha" mask-type="alpha"><use href="#source"/></mask></defs><g opacity="${tokenOpacity}"><use href="#source"/><rect width="${width}" height="${height}" fill="#000000" fill-opacity="${darkeningOpacity}" mask="url(#alpha)"/></g></svg>`;
+	const overlaySize = Math.min(width, height) * 0.5;
+	const overlayX = (width - overlaySize) / 2;
+	const overlayY = (height - overlaySize) / 2;
+	const overlay = state === "dead"
+		? `<svg x="${overlayX}" y="${overlayY}" width="${overlaySize}" height="${overlaySize}" viewBox="0 0 100 100"><path fill="#f8fafc" d="M24 46c0-19 12-32 26-32s26 13 26 32v22c0 10-8 18-18 18H42c-10 0-18-8-18-18V46Zm15-4a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm22 0a6 6 0 1 0 0 12 6 6 0 0 0 0-12ZM40 66h20l-10 10-10-10Z"/></svg>`
+		: `<text x="${width / 2}" y="${height / 2}" fill="#f8fafc" font-family="sans-serif" font-size="${overlaySize}" font-weight="700" text-anchor="middle" dominant-baseline="central">0</text>`;
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><defs><image id="source" href="${source}" width="${width}" height="${height}" preserveAspectRatio="none"/><mask id="alpha" mask-type="alpha"><use href="#source"/></mask></defs><g opacity="${tokenOpacity}"><use href="#source"/><rect width="${width}" height="${height}" fill="#000000" fill-opacity="${darkeningOpacity}" mask="url(#alpha)"/>${overlay}</g></svg>`;
 	return Buffer.from(svg);
 }

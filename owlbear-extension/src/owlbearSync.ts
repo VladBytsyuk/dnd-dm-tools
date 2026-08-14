@@ -178,6 +178,7 @@ async function needsMarkerLayoutMigration(
 		&& item.metadata?.[OWLBEAR_ENCOUNTER_ID_KEY] === encounterId
 		&& (Boolean(item.metadata?.[OWLBEAR_MARKER_KIND_KEY]) || item.metadata?.[OWLBEAR_DEAD_OVERLAY_KEY] === true)
 	) as SceneItem[];
+	if (statusItems.some((item) => item.metadata?.[OWLBEAR_MARKER_KIND_KEY] === "dead" || item.metadata?.[OWLBEAR_MARKER_KIND_KEY] === "down" || item.metadata?.[OWLBEAR_DEAD_OVERLAY_KEY] === true)) return true;
 	if (expectedMarkers.length > 0 && statusItems.length === 0) return true;
 	return statusItems.some((item) => item.metadata?.[OWLBEAR_MARKER_LAYOUT_KEY] !== MARKER_LAYOUT_VERSION);
 }

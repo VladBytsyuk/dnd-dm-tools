@@ -57,7 +57,19 @@ describe("Owlbear integration server snapshots", () => {
 		expect(visual).toContain('<g opacity="0.5">');
 		expect(visual).toContain('fill="#000000" fill-opacity="0.8"');
 		expect(visual).toContain('mask="url(#alpha)"');
+		expect(visual.indexOf('fill="#000000" fill-opacity="0.8"')).toBeLessThan(visual.indexOf('<svg x="192" y="64" width="128" height="128"'));
+		expect(visual).toContain('fill="#f8fafc"');
 		expect(visual).toContain('width="512" height="256"');
+	});
+
+	it("adds a centered bold zero after darkening for a down token", () => {
+		const visual = createTokenVisualSvg("image/png", Buffer.from("PNG"), "down", 512, 256).toString("utf8");
+
+		expect(visual).toContain('<g opacity="0.75">');
+		expect(visual).toContain('fill="#000000" fill-opacity="0.5"');
+		expect(visual).toContain('x="256" y="128"');
+		expect(visual).toContain('font-size="128" font-weight="700"');
+		expect(visual.indexOf('fill="#000000" fill-opacity="0.5"')).toBeLessThan(visual.indexOf('<text x="256" y="128"'));
 	});
 
 	it("materializes missing images as cached initials tokens without Base64", async () => {

@@ -28,13 +28,11 @@ export type MarkerLayout = {
 
 export function deriveMarkers(participant: OwlbearParticipantSnapshot, round: number): TokenMarker[] {
 	if (participant.isDead) {
-		return [{ kind: "dead", icon: "dead" }];
+		return [];
 	}
 
 	const markers: TokenMarker[] = [];
-	if (participant.hpCurrent <= 0) {
-		markers.push({ kind: "down", icon: "down" });
-	} else if (participant.hpMax > 0 && participant.hpCurrent < participant.hpMax / 2) {
+	if (participant.hpCurrent > 0 && participant.hpMax > 0 && participant.hpCurrent < participant.hpMax / 2) {
 		markers.push({ kind: "bloodied", icon: "bloodied" });
 	}
 

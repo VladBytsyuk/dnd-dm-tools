@@ -51,8 +51,6 @@ function normalizeStatusSvg(svg, addWhiteFill) {
 
 const statusIcons = {
 	bloodied: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="#ef4444" d="M50 8C42 23 22 43 22 62a28 28 0 0 0 56 0C78 43 58 23 50 8Zm0 72a18 18 0 0 1-18-18c0-9 8-22 18-36 10 14 18 27 18 36a18 18 0 0 1-18 18Z"/></svg>',
-	down: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path stroke="#f8fafc" stroke-width="14" stroke-linecap="round" d="m28 28 44 44m0-44L28 72"/></svg>',
-	dead: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="#f8fafc" d="M24 46c0-19 12-32 26-32s26 13 26 32v22c0 10-8 18-18 18H42c-10 0-18-8-18-18V46Zm15-4a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm22 0a6 6 0 1 0 0 12 6 6 0 0 0 0-12ZM40 66h20l-10 10-10-10Z"/></svg>',
 	concentration: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="#c4b5fd" d="M30 35c-8-15 13-28 24-14 11-14 32-1 24 14 15 7 6 29-8 25 2 16-18 25-20 12-2 13-22 4-20-12-14 4-23-18-8-25 11-14 32-1 24 14 11-14 32-1 24 14 15 7 6 29-8 25"/></svg>',
 	condition: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="#f8fafc" d="M50 12 62 34l25 4-18 18 4 25-23-11-23 11 4-25L13 38l25-4L50 12Z"/></svg>',
 };

@@ -24,13 +24,23 @@ describe("Owlbear extension overlays", () => {
 		expect(deriveMarkers(participant({ hpCurrent: 5 }), 1)).toEqual([]);
 	});
 
-	it("shows a down marker instead of bloodied at zero HP", () => {
+	it("does not add a status marker at zero HP", () => {
 		const markers = deriveMarkers(participant({ hpCurrent: 0 }), 1).map((marker) => marker.kind);
 
-		expect(markers).toEqual(["down"]);
+		expect(markers).toEqual([]);
 	});
 
-	it("shows only a skull for a dead participant", () => {
+	it("keeps other statuses for a participant at zero HP", () => {
+		const markers = deriveMarkers(participant({
+			hpCurrent: 0,
+			isConcentrating: true,
+			conditions: [{ url: "/screens/blinded", expiresOnRound: null }],
+		}), 1);
+
+		expect(markers.map((marker) => marker.kind)).toEqual(["concentration", "condition"]);
+	});
+
+	it("does not add status markers for a dead participant", () => {
 		const markers = deriveMarkers(participant({
 			hpCurrent: 0,
 			isDead: true,
@@ -38,7 +48,7 @@ describe("Owlbear extension overlays", () => {
 			conditions: [{ url: "/screens/blinded", expiresOnRound: 5 }],
 		}), 1);
 
-		expect(markers).toEqual([{ kind: "dead", icon: "dead" }]);
+		expect(markers).toEqual([]);
 	});
 
 	it("shows concentration and every active condition in tracker order", () => {

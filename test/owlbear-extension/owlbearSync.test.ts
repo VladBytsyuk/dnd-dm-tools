@@ -71,6 +71,7 @@ vi.mock("@owlbear-rodeo/sdk", () => ({
 
 import { findStaleTokenIds, getConditionBadgePosition, getConditionBadgeTextPosition, pushSnapshotToScene } from "../../owlbear-extension/src/owlbearSync";
 import {
+	OWLBEAR_DEAD_OVERLAY_KEY,
 	OWLBEAR_ENCOUNTER_ID_KEY,
 	OWLBEAR_MARKER_KIND_KEY,
 	OWLBEAR_PARTICIPANT_ID_KEY,
@@ -221,6 +222,41 @@ describe("Owlbear scene synchronization", () => {
 		expect(items.filter((item) => item.type === "IMAGE" && item.attachedTo == null)).toHaveLength(1);
 	});
 
+	it("removes legacy down and dead status markers from existing tokens", async () => {
+		const items = mockScene();
+		const initial = snapshot([1]);
+		initial.participants[0].hpCurrent = 0;
+		const firstSync = await pushSnapshotToScene(initial);
+		const token = items.find((item) => item.type === "IMAGE" && item.attachedTo == null);
+
+		items.push({
+			id: "legacy-down",
+			type: "IMAGE",
+			attachedTo: token.id,
+			metadata: {
+				[OWLBEAR_ENCOUNTER_ID_KEY]: initial.encounterId,
+				[OWLBEAR_PARTICIPANT_ID_KEY]: 1,
+				[OWLBEAR_MARKER_KIND_KEY]: "down",
+			},
+		});
+		items.push({
+			id: "legacy-dead",
+			type: "SHAPE",
+			attachedTo: token.id,
+			metadata: {
+				[OWLBEAR_ENCOUNTER_ID_KEY]: initial.encounterId,
+				[OWLBEAR_PARTICIPANT_ID_KEY]: 1,
+				[OWLBEAR_DEAD_OVERLAY_KEY]: true,
+			},
+		});
+		initial.tokenLinks = firstSync.tokenLinks;
+
+		await pushSnapshotToScene(initial, initial);
+
+		expect(items.some((item) => item.id === "legacy-down")).toBe(false);
+		expect(items.some((item) => item.id === "legacy-dead")).toBe(false);
+	});
+
 	it("updates one token in place through normal, down, dead, down, and normal visuals", async () => {
 		const items = mockScene();
 		let previous = snapshot([1]);
@@ -247,6 +283,7 @@ describe("Owlbear scene synchronization", () => {
 			expect(token.position).toEqual(tokenPosition);
 			const tokenUrl = new URL(token.image.url);
 			expect(tokenUrl.searchParams.get("visual")).toBe(state.visual);
+			expect(tokenUrl.searchParams.get("visualVersion")).toBe(state.visual ? "2" : null);
 			expect(items.some((item) => item.metadata?.["club.ttg.dnd-dm-tools/deadOverlay"] === true)).toBe(false);
 			expect(items.filter((item) => item.type === "IMAGE" && item.attachedTo == null)).toHaveLength(1);
 			previous = next;
