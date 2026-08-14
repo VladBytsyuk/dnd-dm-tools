@@ -220,4 +220,36 @@ describe("Owlbear scene synchronization", () => {
 
 		expect(items.filter((item) => item.type === "IMAGE" && item.attachedTo == null)).toHaveLength(1);
 	});
+
+	it("updates one token in place through normal, down, dead, down, and normal visuals", async () => {
+		const items = mockScene();
+		let previous = snapshot([1]);
+		const firstSync = await pushSnapshotToScene(previous);
+		const token = items.find((item) => item.type === "IMAGE" && item.attachedTo == null);
+		const tokenId = token.id;
+		const tokenPosition = token.position;
+		expect(token.image.url).toBe("https://example.com/token.png");
+
+		for (const state of [
+			{ hpCurrent: 0, isDead: false, visual: "down" },
+			{ hpCurrent: 0, isDead: true, visual: "dead" },
+			{ hpCurrent: 0, isDead: false, visual: "down" },
+			{ hpCurrent: 10, isDead: false, visual: null },
+		]) {
+			const next = snapshot([1]);
+			next.participants[0].hpCurrent = state.hpCurrent;
+			next.participants[0].isDead = state.isDead;
+			next.tokenLinks = firstSync.tokenLinks;
+
+			await pushSnapshotToScene(next, previous);
+
+			expect(token.id).toBe(tokenId);
+			expect(token.position).toEqual(tokenPosition);
+			const tokenUrl = new URL(token.image.url);
+			expect(tokenUrl.searchParams.get("visual")).toBe(state.visual);
+			expect(items.some((item) => item.metadata?.["club.ttg.dnd-dm-tools/deadOverlay"] === true)).toBe(false);
+			expect(items.filter((item) => item.type === "IMAGE" && item.attachedTo == null)).toHaveLength(1);
+			previous = next;
+		}
+	});
 });

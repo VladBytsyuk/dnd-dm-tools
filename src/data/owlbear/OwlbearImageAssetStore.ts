@@ -10,6 +10,8 @@ export type ImageAsset = {
 	bytes: Buffer;
 };
 
+export type TokenVisualState = "down" | "dead";
+
 export class OwlbearImageAssetStore {
 	private initialized = false;
 
@@ -99,4 +101,13 @@ export function createFallbackSvg(name: string, colorHex: string | undefined, si
 	const escapedInitials = initials.replace(/[&<>"']/g, (value) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" }[value]!));
 	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><circle cx="256" cy="256" r="248" fill="${color}"/><text x="256" y="286" text-anchor="middle" font-family="sans-serif" font-size="150" font-weight="700" fill="#ffffff">${escapedInitials}</text></svg>`;
 	return { assetId: "", mime: "image/svg+xml", bytes: Buffer.from(svg), };
+}
+
+export function createTokenVisualSvg(mime: string, bytes: Buffer, state: TokenVisualState, width: number, height: number): Buffer {
+	const { darkeningOpacity, tokenOpacity } = state === "dead"
+		? { darkeningOpacity: 0.8, tokenOpacity: 0.5 }
+		: { darkeningOpacity: 0.5, tokenOpacity: 0.75 };
+	const source = `data:${mime};base64,${bytes.toString("base64")}`;
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><defs><image id="source" href="${source}" width="${width}" height="${height}" preserveAspectRatio="none"/><mask id="alpha" mask-type="alpha"><use href="#source"/></mask></defs><g opacity="${tokenOpacity}"><use href="#source"/><rect width="${width}" height="${height}" fill="#000000" fill-opacity="${darkeningOpacity}" mask="url(#alpha)"/></g></svg>`;
+	return Buffer.from(svg);
 }

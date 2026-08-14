@@ -1,5 +1,6 @@
 import OBR, { buildImage, buildShape, buildText } from "@owlbear-rodeo/sdk";
 import { deriveMarkers, layoutMarkers } from "./overlays";
+import { resolveTokenVisualImage, type TokenImage } from "./tokenVisuals";
 import {
 	OWLBEAR_ENCOUNTER_ID_KEY,
 	OWLBEAR_DEAD_OVERLAY_KEY,
@@ -36,12 +37,7 @@ type SyncResult = {
 	tokenLinks: OwlbearEncounterSnapshot["tokenLinks"];
 };
 
-type ResolvedImage = {
-	url: string;
-	mime: string;
-	width: number;
-	height: number;
-};
+type ResolvedImage = TokenImage;
 
 const DEFAULT_TOKEN_SIZE = 100;
 const STATUS_ICON_SIZE = 100;
@@ -96,7 +92,7 @@ export async function pushSnapshotToScene(
 	for (const participant of snapshot.participants) {
 		const image = resolveImage(participant.imageUrl, participant.imageMime, participant.imageWidth, participant.imageHeight);
 		if (!image) throw new Error(`Не получен URL или MIME изображения токена для «${participant.name}».`);
-		images.set(participant.participantId, image);
+		images.set(participant.participantId, resolveTokenVisualImage(participant, image));
 	}
 	const itemsToCreate: unknown[] = [];
 	const now = new Date().toISOString();
@@ -346,9 +342,7 @@ async function replaceMarkers(
 		await OBR.scene.items.deleteItems(overlays.map((overlay) => overlay.id));
 	}
 
-	const statusItems = [
-		...buildMarkerItems(tokenId, participant, snapshot, center, diameter, gridDpi),
-	];
+	const statusItems = buildMarkerItems(tokenId, participant, snapshot, center, diameter, gridDpi);
 	if (statusItems.length > 0) await OBR.scene.items.addItems(statusItems as never[]);
 }
 

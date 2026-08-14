@@ -3,7 +3,7 @@ import type { Duplex } from "stream";
 import { randomBytes, createHash } from "crypto";
 import { readFile } from "fs/promises";
 import { join } from "path";
-import { OwlbearImageAssetStore, createFallbackSvg } from "./OwlbearImageAssetStore";
+import { OwlbearImageAssetStore, createFallbackSvg, createTokenVisualSvg, type TokenVisualState } from "./OwlbearImageAssetStore";
 import type { OwlbearEncounterSnapshot, OwlbearSyncDiagnostics, OwlbearTokenLink } from "src/domain/models/owlbear/OwlbearSync";
 
 const PROTOCOL_VERSION = 2;
@@ -166,7 +166,8 @@ export class OwlbearIntegrationServer {
 	private async handleHttp(request: IncomingMessage, response: ServerResponse): Promise<void> {
 		response.setHeader("Access-Control-Allow-Origin", "https://www.owlbear.rodeo");
 		response.setHeader("Vary", "Origin");
-		const path = new URL(request.url ?? "/", "http://127.0.0.1").pathname;
+		const requestUrl = new URL(request.url ?? "/", "http://127.0.0.1");
+		const path = requestUrl.pathname;
 		const assetMatch = /^\/token-images\/([a-f0-9]{64})(?:\/([^/]+))?$/.exec(path);
 		const assetId = assetMatch?.[1];
 		if (assetId && request.method === "GET") {
@@ -178,6 +179,14 @@ export class OwlbearIntegrationServer {
 				const decodedMime = encodedMime ? decodeURIComponent(encodedMime) : "";
 				if (/^image\/[a-z0-9.+-]+$/i.test(decodedMime)) mime = decodedMime;
 			} catch { /* use generic content type */ }
+			const visual = requestUrl.searchParams.get("visual");
+			if (visual === "down" || visual === "dead") {
+				const width = parseVisualDimension(requestUrl.searchParams.get("width"));
+				const height = parseVisualDimension(requestUrl.searchParams.get("height"));
+				response.writeHead(200, { "Content-Type": "image/svg+xml", "Cache-Control": "private, max-age=31536000, immutable" })
+					.end(createTokenVisualSvg(mime, bytes, visual satisfies TokenVisualState, width, height));
+				return;
+			}
 			response.writeHead(200, { "Content-Type": mime, "Cache-Control": "no-store" }).end(bytes);
 			return;
 		}
@@ -357,6 +366,11 @@ export class OwlbearIntegrationServer {
 		}
 		return null;
 	}
+}
+
+function parseVisualDimension(value: string | null): number {
+	const dimension = Number(value);
+	return Number.isInteger(dimension) && dimension >= 1 && dimension <= 512 ? dimension : 512;
 }
 
 function parseImageDataUrl(value: string | undefined): { mime: string; bytes: Buffer } | null {

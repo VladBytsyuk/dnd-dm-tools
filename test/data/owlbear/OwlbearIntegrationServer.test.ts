@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { OwlbearIntegrationServer } from "src/data/owlbear/OwlbearIntegrationServer";
+import { createTokenVisualSvg } from "src/data/owlbear/OwlbearImageAssetStore";
 import type { OwlbearEncounterSnapshot } from "src/domain/models/owlbear/OwlbearSync";
 
 const temporaryDirectories: string[] = [];
@@ -49,6 +50,16 @@ async function createServer(): Promise<{ server: OwlbearIntegrationServer; cache
 }
 
 describe("Owlbear integration server snapshots", () => {
+	it("wraps token assets in a native-label-safe visual SVG", () => {
+		const visual = createTokenVisualSvg("image/png", Buffer.from("PNG"), "dead", 512, 256).toString("utf8");
+
+		expect(visual).toContain('href="data:image/png;base64,UE5H"');
+		expect(visual).toContain('<g opacity="0.5">');
+		expect(visual).toContain('fill="#000000" fill-opacity="0.8"');
+		expect(visual).toContain('mask="url(#alpha)"');
+		expect(visual).toContain('width="512" height="256"');
+	});
+
 	it("materializes missing images as cached initials tokens without Base64", async () => {
 		const { server, cacheDirectory } = await createServer();
 		const prepared = await server.materializeSnapshot(snapshot());
