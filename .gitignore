@@ -25,6 +25,7 @@ data.json
 
 database.db
 owlbear-cache/
+cloudflared/
 coverage/
 .env
 

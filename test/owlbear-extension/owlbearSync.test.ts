@@ -91,6 +91,7 @@ function snapshot(participantIds: number[], encounterId = "encounter-1"): Owlbea
 		activeParticipantId: null,
 		nextParticipantId: null,
 		createdAt: "2026-08-13T00:00:00.000Z",
+		assetBaseUrl: "https://public-assets.trycloudflare.com/assets/session-secret",
 		participants: participantIds.map((participantId) => ({
 			participantId,
 			name: `Participant ${participantId}`,
@@ -440,7 +441,7 @@ describe("Owlbear scene synchronization", () => {
 	});
 
 	it("batches visual and marker updates across all participants", async () => {
-		mockScene();
+		const items = mockScene();
 		const initial = snapshot([1, 2, 3, 4]);
 		const firstSync = await pushSnapshotToScene(initial);
 		const bloodied = snapshot([1, 2, 3, 4]);
@@ -457,5 +458,15 @@ describe("Owlbear scene synchronization", () => {
 		expect(sdkMock.obr.scene.items.updateItems).toHaveBeenCalledTimes(2);
 		expect(sdkMock.obr.scene.items.addItems).toHaveBeenCalledTimes(1);
 		expect(sdkMock.obr.scene.items.deleteItems).not.toHaveBeenCalled();
+		const markerIcon = items.find((item) => item.type === "IMAGE" && item.metadata?.[OWLBEAR_MARKER_KIND_KEY] === "bloodied");
+		expect(markerIcon.image.url).toBe("https://public-assets.trycloudflare.com/assets/session-secret/status-icons/bloodied.svg");
+	});
+
+	it("rejects snapshots without a public asset base URL", async () => {
+		mockScene();
+		const current = snapshot([1]);
+		delete current.assetBaseUrl;
+
+		await expect(pushSnapshotToScene(current)).rejects.toThrow("публичный адрес ресурсов");
 	});
 });

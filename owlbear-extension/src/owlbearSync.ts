@@ -47,13 +47,14 @@ const TURN_HIGHLIGHT_Z_INDEX = -2;
 const TOKEN_RING_Z_INDEX = 99;
 const TOKEN_IMAGE_Z_INDEX = 100;
 const MARKER_Z_INDEX = 2_000_000_000_000;
-const MARKER_LAYOUT_VERSION = 11;
+const MARKER_LAYOUT_VERSION = 12;
 const LEGACY_TOKEN_LABEL_KEY = "club.ttg.dnd-dm-tools/tokenLabel";
 
 export async function pushSnapshotToScene(
 	snapshot: OwlbearEncounterSnapshot,
 	previousSnapshot: OwlbearEncounterSnapshot | null = null,
 ): Promise<SyncResult> {
+	const assetBaseUrl = resolveAssetBaseUrl(snapshot.assetBaseUrl);
 	const sceneReady = await OBR.scene.isReady();
 	if (!sceneReady) {
 		return { diagnostics: createDiagnostics(snapshot, false, [], [], "No active Owlbear scene."), tokenLinks: [] };
@@ -126,6 +127,7 @@ export async function pushSnapshotToScene(
 					geometry.center,
 					geometry.diameter,
 					gridDpi,
+					assetBaseUrl,
 					markerIdsToDelete,
 					itemsToCreate,
 				);
@@ -133,7 +135,7 @@ export async function pushSnapshotToScene(
 		} else {
 			const position = clusterPosition(center, createdIndex, snapshot.participants.length, tokenSize);
 			createdIndex += 1;
-			itemsToCreate.push(...buildTokenItems(participant, snapshot, position, tokenSize, gridDpi, resolvedImage));
+			itemsToCreate.push(...buildTokenItems(participant, snapshot, position, tokenSize, gridDpi, resolvedImage, assetBaseUrl));
 		}
 	}
 	if (markerIdsToDelete.size > 0) {
@@ -340,6 +342,7 @@ function queueMarkerReplacement(
 	center: { x: number; y: number },
 	diameter: number,
 	gridDpi: number,
+	assetBaseUrl: string,
 	markerIdsToDelete: Set<string>,
 	itemsToCreate: unknown[],
 ): void {
@@ -350,16 +353,16 @@ function queueMarkerReplacement(
 	);
 
 	for (const overlay of overlays) markerIdsToDelete.add(overlay.id);
-	itemsToCreate.push(...buildMarkerItems(tokenId, participant, snapshot, center, diameter, gridDpi));
+	itemsToCreate.push(...buildMarkerItems(tokenId, participant, snapshot, center, diameter, gridDpi, assetBaseUrl));
 }
 
-function buildTokenItems(participant: OwlbearParticipantSnapshot, snapshot: OwlbearEncounterSnapshot, position: { x: number; y: number }, tokenSize: number, gridDpi: number, image: ResolvedImage) {
+function buildTokenItems(participant: OwlbearParticipantSnapshot, snapshot: OwlbearEncounterSnapshot, position: { x: number; y: number }, tokenSize: number, gridDpi: number, image: ResolvedImage, assetBaseUrl: string) {
 	const token = buildTokenImage(participant, snapshot, position, tokenSize, image);
 	return [
 		token,
 		buildTokenRing(participant, snapshot, position, token.id, tokenSize),
 		...buildTurnHighlight(token.id, participant, snapshot, position, tokenSize),
-		...buildMarkerItems(token.id, participant, snapshot, position, tokenSize, gridDpi),
+		...buildMarkerItems(token.id, participant, snapshot, position, tokenSize, gridDpi, assetBaseUrl),
 	];
 }
 
@@ -510,6 +513,7 @@ function buildMarkerItems(
 	center: { x: number; y: number },
 	diameter: number,
 	gridDpi: number,
+	assetBaseUrl: string,
 ) {
 	const iconSize = diameter * 0.2;
 	const effectiveGridDpi = Number.isFinite(gridDpi) && gridDpi > 0 ? gridDpi : DEFAULT_TOKEN_SIZE;
@@ -538,7 +542,7 @@ function buildMarkerItems(
 			.style({ fillColor: "#111827", fillOpacity: 0.86, strokeColor: "#f8fafc", strokeOpacity: 0.9, strokeWidth: Math.max(1, diameter * 0.015), strokeDash: [] })
 			.build();
 		const icon = buildImage(
-			{ width: STATUS_ICON_SIZE, height: STATUS_ICON_SIZE, mime: "image/svg+xml", url: statusIconUrl(marker.icon) },
+			{ width: STATUS_ICON_SIZE, height: STATUS_ICON_SIZE, mime: "image/svg+xml", url: statusIconUrl(marker.icon, assetBaseUrl) },
 			{ dpi: iconDpi, offset: { x: STATUS_ICON_SIZE / 2, y: STATUS_ICON_SIZE / 2 } },
 		)
 			.name(`${participant.name} ${marker.kind}`)
@@ -602,8 +606,15 @@ export function getConditionBadgeTextPosition(position: { x: number; y: number }
 	return { x: position.x - badgeSize / 2, y: position.y - badgeSize / 2 };
 }
 
-function statusIconUrl(icon: string) {
-	return new URL(`/status-icons/${icon}.svg`, window.location.origin).toString();
+function statusIconUrl(icon: string, assetBaseUrl: string) {
+	return `${assetBaseUrl}/status-icons/${icon}.svg`;
+}
+
+function resolveAssetBaseUrl(value: string | undefined): string {
+	if (!value) throw new Error("Не получен публичный адрес ресурсов Owlbear.");
+	const url = new URL(value);
+	if (url.protocol !== "https:" || !/\.trycloudflare\.com$/i.test(url.hostname)) throw new Error("Получен недопустимый публичный адрес ресурсов Owlbear.");
+	return url.toString().replace(/\/$/, "");
 }
 
 function tokenMetadata(participant: OwlbearParticipantSnapshot, snapshot: OwlbearEncounterSnapshot) {
@@ -659,7 +670,7 @@ function participantColor(participant: OwlbearParticipantSnapshot) {
 
 function resolveImage(url: string | undefined, mime: string | undefined, width: number | undefined, height: number | undefined): ResolvedImage | null {
 	if (!url || !mime || !mime.startsWith("image/") || !isImageDimension(width) || !isImageDimension(height)) return null;
-	return /^https?:\/\//i.test(url) ? { url, mime, width, height } : null;
+	return /^https:\/\//i.test(url) ? { url, mime, width, height } : null;
 }
 
 function isImageDimension(value: number | undefined): value is number {

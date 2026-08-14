@@ -16,6 +16,8 @@ export interface OwlbearEncounterSnapshot {
 	activeParticipantId: number | null;
 	nextParticipantId: number | null;
 	createdAt: string;
+	/** Added only to the transport copy; never persisted in plugin settings. */
+	assetBaseUrl?: string;
 	participants: OwlbearParticipantSnapshot[];
 	tokenLinks: OwlbearTokenLink[];
 	diagnostics?: OwlbearSyncDiagnostics;

@@ -38,6 +38,13 @@ import { PanelManager } from './ui/components/sidepanel/PanelManager';
 import type { PanelHost } from './ui/components/sidepanel/PanelHost';
 import { createOwlbearAuthToken, OwlbearIntegrationServer, type OwlbearServerStatus } from './data/owlbear/OwlbearIntegrationServer';
 import { OwlbearSettingsTab } from './ui/settings/OwlbearSettingsTab';
+import { CLOUDFLARED_VERSION, CloudflaredInstaller, type CloudflaredInstallStatus } from './data/owlbear/CloudflaredInstaller';
+import { CloudflareQuickTunnel, type OwlbearTunnelStatus } from './data/owlbear/CloudflareQuickTunnel';
+
+export type OwlbearRuntimeStatus = {
+	cloudflared: CloudflaredInstallStatus;
+	tunnel: OwlbearTunnelStatus;
+};
 
 export default class DndStatblockPlugin extends Plugin {
 
@@ -63,6 +70,15 @@ export default class DndStatblockPlugin extends Plugin {
 	private shouldResetLegacyViews = false;
 	private owlbearServer: OwlbearIntegrationServer | null = null;
 	private owlbearServerStatus: OwlbearServerStatus = { running: false, port: null, connected: false };
+	private cloudflaredInstaller: CloudflaredInstaller | null = null;
+	private cloudflaredBinaryPath: string | null = null;
+	private owlbearTunnel: CloudflareQuickTunnel | null = null;
+	private owlbearStartPromise: Promise<void> | null = null;
+	private owlbearRuntimeStatus: OwlbearRuntimeStatus = {
+		cloudflared: { state: "checking", version: CLOUDFLARED_VERSION, platform: runtimePlatform(), arch: runtimeArchitecture() },
+		tunnel: { state: "stopped" },
+	};
+	private readonly owlbearRuntimeListeners = new Set<() => void>();
 
 	#uiEventListener: IUiEventListener;
 
@@ -74,9 +90,7 @@ export default class DndStatblockPlugin extends Plugin {
 		this.shouldResetLegacyViews = loadResult.shouldResetLegacyViews;
 		await this.resetOwlbearSnapshotForNewSession();
 		this.addSettingTab(new OwlbearSettingsTab(this));
-		if (this.settings.owlbearSync.enabled && Platform.isDesktopApp) {
-			await this.startOwlbearIntegration();
-		}
+		void this.prepareCloudflared();
 
 		await this.#initialize(() => {
 			registerEncounterMdCodeBlockProcessor(
@@ -93,6 +107,7 @@ export default class DndStatblockPlugin extends Plugin {
 	}
 
 	onunload() {
+		this.cloudflaredInstaller?.dispose();
 		void this.stopOwlbearIntegration();
 		this.#dispose();
 		console.log("dnd-dm-tools has been unloaded.");
@@ -118,15 +133,21 @@ export default class DndStatblockPlugin extends Plugin {
 	}
 
 	async persistLatestOwlbearSnapshot(snapshot: OwlbearEncounterSnapshot): Promise<void> {
+		const { assetBaseUrl: _transportOnlyAssetBaseUrl, ...persistedSnapshot } = snapshot;
 		await this.updateSettings({
 			owlbearSync: {
 				...(this.settings.owlbearSync ?? {}),
-				latestSnapshot: snapshot,
+				latestSnapshot: persistedSnapshot,
 			},
 		});
 	}
 
 	getOwlbearServerStatus(): OwlbearServerStatus { return this.owlbearServerStatus; }
+	getOwlbearRuntimeStatus(): OwlbearRuntimeStatus { return this.owlbearRuntimeStatus; }
+	subscribeOwlbearRuntimeStatus(listener: () => void): () => void {
+		this.owlbearRuntimeListeners.add(listener);
+		return () => this.owlbearRuntimeListeners.delete(listener);
+	}
 	getOwlbearInstallLink(): string {
 		const port = this.settings.owlbearSync.port;
 		return port ? `http://localhost:${port}/manifest.json` : "";
@@ -143,7 +164,8 @@ export default class DndStatblockPlugin extends Plugin {
 			this.owlbearServerStatus = { running: false, port: null, connected: false, error: "Интеграция Owlbear доступна только в desktop Obsidian." };
 			return;
 		}
-		await this.startOwlbearIntegration();
+		if (this.owlbearRuntimeStatus.cloudflared.state === "ready") await this.startOwlbearIntegration();
+		else void this.prepareCloudflared();
 	}
 
 	async setOwlbearPort(port: number | null): Promise<void> {
@@ -160,11 +182,23 @@ export default class DndStatblockPlugin extends Plugin {
 		if (this.settings.owlbearSync.enabled && Platform.isDesktopApp) await this.startOwlbearIntegration();
 	}
 
+	async retryCloudflaredDownload(): Promise<void> {
+		await this.stopOwlbearIntegration();
+		this.cloudflaredBinaryPath = null;
+		await this.prepareCloudflared(true);
+	}
+
+	async restartOwlbearTunnel(): Promise<void> {
+		if (this.owlbearTunnel) await this.owlbearTunnel.restart();
+		else if (this.settings.owlbearSync.enabled) await this.startOwlbearIntegration();
+	}
+
 	async publishOwlbearSnapshot(snapshot: OwlbearEncounterSnapshot): Promise<void> {
 		const snapshotToPublish = this.reuseOwlbearEncounterIdentity(snapshot);
 		if (!this.settings.owlbearSync.enabled) throw new Error("Интеграция с Owlbear выключена. Включите её в настройках плагина.");
 		const server = this.owlbearServer;
 		if (!server?.getStatus().running) throw new Error("Локальный сервер Owlbear не запущен.");
+		if (!server.getAssetBaseUrl()) throw new Error("Публичный туннель изображений Owlbear ещё не готов.");
 		const prepared = await server.materializeSnapshot(snapshotToPublish, this.settings.owlbearSync.latestSnapshot);
 		await this.persistLatestOwlbearSnapshot(prepared);
 		server.publishPrepared(prepared);
@@ -174,7 +208,7 @@ export default class DndStatblockPlugin extends Plugin {
 		const previous = this.settings.owlbearSync.latestSnapshot;
 		if (!previous || (snapshot.participants.length > 0 && !hasOwlbearParticipantOverlap(previous, snapshot))) return;
 		const server = this.owlbearServer;
-		if (!this.settings.owlbearSync.enabled || !server?.getStatus().connected) return;
+		if (!this.settings.owlbearSync.enabled || !server?.getStatus().connected || !server.getAssetBaseUrl()) return;
 		const snapshotToPublish = { ...snapshot, encounterId: previous.encounterId, tokenLinks: previous.tokenLinks };
 		const prepared = await server.materializeSnapshot(snapshotToPublish, previous);
 		await this.persistLatestOwlbearSnapshot(prepared);
@@ -191,8 +225,14 @@ export default class DndStatblockPlugin extends Plugin {
 		await this.updateOwlbearSettings({ latestSnapshot: createOwlbearSessionResetSnapshot(previous) });
 	}
 
-	private async startOwlbearIntegration(): Promise<void> {
-		if (!Platform.isDesktopApp) return;
+	private startOwlbearIntegration(): Promise<void> {
+		if (this.owlbearStartPromise) return this.owlbearStartPromise;
+		this.owlbearStartPromise = this.doStartOwlbearIntegration().finally(() => { this.owlbearStartPromise = null; });
+		return this.owlbearStartPromise;
+	}
+
+	private async doStartOwlbearIntegration(): Promise<void> {
+		if (!Platform.isDesktopApp || !this.cloudflaredBinaryPath) return;
 		const sync = this.settings.owlbearSync;
 		const authToken = sync.authToken ?? createOwlbearAuthToken();
 		if (authToken !== sync.authToken) await this.updateOwlbearSettings({ authToken });
@@ -205,7 +245,7 @@ export default class DndStatblockPlugin extends Plugin {
 				() => this.settings.owlbearSync.authToken,
 				() => this.settings.owlbearSync.latestSnapshot,
 				(snapshotId, links, diagnostics) => this.persistOwlbearApplied(snapshotId, links, diagnostics),
-				(status) => { this.owlbearServerStatus = status; },
+				(status) => { this.owlbearServerStatus = status; this.notifyOwlbearRuntimeStatus(); },
 			);
 			const port = await server.start(sync.port ?? 0);
 			this.owlbearServer = server;
@@ -215,18 +255,73 @@ export default class DndStatblockPlugin extends Plugin {
 				await this.persistLatestOwlbearSnapshot(migrated);
 			}
 			if (port !== sync.port) await this.updateOwlbearSettings({ port });
+			const assetPort = server.getPublicAssetPort();
+			if (!assetPort) throw new Error("Asset-сервер Owlbear не запущен.");
+			const activeServer = server;
+			const tunnel = new CloudflareQuickTunnel(
+				this.cloudflaredBinaryPath,
+				assetPort,
+				this.getCloudflaredDirectory(),
+				activeServer.getPublicAssetPath(),
+				async (origin) => {
+					if (this.owlbearServer !== activeServer) return;
+					activeServer.setPublicAssetOrigin(origin);
+					const current = this.settings.owlbearSync.latestSnapshot;
+					if (current && activeServer.getStatus().connected) activeServer.publishPrepared(current);
+				},
+				() => activeServer.clearPublicAssetOrigin(),
+				(status) => {
+					this.owlbearRuntimeStatus = { ...this.owlbearRuntimeStatus, tunnel: status };
+					this.notifyOwlbearRuntimeStatus();
+				},
+			);
+			this.owlbearTunnel = tunnel;
+			tunnel.start();
 		} catch (error) {
 			if (server) await server.stop();
 			this.owlbearServer = null;
 			this.owlbearServerStatus = { running: false, port: sync.port, connected: false, error: formatOwlbearError(error) };
+			this.owlbearRuntimeStatus = { ...this.owlbearRuntimeStatus, tunnel: { state: "error", error: formatOwlbearError(error) } };
+			this.notifyOwlbearRuntimeStatus();
 			new Notice(`Не удалось запустить Owlbear: ${this.owlbearServerStatus.error}`);
 		}
 	}
 
 	private async stopOwlbearIntegration(): Promise<void> {
+		const tunnel = this.owlbearTunnel;
+		this.owlbearTunnel = null;
+		if (tunnel) await tunnel.stop();
 		const server = this.owlbearServer;
 		this.owlbearServer = null;
 		if (server) await server.stop();
+		this.owlbearRuntimeStatus = { ...this.owlbearRuntimeStatus, tunnel: { state: "stopped" } };
+		this.notifyOwlbearRuntimeStatus();
+	}
+
+	private async prepareCloudflared(force = false): Promise<void> {
+		if (!Platform.isDesktopApp) {
+			this.owlbearRuntimeStatus = { ...this.owlbearRuntimeStatus, cloudflared: { state: "unsupported", version: CLOUDFLARED_VERSION, platform: runtimePlatform(), arch: runtimeArchitecture(), error: "cloudflared доступен только в desktop Obsidian." } };
+			this.notifyOwlbearRuntimeStatus();
+			return;
+		}
+		try {
+			if (!this.cloudflaredInstaller) {
+				this.cloudflaredInstaller = new CloudflaredInstaller(this.getCloudflaredDirectory(), (status) => {
+					this.owlbearRuntimeStatus = { ...this.owlbearRuntimeStatus, cloudflared: status };
+					this.notifyOwlbearRuntimeStatus();
+				});
+			}
+			const binaryPath = await this.cloudflaredInstaller.ensureInstalled(force);
+			this.cloudflaredBinaryPath = binaryPath;
+			if (binaryPath && this.settings.owlbearSync.enabled) await this.startOwlbearIntegration();
+		} catch (error) {
+			this.owlbearRuntimeStatus = { ...this.owlbearRuntimeStatus, cloudflared: { state: "error", version: CLOUDFLARED_VERSION, platform: runtimePlatform(), arch: runtimeArchitecture(), error: formatOwlbearError(error) } };
+			this.notifyOwlbearRuntimeStatus();
+		}
+	}
+
+	private notifyOwlbearRuntimeStatus(): void {
+		for (const listener of this.owlbearRuntimeListeners) listener();
 	}
 
 	private async persistOwlbearApplied(snapshotId: string, links: OwlbearTokenLink[], diagnostics: OwlbearSyncDiagnostics): Promise<void> {
@@ -257,6 +352,12 @@ export default class DndStatblockPlugin extends Plugin {
 		const adapter = this.app.vault.adapter;
 		if (!(adapter instanceof FileSystemAdapter)) throw new Error("Локальный путь плагина недоступен.");
 		return [adapter.getBasePath(), this.app.vault.configDir, "plugins", this.manifest.id, "owlbear-cache", "token-images"].join("/");
+	}
+
+	private getCloudflaredDirectory(): string {
+		const adapter = this.app.vault.adapter;
+		if (!(adapter instanceof FileSystemAdapter)) throw new Error("Локальный путь плагина недоступен.");
+		return [adapter.getBasePath(), this.app.vault.configDir, "plugins", this.manifest.id, "cloudflared"].join("/");
 	}
 
 	// ---- private methods ----
@@ -347,3 +448,6 @@ function formatOwlbearError(error: unknown): string {
 	if (error && typeof error === "object" && "code" in error && (error as { code?: string }).code === "EADDRINUSE") return "Этот порт уже занят.";
 	return error instanceof Error ? error.message : String(error);
 }
+
+function runtimePlatform(): string { return typeof process === "undefined" ? "unknown" : process.platform; }
+function runtimeArchitecture(): string { return typeof process === "undefined" ? "unknown" : process.arch; }

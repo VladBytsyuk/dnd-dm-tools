@@ -44,6 +44,10 @@ export type OwlbearServerStatus = {
 
 export class OwlbearIntegrationServer {
 	private server: HttpServer | null = null;
+	private publicAssetServer: HttpServer | null = null;
+	private publicAssetPort: number | null = null;
+	private publicAssetOrigin: string | null = null;
+	private publicAssetSecret = randomBytes(24).toString("base64url");
 	private websocketServer: WebSocketServer | null = null;
 	private assetDirectory: string | null = null;
 	private client: WebSocket | null = null;
@@ -68,12 +72,33 @@ export class OwlbearIntegrationServer {
 	}
 
 	getStatus(): OwlbearServerStatus { return this.status; }
+	getPublicAssetPort(): number | null { return this.publicAssetPort; }
+	getPublicAssetPath(): string { return `/assets/${this.publicAssetSecret}`; }
+	getAssetBaseUrl(): string | null { return this.publicAssetOrigin ? `${this.publicAssetOrigin}${this.getPublicAssetPath()}` : null; }
+	setPublicAssetOrigin(origin: string): void {
+		const url = new URL(origin);
+		if (url.protocol !== "https:" || !/^[a-z0-9-]+\.trycloudflare\.com$/i.test(url.hostname) || url.pathname !== "/") throw new Error("cloudflared вернул недопустимый публичный адрес.");
+		this.publicAssetOrigin = url.origin;
+	}
+	clearPublicAssetOrigin(): void {
+		this.publicAssetOrigin = null;
+		this.clearApplyTimeout();
+		this.inFlightSnapshotId = null;
+		this.pendingSnapshot = null;
+	}
 
 	async start(port: number): Promise<number> {
 		if (this.server) await this.stop();
 		this.assetDirectory = await this.findAssetDirectory();
 		if (!this.assetDirectory) throw new Error("Файлы Owlbear-расширения не найдены. Укажите корректный dev bundle или установите полный release.");
 		await this.imageStore.initialize();
+		this.publicAssetSecret = randomBytes(24).toString("base64url");
+		this.publicAssetOrigin = null;
+		this.publicAssetServer = createServer((request, response) => void this.handlePublicAssetHttp(request, response));
+		await listen(this.publicAssetServer, 0);
+		const publicAddress = this.publicAssetServer.address();
+		if (!publicAddress || typeof publicAddress === "string") throw new Error("Не удалось определить порт публичных Owlbear-ресурсов.");
+		this.publicAssetPort = publicAddress.port;
 		this.websocketServer = new WebSocketServer({
 			noServer: true,
 			clientTracking: false,
@@ -95,6 +120,7 @@ export class OwlbearIntegrationServer {
 			this.server = null;
 			this.websocketServer.close();
 			this.websocketServer = null;
+			await this.stopPublicAssetServer();
 			throw error;
 		}
 		const address = this.server.address();
@@ -108,6 +134,7 @@ export class OwlbearIntegrationServer {
 		this.clearApplyTimeout();
 		this.pendingSnapshot = null;
 		this.inFlightSnapshotId = null;
+		this.publicAssetOrigin = null;
 		if (this.server) {
 			const server = this.server;
 			this.server = null;
@@ -115,6 +142,7 @@ export class OwlbearIntegrationServer {
 		}
 		this.websocketServer?.close();
 		this.websocketServer = null;
+		await this.stopPublicAssetServer();
 		this.setStatus({ running: false, port: null, connected: false });
 	}
 
@@ -165,7 +193,7 @@ export class OwlbearIntegrationServer {
 				imageWidth: width ?? 512,
 				imageHeight: height ?? 512,
 				imageFallback: usedFallback,
-				imageUrl: this.assetUrl(assetId, mime ?? "image/png"),
+				imageUrl: undefined,
 			};
 			participants.push(materializedParticipant);
 			materializedAssetIds.push(assetId);
@@ -214,6 +242,52 @@ export class OwlbearIntegrationServer {
 		} catch {
 			response.writeHead(503).end("Owlbear extension assets are unavailable");
 		}
+	}
+
+	private async handlePublicAssetHttp(request: IncomingMessage, response: ServerResponse): Promise<void> {
+		const requestUrl = new URL(request.url ?? "/", "http://127.0.0.1");
+		const prefix = this.getPublicAssetPath();
+		if (request.method !== "GET" || !requestUrl.pathname.startsWith(`${prefix}/`)) { response.writeHead(404).end("Not found"); return; }
+		const path = requestUrl.pathname.slice(prefix.length);
+		if (path === "/health") {
+			response.writeHead(200, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" }).end("ok");
+			return;
+		}
+		response.setHeader("Access-Control-Allow-Origin", "*");
+		const assetMatch = /^\/token-images\/([a-f0-9]{64})(?:\/([^/]+))?$/.exec(path);
+		if (assetMatch?.[1]) {
+			await this.serveTokenImage(requestUrl, response, assetMatch[1], assetMatch[2], true);
+			return;
+		}
+		const iconMatch = /^\/status-icons\/([a-z0-9-]+)\.svg$/.exec(path);
+		if (iconMatch && STATUS_ICON_NAMES.includes(iconMatch[1])) {
+			try {
+				const content = await readFile(join(this.assetDirectory!, "status-icons", `${iconMatch[1]}.svg`));
+				response.writeHead(200, { "Content-Type": "image/svg+xml", "Cache-Control": "public, max-age=31536000, immutable" }).end(content);
+			} catch { response.writeHead(503).end("Asset unavailable"); }
+			return;
+		}
+		response.writeHead(404).end("Not found");
+	}
+
+	private async serveTokenImage(requestUrl: URL, response: ServerResponse, assetId: string, encodedMime: string | undefined, publicCache: boolean): Promise<void> {
+		const bytes = await this.imageStore.get(assetId);
+		if (!bytes) { response.writeHead(404).end("Not found"); return; }
+		let mime = "application/octet-stream";
+		try {
+			const decodedMime = encodedMime ? decodeURIComponent(encodedMime) : "";
+			if (/^image\/[a-z0-9.+-]+$/i.test(decodedMime)) mime = decodedMime;
+		} catch { /* use generic content type */ }
+		const cacheControl = publicCache ? "public, max-age=31536000, immutable" : "no-store";
+		const visual = requestUrl.searchParams.get("visual");
+		if (visual === "down" || visual === "dead") {
+			const width = parseVisualDimension(requestUrl.searchParams.get("width"));
+			const height = parseVisualDimension(requestUrl.searchParams.get("height"));
+			response.writeHead(200, { "Content-Type": "image/svg+xml", "Cache-Control": cacheControl })
+				.end(createTokenVisualSvg(mime, bytes, visual satisfies TokenVisualState, width, height));
+			return;
+		}
+		response.writeHead(200, { "Content-Type": mime, "Cache-Control": cacheControl }).end(bytes);
 	}
 
 	private handleUpgrade(request: IncomingMessage, socket: Duplex, head: Buffer): void {
@@ -268,7 +342,7 @@ export class OwlbearIntegrationServer {
 			if (!snapshot) { this.send({ type: "snapshot.empty" }); return; }
 			try {
 				const prepared = await this.materializeSnapshot(snapshot);
-				this.enqueueSnapshot(prepared);
+				this.enqueueSnapshot(this.rebindSnapshotUrls(prepared));
 			} catch (error) {
 				this.setStatus({ ...this.status, error: error instanceof Error ? error.message : String(error) });
 			}
@@ -360,9 +434,15 @@ export class OwlbearIntegrationServer {
 	}
 
 	private origin(): string { return `http://localhost:${this.status.port}`; }
-	private assetUrl(assetId: string, mime = "image/png"): string { return `http://localhost:${this.status.port}/token-images/${assetId}/${encodeURIComponent(mime)}`; }
+	private assetUrl(assetId: string, mime = "image/png"): string {
+		const baseUrl = this.getAssetBaseUrl();
+		if (!baseUrl) throw new Error("Публичный туннель изображений Owlbear ещё не готов.");
+		return `${baseUrl}/token-images/${assetId}/${encodeURIComponent(mime)}`;
+	}
 	private rebindSnapshotUrls(snapshot: OwlbearEncounterSnapshot): OwlbearEncounterSnapshot {
-		return { ...snapshot, participants: snapshot.participants.map((participant) => ({ ...participant, imageUrl: participant.imageAssetId ? this.assetUrl(participant.imageAssetId, participant.imageMime) : participant.imageUrl, imageDataUrl: undefined })) };
+		const assetBaseUrl = this.getAssetBaseUrl();
+		if (!assetBaseUrl) throw new Error("Публичный туннель изображений Owlbear ещё не готов.");
+		return { ...snapshot, assetBaseUrl, participants: snapshot.participants.map((participant) => ({ ...participant, imageUrl: participant.imageAssetId ? this.assetUrl(participant.imageAssetId, participant.imageMime) : participant.imageUrl, imageDataUrl: undefined })) };
 	}
 	private setStatus(status: OwlbearServerStatus): void { this.status = status; this.onStatus(status); }
 
@@ -372,6 +452,20 @@ export class OwlbearIntegrationServer {
 		}
 		return null;
 	}
+
+	private async stopPublicAssetServer(): Promise<void> {
+		const server = this.publicAssetServer;
+		this.publicAssetServer = null;
+		this.publicAssetPort = null;
+		if (server) await new Promise<void>((resolve) => server.close(() => resolve()));
+	}
+}
+
+function listen(server: HttpServer, port: number): Promise<void> {
+	return new Promise((resolve, reject) => {
+		server.once("error", reject);
+		server.listen(port, "127.0.0.1", () => { server.off("error", reject); resolve(); });
+	});
 }
 
 function parseVisualDimension(value: string | null): number {

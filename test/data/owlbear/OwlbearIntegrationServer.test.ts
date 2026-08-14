@@ -86,7 +86,7 @@ describe("Owlbear integration server snapshots", () => {
 		expect(participant.imageAssetId).toMatch(/^[a-f0-9]{64}$/);
 		expect(participant.imageFallback).toBe(true);
 		expect(participant.imageDataUrl).toBeUndefined();
-		expect(participant.imageUrl).toContain(`/token-images/${participant.imageAssetId}/image%2Fsvg%2Bxml`);
+		expect(participant.imageUrl).toBeUndefined();
 		expect((await readFile(join(cacheDirectory, participant.imageAssetId!))).toString("utf8")).toContain("ЛР");
 	});
 
@@ -114,8 +114,7 @@ describe("Owlbear integration server snapshots", () => {
 
 		expect(second.participants[0].imageFallback).toBe(false);
 		expect(second.participants[0].imageAssetId).not.toBe(first.participants[0].imageAssetId);
-		expect(second.participants[0].imageUrl).toContain(`/token-images/${second.participants[0].imageAssetId}/image%2Fpng`);
-		expect(second.participants[0].imageUrl).not.toBe(first.participants[0].imageUrl);
+		expect(second.participants[0].imageUrl).toBeUndefined();
 	});
 
 	it("migrates a legacy Base64 image into the cache", async () => {
@@ -184,7 +183,7 @@ describe("Owlbear integration server transport", () => {
 		expect(applied).toEqual(["snapshot-1"]);
 	});
 
-	it("rebinds a prepared cached image to the current localhost port", async () => {
+	it("rebinds a prepared cached image to the current Quick Tunnel URL", async () => {
 		const { server, port } = await createRunningServer();
 		const client = await connectClient(port);
 		const ready = waitForMessage(client, "server.ready");
@@ -203,7 +202,46 @@ describe("Owlbear integration server transport", () => {
 		}));
 
 		const message = await published;
-		expect(message.snapshot.participants[0].imageUrl).toBe(`http://localhost:${port}/token-images/${"a".repeat(64)}/image%2Fwebp`);
+		expect(message.snapshot.assetBaseUrl).toMatch(/^https:\/\/test\.trycloudflare\.com\/assets\//);
+		expect(message.snapshot.participants[0].imageUrl).toBe(`${message.snapshot.assetBaseUrl}/token-images/${"a".repeat(64)}/image%2Fwebp`);
+		expect(message.snapshot.participants[0].imageUrl).not.toContain("localhost");
+	});
+
+	it("fails closed while the public tunnel is unavailable", async () => {
+		const { server, port } = await createRunningServer();
+		const client = await connectClient(port);
+		const ready = waitForMessage(client, "server.ready");
+		client.send(JSON.stringify({ protocolVersion: 2, messageId: "hello-1", type: "client.hello", token: "token" }));
+		await ready;
+		server.clearPublicAssetOrigin();
+
+		expect(() => server.publishPrepared(snapshot())).toThrow("Публичный туннель");
+	});
+
+	it("exposes only secret-scoped images, visuals, health and known status icons", async () => {
+		const { server } = await createRunningServer();
+		const prepared = await server.materializeSnapshot(snapshot());
+		const port = server.getPublicAssetPort()!;
+		const base = `http://127.0.0.1:${port}${server.getPublicAssetPath()}`;
+		const tokenPath = `/token-images/${prepared.participants[0].imageAssetId}/${encodeURIComponent(prepared.participants[0].imageMime!)}`;
+
+		const [health, token, visual, icon, manifest, websocket, wrongSecret] = await Promise.all([
+			fetch(`${base}/health`),
+			fetch(`${base}${tokenPath}`),
+			fetch(`${base}${tokenPath}?visual=dead&width=256&height=256`),
+			fetch(`${base}/status-icons/dead.svg`),
+			fetch(`http://127.0.0.1:${port}/manifest.json`),
+			fetch(`${base}/ws`),
+			fetch(`http://127.0.0.1:${port}/assets/wrong/health`),
+		]);
+
+		expect(health.status).toBe(200);
+		expect(token.status).toBe(200);
+		expect(token.headers.get("access-control-allow-origin")).toBe("*");
+		expect(token.headers.get("cache-control")).toContain("immutable");
+		expect(visual.headers.get("content-type")).toContain("image/svg+xml");
+		expect(icon.status).toBe(200);
+		expect([manifest.status, websocket.status, wrongSecret.status]).toEqual([404, 404, 404]);
 	});
 });
 
@@ -229,7 +267,9 @@ async function createRunningServer(
 	await createExtensionAssets(assets);
 	const server = new OwlbearIntegrationServer([assets], cache, () => "token", () => undefined, onApplied, () => {});
 	runningServers.push(server);
-	return { server, port: await server.start(0) };
+	const port = await server.start(0);
+	server.setPublicAssetOrigin("https://test.trycloudflare.com");
+	return { server, port };
 }
 
 async function createExtensionAssets(directory: string): Promise<void> {

@@ -19,6 +19,7 @@ export interface OwlbearEncounterSnapshot {
 	activeParticipantId: number | null;
 	nextParticipantId: number | null;
 	createdAt: string;
+	assetBaseUrl?: string;
 	participants: OwlbearParticipantSnapshot[];
 	tokenLinks: OwlbearTokenLink[];
 	diagnostics?: OwlbearSyncDiagnostics;
