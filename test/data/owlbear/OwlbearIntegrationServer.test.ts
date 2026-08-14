@@ -57,8 +57,9 @@ describe("Owlbear integration server snapshots", () => {
 		expect(visual).toContain('<g opacity="0.5">');
 		expect(visual).toContain('fill="#000000" fill-opacity="0.8"');
 		expect(visual).toContain('mask="url(#alpha)"');
-		expect(visual.indexOf('fill="#000000" fill-opacity="0.8"')).toBeLessThan(visual.indexOf('<svg x="192" y="64" width="128" height="128"'));
-		expect(visual).toContain('fill="#f8fafc"');
+		expect(visual.indexOf('fill="#000000" fill-opacity="0.8"')).toBeLessThan(visual.indexOf('transform="translate(192 64)'));
+		expect(visual).toContain('stroke="#f8fafc"');
+		expect(visual).toContain('d="M15 22a1 1 0 0 0 1-1v-1a2 2 0 0 0 1.56-3.25');
 		expect(visual).toContain('width="512" height="256"');
 	});
 

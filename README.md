@@ -1,5 +1,7 @@
 # DnD DM Tools для Obsidian
 
+![DnD DM Tools](src/assets/icon.svg)
+
 [![Tests](https://github.com/VladBytsyuk/dnd-dm-tools/actions/workflows/test.yml/badge.svg)](https://github.com/VladBytsyuk/dnd-dm-tools/actions/workflows/test.yml)
 
 DnD DM Tools — плагин для [Obsidian](https://obsidian.md/) с русскоязычными инструментами и справочниками для Мастера Подземелий в Dungeons & Dragons 5-й редакции.

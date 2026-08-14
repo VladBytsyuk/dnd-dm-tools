@@ -283,7 +283,7 @@ describe("Owlbear scene synchronization", () => {
 			expect(token.position).toEqual(tokenPosition);
 			const tokenUrl = new URL(token.image.url);
 			expect(tokenUrl.searchParams.get("visual")).toBe(state.visual);
-			expect(tokenUrl.searchParams.get("visualVersion")).toBe(state.visual ? "2" : null);
+			expect(tokenUrl.searchParams.get("visualVersion")).toBe(state.visual ? "3" : null);
 			expect(items.some((item) => item.metadata?.["club.ttg.dnd-dm-tools/deadOverlay"] === true)).toBe(false);
 			expect(items.filter((item) => item.type === "IMAGE" && item.attachedTo == null)).toHaveLength(1);
 			previous = next;

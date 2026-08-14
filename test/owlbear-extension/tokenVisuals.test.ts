@@ -31,7 +31,7 @@ describe("Owlbear token visuals", () => {
 		const image = { url: "http://localhost:34465/token-images/asset/image%2Fpng", mime: "image/png", width: 2048, height: 1024 };
 		const visual = resolveTokenVisualImage({ hpCurrent: 0, isDead: false } as any, image);
 
-		expect(visual.url).toBe(`${image.url}?visual=down&visualVersion=2&width=512&height=256`);
+		expect(visual.url).toBe(`${image.url}?visual=down&visualVersion=3&width=512&height=256`);
 		expect(visual.mime).toBe("image/svg+xml");
 		expect({ width: visual.width, height: visual.height }).toEqual({ width: 512, height: 256 });
 		expect(resolveTokenVisualImage({ hpCurrent: 1, isDead: false } as any, image)).toBe(image);

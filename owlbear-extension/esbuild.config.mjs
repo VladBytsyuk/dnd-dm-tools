@@ -13,6 +13,7 @@ copyFileSync(join(__dirname, "public", "index.html"), join(__dirname, "dist", "i
 copyFileSync(join(__dirname, "public", "background.html"), join(__dirname, "dist", "background.html"));
 copyFileSync(join(__dirname, "public", "manifest.json"), join(__dirname, "dist", "manifest.json"));
 copyFileSync(join(__dirname, "public", "icon.svg"), join(__dirname, "dist", "icon.svg"));
+copyFileSync(join(__dirname, "public", "icon-v2.svg"), join(__dirname, "dist", "icon-v2.svg"));
 const conditionIcons = {
 	unconscious: "Unconscious",
 	frightened: "Frightened",
@@ -50,9 +51,10 @@ function normalizeStatusSvg(svg, addWhiteFill) {
 }
 
 const statusIcons = {
-	bloodied: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="#ef4444" d="M50 8C42 23 22 43 22 62a28 28 0 0 0 56 0C78 43 58 23 50 8Zm0 72a18 18 0 0 1-18-18c0-9 8-22 18-36 10 14 18 27 18 36a18 18 0 0 1-18 18Z"/></svg>',
-	concentration: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="#c4b5fd" d="M30 35c-8-15 13-28 24-14 11-14 32-1 24 14 15 7 6 29-8 25 2 16-18 25-20 12-2 13-22 4-20-12-14 4-23-18-8-25 11-14 32-1 24 14 11-14 32-1 24 14 15 7 6 29-8 25"/></svg>',
+	bloodied: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg>',
+	concentration: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M17.599 6.5a3 3 0 0 0 .399-1.375"/><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"/><path d="M3.477 10.896a4 4 0 0 1 .585-.396"/><path d="M19.938 10.5a4 4 0 0 1 .585.396"/><path d="M6 18a4 4 0 0 1-1.967-.516"/><path d="M19.967 17.484A4 4 0 0 1 18 18"/></svg>',
 	condition: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="#f8fafc" d="M50 12 62 34l25 4-18 18 4 25-23-11-23 11 4-25L13 38l25-4L50 12Z"/></svg>',
+	dead: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#f8fafc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.5 17-.5-1-.5 1h1z"/><path d="M15 22a1 1 0 0 0 1-1v-1a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20v1a1 1 0 0 0 1 1z"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="12" r="1"/></svg>',
 };
 
 copyStatusIcons();
@@ -81,6 +83,7 @@ if (watch) {
 		["/background.html", "background.html"],
 		["/background.js", "background.js"],
 		["/icon.svg", "icon.svg"],
+		["/icon-v2.svg", "icon-v2.svg"],
 		...Object.keys(conditionIcons).concat(Object.keys(statusIcons)).map((name) => [`/status-icons/${name}.svg`, `status-icons/${name}.svg`]),
 	]);
 	const server = createServer(async (request, response) => {

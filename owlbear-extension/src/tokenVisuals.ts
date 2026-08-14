@@ -16,7 +16,7 @@ export type TokenImage = {
 };
 
 const MAX_VISUAL_SIZE = 512;
-const TOKEN_VISUAL_VERSION = "2";
+const TOKEN_VISUAL_VERSION = "3";
 const NORMAL_VISUAL: TokenVisualConfig = { state: "normal", darkeningOpacity: 0, tokenOpacity: 1 };
 const DOWN_VISUAL: TokenVisualConfig = { state: "down", darkeningOpacity: 0.5, tokenOpacity: 0.75 };
 const DEAD_VISUAL: TokenVisualConfig = { state: "dead", darkeningOpacity: 0.8, tokenOpacity: 0.5 };
