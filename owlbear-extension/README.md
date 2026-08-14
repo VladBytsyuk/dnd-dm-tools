@@ -1,10 +1,12 @@
-# DnD DM Tools Owlbear Extension
+# Расширение DnD DM Tools для Owlbear Rodeo
 
-This package builds the Owlbear Rodeo side of the DnD DM Tools encounter integration.
+Это пакет расширения для Owlbear Rodeo, который обеспечивает интеграцию столкновений из DnD DM Tools с инициативой в сценах Owlbear Rodeo.
 
-## Commands
+Текущая версия: **0.2.0**.
 
-Run from the repository root:
+## Команды
+
+Запускайте команды из корня репозитория:
 
 ```bash
 npm ci
@@ -13,38 +15,38 @@ npm run owlbear:build
 npm run owlbear:dev
 ```
 
-The production root build also creates both Owlbear entry points and copies them into the plugin release bundle.
+Production-сборка корневого проекта также собирает обе точки входа Owlbear и копирует их в release-пакет плагина.
 
-## Usage
+## Использование
 
-1. Enable Owlbear integration in the Obsidian desktop plugin settings.
-2. Copy the Install Link and pairing code from the settings tab.
-3. Install or update the extension in Owlbear using the Install Link.
-4. Open the extension action once and enter the pairing code.
-5. Open an initiative tracker in Obsidian and send the encounter to Owlbear.
-6. Keep editing the encounter in Obsidian; the background page keeps the Owlbear scene synchronized after the popover is closed.
-7. Use the extension popover to reconnect a scene or inspect diagnostics.
+1. Включите интеграцию с Owlbear в настройках плагина Obsidian для компьютера.
+2. Скопируйте Install Link и код сопряжения на вкладке настроек.
+3. Установите или обновите расширение в Owlbear по Install Link.
+4. Один раз откройте действие расширения и введите код сопряжения.
+5. Откройте трекер инициативы в Obsidian и отправьте столкновение в Owlbear.
+6. Продолжайте редактировать столкновение в Obsidian: фоновая страница будет синхронизировать сцену Owlbear после закрытия всплывающей панели.
+7. Используйте всплывающую панель расширения для повторного подключения сцены или просмотра диагностики.
 
-## Synchronization model
+## Модель синхронизации
 
-- Obsidian is the source of truth.
-- Synchronization is snapshot-based and ordered; only the latest pending snapshot is retained.
-- The Owlbear background page owns the persistent WebSocket connection.
-- Managed stale tokens from the current encounter are removed automatically.
-- New tokens are placed near the current Owlbear viewport center.
-- Every applied snapshot is acknowledged by `snapshotId`.
-- A new Obsidian process intentionally publishes a session-reset snapshot. On reconnect, all tokens managed by the previous session are removed, including their saved positions. Send the encounter again to start the new session.
+- Obsidian является источником истины.
+- Синхронизация выполняется упорядоченными снимками состояния; сохраняется только последний ожидающий снимок.
+- Фоновая страница Owlbear владеет постоянным WebSocket-соединением.
+- Устаревшие управляемые токены текущего столкновения удаляются автоматически.
+- Новые токены размещаются рядом с центром текущей области просмотра Owlbear.
+- Каждый применённый снимок подтверждается через `snapshotId`.
+- Новый процесс Obsidian намеренно публикует снимок со сбросом сессии. При повторном подключении удаляются все токены предыдущей сессии, включая сохранённые позиции. Чтобы начать новую сессию, отправьте столкновение ещё раз.
 
-## Images and fallback tokens
+## Изображения и резервные токены
 
-Images are stored in a content-addressed local cache under the plugin data directory. The cache is deduplicated and limited to 250 MB with LRU cleanup. The current and in-flight encounter assets are protected from eviction.
+Изображения хранятся в локальном кэше с адресацией по содержимому в каталоге данных плагина. Кэш дедуплицируется и ограничен 250 МБ; для очистки используется LRU. Ресурсы текущего столкновения и изображения, находящиеся в процессе загрузки, защищены от удаления.
 
-If an image is missing, invalid, or unavailable, synchronization continues with a generated 512×512 SVG token containing the participant's initials and side/participant color.
+Если изображение отсутствует, повреждено или недоступно, синхронизация продолжается с автоматически созданным SVG-токеном размером 512×512 пикселей. На нём отображаются инициалы участника и цвет стороны или участника.
 
-## Development and release
+## Разработка и релиз
 
-- Production builds use only the extension bundle installed next to the Obsidian plugin.
-- Development builds use only the configured `developmentExtensionPath` pointing to `owlbear-extension/dist`.
-- A missing or incomplete development bundle is reported as an error instead of silently falling back to a release bundle.
+- Production-сборка использует только bundle расширения, установленный рядом с плагином Obsidian.
+- Dev-сборка использует только настроенный `developmentExtensionPath`, указывающий на `owlbear-extension/dist`.
+- Если dev-bundle отсутствует или неполон, сборка сообщает об ошибке и не подменяет его release-bundle.
 
-After changing the configured port, copy the new Install Link and pairing code and update the installed Owlbear extension.
+После изменения настроенного порта скопируйте новый Install Link и код сопряжения и обновите установленное расширение Owlbear.
