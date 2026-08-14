@@ -70,7 +70,11 @@ export class CloudflaredInstaller {
 	getStatus(): CloudflaredInstallStatus { return this.status; }
 
 	ensureInstalled(force = false): Promise<string | null> {
-		if (this.operation) return this.operation;
+		if (this.operation) {
+			return this.disposed
+				? this.operation.then(() => this.ensureInstalled(force))
+				: this.operation;
+		}
 		this.disposed = false;
 		this.operation = this.install(force).finally(() => { this.operation = null; });
 		return this.operation;

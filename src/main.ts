@@ -30,6 +30,7 @@ import {
 } from './domain/models/settings/PluginSettings';
 import {
 	createOwlbearSessionResetSnapshot,
+	reuseOwlbearEncounterIdentity,
 	type OwlbearEncounterSnapshot,
 	type OwlbearSyncDiagnostics,
 	type OwlbearTokenLink,
@@ -90,7 +91,6 @@ export default class DndStatblockPlugin extends Plugin {
 		this.shouldResetLegacyViews = loadResult.shouldResetLegacyViews;
 		await this.resetOwlbearSnapshotForNewSession();
 		this.addSettingTab(new OwlbearSettingsTab(this));
-		void this.prepareCloudflared();
 
 		await this.#initialize(() => {
 			registerEncounterMdCodeBlockProcessor(
@@ -159,7 +159,11 @@ export default class DndStatblockPlugin extends Plugin {
 
 	async setOwlbearIntegrationEnabled(enabled: boolean): Promise<void> {
 		await this.updateOwlbearSettings({ enabled });
-		if (!enabled) { await this.stopOwlbearIntegration(); return; }
+		if (!enabled) {
+			this.cloudflaredInstaller?.dispose();
+			await this.stopOwlbearIntegration();
+			return;
+		}
 		if (!Platform.isDesktopApp) {
 			this.owlbearServerStatus = { running: false, port: null, connected: false, error: "Интеграция Owlbear доступна только в desktop Obsidian." };
 			return;
@@ -194,7 +198,7 @@ export default class DndStatblockPlugin extends Plugin {
 	}
 
 	async publishOwlbearSnapshot(snapshot: OwlbearEncounterSnapshot): Promise<void> {
-		const snapshotToPublish = this.reuseOwlbearEncounterIdentity(snapshot);
+		const snapshotToPublish = reuseOwlbearEncounterIdentity(snapshot, this.settings.owlbearSync.latestSnapshot);
 		if (!this.settings.owlbearSync.enabled) throw new Error("Интеграция с Owlbear выключена. Включите её в настройках плагина.");
 		const server = this.owlbearServer;
 		if (!server?.getStatus().running) throw new Error("Локальный сервер Owlbear не запущен.");
@@ -299,6 +303,7 @@ export default class DndStatblockPlugin extends Plugin {
 	}
 
 	private async prepareCloudflared(force = false): Promise<void> {
+		if (!this.settings.owlbearSync.enabled) return;
 		if (!Platform.isDesktopApp) {
 			this.owlbearRuntimeStatus = { ...this.owlbearRuntimeStatus, cloudflared: { state: "unsupported", version: CLOUDFLARED_VERSION, platform: runtimePlatform(), arch: runtimeArchitecture(), error: "cloudflared доступен только в desktop Obsidian." } };
 			this.notifyOwlbearRuntimeStatus();
@@ -328,12 +333,6 @@ export default class DndStatblockPlugin extends Plugin {
 		const snapshot = this.settings.owlbearSync.latestSnapshot;
 		if (!snapshot || snapshot.snapshotId !== snapshotId) return;
 		await this.updateOwlbearSettings({ latestSnapshot: { ...snapshot, tokenLinks: links, diagnostics } });
-	}
-
-	private reuseOwlbearEncounterIdentity(snapshot: OwlbearEncounterSnapshot): OwlbearEncounterSnapshot {
-		const previous = this.settings.owlbearSync.latestSnapshot;
-		if (!previous || !sameOwlbearParticipants(previous, snapshot)) return snapshot;
-		return { ...snapshot, encounterId: previous.encounterId, tokenLinks: previous.tokenLinks };
 	}
 
 	private getOwlbearExtensionDirectories(): string[] {
@@ -430,13 +429,6 @@ export default class DndStatblockPlugin extends Plugin {
 		this.panelManager.dispose();
 		this.features.forEach(feature => feature.dispose());
 	}
-}
-
-function sameOwlbearParticipants(left: OwlbearEncounterSnapshot, right: OwlbearEncounterSnapshot): boolean {
-	if (left.participants.length !== right.participants.length) return false;
-	const leftIds = left.participants.map((participant) => participant.participantId).sort((a, b) => a - b);
-	const rightIds = right.participants.map((participant) => participant.participantId).sort((a, b) => a - b);
-	return leftIds.every((participantId, index) => participantId === rightIds[index]);
 }
 
 function hasOwlbearParticipantOverlap(left: OwlbearEncounterSnapshot, right: OwlbearEncounterSnapshot): boolean {

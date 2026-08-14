@@ -289,6 +289,32 @@ describe("Owlbear scene synchronization", () => {
 		expect(result.diagnostics.participantCount).toBe(0);
 	});
 
+	it("removes tokens and attachments from a replaced encounter that keeps the published identity", async () => {
+		const items = mockScene();
+		const initial = snapshot([1]);
+		const firstSync = await pushSnapshotToScene(initial);
+		const originalToken = items.find((item) => item.type === "IMAGE" && item.attachedTo == null);
+		items.push({
+			id: "old-marker",
+			type: "IMAGE",
+			attachedTo: originalToken.id,
+			metadata: {
+				[OWLBEAR_ENCOUNTER_ID_KEY]: initial.encounterId,
+				[OWLBEAR_PARTICIPANT_ID_KEY]: 1,
+				[OWLBEAR_MARKER_KIND_KEY]: "condition",
+			},
+		});
+		const replacement = snapshot([2], initial.encounterId);
+		replacement.tokenLinks = firstSync.tokenLinks;
+
+		await pushSnapshotToScene(replacement, initial);
+
+		expect(items.some((item) => item.id === originalToken.id)).toBe(false);
+		expect(items.some((item) => item.id === "old-marker")).toBe(false);
+		expect(items.filter((item) => item.type === "IMAGE" && item.attachedTo == null)
+			.map((item) => item.metadata[OWLBEAR_PARTICIPANT_ID_KEY])).toEqual([2]);
+	});
+
 	it("places condition duration badges to the right and below the icon", () => {
 		expect(getConditionBadgePosition({ x: 100, y: 200 }, 50)).toEqual({ x: 118, y: 218 });
 		expect(getConditionBadgeTextPosition({ x: 118, y: 218 }, 20)).toEqual({ x: 108, y: 208 });

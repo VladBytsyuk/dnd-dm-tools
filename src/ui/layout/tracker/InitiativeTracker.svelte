@@ -19,13 +19,14 @@
 		getEncounterFromClipboard,
 		getEncounterParticipantFromClipboard,
 	} from "src/data/clipboard";
-	import { Notice, requestUrl } from "obsidian";
+	import { Notice } from "obsidian";
 	import { onDestroy } from "svelte";
 	import {
 		assertOwlbearImageDataUrlSize,
 		assertOwlbearImageSize,
+		downloadOwlbearRemoteImage,
+		mimeForOwlbearImagePath,
 		resolveOwlbearVaultImageFile,
-		validateOwlbearRemoteImageUrl,
 	} from "src/data/owlbear/OwlbearVaultImage";
 	import type { Encounter } from "src/domain/models/encounter/Encounter";
 	import { EncounterManager } from "src/domain/models/encounter/EncounterManager";
@@ -190,22 +191,14 @@
 				assertOwlbearImageDataUrlSize(url);
 				dataUrl = url;
 			} else if (/^https?:\/\//i.test(url)) {
-				const remoteUrl = validateOwlbearRemoteImageUrl(url);
-				const response = await requestUrl({ url: remoteUrl });
-				if (response.status < 200 || response.status >= 300) throw new Error(`HTTP ${response.status}`);
-				const contentLength = Number(response.headers["content-length"]);
-				if (Number.isFinite(contentLength)) assertOwlbearImageSize(contentLength);
-				const mime = response.headers["content-type"]?.split(";", 1)[0] || mimeForImagePath(remoteUrl);
-				if (!mime.startsWith("image/")) throw new Error("файл не является изображением");
-				const bytes = new Uint8Array(response.arrayBuffer);
-				assertOwlbearImageSize(bytes.byteLength);
-				dataUrl = createImageDataUrl(bytes, mime);
+				const image = await downloadOwlbearRemoteImage(url);
+				dataUrl = createImageDataUrl(image.bytes, image.mime);
 			} else {
 				const file = resolveOwlbearVaultImageFile(app, url);
 				assertOwlbearImageSize(file.stat.size);
 				const bytes = new Uint8Array(await app.vault.readBinary(file));
 				assertOwlbearImageSize(bytes.byteLength);
-				dataUrl = createImageDataUrl(bytes, mimeForImagePath(file.path));
+				dataUrl = createImageDataUrl(bytes, mimeForOwlbearImagePath(file.path));
 			}
 			const { width, height } = await getImageDimensions(dataUrl);
 			return { dataUrl, width, height };
@@ -225,15 +218,6 @@
 		image.onerror = () => reject(new Error("не удалось прочитать изображение"));
 		image.src = dataUrl;
 	});
-
-	const mimeForImagePath = (path: string): string => {
-		const extension = path.split(".").pop()?.toLowerCase();
-		if (extension === "jpg" || extension === "jpeg") return "image/jpeg";
-		if (extension === "webp") return "image/webp";
-		if (extension === "gif") return "image/gif";
-		if (extension === "svg") return "image/svg+xml";
-		return "image/png";
-	};
 
 	const createImageDataUrl = (bytes: Uint8Array, mime: string): string => {
 		let binary = "";

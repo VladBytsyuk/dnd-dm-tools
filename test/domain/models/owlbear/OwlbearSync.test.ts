@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createOwlbearEncounterSnapshot, createOwlbearSessionResetSnapshot } from "src/domain/models/owlbear/OwlbearSync";
+import { createOwlbearEncounterSnapshot, createOwlbearSessionResetSnapshot, reuseOwlbearEncounterIdentity } from "src/domain/models/owlbear/OwlbearSync";
 import type { EncounterRuntimeState } from "src/domain/models/encounter/EncounterManager";
 
 describe("OwlbearSync", () => {
@@ -109,5 +109,27 @@ describe("OwlbearSync", () => {
 			tokenLinks: [],
 		});
 		expect(reset.snapshotId).not.toBe(previous.snapshotId);
+	});
+
+	it("keeps the published encounter identity when replacing a snapshot", () => {
+		const previous = createOwlbearEncounterSnapshot({
+			encounter: { name: "Previous", participants: [] },
+			activeParticipantIndex: null,
+			round: 1,
+		}, "encounter-previous");
+		previous.tokenLinks = [{ participantId: 1, owlbearItemId: "token-1", lastSeenAt: previous.createdAt }];
+		const replacement = createOwlbearEncounterSnapshot({
+			encounter: { name: "Replacement", participants: [] },
+			activeParticipantIndex: null,
+			round: 1,
+		}, "encounter-replacement");
+
+		const reconciled = reuseOwlbearEncounterIdentity(replacement, previous);
+
+		expect(reconciled).toMatchObject({
+			encounterId: "encounter-previous",
+			encounterName: "Replacement",
+			tokenLinks: previous.tokenLinks,
+		});
 	});
 });

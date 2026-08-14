@@ -148,6 +148,14 @@ export function createOwlbearSessionResetSnapshot(
 	);
 }
 
+export function reuseOwlbearEncounterIdentity(
+	snapshot: OwlbearEncounterSnapshot,
+	previous: OwlbearEncounterSnapshot | undefined,
+): OwlbearEncounterSnapshot {
+	if (!previous) return snapshot;
+	return { ...snapshot, encounterId: previous.encounterId, tokenLinks: previous.tokenLinks };
+}
+
 export function createEncounterId(): string {
 	return `encounter-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }

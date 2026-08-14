@@ -1,6 +1,15 @@
 import { normalizePath, TFile, type App } from "obsidian";
+import { get } from "https";
+import type { IncomingMessage } from "http";
 
 export const MAX_OWLBEAR_IMAGE_BYTES = 8 * 1024 * 1024;
+const REMOTE_IMAGE_TIMEOUT_MS = 30_000;
+const MAX_REMOTE_IMAGE_REDIRECTS = 3;
+
+export type OwlbearRemoteImage = {
+	bytes: Uint8Array;
+	mime: string;
+};
 
 export function resolveOwlbearVaultImageFile(app: App, source: string): TFile {
 	const filePath = source.startsWith("obsidian://")
@@ -21,6 +30,19 @@ export function validateOwlbearRemoteImageUrl(source: string): string {
 	if (url.port && url.port !== "443") throw new Error("нестандартный порт изображения запрещён");
 	if (isPrivateHostname(url.hostname)) throw new Error("локальные и приватные адреса изображений запрещены");
 	return url.href;
+}
+
+export async function downloadOwlbearRemoteImage(source: string): Promise<OwlbearRemoteImage> {
+	return await downloadOwlbearRemoteImageUrl(validateOwlbearRemoteImageUrl(source), 0);
+}
+
+export function mimeForOwlbearImagePath(path: string): string {
+	const extension = path.split(/[?#]/, 1)[0].split(".").pop()?.toLowerCase();
+	if (extension === "jpg" || extension === "jpeg") return "image/jpeg";
+	if (extension === "webp") return "image/webp";
+	if (extension === "gif") return "image/gif";
+	if (extension === "svg") return "image/svg+xml";
+	return "image/png";
 }
 
 export function assertOwlbearImageSize(byteLength: number): void {
@@ -46,6 +68,72 @@ export function getOwlbearImageDataUrlByteLength(dataUrl: string): number {
 		byteLength = new TextEncoder().encode(decodeURIComponent(payload)).byteLength;
 	}
 	return byteLength;
+}
+
+function downloadOwlbearRemoteImageUrl(url: string, redirects: number): Promise<OwlbearRemoteImage> {
+	return new Promise((resolve, reject) => {
+		const request = get(url, { headers: { "User-Agent": "dnd-dm-tools-owlbear-image" } }, (response) => {
+			if (response.statusCode && response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
+				response.resume();
+				if (redirects >= MAX_REMOTE_IMAGE_REDIRECTS) {
+					reject(new Error("Слишком много перенаправлений при загрузке изображения."));
+					return;
+				}
+				try {
+					const redirectedUrl = validateOwlbearRemoteImageUrl(new URL(response.headers.location, url).href);
+					downloadOwlbearRemoteImageUrl(redirectedUrl, redirects + 1).then(resolve, reject);
+				} catch (error) {
+					reject(error);
+				}
+				return;
+			}
+			consumeOwlbearRemoteImage(response, url).then(resolve, reject);
+		});
+		request.once("error", reject);
+		request.setTimeout(REMOTE_IMAGE_TIMEOUT_MS, () => request.destroy(new Error("Загрузка изображения не отвечает более 30 секунд.")));
+	});
+}
+
+function consumeOwlbearRemoteImage(response: IncomingMessage, sourceUrl: string): Promise<OwlbearRemoteImage> {
+	return new Promise((resolve, reject) => {
+		if (!response.statusCode || response.statusCode < 200 || response.statusCode >= 300) {
+			response.resume();
+			reject(new Error(`HTTP ${response.statusCode ?? "?"}`));
+			return;
+		}
+		try {
+			const contentLength = Number(response.headers["content-length"]);
+			if (Number.isFinite(contentLength)) assertOwlbearImageSize(contentLength);
+			const mime = response.headers["content-type"]?.split(";", 1)[0] || mimeForOwlbearImagePath(sourceUrl);
+			if (!mime.startsWith("image/")) throw new Error("файл не является изображением");
+			const chunks: Buffer[] = [];
+			let byteLength = 0;
+			let settled = false;
+			const fail = (error: Error): void => {
+				if (settled) return;
+				settled = true;
+				response.destroy();
+				reject(error);
+			};
+			response.on("data", (chunk: Buffer) => {
+				byteLength += chunk.length;
+				if (byteLength > MAX_OWLBEAR_IMAGE_BYTES) {
+					fail(new Error(`изображение превышает лимит ${MAX_OWLBEAR_IMAGE_BYTES / 1024 / 1024} МБ`));
+					return;
+				}
+				chunks.push(chunk);
+			});
+			response.once("error", fail);
+			response.once("end", () => {
+				if (settled) return;
+				settled = true;
+				resolve({ bytes: new Uint8Array(Buffer.concat(chunks)), mime });
+			});
+		} catch (error) {
+			response.resume();
+			reject(error);
+		}
+	});
 }
 
 function isPrivateHostname(rawHostname: string): boolean {

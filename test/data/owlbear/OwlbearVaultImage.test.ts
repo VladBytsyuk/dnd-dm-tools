@@ -1,11 +1,35 @@
+import { EventEmitter } from "node:events";
+import type { ClientRequest, IncomingMessage } from "node:http";
+import { PassThrough } from "node:stream";
 import { App, TFile } from "obsidian";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+const httpsGet = vi.hoisted(() => vi.fn());
+
+vi.mock("https", () => ({ get: httpsGet, default: { get: httpsGet } }));
+
 import {
 	assertOwlbearImageDataUrlSize,
+	downloadOwlbearRemoteImage,
 	MAX_OWLBEAR_IMAGE_BYTES,
 	resolveOwlbearVaultImageFile,
 	validateOwlbearRemoteImageUrl,
 } from "src/data/owlbear/OwlbearVaultImage";
+
+function mockHttpsResponse(options: { statusCode?: number; headers?: Record<string, string>; body?: Buffer }): { response: PassThrough; request: ClientRequest } {
+	const response = new PassThrough();
+	Object.assign(response, { statusCode: options.statusCode ?? 200, headers: options.headers ?? {} });
+	const request = Object.assign(new EventEmitter(), {
+		setTimeout: vi.fn(),
+		destroy: vi.fn(),
+	}) as unknown as ClientRequest;
+	httpsGet.mockImplementationOnce((_url: string, _options: unknown, callback: (response: IncomingMessage) => void) => {
+		callback(response as unknown as IncomingMessage);
+		queueMicrotask(() => response.end(options.body));
+		return request;
+	});
+	return { response, request };
+}
 
 describe("resolveOwlbearVaultImageFile", () => {
 	it("resolves relative and obsidian URLs through the vault file index", () => {
@@ -46,5 +70,42 @@ describe("Owlbear remote image security", () => {
 		const oversized = `data:image/png;base64,${"A".repeat(Math.ceil((MAX_OWLBEAR_IMAGE_BYTES + 1) * 4 / 3))}`;
 
 		expect(() => assertOwlbearImageDataUrlSize(oversized)).toThrow("превышает лимит");
+	});
+
+	it("downloads a remote image as a bounded stream", async () => {
+		mockHttpsResponse({
+			headers: { "content-type": "image/png", "content-length": "3" },
+			body: Buffer.from([1, 2, 3]),
+		});
+
+		const image = await downloadOwlbearRemoteImage("https://cdn.example.com/tokens/goblin.png");
+
+		expect(image.mime).toBe("image/png");
+		expect([...image.bytes]).toEqual([1, 2, 3]);
+	});
+
+	it("rejects an oversized remote image before reading its body", async () => {
+		const { response } = mockHttpsResponse({
+			headers: { "content-type": "image/png", "content-length": `${MAX_OWLBEAR_IMAGE_BYTES + 1}` },
+		});
+		const resume = vi.spyOn(response, "resume");
+
+		await expect(downloadOwlbearRemoteImage("https://cdn.example.com/tokens/giant.png"))
+			.rejects.toThrow("превышает лимит");
+
+		expect(resume).toHaveBeenCalledOnce();
+	});
+
+	it("aborts a chunked image as soon as it exceeds the limit", async () => {
+		const { response } = mockHttpsResponse({
+			headers: { "content-type": "image/png" },
+			body: Buffer.alloc(MAX_OWLBEAR_IMAGE_BYTES + 1),
+		});
+		const destroy = vi.spyOn(response, "destroy");
+
+		await expect(downloadOwlbearRemoteImage("https://cdn.example.com/tokens/giant.png"))
+			.rejects.toThrow("превышает лимит");
+
+		expect(destroy).toHaveBeenCalledOnce();
 	});
 });
