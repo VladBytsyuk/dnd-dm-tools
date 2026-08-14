@@ -28,7 +28,12 @@ import {
 	type OwlbearSyncSettings,
 	type PluginSettingsState,
 } from './domain/models/settings/PluginSettings';
-import type { OwlbearEncounterSnapshot, OwlbearSyncDiagnostics, OwlbearTokenLink } from './domain/models/owlbear/OwlbearSync';
+import {
+	createOwlbearSessionResetSnapshot,
+	type OwlbearEncounterSnapshot,
+	type OwlbearSyncDiagnostics,
+	type OwlbearTokenLink,
+} from './domain/models/owlbear/OwlbearSync';
 import { PanelManager } from './ui/components/sidepanel/PanelManager';
 import type { PanelHost } from './ui/components/sidepanel/PanelHost';
 import { createOwlbearAuthToken, OwlbearIntegrationServer, type OwlbearServerStatus } from './data/owlbear/OwlbearIntegrationServer';
@@ -67,6 +72,7 @@ export default class DndStatblockPlugin extends Plugin {
 		this.settings = loadResult.settings;
 		this.assistantWorkspace = this.settings.workspace;
 		this.shouldResetLegacyViews = loadResult.shouldResetLegacyViews;
+		await this.resetOwlbearSnapshotForNewSession();
 		this.addSettingTab(new OwlbearSettingsTab(this));
 		if (this.settings.owlbearSync.enabled && Platform.isDesktopApp) {
 			await this.startOwlbearIntegration();
@@ -156,23 +162,33 @@ export default class DndStatblockPlugin extends Plugin {
 
 	async publishOwlbearSnapshot(snapshot: OwlbearEncounterSnapshot): Promise<void> {
 		const snapshotToPublish = this.reuseOwlbearEncounterIdentity(snapshot);
-		await this.persistLatestOwlbearSnapshot(snapshotToPublish);
 		if (!this.settings.owlbearSync.enabled) throw new Error("Интеграция с Owlbear выключена. Включите её в настройках плагина.");
-		if (!this.owlbearServer?.getStatus().running) throw new Error("Локальный сервер Owlbear не запущен.");
-		this.owlbearServer.publish(snapshotToPublish);
+		const server = this.owlbearServer;
+		if (!server?.getStatus().running) throw new Error("Локальный сервер Owlbear не запущен.");
+		const prepared = await server.materializeSnapshot(snapshotToPublish, this.settings.owlbearSync.latestSnapshot);
+		await this.persistLatestOwlbearSnapshot(prepared);
+		server.publishPrepared(prepared);
 	}
 
 	async publishOwlbearTurnSnapshot(snapshot: OwlbearEncounterSnapshot): Promise<void> {
 		const previous = this.settings.owlbearSync.latestSnapshot;
-		if (!previous || !hasOwlbearParticipantOverlap(previous, snapshot)) return;
-		if (!this.settings.owlbearSync.enabled || !this.owlbearServer?.getStatus().connected) return;
+		if (!previous || (snapshot.participants.length > 0 && !hasOwlbearParticipantOverlap(previous, snapshot))) return;
+		const server = this.owlbearServer;
+		if (!this.settings.owlbearSync.enabled || !server?.getStatus().connected) return;
 		const snapshotToPublish = { ...snapshot, encounterId: previous.encounterId, tokenLinks: previous.tokenLinks };
-		await this.persistLatestOwlbearSnapshot(snapshotToPublish);
-		this.owlbearServer.publish(snapshotToPublish);
+		const prepared = await server.materializeSnapshot(snapshotToPublish, previous);
+		await this.persistLatestOwlbearSnapshot(prepared);
+		server.publishPrepared(prepared);
 	}
 
 	private async updateOwlbearSettings(patch: Partial<OwlbearSyncSettings>): Promise<void> {
 		await this.updateSettings({ owlbearSync: { ...this.settings.owlbearSync, ...patch } });
+	}
+
+	private async resetOwlbearSnapshotForNewSession(): Promise<void> {
+		const previous = this.settings.owlbearSync.latestSnapshot;
+		if (!previous || previous.participants.length === 0) return;
+		await this.updateOwlbearSettings({ latestSnapshot: createOwlbearSessionResetSnapshot(previous) });
 	}
 
 	private async startOwlbearIntegration(): Promise<void> {
@@ -180,20 +196,28 @@ export default class DndStatblockPlugin extends Plugin {
 		const sync = this.settings.owlbearSync;
 		const authToken = sync.authToken ?? createOwlbearAuthToken();
 		if (authToken !== sync.authToken) await this.updateOwlbearSettings({ authToken });
-		const extensionDirectories = this.getOwlbearExtensionDirectories();
-		const server = new OwlbearIntegrationServer(
-			extensionDirectories,
-			() => this.settings.owlbearSync.authToken,
-			() => this.settings.owlbearSync.latestSnapshot,
-			(links, diagnostics) => this.persistOwlbearApplied(links, diagnostics),
-			(status) => { this.owlbearServerStatus = status; },
-		);
+		await this.stopOwlbearIntegration();
+		let server: OwlbearIntegrationServer | null = null;
 		try {
+			server = new OwlbearIntegrationServer(
+				this.getOwlbearExtensionDirectories(),
+				this.getOwlbearImageCacheDirectory(),
+				() => this.settings.owlbearSync.authToken,
+				() => this.settings.owlbearSync.latestSnapshot,
+				(snapshotId, links, diagnostics) => this.persistOwlbearApplied(snapshotId, links, diagnostics),
+				(status) => { this.owlbearServerStatus = status; },
+			);
 			const port = await server.start(sync.port ?? 0);
-			await this.stopOwlbearIntegration();
 			this.owlbearServer = server;
+			const latestSnapshot = this.settings.owlbearSync.latestSnapshot;
+			if (latestSnapshot) {
+				const migrated = await server.materializeSnapshot(latestSnapshot);
+				await this.persistLatestOwlbearSnapshot(migrated);
+			}
 			if (port !== sync.port) await this.updateOwlbearSettings({ port });
 		} catch (error) {
+			if (server) await server.stop();
+			this.owlbearServer = null;
 			this.owlbearServerStatus = { running: false, port: sync.port, connected: false, error: formatOwlbearError(error) };
 			new Notice(`Не удалось запустить Owlbear: ${this.owlbearServerStatus.error}`);
 		}
@@ -205,9 +229,9 @@ export default class DndStatblockPlugin extends Plugin {
 		if (server) await server.stop();
 	}
 
-	private async persistOwlbearApplied(links: OwlbearTokenLink[], diagnostics: OwlbearSyncDiagnostics): Promise<void> {
+	private async persistOwlbearApplied(snapshotId: string, links: OwlbearTokenLink[], diagnostics: OwlbearSyncDiagnostics): Promise<void> {
 		const snapshot = this.settings.owlbearSync.latestSnapshot;
-		if (!snapshot) return;
+		if (!snapshot || snapshot.snapshotId !== snapshotId) return;
 		await this.updateOwlbearSettings({ latestSnapshot: { ...snapshot, tokenLinks: links, diagnostics } });
 	}
 
@@ -221,8 +245,18 @@ export default class DndStatblockPlugin extends Plugin {
 		const adapter = this.app.vault.adapter;
 		if (!(adapter instanceof FileSystemAdapter)) throw new Error("Локальный путь плагина недоступен.");
 		const installedDirectory = [adapter.getBasePath(), this.app.vault.configDir, "plugins", this.manifest.id, "owlbear-extension"].join("/");
-		const developmentDirectory = __DND_DM_TOOLS_DEV__ ? this.settings.owlbearSync.developmentExtensionPath : undefined;
-		return developmentDirectory ? [installedDirectory, developmentDirectory] : [installedDirectory];
+		if (__DND_DM_TOOLS_DEV__) {
+			const developmentDirectory = this.settings.owlbearSync.developmentExtensionPath;
+			if (!developmentDirectory) throw new Error("Для dev-сборки укажите developmentExtensionPath к owlbear-extension/dist.");
+			return [developmentDirectory];
+		}
+		return [installedDirectory];
+	}
+
+	private getOwlbearImageCacheDirectory(): string {
+		const adapter = this.app.vault.adapter;
+		if (!(adapter instanceof FileSystemAdapter)) throw new Error("Локальный путь плагина недоступен.");
+		return [adapter.getBasePath(), this.app.vault.configDir, "plugins", this.manifest.id, "owlbear-cache", "token-images"].join("/");
 	}
 
 	// ---- private methods ----

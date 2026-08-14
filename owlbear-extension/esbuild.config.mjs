@@ -10,6 +10,7 @@ const watch = process.argv.includes("--watch");
 
 mkdirSync(join(__dirname, "dist"), { recursive: true });
 copyFileSync(join(__dirname, "public", "index.html"), join(__dirname, "dist", "index.html"));
+copyFileSync(join(__dirname, "public", "background.html"), join(__dirname, "dist", "background.html"));
 copyFileSync(join(__dirname, "public", "manifest.json"), join(__dirname, "dist", "manifest.json"));
 copyFileSync(join(__dirname, "public", "icon.svg"), join(__dirname, "dist", "icon.svg"));
 const conditionIcons = {
@@ -59,12 +60,15 @@ const statusIcons = {
 copyStatusIcons();
 
 const options = {
-	entryPoints: [join(__dirname, "src", "main.ts")],
+	entryPoints: {
+		main: join(__dirname, "src", "main.ts"),
+		background: join(__dirname, "src", "background.ts"),
+	},
 	bundle: true,
 	format: "esm",
 	target: "es2020",
 	sourcemap: true,
-	outfile: join(__dirname, "dist", "main.js"),
+	outdir: join(__dirname, "dist"),
 	logLevel: "info",
 };
 
@@ -76,6 +80,8 @@ if (watch) {
 		["/manifest.json", "manifest.json"],
 		["/index.html", "index.html"],
 		["/main.js", "main.js"],
+		["/background.html", "background.html"],
+		["/background.js", "background.js"],
 		["/icon.svg", "icon.svg"],
 		...Object.keys(conditionIcons).concat(Object.keys(statusIcons)).map((name) => [`/status-icons/${name}.svg`, `status-icons/${name}.svg`]),
 	]);

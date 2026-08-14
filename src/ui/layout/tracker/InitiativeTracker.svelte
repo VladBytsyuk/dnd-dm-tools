@@ -63,6 +63,7 @@
 	let owlbearSyncVersion = 0;
 	let owlbearSyncInFlight = false;
 	let owlbearSyncTimer: number | null = null;
+	const imageLoadCache = new Map<string, Promise<{ dataUrl: string; width: number; height: number }>>();
 
 	encounterManager.setOnUpdate(() => {
 		trackerState.current = encounterManager.current;
@@ -158,8 +159,8 @@
 	};
 
 	const sendOwlbearSnapshot = async () => {
-		const snapshot = await createOwlbearSnapshotWithImages();
 		try {
+			const snapshot = await createOwlbearSnapshotWithImages();
 			await onOwlbearSnapshotCreated(snapshot);
 			owlbearSynced = true;
 			new Notice("Столкновение отправлено в Owlbear.");
@@ -171,19 +172,30 @@
 	async function createOwlbearSnapshotWithImages(): Promise<OwlbearEncounterSnapshot> {
 		const snapshot = createOwlbearEncounterSnapshot(trackerState.current, owlbearEncounterId);
 		const participants = await Promise.all(snapshot.participants.map(async (participant) => {
-			const image = await loadParticipantImage(participant.name, participant.imageUrl);
-			return {
-				...participant,
-				imageDataUrl: image.dataUrl,
-				imageWidth: image.width,
-				imageHeight: image.height,
-			};
+			if (!participant.imageSource) return { ...participant, imageFallback: true };
+			try {
+				const image = await loadParticipantImage(participant.name, participant.imageSource);
+				return { ...participant, imageDataUrl: image.dataUrl, imageWidth: image.width, imageHeight: image.height, imageFallback: false };
+			} catch {
+				return { ...participant, imageFallback: true };
+			}
 		}));
 		return { ...snapshot, participants };
 	}
 
 	const loadParticipantImage = async (name: string, url: string | undefined): Promise<{ dataUrl: string; width: number; height: number }> => {
 		if (!url) throw new Error(`У участника «${name}» нет изображения токена.`);
+		const cached = imageLoadCache.get(url);
+		if (cached) return cached;
+		const load = loadParticipantImageUncached(name, url);
+		imageLoadCache.set(url, load);
+		void load.catch(() => {
+			if (imageLoadCache.get(url) === load) imageLoadCache.delete(url);
+		});
+		return load;
+	};
+
+	const loadParticipantImageUncached = async (name: string, url: string): Promise<{ dataUrl: string; width: number; height: number }> => {
 		try {
 			let dataUrl: string;
 			if (/^data:image\//i.test(url)) dataUrl = url;

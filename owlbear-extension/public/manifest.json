@@ -5,6 +5,7 @@
 	"author": "TTG Club",
 	"description": "Sync DnD DM Tools initiative encounters into Owlbear Rodeo scenes.",
 	"icon": "/icon.svg",
+	"background_url": "/background.html",
 	"action": {
 		"title": "DnD DM Tools",
 		"icon": "/icon.svg",

@@ -7,8 +7,9 @@ const diagnostics: OwlbearSyncDiagnostics = {
 	sceneReady: true,
 	participantCount: 4,
 	linkedCount: 3,
-	staleLinkCount: 1,
-	missingParticipantCount: 0,
+	staleTokenIds: [],
+	missingParticipantIds: [],
+	fallbackParticipantIds: [],
 	lastSyncAt: "2026-08-13T12:00:00.000Z",
 };
 
@@ -26,6 +27,7 @@ describe("Owlbear popover UI", () => {
 			"Подключение: Подключено",
 			"Активная сцена: да",
 			"Связанные токены: 3 / 4",
+			"Fallback-токены: 0",
 			"Последняя синхронизация: 2026-08-13T12:00:00.000Z",
 			"Ошибка: Example error",
 		].join("\n"));

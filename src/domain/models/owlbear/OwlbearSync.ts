@@ -25,8 +25,11 @@ export interface OwlbearParticipantSnapshot {
 	participantId: number;
 	owlbearItemId?: string;
 	name: string;
+	imageSource?: string;
 	imageUrl?: string;
+	imageAssetId?: string;
 	imageDataUrl?: string;
+	imageFallback?: boolean;
 	imageMime?: string;
 	imageWidth?: number;
 	imageHeight?: number;
@@ -63,6 +66,7 @@ export interface OwlbearSyncDiagnostics {
 	missingParticipantIds: number[];
 	lastSyncAt?: string;
 	lastError?: string;
+	fallbackParticipantIds: number[];
 }
 
 export function createOwlbearEncounterSnapshot(
@@ -91,7 +95,7 @@ export function createOwlbearEncounterSnapshot(
 			participantId: participant.id,
 			owlbearItemId: participant.owlbearItemId,
 			name: participant.name,
-			imageUrl: participant.imageUrl || undefined,
+				imageSource: participant.imageUrl || undefined,
 			initiative: Number(participant.initiative ?? 0),
 			hpCurrent: Number(participant.hpCurrent ?? 0),
 			hpMax: Number(participant.hpMax ?? 0),
@@ -128,6 +132,17 @@ export function createEmptyOwlbearEncounterSnapshot(encounter: Encounter): Owlbe
 	return createOwlbearEncounterSnapshot(
 		{ encounter, activeParticipantIndex: null, round: 1 },
 		createEncounterId(),
+	);
+}
+
+export function createOwlbearSessionResetSnapshot(
+	previous: OwlbearEncounterSnapshot,
+	now = new Date(),
+): OwlbearEncounterSnapshot {
+	return createOwlbearEncounterSnapshot(
+		{ encounter: { name: "", participants: [] }, activeParticipantIndex: null, round: 1 },
+		previous.encounterId,
+		now,
 	);
 }
 

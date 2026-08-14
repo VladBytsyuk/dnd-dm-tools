@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createOwlbearEncounterSnapshot } from "src/domain/models/owlbear/OwlbearSync";
+import { createOwlbearEncounterSnapshot, createOwlbearSessionResetSnapshot } from "src/domain/models/owlbear/OwlbearSync";
 import type { EncounterRuntimeState } from "src/domain/models/encounter/EncounterManager";
 
 describe("OwlbearSync", () => {
@@ -71,5 +71,43 @@ describe("OwlbearSync", () => {
 			{ participantId: 1, owlbearItemId: "token-1", lastSeenAt: "2026-08-12T10:00:00.000Z" },
 			{ participantId: 2, owlbearItemId: "token-2", lastSeenAt: "2026-08-12T10:00:00.000Z" },
 		]);
+	});
+
+	it("creates an empty new-session snapshot for the previous encounter", () => {
+		const previous = createOwlbearEncounterSnapshot({
+			encounter: {
+				name: "Previous session",
+				participants: [{
+					id: 1,
+					name: "Goblin",
+					initiative: 10,
+					initiativeModifier: 0,
+					hpCurrent: 7,
+					hpTemporary: 0,
+					hpMax: 7,
+					armorClass: 15,
+					passivePerception: 9,
+					side: "enemy",
+					isDead: false,
+					conditions: [],
+				}],
+			},
+			activeParticipantIndex: 0,
+			round: 3,
+		}, "encounter-previous", new Date("2026-08-13T10:00:00.000Z"));
+
+		const reset = createOwlbearSessionResetSnapshot(previous, new Date("2026-08-14T10:00:00.000Z"));
+
+		expect(reset).toMatchObject({
+			encounterId: "encounter-previous",
+			encounterName: "",
+			round: 1,
+			activeParticipantId: null,
+			nextParticipantId: null,
+			createdAt: "2026-08-14T10:00:00.000Z",
+			participants: [],
+			tokenLinks: [],
+		});
+		expect(reset.snapshotId).not.toBe(previous.snapshotId);
 	});
 });

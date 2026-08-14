@@ -27,8 +27,11 @@ export interface OwlbearParticipantSnapshot {
 	participantId: number;
 	owlbearItemId?: string;
 	name: string;
+	imageSource?: string;
 	imageUrl?: string;
+	imageAssetId?: string;
 	imageDataUrl?: string;
+	imageFallback?: boolean;
 	imageMime?: string;
 	imageWidth?: number;
 	imageHeight?: number;
@@ -65,6 +68,7 @@ export interface OwlbearSyncDiagnostics {
 	missingParticipantIds: number[];
 	lastSyncAt?: string;
 	lastError?: string;
+	fallbackParticipantIds: number[];
 }
 
 export type MarkerKind = "bloodied" | "down" | "dead" | "concentration" | "condition";

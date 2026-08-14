@@ -11,8 +11,8 @@ The HTTP contract for those hosted files is documented in [owlbear-rodeo-openapi
 | File | Purpose |
 | --- | --- |
 | `/manifest.json` | Extension descriptor loaded by Owlbear Rodeo. |
-| `/popover.html` | UI shown when the extension action is clicked. |
-| `/background.html` | Optional background page for persistent listeners. |
+| `/index.html` | Popover UI shown when the extension action is clicked. |
+| `/background.html` | Background page that owns the persistent Obsidian WebSocket and Scene API calls. |
 | `/assets/{assetPath}` | Icons, scripts, styles, and other static assets. |
 
 Minimum manifest shape:
@@ -23,13 +23,13 @@ Minimum manifest shape:
   "version": "0.1.0",
   "manifest_version": 1,
   "description": "DnD DM Tools integration for Owlbear Rodeo.",
-  "icon": "/assets/icon.svg",
+  "icon": "/icon.svg",
   "author": "dnd-dm-tools",
   "homepage_url": "https://example.com/owlbear",
   "action": {
     "title": "DnD DM Tools",
-    "icon": "/assets/icon.svg",
-    "popover": "/popover.html",
+    "icon": "/icon.svg",
+    "popover": "/index.html",
     "width": 360,
     "height": 540
   }
@@ -49,19 +49,23 @@ Relevant SDK areas for this project:
 | `OBR.tool` | Add toolbar tools, tool modes, and tool actions if future map interaction is needed. |
 | `OBR.broadcast` | Send ephemeral room/player messages; payloads must be JSON serializable and small. |
 
-## Integration Direction
+## DnD DM Tools live sync
 
-For dnd-dm-tools, keep the Owlbear extension separate from the Obsidian plugin runtime. The extension can expose a small popover UI and, if needed later, communicate with a plugin-facing service chosen specifically for Obsidian-to-browser integration.
+Obsidian remains the source of truth. The local Obsidian server hosts the manifest, popover, background page, and token-image cache. The background page keeps one authenticated WebSocket open, reconnects with bounded exponential backoff, requests the current snapshot after reconnect, and applies snapshots to the active Owlbear scene in order. The popover only edits pairing, sends commands, and displays diagnostics through a `BroadcastChannel`.
 
-Do not model SDK methods as REST endpoints. If the project later needs a bridge between Owlbear and Obsidian, define that bridge as its own API with explicit auth, pairing, message schema, and failure handling.
+The WebSocket protocol is version 2. Only one snapshot is in flight at a time. A `snapshot.publish` is acknowledged with the same `snapshotId`; newer pending snapshots replace older pending ones. An unacknowledged snapshot times out after 30 seconds so later updates can continue.
+
+Pairing is stored in browser `localStorage`. Manual disconnect suppresses automatic reconnect until the user connects again. After changing the Obsidian port, copy the new Install Link and pairing code and update the Owlbear extension.
+
+Token images are content-addressed by SHA-256 of MIME and bytes and served from the local `/token-images/` route. The cache is capped at 250 MB with LRU cleanup; current and in-flight encounter assets are protected. Missing, invalid, or unavailable images become generated 512×512 SVG tokens with initials and a side/participant color. Fallback use is reported in diagnostics.
 
 ## Hosting And Security
 
-- Host the extension files over HTTPS.
+- Publicly hosted extensions should use HTTPS. DnD DM Tools intentionally serves its paired extension over `http://localhost` because the assets and WebSocket stay on the Obsidian desktop host.
 - Keep asset URLs stable because users install the extension through the manifest URL.
 - Request iframe permissions only when required and include a concrete reason in the manifest.
 - Avoid storing secrets in the extension page. Treat the iframe as browser code visible to users.
-- Use a background page only when persistent room-level behavior is required.
+- Keep all scene and WebSocket state in the background page so closing the popover does not interrupt live sync.
 
 ## Sources
 

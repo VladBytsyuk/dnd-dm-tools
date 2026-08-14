@@ -13,6 +13,7 @@ export function createInitialDiagnostics(): OwlbearSyncDiagnostics {
 		participantCount: 0,
 		staleTokenIds: [],
 		missingParticipantIds: [],
+		fallbackParticipantIds: [],
 	};
 }
 

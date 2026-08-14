@@ -29,12 +29,21 @@ jobs:
       
     - name: Запуск линтера
       run: npm run svelte-check
+
+    - name: Typecheck Obsidian plugin
+      run: npx tsc --noEmit -skipLibCheck
+
+    - name: Проверка Owlbear extension
+      run: npm run owlbear:check
       
     - name: Запуск тестов
       run: npm test
       
     - name: Запуск тестов с покрытием
       run: npm run test:cov
+
+    - name: Production build
+      run: npm run build
       
     - name: Загрузка покрытия в Codecov
       uses: codecov/codecov-action@v3

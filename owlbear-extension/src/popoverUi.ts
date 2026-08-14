@@ -21,6 +21,7 @@ export function formatDiagnosticsLog(
 		["Подключение", connectionStatusText(connectionState)],
 		["Активная сцена", diagnostics.sceneReady ? "да" : "нет"],
 		["Связанные токены", `${diagnostics.linkedCount} / ${diagnostics.participantCount}`],
+		["Fallback-токены", String(diagnostics.fallbackParticipantIds.length)],
 		["Последняя синхронизация", diagnostics.lastSyncAt ?? "нет"],
 	];
 	if (error) rows.push(["Ошибка", error]);

@@ -43,13 +43,14 @@
                   "version": "0.1.0",
                   "manifest_version": 1,
                   "description": "DnD DM Tools integration for Owlbear Rodeo.",
-                  "icon": "/assets/icon.svg",
+                  "icon": "/icon.svg",
                   "author": "dnd-dm-tools",
                   "homepage_url": "https://example.com/owlbear",
                   "action": {
                     "title": "DnD DM Tools",
-                    "icon": "/assets/icon.svg",
-                    "popover": "/popover.html",
+                    "icon": "/icon.svg",
+                    "popover": "/index.html",
+                    "background_url": "/background.html",
                     "width": 360,
                     "height": 540
                   }
@@ -60,7 +61,7 @@
         }
       }
     },
-    "/popover.html": {
+    "/index.html": {
       "get": {
         "tags": [
           "Extension Hosting"
