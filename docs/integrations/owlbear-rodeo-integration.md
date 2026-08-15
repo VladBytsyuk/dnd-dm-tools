@@ -11,8 +11,8 @@ The HTTP contract for those hosted files is documented in [owlbear-rodeo-openapi
 | File | Purpose |
 | --- | --- |
 | `/manifest.json` | Extension descriptor loaded by Owlbear Rodeo. |
-| `/popover.html` | UI shown when the extension action is clicked. |
-| `/background.html` | Optional background page for persistent listeners. |
+| `/index.html` | Popover UI shown when the extension action is clicked. |
+| `/background.html` | Background page that owns the persistent Obsidian WebSocket and Scene API calls. |
 | `/assets/{assetPath}` | Icons, scripts, styles, and other static assets. |
 
 Minimum manifest shape:
@@ -23,13 +23,13 @@ Minimum manifest shape:
   "version": "0.1.0",
   "manifest_version": 1,
   "description": "DnD DM Tools integration for Owlbear Rodeo.",
-  "icon": "/assets/icon.svg",
+  "icon": "/icon.svg",
   "author": "dnd-dm-tools",
   "homepage_url": "https://example.com/owlbear",
   "action": {
     "title": "DnD DM Tools",
-    "icon": "/assets/icon.svg",
-    "popover": "/popover.html",
+    "icon": "/icon.svg",
+    "popover": "/index.html",
     "width": 360,
     "height": 540
   }
@@ -49,19 +49,31 @@ Relevant SDK areas for this project:
 | `OBR.tool` | Add toolbar tools, tool modes, and tool actions if future map interaction is needed. |
 | `OBR.broadcast` | Send ephemeral room/player messages; payloads must be JSON serializable and small. |
 
-## Integration Direction
+## DnD DM Tools live sync
 
-For dnd-dm-tools, keep the Owlbear extension separate from the Obsidian plugin runtime. The extension can expose a small popover UI and, if needed later, communicate with a plugin-facing service chosen specifically for Obsidian-to-browser integration.
+Obsidian remains the source of truth. The local Obsidian server hosts the manifest, popover, background page, and authenticated WebSocket. A second asset-only server exposes token images and known status icons through a session-scoped Cloudflare Quick Tunnel. The background page keeps one authenticated local WebSocket open, reconnects with bounded exponential backoff, requests the current snapshot after reconnect, and applies snapshots to the active Owlbear scene in order. The popover only edits pairing, sends commands, and displays diagnostics through a `BroadcastChannel`.
 
-Do not model SDK methods as REST endpoints. If the project later needs a bridge between Owlbear and Obsidian, define that bridge as its own API with explicit auth, pairing, message schema, and failure handling.
+The WebSocket protocol is version 2. Only one snapshot is in flight at a time. A `snapshot.publish` is acknowledged with the same `snapshotId`; newer pending snapshots replace older pending ones. An unacknowledged snapshot times out after 30 seconds so later updates can continue.
+
+Pairing is stored in browser `localStorage`. Manual disconnect suppresses automatic reconnect until the user connects again. After changing the Obsidian port, copy the new Install Link and pairing code and update the Owlbear extension.
+
+Starting a new Obsidian process intentionally replaces the persisted encounter with an empty session-reset snapshot. When the background page reconnects, that snapshot removes every token managed by the previous session, including its saved scene position. This is destructive by design: the user must explicitly send the encounter again for the new session.
+
+Token images are content-addressed by SHA-256 of MIME and bytes. The transport copy of a snapshot receives an ephemeral HTTPS `assetBaseUrl`; persisted snapshots never store the Quick Tunnel host. Shared Owlbear items use `/assets/{session-secret}/token-images/{hash}/{mime}` and `/assets/{session-secret}/status-icons/{known-icon}.svg`. The public server returns 404 for the manifest, WebSocket, HTML, scripts, unknown icons, and incorrect session secrets. The cache is capped at 250 MB with LRU cleanup; current and in-flight encounter assets are protected. Missing, invalid, or unavailable images become generated 512×512 SVG tokens with initials and a side/participant color. Fallback use is reported in diagnostics.
+
+When the user enables Owlbear integration on desktop, the plugin downloads a pinned official `cloudflared` artifact for the current supported platform, enforces a size limit, verifies its SHA-256, and installs it atomically. macOS archives are extracted with an allowlist containing only the expected regular file. The install manifest and binary checksum are verified again when the integration is enabled again. Mobile and unsupported architectures do not download anything.
+
+Quick Tunnel runs only while Owlbear integration is enabled. Its public health endpoint must respond before snapshots can be published. If `cloudflared` exits, the plugin removes the public URL immediately, stops new synchronization, retries with exponential backoff capped at 30 seconds, and republishes the latest snapshot after a new tunnel passes health verification. There is deliberately no localhost or Data URL fallback for shared scene items.
 
 ## Hosting And Security
 
-- Host the extension files over HTTPS.
+- The Install Link, extension pages, pairing code, and WebSocket intentionally remain on `http://localhost` and are required only by the GM browser. Token images and marker icons use the temporary HTTPS Quick Tunnel so remote players can fetch them.
+- The public asset path contains a random session secret but is not an authorization boundary. Do not use the integration for sensitive images.
+- Quick Tunnel has no availability guarantee; the integration is fail-closed while it is unavailable.
 - Keep asset URLs stable because users install the extension through the manifest URL.
 - Request iframe permissions only when required and include a concrete reason in the manifest.
 - Avoid storing secrets in the extension page. Treat the iframe as browser code visible to users.
-- Use a background page only when persistent room-level behavior is required.
+- Keep all scene and WebSocket state in the background page so closing the popover does not interrupt live sync.
 
 ## Sources
 

@@ -1,5 +1,6 @@
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type { BaseItem } from "src/domain/models/common/BaseItem";
+import type { OwlbearEncounterSnapshot } from "src/domain/models/owlbear/OwlbearSync";
 import type DndStatblockPlugin from "src/main";
 import InitiativeTracker from "src/ui/layout/tracker/InitiativeTracker.svelte";
 import { mount } from "svelte";
@@ -31,6 +32,8 @@ export class InitiativeTrackerPanel implements PanelHost {
 				onPortraitClick: this.uiEventListener.onBeastClick,
 				onConditionClick: this.uiEventListener.onScreenItemClick,
 				onImageRequested: async (url: string) => this.uiEventListener.onImageRequested(url),
+				onOwlbearSnapshotCreated: async (snapshot: OwlbearEncounterSnapshot) => this.plugin.publishOwlbearSnapshot(snapshot),
+				onOwlbearTurnChanged: async (snapshot: OwlbearEncounterSnapshot) => this.plugin.publishOwlbearTurnSnapshot(snapshot),
 			},
 		});
 	}

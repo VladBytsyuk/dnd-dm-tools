@@ -1,0 +1,19 @@
+{
+	"name": "dnd-dm-tools-owlbear-extension",
+	"version": "0.2.0",
+	"author": "VladBytsyuk",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "node esbuild.config.mjs --watch",
+		"build": "node esbuild.config.mjs",
+		"check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@owlbear-rodeo/sdk": "^3.1.0"
+	},
+	"devDependencies": {
+		"esbuild": "^0.25.0",
+		"typescript": "^5.9.2"
+	}
+}

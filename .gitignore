@@ -24,6 +24,8 @@ data.json
 .DS_Store
 
 database.db
+owlbear-cache/
+cloudflared/
 coverage/
 .env
 

@@ -72,6 +72,8 @@ export class Notice {
   constructor(public message: string, public timeout?: number) {}
 }
 
+export const Platform = { isDesktopApp: false };
+
 export function normalizePath(p: string) { return p.replace(/\\/g, '/'); }
 export function setIcon(parent: HTMLElement, iconId: string) {
   parent.dataset.icon = iconId;

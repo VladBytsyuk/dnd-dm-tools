@@ -1,13 +1,17 @@
 {
 	"name": "dnd-dm-tools",
-	"version": "1.0.1",
+	"version": "1.1.0",
 	"description": "A plugin for Obsidian.md with DnD 5e DM tools in russian.",
 	"main": "main.js",
+	"workspaces": ["owlbear-extension"],
 	"scripts": {
 		"dev": "npm run copy:assets && node esbuild.config.mjs",
-		"build": "npm run copy:assets && tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"release": "npm run build && mkdir -p .release/dnd-dm-tools && cp main.js manifest.json sql-wasm.wasm styles.css .release/dnd-dm-tools",
+		"build": "npm run copy:assets && tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && npm run owlbear:build",
+		"release": "npm run build && mkdir -p .release/dnd-dm-tools && cp main.js manifest.json sql-wasm.wasm styles.css .release/dnd-dm-tools && shx rm -rf .release/dnd-dm-tools/owlbear-extension && mkdir -p .release/dnd-dm-tools/owlbear-extension && shx cp -r owlbear-extension/dist/* .release/dnd-dm-tools/owlbear-extension",
 		"copy:assets": "shx cp node_modules/sql.js/dist/sql-wasm.wasm ./sql-wasm.wasm",
+		"owlbear:dev": "npm --prefix owlbear-extension run dev",
+		"owlbear:build": "npm --prefix owlbear-extension run build",
+		"owlbear:check": "npm --prefix owlbear-extension run check",
 		"generate:ttg-openapi": "node scripts/generate-ttg-openapi.mjs",
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"svelte-check": "svelte-check --tsconfig tsconfig.json",
@@ -16,7 +20,7 @@
 		"test:cov": "vitest run --coverage"
 	},
 	"keywords": [],
-	"author": "",
+	"author": "VladBytsyuk",
 	"license": "MIT",
 	"devDependencies": {
 		"@testing-library/dom": "^10.4.1",
@@ -24,6 +28,7 @@
 		"@testing-library/user-event": "^14.6.1",
 		"@types/node": "^20.19.11",
 		"@types/sql.js": "^1.4.9",
+		"@types/ws": "^8.18.1",
 		"@typescript-eslint/eslint-plugin": "5.29.0",
 		"@typescript-eslint/parser": "5.29.0",
 		"builtin-modules": "3.3.0",
@@ -43,6 +48,8 @@
 	"dependencies": {
 		"lucide-svelte": "^0.477.0",
 		"sql.js": "^1.13.0",
+		"tar": "^7.5.22",
+		"ws": "^8.21.1",
 		"yaml": "^2.7.0"
 	}
 }

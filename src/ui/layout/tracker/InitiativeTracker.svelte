@@ -4,6 +4,7 @@
 		StepForward,
 		ClipboardCopy,
 		ClipboardPlus,
+		Download,
 		Replace,
 		ArrowUpDown,
 		Skull,
@@ -18,6 +19,15 @@
 		getEncounterFromClipboard,
 		getEncounterParticipantFromClipboard,
 	} from "src/data/clipboard";
+	import { Notice } from "obsidian";
+	import { onDestroy } from "svelte";
+	import {
+		assertOwlbearImageDataUrlSize,
+		assertOwlbearImageSize,
+		downloadOwlbearRemoteImage,
+		mimeForOwlbearImagePath,
+		resolveOwlbearVaultImageFile,
+	} from "src/data/owlbear/OwlbearVaultImage";
 	import type { Encounter } from "src/domain/models/encounter/Encounter";
 	import { EncounterManager } from "src/domain/models/encounter/EncounterManager";
 	import type {
@@ -26,9 +36,15 @@
 		EncounterParticipantResource,
 		EncounterParticipantSpellSlot,
 	} from "src/domain/models/encounter/EncounterParticipant";
+	import {
+		createEncounterId,
+		createOwlbearEncounterSnapshot,
+		type OwlbearEncounterSnapshot,
+	} from "src/domain/models/owlbear/OwlbearSync";
+	import { OwlbearSyncScheduler } from "./OwlbearSyncScheduler";
 	import ParticipantItem from "./ParticipantItem.svelte";
 
-	let { app: _app, encounter, isEditable, onPortraitClick, onConditionClick, onImageRequested } =
+	let { app, encounter, isEditable, onPortraitClick, onConditionClick, onImageRequested, onOwlbearSnapshotCreated, onOwlbearTurnChanged } =
 		$props<{
 			app: any;
 			encounter: Encounter;
@@ -36,6 +52,8 @@
 			onPortraitClick: (url: string) => void;
 			onConditionClick: (url: string) => void;
 			onImageRequested: (url: string) => Promise<string>;
+			onOwlbearSnapshotCreated: (snapshot: OwlbearEncounterSnapshot) => Promise<void>;
+			onOwlbearTurnChanged: (snapshot: OwlbearEncounterSnapshot) => Promise<void>;
 		}>();
 
 	function createEncounterManager() {
@@ -43,17 +61,31 @@
 	}
 
 	const encounterManager = createEncounterManager();
+	const owlbearEncounterId = createEncounterId();
 
-	let state = $state({
+	let trackerState = $state({
 		current: encounterManager.current,
 		canUndo: encounterManager.canUndo,
 		canRedo: encounterManager.canRedo,
 	});
+	let owlbearSynced = $state(false);
+	const imageLoadCache = new Map<string, Promise<{ dataUrl: string; width: number; height: number }>>();
+	function createOwlbearSyncScheduler() {
+		return new OwlbearSyncScheduler(createOwlbearSnapshotWithImages, onOwlbearTurnChanged);
+	}
+	const owlbearSyncScheduler = createOwlbearSyncScheduler();
+
+	onDestroy(() => {
+		owlbearSyncScheduler.dispose();
+	});
 
 	encounterManager.setOnUpdate(() => {
-		state.current = encounterManager.current;
-		state.canUndo = encounterManager.canUndo;
-		state.canRedo = encounterManager.canRedo;
+		trackerState.current = encounterManager.current;
+		trackerState.canUndo = encounterManager.canUndo;
+		trackerState.canRedo = encounterManager.canRedo;
+		if (owlbearSynced) {
+			owlbearSyncScheduler.queue();
+		}
 	});
 
 	const runEditable = (action: () => void) => {
@@ -83,7 +115,7 @@
 
 	const onPlayNext = () => {
 		runEditable(() => {
-			if (state.current.activeParticipantIndex == null) {
+			if (trackerState.current.activeParticipantIndex == null) {
 				encounterManager.startEncounter();
 			} else {
 				encounterManager.nextStepEncounter();
@@ -112,7 +144,85 @@
 	};
 
 	const copyEncounter = async () => {
-		await copyEncounterToClipboard(state.current.encounter);
+		await copyEncounterToClipboard(trackerState.current.encounter);
+	};
+
+	const sendOwlbearSnapshot = async () => {
+		try {
+			const snapshot = await createOwlbearSnapshotWithImages();
+			await onOwlbearSnapshotCreated(snapshot);
+			owlbearSynced = true;
+			new Notice("Столкновение отправлено в Owlbear.");
+		} catch (error) {
+			new Notice(error instanceof Error ? error.message : "Не удалось отправить столкновение в Owlbear.");
+		}
+	};
+
+	async function createOwlbearSnapshotWithImages(): Promise<OwlbearEncounterSnapshot> {
+		const snapshot = createOwlbearEncounterSnapshot(trackerState.current, owlbearEncounterId);
+		const participants = await Promise.all(snapshot.participants.map(async (participant) => {
+			if (!participant.imageSource) return { ...participant, imageFallback: true };
+			try {
+				const image = await loadParticipantImage(participant.name, participant.imageSource);
+				return { ...participant, imageDataUrl: image.dataUrl, imageWidth: image.width, imageHeight: image.height, imageFallback: false };
+			} catch {
+				return { ...participant, imageFallback: true };
+			}
+		}));
+		return { ...snapshot, participants };
+	}
+
+	const loadParticipantImage = async (name: string, url: string | undefined): Promise<{ dataUrl: string; width: number; height: number }> => {
+		if (!url) throw new Error(`У участника «${name}» нет изображения токена.`);
+		const cached = imageLoadCache.get(url);
+		if (cached) return cached;
+		const load = loadParticipantImageUncached(name, url);
+		imageLoadCache.set(url, load);
+		void load.catch(() => {
+			if (imageLoadCache.get(url) === load) imageLoadCache.delete(url);
+		});
+		return load;
+	};
+
+	const loadParticipantImageUncached = async (name: string, url: string): Promise<{ dataUrl: string; width: number; height: number }> => {
+		try {
+			let dataUrl: string;
+			if (/^data:image\//i.test(url)) {
+				assertOwlbearImageDataUrlSize(url);
+				dataUrl = url;
+			} else if (/^https?:\/\//i.test(url)) {
+				const image = await downloadOwlbearRemoteImage(url);
+				dataUrl = createImageDataUrl(image.bytes, image.mime);
+			} else {
+				const file = resolveOwlbearVaultImageFile(app, url);
+				assertOwlbearImageSize(file.stat.size);
+				const bytes = new Uint8Array(await app.vault.readBinary(file));
+				assertOwlbearImageSize(bytes.byteLength);
+				dataUrl = createImageDataUrl(bytes, mimeForOwlbearImagePath(file.path));
+			}
+			const { width, height } = await getImageDimensions(dataUrl);
+			return { dataUrl, width, height };
+		} catch (error) {
+			const reason = error instanceof Error ? error.message : "неизвестная ошибка";
+			throw new Error(`Не удалось загрузить изображение участника «${name}»: ${reason}`);
+		}
+	};
+
+	const getImageDimensions = (dataUrl: string): Promise<{ width: number; height: number }> => new Promise((resolve, reject) => {
+		const image = new Image();
+		image.onload = () => {
+			if (image.naturalWidth > 0 && image.naturalHeight > 0) {
+				resolve({ width: image.naturalWidth, height: image.naturalHeight });
+			} else reject(new Error("не удалось определить размеры изображения"));
+		};
+		image.onerror = () => reject(new Error("не удалось прочитать изображение"));
+		image.src = dataUrl;
+	});
+
+	const createImageDataUrl = (bytes: Uint8Array, mime: string): string => {
+		let binary = "";
+		for (let index = 0; index < bytes.length; index += 1) binary += String.fromCharCode(bytes[index]);
+		return `data:${mime};base64,${btoa(binary)}`;
 	};
 
 	const pasteEncounter = async () => {
@@ -155,6 +265,12 @@
 		runEditable(() => encounterManager.setParticipantResources(participantId, spellSlots, resources));
 	};
 
+	const onToggleConcentration = (participantId: number) => {
+		const participant = trackerState.current.encounter.participants.find((p) => p.id === participantId);
+		if (!participant) return;
+		setValue(participantId, "isConcentrating", !participant.isConcentrating);
+	};
+
 	const undo = () => {
 		runEditable(() => encounterManager.undo());
 	};
@@ -171,18 +287,18 @@
 <div class="tracker">
 	<header class="topbar">
 		<div class="left">
-			<div class="roundCompact" aria-label="Раунд">{state.current.round}</div>
+			<div class="roundCompact" aria-label="Раунд">{trackerState.current.round}</div>
 
 			{#if isEditable}
 				<input
 					class="titleInput inputlike"
-					value={state.current.encounter.name ?? "Encounter"}
+					value={trackerState.current.encounter.name ?? "Encounter"}
 					oninput={(e) =>
 						setEncounterName((e.target as HTMLInputElement).value)}
 				/>
 			{:else}
 				<div class="titleText">
-					{state.current.encounter.name ?? "Encounter"}
+					{trackerState.current.encounter.name ?? "Encounter"}
 				</div>
 			{/if}
 		</div>
@@ -208,6 +324,15 @@
 
 			{#if isEditable}
 				<button
+					class="btn ghost"
+					onclick={sendOwlbearSnapshot}
+					aria-label="Отправить столкновение в Owlbear"
+					title="Отправить столкновение в Owlbear"
+				>
+					<Download size={16} />
+				</button>
+
+				<button
 					class="btn ghost replaceAction"
 					onclick={pasteEncounter}
 					aria-label="Заменить столкновение данными из буфера обмена"
@@ -219,7 +344,7 @@
 				<button
 					class="btn ghost"
 					onclick={undo}
-					disabled={!state.canUndo}
+					disabled={!trackerState.canUndo}
 					aria-label="Отменить"
 				>
 					<Undo size={16} />
@@ -228,7 +353,7 @@
 				<button
 					class="btn ghost"
 					onclick={redo}
-					disabled={!state.canRedo}
+					disabled={!trackerState.canRedo}
 					aria-label="Повторить"
 				>
 					<Redo size={16} />
@@ -250,11 +375,11 @@
 				<button
 					class="btn playNext"
 					onclick={onPlayNext}
-					aria-label={state.current.activeParticipantIndex == null
+					aria-label={trackerState.current.activeParticipantIndex == null
 						? "Начать столкновение"
 						: "Следующий ход"}
 				>
-					{#if state.current.activeParticipantIndex == null}
+					{#if trackerState.current.activeParticipantIndex == null}
 						<Play size={16} />
 					{:else}
 						<StepForward size={16} />
@@ -265,18 +390,18 @@
 	</header>
 
 	<div class="tracker-content">
-		{#if state.current.encounter.participants.length === 0}
+		{#if trackerState.current.encounter.participants.length === 0}
 			<div class="empty">
 				<Skull size={18} />
 				<span>No participants yet.</span>
 			</div>
 		{:else}
 			<div class="list">
-				{#each state.current.encounter.participants as participant, index (participant.id)}
+				{#each trackerState.current.encounter.participants as participant, index (participant.id)}
 					<ParticipantItem
 						participant={participant}
 						isEditable={isEditable}
-						isActive={state.current.activeParticipantIndex === index}
+						isActive={trackerState.current.activeParticipantIndex === index}
 						onOpenStatblock={onOpenStatblock}
 						onOpenConditionDetails={onOpenConditionDetails}
 						onSetValue={setValue}
@@ -285,7 +410,8 @@
 						onConditionChange={onConditionChange}
 						onConditionDelete={onConditionDelete}
 						onResourcesChange={onResourcesChange}
-						getRound={() => state.current.round}
+						onToggleConcentration={onToggleConcentration}
+						getRound={() => trackerState.current.round}
 						onImageRequested={onImageRequested}
 					/>
 				{/each}
@@ -392,13 +518,13 @@
 
 	.actions.editableActions {
 		display: grid;
-		grid-template-columns: repeat(8, 32px);
+		grid-template-columns: repeat(9, 32px);
 		justify-content: flex-end;
 	}
 
 	@container (max-width: 520px) {
 		.actions.editableActions {
-			grid-template-columns: repeat(4, 32px);
+			grid-template-columns: repeat(5, 32px);
 		}
 	}
 

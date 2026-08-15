@@ -18,6 +18,13 @@ import { detachLegacyPanelViews } from "./LegacyPanelViews";
 export const OMNI_VIEW_ID = "dnd-dm-tools-omni";
 const OMNI_ICON_ID = "dnd-dm-tools-omni";
 
+function extractSvgContent(svg: string): string {
+	const openingTagEnd = svg.indexOf(">") + 1;
+	const closingTagStart = svg.lastIndexOf("</svg>");
+	if (openingTagEnd <= 0 || closingTagStart <= openingTagEnd) return svg;
+	return svg.slice(openingTagEnd, closingTagStart).trim();
+}
+
 export class PanelManager {
 	private panels = new Map<PanelKey, PanelHost>();
 	private currentItems = new Map<PanelKey, BaseItem>();
@@ -37,7 +44,7 @@ export class PanelManager {
 	) {}
 
 	async register(panels: PanelHost[], shouldResetLegacyViews: boolean): Promise<void> {
-		addIcon(OMNI_ICON_ID, omniIcon);
+		addIcon(OMNI_ICON_ID, extractSvgContent(omniIcon));
 		for (const panel of panels) {
 			if (this.panels.has(panel.getKey())) throw new Error(`Duplicate panel key: ${panel.getKey()}`);
 			this.panels.set(panel.getKey(), panel);

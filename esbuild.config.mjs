@@ -19,6 +19,9 @@ const context = await esbuild.context({
 	},
 	entryPoints: ["src/main.ts"],
 	bundle: true,
+	alias: {
+		ws: "./node_modules/ws/index.js",
+	},
 	loader: {
 		'.svg': 'text',
 		'.wasm': 'binary',
@@ -37,9 +40,13 @@ const context = await esbuild.context({
 		"@lezer/common",
 		"@lezer/highlight",
 		"@lezer/lr",
-		...builtins],
+		...builtins,
+		...builtins.map((module) => `node:${module}`)],
 	format: "cjs",
 	target: "es2018",
+	define: {
+		__DND_DM_TOOLS_DEV__: JSON.stringify(!prod),
+	},
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
