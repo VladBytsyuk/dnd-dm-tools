@@ -84,7 +84,9 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 			}));
 		}
 		if (settings.enabled && settings.port && settings.authToken) {
-			this.copySetting(containerEl, "Install Link", this.plugin.getOwlbearInstallLink());
+			const installLink = this.plugin.getOwlbearInstallLink();
+			if (installLink) this.copySetting(containerEl, "Install Link", installLink);
+			else containerEl.createEl("p", { text: "Install Link появится после запуска публичного Quick Tunnel." });
 			this.copySetting(containerEl, "Код сопряжения", this.plugin.getOwlbearPairingCode());
 		}
 		this.unsubscribeRuntime = this.plugin.subscribeOwlbearRuntimeStatus(() => {

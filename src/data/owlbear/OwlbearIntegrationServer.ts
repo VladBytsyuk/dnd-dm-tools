@@ -25,7 +25,7 @@ const ASSETS: Record<string, { filename: string; contentType: string }> = {
 	"/icon-v2.svg": { filename: "icon-v2.svg", contentType: "image/svg+xml" },
 };
 const STATUS_ICON_NAMES = [
-	"bloodied", "concentration", "condition", "dead",
+	"bloodied", "concentration", "condition", "dead", "down",
 	"unconscious", "frightened", "exhaustion", "invisible", "incapacitated", "deafened", "petrified", "restrained", "blinded", "poisoned", "charmed", "stunned", "paralyzed", "prone", "grappled",
 ];
 for (const name of STATUS_ICON_NAMES) ASSETS[`/status-icons/${name}.svg`] = { filename: `status-icons/${name}.svg`, contentType: "image/svg+xml" };
@@ -91,6 +91,10 @@ export class OwlbearIntegrationServer {
 	getPublicAssetPort(): number | null { return this.publicAssetPort; }
 	getPublicAssetPath(): string { return `/assets/${this.publicAssetSecret}`; }
 	getAssetBaseUrl(): string | null { return this.publicAssetOrigin ? `${this.publicAssetOrigin}${this.getPublicAssetPath()}` : null; }
+	getPublicExtensionUrl(): string | null {
+		const baseUrl = this.getAssetBaseUrl();
+		return baseUrl ? `${baseUrl}/manifest.json` : null;
+	}
 	setPublicAssetOrigin(origin: string): void {
 		const url = new URL(origin);
 		if (url.protocol !== "https:" || !/^[a-z0-9-]+\.trycloudflare\.com$/i.test(url.hostname) || url.pathname !== "/") throw new Error("cloudflared вернул недопустимый публичный адрес.");
@@ -318,11 +322,24 @@ export class OwlbearIntegrationServer {
 		const prefix = this.getPublicAssetPath();
 		if (request.method !== "GET" || !requestUrl.pathname.startsWith(`${prefix}/`)) { response.writeHead(404).end("Not found"); return; }
 		const path = requestUrl.pathname.slice(prefix.length);
+		response.setHeader("Access-Control-Allow-Origin", "https://www.owlbear.rodeo");
+		response.setHeader("Vary", "Origin");
 		if (path === "/health") {
 			response.writeHead(200, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" }).end("ok");
 			return;
 		}
-		response.setHeader("Access-Control-Allow-Origin", "*");
+		if (path === "/manifest.json") {
+			await this.servePublicManifest(prefix, response);
+			return;
+		}
+		const extensionAsset = ASSETS[path];
+		if (extensionAsset) {
+			try {
+				const content = await readFile(join(this.assetDirectory!, extensionAsset.filename));
+				response.writeHead(200, { "Content-Type": extensionAsset.contentType, "Cache-Control": "no-cache" }).end(content);
+			} catch { response.writeHead(503).end("Owlbear extension assets are unavailable"); }
+			return;
+		}
 		const assetMatch = /^\/token-images\/([a-f0-9]{64})(?:\/([^/]+))?$/.exec(path);
 		if (assetMatch?.[1]) {
 			await this.serveTokenImage(requestUrl, response, assetMatch[1], assetMatch[2], true);
@@ -337,6 +354,21 @@ export class OwlbearIntegrationServer {
 			return;
 		}
 		response.writeHead(404).end("Not found");
+	}
+
+	private async servePublicManifest(prefix: string, response: ServerResponse): Promise<void> {
+		try {
+			const manifest = JSON.parse(await readFile(join(this.assetDirectory!, "manifest.json"), "utf8")) as Record<string, any>;
+			if (typeof manifest.icon === "string") manifest.icon = `${prefix}/icon-v2.svg`;
+			if (typeof manifest.background_url === "string") manifest.background_url = `${prefix}/background.html`;
+			if (manifest.action && typeof manifest.action === "object") {
+				if (typeof manifest.action.icon === "string") manifest.action.icon = `${prefix}/icon-v2.svg`;
+				if (typeof manifest.action.popover === "string") manifest.action.popover = `${prefix}/index.html`;
+			}
+			response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-cache" }).end(JSON.stringify(manifest));
+		} catch {
+			response.writeHead(503).end("Owlbear extension manifest is unavailable");
+		}
 	}
 
 	private async serveTokenImage(requestUrl: URL, response: ServerResponse, assetId: string, encodedMime: string | undefined, publicCache: boolean): Promise<void> {
@@ -360,7 +392,7 @@ export class OwlbearIntegrationServer {
 	}
 
 	private handleUpgrade(request: IncomingMessage, socket: Duplex, head: Buffer): void {
-		if (new URL(request.url ?? "/", "http://127.0.0.1").pathname !== "/ws" || request.headers.origin !== this.origin()) { socket.destroy(); return; }
+		if (new URL(request.url ?? "/", "http://127.0.0.1").pathname !== "/ws" || !this.isAllowedWebSocketOrigin(request.headers.origin)) { socket.destroy(); return; }
 		const websocketServer = this.websocketServer;
 		if (!websocketServer) { socket.destroy(); return; }
 		websocketServer.handleUpgrade(request, socket, head, (client) => this.handleConnection(client));
@@ -588,6 +620,9 @@ export class OwlbearIntegrationServer {
 	}
 
 	private origin(): string { return `http://localhost:${this.status.port}`; }
+	private isAllowedWebSocketOrigin(origin: string | undefined): boolean {
+		return origin === this.origin() || origin === this.publicAssetOrigin;
+	}
 	private assetUrl(assetId: string, mime = "image/png"): string {
 		const baseUrl = this.getAssetBaseUrl();
 		if (!baseUrl) throw new Error("Публичный туннель изображений Owlbear ещё не готов.");

@@ -164,8 +164,7 @@ export default class DndStatblockPlugin extends Plugin {
 		return () => this.owlbearRuntimeListeners.delete(listener);
 	}
 	getOwlbearInstallLink(): string {
-		const port = this.settings.owlbearSync.port;
-		return port ? `http://localhost:${port}/manifest.json` : "";
+		return this.owlbearServer?.getPublicExtensionUrl() ?? "";
 	}
 	getOwlbearPairingCode(): string {
 		const { port, authToken } = this.settings.owlbearSync;

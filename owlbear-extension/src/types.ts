@@ -11,6 +11,7 @@ export const OWLBEAR_DEAD_OVERLAY_KEY = `${OWLBEAR_METADATA_NAMESPACE}/deadOverl
 export const OWLBEAR_MARKER_LAYOUT_KEY = `${OWLBEAR_METADATA_NAMESPACE}/markerLayout`;
 export const OWLBEAR_PREVIEW_ID_KEY = `${OWLBEAR_METADATA_NAMESPACE}/previewId`;
 export const OWLBEAR_PREVIEW_KIND_KEY = `${OWLBEAR_METADATA_NAMESPACE}/previewKind`;
+export const OWLBEAR_PUBLIC_INITIATIVE_KEY = `${OWLBEAR_METADATA_NAMESPACE}/publicInitiative`;
 
 export interface OwlbearEncounterSnapshot {
 	schemaVersion: 1;
@@ -94,5 +95,33 @@ export interface TokenMarker {
 	kind: MarkerKind;
 	icon: string;
 	conditionUrl?: string;
+	remainingRounds?: number;
+}
+
+/**
+ * The only encounter data shared through Owlbear scene metadata.
+ * Keep this separate from OwlbearEncounterSnapshot: the latter is GM-local
+ * and deliberately includes data that players must not receive.
+ */
+export interface PublicInitiativeState {
+	schemaVersion: 1;
+	round: number;
+	participants: PublicInitiativeParticipant[];
+}
+
+export interface PublicInitiativeParticipant {
+	name: string;
+	color: string;
+	portraitUrl?: string;
+	initiative: number;
+	isActive: boolean;
+	statuses: PublicInitiativeStatus[];
+}
+
+export type PublicInitiativeStatusKind = "bloodied" | "concentration" | "condition" | "down" | "dead";
+
+export interface PublicInitiativeStatus {
+	kind: PublicInitiativeStatusKind;
+	icon: string;
 	remainingRounds?: number;
 }

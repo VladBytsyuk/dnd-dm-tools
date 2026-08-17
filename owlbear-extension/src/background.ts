@@ -1,6 +1,7 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { clearManagedSceneItems, pushSnapshotToScene } from "./owlbearSync";
 import { clearPreviewFromScene, pushPreviewToScene } from "./previewSync";
+import { clearPublicInitiative, publishPublicInitiative } from "./publicInitiative";
 import { state, createInitialDiagnostics } from "./state";
 import type { OwlbearEncounterSnapshot, OwlbearPreviewSnapshot } from "./types";
 import {
@@ -148,6 +149,11 @@ async function onSocketMessage(data: unknown): Promise<void> {
 		return;
 	}
 	if (message.type === "snapshot.empty") {
+		try {
+			await clearPublicInitiative();
+		} catch (error) {
+			lastError = formatError(error);
+		}
 		state.snapshot = null;
 		state.diagnostics = createInitialDiagnostics();
 		postState();
@@ -197,6 +203,7 @@ async function applySnapshot(value: unknown, snapshotId: string | undefined): Pr
 			send({ type: "snapshot.failed", snapshotId, error: lastError });
 			return;
 		}
+		await publishPublicInitiative(value);
 		state.snapshot = value;
 		state.diagnostics = result.diagnostics;
 		lastError = result.diagnostics.lastError ? localizeSceneError(result.diagnostics.lastError) : undefined;
@@ -234,6 +241,7 @@ async function clearManagedScene(clearId?: string): Promise<void> {
 	await readyPromise;
 	try {
 		await clearManagedSceneItems();
+		await clearPublicInitiative();
 		state.snapshot = null;
 		state.diagnostics = createInitialDiagnostics();
 		if (typeof clearId === "string") send({ type: "scene.applied", clearId });

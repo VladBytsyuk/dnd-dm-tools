@@ -61,6 +61,7 @@ const backgroundMock = vi.hoisted(() => {
 		onReady: vi.fn((callback: () => void | Promise<void>) => { void callback(); }),
 		scene: {
 			isReady: vi.fn(),
+			setMetadata: vi.fn(),
 			onReadyChange: vi.fn((callback: (ready: boolean) => void) => {
 				readyChange = callback;
 				return () => {};
@@ -141,6 +142,7 @@ beforeEach(() => {
 	backgroundMock.resetReadyChange();
 	backgroundMock.obr.onReady.mockClear();
 	backgroundMock.obr.scene.isReady.mockReset().mockResolvedValue(true);
+	backgroundMock.obr.scene.setMetadata.mockReset().mockResolvedValue(undefined);
 	backgroundMock.obr.scene.onReadyChange.mockClear();
 	backgroundMock.pushSnapshotToScene.mockReset();
 	backgroundMock.clearManagedSceneItems.mockReset().mockResolvedValue(undefined);
@@ -165,6 +167,50 @@ describe("Owlbear background synchronization", () => {
 		await vi.waitFor(() => expect(socket.sent.some((message) => message.type === "snapshot.failed")).toBe(true));
 		const { state } = await import("../../owlbear-extension/src/state");
 		expect(state.snapshot).toBeNull();
+		expect(socket.sent.some((message) => message.type === "snapshot.applied")).toBe(false);
+		expect(backgroundMock.obr.scene.setMetadata).not.toHaveBeenCalled();
+	});
+
+	it("publishes a sanitized initiative after scene synchronization", async () => {
+		backgroundMock.pushSnapshotToScene.mockResolvedValue({ diagnostics: diagnostics(true), tokenLinks: [] });
+		const socket = await loadConnectedBackground();
+		const current = snapshot();
+		current.participants = [{
+			participantId: 1,
+			name: "Goblin",
+			initiative: 12,
+			hpCurrent: 10,
+			hpMax: 10,
+			hpTemporary: 2,
+			armorClass: 15,
+			side: "enemy",
+			isDead: false,
+			conditions: [],
+		}];
+
+		socket.message({ type: "snapshot.publish", snapshotId: current.snapshotId, snapshot: current });
+
+		await vi.waitFor(() => expect(backgroundMock.obr.scene.setMetadata).toHaveBeenCalledOnce());
+		const metadata = backgroundMock.obr.scene.setMetadata.mock.calls[0][0];
+		expect(JSON.stringify(metadata)).not.toContain("hpCurrent");
+		expect(socket.sent.some((message) => message.type === "snapshot.applied")).toBe(true);
+	});
+
+	it("clears the public initiative when Obsidian has no current snapshot", async () => {
+		const socket = await loadConnectedBackground();
+		socket.message({ type: "snapshot.empty" });
+
+		await vi.waitFor(() => expect(backgroundMock.obr.scene.setMetadata).toHaveBeenCalledWith(expect.objectContaining({ "club.ttg.dnd-dm-tools/publicInitiative": null })));
+	});
+
+	it("does not acknowledge a snapshot until public initiative metadata is stored", async () => {
+		backgroundMock.pushSnapshotToScene.mockResolvedValue({ diagnostics: diagnostics(true), tokenLinks: [] });
+		backgroundMock.obr.scene.setMetadata.mockRejectedValueOnce(new Error("metadata unavailable"));
+		const socket = await loadConnectedBackground();
+
+		socket.message({ type: "snapshot.publish", snapshotId: "snapshot-1", snapshot: snapshot() });
+
+		await vi.waitFor(() => expect(socket.sent.some((message) => message.type === "snapshot.failed")).toBe(true));
 		expect(socket.sent.some((message) => message.type === "snapshot.applied")).toBe(false);
 	});
 
@@ -228,6 +274,7 @@ describe("Owlbear background synchronization", () => {
 		backgroundMock.FakeBroadcastChannel.instances[0].emit({ type: "ui.command", command: "disconnect" });
 
 		await vi.waitFor(() => expect(backgroundMock.clearManagedSceneItems).toHaveBeenCalledOnce());
+		expect(backgroundMock.obr.scene.setMetadata).toHaveBeenCalledWith(expect.objectContaining({ "club.ttg.dnd-dm-tools/publicInitiative": null }));
 		expect(socket.readyState).toBe(backgroundMock.FakeWebSocket.CLOSED);
 	});
 });

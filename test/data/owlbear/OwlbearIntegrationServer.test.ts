@@ -257,30 +257,54 @@ describe("Owlbear integration server transport", () => {
 		expect(() => server.publishPrepared(snapshot())).toThrow("Публичный туннель");
 	});
 
-	it("exposes only secret-scoped images, visuals, health and known status icons", async () => {
+	it("exposes the secret-scoped extension bundle alongside images and status icons", async () => {
 		const { server } = await createRunningServer();
 		const prepared = await server.materializeSnapshot(snapshot());
 		const port = server.getPublicAssetPort()!;
 		const base = `http://127.0.0.1:${port}${server.getPublicAssetPath()}`;
 		const tokenPath = `/token-images/${prepared.participants[0].imageAssetId}/${encodeURIComponent(prepared.participants[0].imageMime!)}`;
 
-		const [health, token, visual, icon, manifest, websocket, wrongSecret] = await Promise.all([
+		const [health, token, visual, icon, manifest, main, websocket, wrongSecret] = await Promise.all([
 			fetch(`${base}/health`),
 			fetch(`${base}${tokenPath}`),
 			fetch(`${base}${tokenPath}?visual=dead&width=256&height=256`),
 			fetch(`${base}/status-icons/dead.svg`),
-			fetch(`http://127.0.0.1:${port}/manifest.json`),
+			fetch(`${base}/manifest.json`),
+			fetch(`${base}/main.js`),
 			fetch(`${base}/ws`),
 			fetch(`http://127.0.0.1:${port}/assets/wrong/health`),
 		]);
 
 		expect(health.status).toBe(200);
 		expect(token.status).toBe(200);
-		expect(token.headers.get("access-control-allow-origin")).toBe("*");
+		expect(token.headers.get("access-control-allow-origin")).toBe("https://www.owlbear.rodeo");
 		expect(token.headers.get("cache-control")).toContain("immutable");
 		expect(visual.headers.get("content-type")).toContain("image/svg+xml");
 		expect(icon.status).toBe(200);
-		expect([manifest.status, websocket.status, wrongSecret.status]).toEqual([404, 404, 404]);
+		expect(manifest.status).toBe(200);
+		expect(manifest.headers.get("access-control-allow-origin")).toBe("https://www.owlbear.rodeo");
+		expect(await manifest.json()).toMatchObject({
+			icon: `${server.getPublicAssetPath()}/icon-v2.svg`,
+			background_url: `${server.getPublicAssetPath()}/background.html`,
+			action: { popover: `${server.getPublicAssetPath()}/index.html` },
+		});
+		expect(main.status).toBe(200);
+		expect(main.headers.get("access-control-allow-origin")).toBe("https://www.owlbear.rodeo");
+		expect([websocket.status, wrongSecret.status]).toEqual([404, 404]);
+		expect(server.getPublicExtensionUrl()).toBe(`https://test.trycloudflare.com${server.getPublicAssetPath()}/manifest.json`);
+	});
+
+	it("accepts the current public tunnel as the WebSocket origin", async () => {
+		const { port } = await createRunningServer();
+		const client = new WebSocket(`ws://127.0.0.1:${port}/ws`, { origin: "https://test.trycloudflare.com" });
+		openClients.push(client);
+		await new Promise<void>((resolve, reject) => {
+			client.once("open", resolve);
+			client.once("error", reject);
+		});
+		const ready = waitForMessage(client, "server.ready");
+		client.send(JSON.stringify({ protocolVersion: 2, messageId: "hello-public", type: "client.hello", token: "token" }));
+		expect(await ready).toMatchObject({ type: "server.ready" });
 	});
 });
 
@@ -314,10 +338,14 @@ async function createRunningServer(
 async function createExtensionAssets(directory: string): Promise<void> {
 	await mkdir(join(directory, "status-icons"), { recursive: true });
 	for (const name of ["manifest.json", "index.html", "background.html", "main.js", "background.js", "icon.svg", "icon-v2.svg"]) {
-		await writeFile(join(directory, name), name === "manifest.json" ? "{}" : name);
+		await writeFile(join(directory, name), name === "manifest.json" ? JSON.stringify({
+			icon: "/icon-v2.svg",
+			background_url: "/background.html",
+			action: { icon: "/icon-v2.svg", popover: "/index.html" },
+		}) : name);
 	}
 	for (const name of [
-		"bloodied", "concentration", "condition", "dead", "unconscious", "frightened", "exhaustion", "invisible", "incapacitated",
+		"bloodied", "concentration", "condition", "dead", "down", "unconscious", "frightened", "exhaustion", "invisible", "incapacitated",
 		"deafened", "petrified", "restrained", "blinded", "poisoned", "charmed", "stunned", "paralyzed", "prone", "grappled",
 	]) await writeFile(join(directory, "status-icons", `${name}.svg`), "<svg/>");
 }

@@ -15,13 +15,104 @@
 			body {
 				margin: 0;
 				padding: 12px;
+				overflow: hidden;
 			}
 
 			main {
 				display: flex;
 				flex-direction: column;
 				gap: 10px;
+				height: calc(520px - 24px);
 			}
+
+			.initiative-panel {
+				min-height: 0;
+				display: flex;
+				flex: 1;
+				flex-direction: column;
+				border: 1px solid #3f3f46;
+				border-radius: 8px;
+				overflow: hidden;
+				background: #202023;
+			}
+
+			.initiative-heading {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 10px 12px;
+				font-size: 13px;
+				font-weight: 700;
+				border-bottom: 1px solid #3f3f46;
+			}
+
+			.initiative-round {
+				padding: 3px 7px;
+				border-radius: 999px;
+				background: #27272a;
+				color: #c4b5fd;
+				font-size: 12px;
+			}
+
+			.initiative-list {
+				margin: 0;
+				padding: 0;
+				list-style: none;
+				overflow-y: auto;
+			}
+
+			.initiative-empty {
+				margin: auto;
+				padding: 24px 12px;
+				text-align: center;
+				color: #a1a1aa;
+				font-size: 13px;
+			}
+
+			.initiative-participant {
+				--participant-color: #94a3b8;
+				position: relative;
+				display: grid;
+				grid-template-columns: 52px minmax(0, 1fr);
+				gap: 8px;
+				min-height: 58px;
+				padding: 5px 8px 5px 12px;
+				border-top: 1px solid #3f3f46;
+			}
+
+			.initiative-participant:first-child { border-top: 0; }
+			.initiative-participant::before {
+				position: absolute;
+				inset: 0 auto 0 0;
+				width: 4px;
+				content: "";
+				background: var(--participant-color);
+			}
+			.initiative-participant[data-active="true"] { background: rgb(251 191 36 / 18%); box-shadow: inset 0 0 0 1px rgb(251 191 36 / 60%); }
+			.initiative-participant[data-down="true"] { opacity: .62; }
+			.initiative-participant[data-dead="true"] { opacity: .78; background: rgb(239 68 68 / 18%); }
+
+			.initiative-portrait {
+				display: grid;
+				width: 52px;
+				height: 52px;
+				place-items: center;
+				overflow: hidden;
+				border: 1px solid #52525b;
+				background: #18181b;
+			}
+			.initiative-portrait img { width: 100%; height: 100%; object-fit: cover; }
+			.initiative-portrait-fallback { color: #e4e4e7; font-weight: 700; font-size: 15px; }
+			.initiative-participant-content { min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+			.initiative-name-line { display: flex; align-items: center; gap: 8px; min-width: 0; }
+			.initiative-name { overflow: hidden; color: #f4f4f5; font-size: 13px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+			.initiative-score { margin-left: auto; min-width: 22px; color: #c4b5fd; text-align: center; font-size: 15px; font-weight: 700; }
+			.initiative-statuses { display: flex; flex-wrap: wrap; gap: 4px; }
+			.initiative-status { position: relative; display: grid; width: 18px; height: 18px; place-items: center; border: 1px solid #71717a; border-radius: 50%; background: #111827; }
+			.initiative-status img { width: 13px; height: 13px; }
+			.initiative-status-rounds { position: absolute; right: -6px; bottom: -6px; min-width: 11px; padding: 0 2px; border: 1px solid #eff6ff; border-radius: 999px; background: #2563eb; color: #fff; font-size: 9px; font-weight: 700; line-height: 12px; text-align: center; }
+
+			.service-panel[hidden] { display: none; }
 
 			.auth-row {
 				display: grid;
@@ -148,6 +239,8 @@
 	</head>
 	<body>
 		<main>
+			<section id="initiative-panel" class="initiative-panel" aria-live="polite"></section>
+			<section id="service-panel" class="service-panel" hidden>
 			<div class="auth-row">
 				<span id="auth-status" class="auth-status" aria-live="polite"></span>
 				<input id="pairing-code" placeholder="Код сопряжения из Obsidian" autocomplete="off" hidden />
@@ -164,6 +257,7 @@
 					<button id="copy-status" class="icon-button" type="button"></button>
 				</header>
 				<div class="status" id="status" aria-live="polite"></div>
+			</section>
 			</section>
 		</main>
 		<script type="module" src="./main.js"></script>
