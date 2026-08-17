@@ -133,6 +133,20 @@ describe("Owlbear integration server snapshots", () => {
 });
 
 describe("Owlbear integration server transport", () => {
+	it("requests managed scene cleanup and waits for acknowledgement", async () => {
+		const { server, port } = await createRunningServer();
+		const client = await connectClient(port);
+		const ready = waitForMessage(client, "server.ready");
+		client.send(JSON.stringify({ protocolVersion: 2, messageId: "hello-1", type: "client.hello", token: "token" }));
+		await ready;
+
+		const command = waitForMessage(client, "scene.clear");
+		const clearing = server.clearManagedScene();
+		const message = await command;
+		client.send(JSON.stringify({ protocolVersion: 2, messageId: "scene-applied", type: "scene.applied", clearId: message.clearId }));
+		await expect(clearing).resolves.toBeUndefined();
+	});
+
 	it("materializes and publishes a preview, then waits for its acknowledgement", async () => {
 		const { server, port } = await createRunningServer();
 		const client = await connectClient(port);

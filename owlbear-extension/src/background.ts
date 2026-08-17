@@ -1,5 +1,5 @@
 import OBR from "@owlbear-rodeo/sdk";
-import { pushSnapshotToScene } from "./owlbearSync";
+import { clearManagedSceneItems, pushSnapshotToScene } from "./owlbearSync";
 import { clearPreviewFromScene, pushPreviewToScene } from "./previewSync";
 import { state, createInitialDiagnostics } from "./state";
 import type { OwlbearEncounterSnapshot, OwlbearPreviewSnapshot } from "./types";
@@ -54,7 +54,7 @@ async function handleRuntimeMessage(message: RuntimeMessage): Promise<void> {
 		await connect(message.pairingCode ?? localStorage.getItem(PAIRING_KEY) ?? "", true);
 		return;
 	}
-	if (message.command === "disconnect") { disconnect(); return; }
+	if (message.command === "disconnect") { await disconnect(); return; }
 	await runAction(reconnectSceneItems);
 }
 
@@ -88,12 +88,13 @@ async function connect(pairingCode: string, resetAttempts: boolean): Promise<voi
 	nextSocket.onclose = (event) => handleSocketClose(nextSocket, event);
 }
 
-function disconnect(): void {
+async function disconnect(): Promise<void> {
 	manuallyDisconnected = true;
 	localStorage.setItem(MANUAL_DISCONNECT_KEY, "true");
 	reconnectAttempts = 0;
 	cancelReconnect();
-	closeCurrentSocket();
+	await clearManagedScene();
+	closeCurrentSocket(false);
 	connectionState = localStorage.getItem(PAIRING_KEY) ? "disconnected" : "unauthorized";
 	lastError = undefined;
 	postState();
@@ -158,6 +159,10 @@ async function onSocketMessage(data: unknown): Promise<void> {
 	}
 	if (message.type === "preview.clear" || message.type === "preview.empty") {
 		void clearPreview(typeof message.previewId === "string" ? message.previewId : undefined);
+		return;
+	}
+	if (message.type === "scene.clear") {
+		void clearManagedScene(typeof message.clearId === "string" ? message.clearId : undefined);
 		return;
 	}
 	if (message.type === "pong") {
@@ -225,6 +230,20 @@ async function clearPreview(previewId: string | undefined): Promise<void> {
 	}
 }
 
+async function clearManagedScene(clearId?: string): Promise<void> {
+	await readyPromise;
+	try {
+		await clearManagedSceneItems();
+		state.snapshot = null;
+		state.diagnostics = createInitialDiagnostics();
+		if (typeof clearId === "string") send({ type: "scene.applied", clearId });
+	} catch (error) {
+		if (typeof clearId === "string") send({ type: "scene.failed", clearId, error: formatError(error) });
+	} finally {
+		postState();
+	}
+}
+
 async function reconnectSceneItems(): Promise<void> {
 	if (!state.snapshot) throw new Error("Плагин ещё не отправил столкновение.");
 	const result = await pushSnapshotToScene(state.snapshot, null);
@@ -281,10 +300,10 @@ function localizeSceneError(error: string): string {
 	return error === "No active Owlbear scene." ? "Откройте комнату Owlbear и выберите активную сцену, затем отправьте encounter снова." : error;
 }
 
-function closeCurrentSocket(): void {
+function closeCurrentSocket(shouldClearPreview = true): void {
 	const currentSocket = socket;
 	socket = null;
-	void clearPreview(undefined);
+	if (shouldClearPreview) void clearPreview(undefined);
 	if (currentSocket && currentSocket.readyState < WebSocket.CLOSING) currentSocket.close(1000, "Client disconnect");
 }
 

@@ -68,6 +68,7 @@ const backgroundMock = vi.hoisted(() => {
 		},
 	};
 	const pushSnapshotToScene = vi.fn();
+	const clearManagedSceneItems = vi.fn();
 	const pushPreviewToScene = vi.fn();
 	const clearPreviewFromScene = vi.fn();
 
@@ -76,6 +77,7 @@ const backgroundMock = vi.hoisted(() => {
 		FakeWebSocket,
 		obr,
 		pushSnapshotToScene,
+		clearManagedSceneItems,
 		pushPreviewToScene,
 		clearPreviewFromScene,
 		getReadyChange: () => readyChange,
@@ -86,6 +88,7 @@ const backgroundMock = vi.hoisted(() => {
 vi.mock("@owlbear-rodeo/sdk", () => ({ default: backgroundMock.obr }));
 vi.mock("../../owlbear-extension/src/owlbearSync", () => ({
 	pushSnapshotToScene: backgroundMock.pushSnapshotToScene,
+	clearManagedSceneItems: backgroundMock.clearManagedSceneItems,
 }));
 vi.mock("../../owlbear-extension/src/previewSync", () => ({
 	pushPreviewToScene: backgroundMock.pushPreviewToScene,
@@ -140,6 +143,7 @@ beforeEach(() => {
 	backgroundMock.obr.scene.isReady.mockReset().mockResolvedValue(true);
 	backgroundMock.obr.scene.onReadyChange.mockClear();
 	backgroundMock.pushSnapshotToScene.mockReset();
+	backgroundMock.clearManagedSceneItems.mockReset().mockResolvedValue(undefined);
 	backgroundMock.pushPreviewToScene.mockReset();
 	backgroundMock.clearPreviewFromScene.mockReset().mockResolvedValue(undefined);
 	vi.stubGlobal("BroadcastChannel", backgroundMock.FakeBroadcastChannel);
@@ -206,5 +210,24 @@ describe("Owlbear background synchronization", () => {
 		});
 
 		await vi.waitFor(() => expect(socket.sent.some((message) => message.type === "preview.applied" && message.previewId === "preview-1")).toBe(true));
+	});
+
+	it("clears managed scene items and acknowledges a server cleanup command", async () => {
+		const socket = await loadConnectedBackground();
+		socket.message({ type: "scene.clear", clearId: "clear-1" });
+
+		await vi.waitFor(() => expect(backgroundMock.clearManagedSceneItems).toHaveBeenCalledOnce());
+		expect(socket.sent).toContainEqual(expect.objectContaining({ type: "scene.applied", clearId: "clear-1" }));
+		const { state } = await import("../../owlbear-extension/src/state");
+		expect(state.snapshot).toBeNull();
+	});
+
+	it("clears managed scene items before a manual Owlbear disconnect", async () => {
+		const socket = await loadConnectedBackground();
+
+		backgroundMock.FakeBroadcastChannel.instances[0].emit({ type: "ui.command", command: "disconnect" });
+
+		await vi.waitFor(() => expect(backgroundMock.clearManagedSceneItems).toHaveBeenCalledOnce());
+		expect(socket.readyState).toBe(backgroundMock.FakeWebSocket.CLOSED);
 	});
 });

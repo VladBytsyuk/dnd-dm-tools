@@ -12,6 +12,7 @@ const PROTOCOL_VERSION = 2;
 const HANDSHAKE_TIMEOUT_MS = 5_000;
 const APPLY_TIMEOUT_MS = 30_000;
 const PREVIEW_TIMEOUT_MS = 30_000;
+const SCENE_CLEAR_TIMEOUT_MS = 3_000;
 const AUTH_ERROR_CLOSE_CODE = 4001;
 const PROTOCOL_ERROR_CLOSE_CODE = 4002;
 const ASSETS: Record<string, { filename: string; contentType: string }> = {
@@ -61,6 +62,12 @@ export class OwlbearIntegrationServer {
 	private pendingSnapshot: OwlbearEncounterSnapshot | null = null;
 	private previewOperation: {
 		previewId: string;
+		resolve: () => void;
+		reject: (error: Error) => void;
+		timeout: ReturnType<typeof setTimeout>;
+	} | null = null;
+	private sceneClearOperation: {
+		clearId: string;
 		resolve: () => void;
 		reject: (error: Error) => void;
 		timeout: ReturnType<typeof setTimeout>;
@@ -140,6 +147,7 @@ export class OwlbearIntegrationServer {
 
 	async stop(): Promise<void> {
 		this.rejectPreviewOperation(new Error("Интеграция Owlbear остановлена."));
+		this.rejectSceneClearOperation(new Error("Интеграция Owlbear остановлена."));
 		this.disconnectClient();
 		this.clearApplyTimeout();
 		this.pendingSnapshot = null;
@@ -238,6 +246,21 @@ export class OwlbearIntegrationServer {
 	publishPrepared(snapshot: OwlbearEncounterSnapshot): void {
 		if (!this.authenticated || !this.client) throw new Error("Расширение Owlbear не подключено.");
 		this.enqueueSnapshot(this.rebindSnapshotUrls(snapshot));
+	}
+
+	async clearManagedScene(): Promise<void> {
+		if (!this.authenticated || !this.client || this.client.readyState !== WebSocket.OPEN) return;
+		if (this.sceneClearOperation) throw new Error("Очистка сцены Owlbear уже выполняется.");
+		const clearId = randomBytes(8).toString("hex");
+		return new Promise<void>((resolve, reject) => {
+			const timeout = setTimeout(() => {
+				if (this.sceneClearOperation?.clearId !== clearId) return;
+				this.sceneClearOperation = null;
+				reject(new Error("Расширение Owlbear не подтвердило очистку сцены за 3 секунды."));
+			}, SCENE_CLEAR_TIMEOUT_MS);
+			this.sceneClearOperation = { clearId, resolve, reject, timeout };
+			this.send({ type: "scene.clear", clearId });
+		});
 	}
 
 	async publishPreview(preview: OwlbearPreviewSnapshot): Promise<OwlbearPreviewSnapshot> {
@@ -419,6 +442,14 @@ export class OwlbearIntegrationServer {
 			if (message.previewId === this.previewOperation?.previewId) this.rejectPreviewOperation(new Error(message.error));
 			return;
 		}
+		if (message.type === "scene.applied" && typeof message.clearId === "string") {
+			if (message.clearId === this.sceneClearOperation?.clearId) this.resolveSceneClearOperation();
+			return;
+		}
+		if (message.type === "scene.failed" && typeof message.clearId === "string" && typeof message.error === "string") {
+			if (message.clearId === this.sceneClearOperation?.clearId) this.rejectSceneClearOperation(new Error(message.error));
+			return;
+		}
 		if (message.type === "snapshot.applied" && typeof message.snapshotId === "string" && Array.isArray(message.tokenLinks) && message.diagnostics && typeof message.diagnostics === "object") {
 			if (message.snapshotId !== this.inFlightSnapshotId) return;
 			const snapshotId = this.inFlightSnapshotId;
@@ -505,6 +536,22 @@ export class OwlbearIntegrationServer {
 		operation.reject(error);
 	}
 
+	private resolveSceneClearOperation(): void {
+		const operation = this.sceneClearOperation;
+		if (!operation) return;
+		this.sceneClearOperation = null;
+		clearTimeout(operation.timeout);
+		operation.resolve();
+	}
+
+	private rejectSceneClearOperation(error: Error): void {
+		const operation = this.sceneClearOperation;
+		if (!operation) return;
+		this.sceneClearOperation = null;
+		clearTimeout(operation.timeout);
+		operation.reject(error);
+	}
+
 	private disconnectClient(): void {
 		if (this.handshakeTimeout) clearTimeout(this.handshakeTimeout);
 		this.handshakeTimeout = null;
@@ -512,6 +559,7 @@ export class OwlbearIntegrationServer {
 		this.inFlightSnapshotId = null;
 		this.pendingSnapshot = null;
 		this.rejectPreviewOperation(new Error("Расширение Owlbear отключено."));
+		this.rejectSceneClearOperation(new Error("Расширение Owlbear отключено."));
 		const client = this.client;
 		this.client = null;
 		client?.terminate();
@@ -529,6 +577,7 @@ export class OwlbearIntegrationServer {
 		this.inFlightSnapshotId = null;
 		this.pendingSnapshot = null;
 		this.rejectPreviewOperation(new Error(reason));
+		this.rejectSceneClearOperation(new Error(reason));
 		if (this.status.running) this.setStatus({ ...this.status, connected: false });
 		client?.close(code, reason);
 	}

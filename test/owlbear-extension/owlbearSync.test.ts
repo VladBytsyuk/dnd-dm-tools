@@ -69,7 +69,7 @@ vi.mock("@owlbear-rodeo/sdk", () => ({
 	buildText: sdkMock.buildText,
 }));
 
-import { findStaleTokenIds, getConditionBadgePosition, getConditionBadgeTextPosition, pushSnapshotToScene } from "../../owlbear-extension/src/owlbearSync";
+import { clearManagedSceneItems, findStaleTokenIds, getConditionBadgePosition, getConditionBadgeTextPosition, pushSnapshotToScene } from "../../owlbear-extension/src/owlbearSync";
 import {
 	OWLBEAR_DEAD_OVERLAY_KEY,
 	OWLBEAR_ENCOUNTER_ID_KEY,
@@ -78,6 +78,7 @@ import {
 	OWLBEAR_TOKEN_RING_KEY,
 	OWLBEAR_TURN_HIGHLIGHT_KEY,
 	OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY,
+	OWLBEAR_METADATA_NAMESPACE,
 } from "../../owlbear-extension/src/types";
 import type { OwlbearEncounterSnapshot } from "../../owlbear-extension/src/types";
 import { clearPreviewFromScene, pushPreviewToScene } from "../../owlbear-extension/src/previewSync";
@@ -160,6 +161,18 @@ afterEach(() => {
 });
 
 describe("Owlbear scene synchronization", () => {
+	it("removes only scene items owned by DnD DM Tools", async () => {
+		const items = mockScene([
+			{ id: "managed-token", metadata: { [`${OWLBEAR_METADATA_NAMESPACE}/participantId`]: 1 } },
+			{ id: "managed-preview", metadata: { [`${OWLBEAR_METADATA_NAMESPACE}/previewId`]: "preview-1" } },
+			{ id: "user-token", metadata: { "example.com/custom": true } },
+		]);
+
+		await clearManagedSceneItems();
+
+		expect(items).toEqual([{ id: "user-token", metadata: { "example.com/custom": true } }]);
+	});
+
 	it("creates and updates active and next participant highlights", async () => {
 		const items = mockScene();
 		const initial = snapshot([1, 2, 3]);

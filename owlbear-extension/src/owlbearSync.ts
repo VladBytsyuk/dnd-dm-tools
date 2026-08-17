@@ -4,6 +4,7 @@ import { resolveTokenVisualImage, type TokenImage } from "./tokenVisuals";
 import {
 	OWLBEAR_ENCOUNTER_ID_KEY,
 	OWLBEAR_DEAD_OVERLAY_KEY,
+	OWLBEAR_METADATA_NAMESPACE,
 	OWLBEAR_MARKER_KIND_KEY,
 	OWLBEAR_MARKER_LAYOUT_KEY,
 	OWLBEAR_PARTICIPANT_ID_KEY,
@@ -151,6 +152,15 @@ export async function pushSnapshotToScene(
 	await reconcileTurnHighlights(snapshot, refreshedItems, tokenSize, gridDpi);
 	const diagnostics = createDiagnostics(snapshot, true, refreshedItems, findLinkedTokens(refreshedItems, snapshot), undefined, now);
 	return { diagnostics, tokenLinks: createTokenLinks(refreshedItems, snapshot, now) };
+}
+
+export async function clearManagedSceneItems(): Promise<void> {
+	if (!(await OBR.scene.isReady())) return;
+	const items = await OBR.scene.items.getItems() as SceneItem[];
+	const managedIds = items
+		.filter((item) => Object.keys(item.metadata ?? {}).some((key) => key.startsWith(`${OWLBEAR_METADATA_NAMESPACE}/`)))
+		.map((item) => item.id);
+	if (managedIds.length > 0) await OBR.scene.items.deleteItems(managedIds);
 }
 
 function hasTokenVisualChange(

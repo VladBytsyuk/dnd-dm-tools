@@ -121,7 +121,7 @@ export default class DndStatblockPlugin extends Plugin {
 
 	onunload() {
 		this.cloudflaredInstaller?.dispose();
-		void this.hideOwlbearPreview().catch(() => {}).finally(() => this.stopOwlbearIntegration());
+		void this.stopOwlbearIntegration();
 		this.#dispose();
 		console.log("dnd-dm-tools has been unloaded.");
 	}
@@ -356,16 +356,27 @@ export default class DndStatblockPlugin extends Plugin {
 	}
 
 	private async stopOwlbearIntegration(): Promise<void> {
+		const server = this.owlbearServer;
+		const hadRunningIntegration = Boolean(server || this.owlbearTunnel);
 		this.owlbearReadyNoticeShown = false;
-		try {
-			await this.hideOwlbearPreview();
-		} catch {
-			this.activeOwlbearPreview = null;
+		if (server) {
+			try {
+				await server.clearManagedScene();
+			} catch (error) {
+				new Notice(`Не удалось подтвердить очистку сцены Owlbear: ${formatOwlbearError(error)}`);
+			}
+		}
+		this.activeOwlbearPreview = null;
+		if (hadRunningIntegration) {
+			await this.panelManager.closePanel("owlbear-preview");
+			const snapshot = this.settings.owlbearSync.latestSnapshot;
+			if (snapshot) await this.updateOwlbearSettings({ latestSnapshot: createOwlbearSessionResetSnapshot(snapshot) });
+		} else {
+			this.removeStaleOwlbearPreviewTab();
 		}
 		const tunnel = this.owlbearTunnel;
 		this.owlbearTunnel = null;
 		if (tunnel) await tunnel.stop();
-		const server = this.owlbearServer;
 		this.owlbearServer = null;
 		if (server) await server.stop();
 		this.owlbearRuntimeStatus = { ...this.owlbearRuntimeStatus, tunnel: { state: "stopped" } };
