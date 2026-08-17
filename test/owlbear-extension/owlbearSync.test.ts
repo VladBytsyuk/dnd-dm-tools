@@ -47,7 +47,7 @@ const sdkMock = vi.hoisted(() => {
 				updateItems: vi.fn(),
 			},
 		},
-		viewport: { getPosition: vi.fn(), getWidth: vi.fn(), getHeight: vi.fn(), inverseTransformPoint: vi.fn() },
+		viewport: { getPosition: vi.fn(), getWidth: vi.fn(), getHeight: vi.fn(), getScale: vi.fn(), animateTo: vi.fn(), inverseTransformPoint: vi.fn() },
 	};
 	return {
 		obr,
@@ -122,6 +122,8 @@ function mockScene(initialItems: any[] = []) {
 	OBR.viewport.getPosition.mockReset().mockResolvedValue({ x: 0, y: 0 });
 	OBR.viewport.getWidth.mockReset().mockResolvedValue(1000);
 	OBR.viewport.getHeight.mockReset().mockResolvedValue(800);
+	OBR.viewport.getScale.mockReset().mockResolvedValue(0.75);
+	OBR.viewport.animateTo.mockReset().mockResolvedValue(undefined);
 	OBR.viewport.inverseTransformPoint.mockReset().mockImplementation(({ x, y }: { x: number; y: number }) => Promise.resolve({ x, y }));
 	OBR.scene.grid.getDpi.mockReset().mockResolvedValue(100);
 	OBR.scene.items.getItems.mockReset().mockImplementation((filter?: any) => {
@@ -161,6 +163,40 @@ afterEach(() => {
 });
 
 describe("Owlbear scene synchronization", () => {
+	it("creates new tokens around the center of the GM viewport", async () => {
+		const items = mockScene();
+
+		await pushSnapshotToScene(snapshot([1]));
+
+		const token = items.find((item) => item.type === "IMAGE");
+		expect(token.position).toEqual({ x: 500, y: 400 });
+	});
+
+	it("centers the GM viewport on the active participant only when the turn changes", async () => {
+		const items = mockScene();
+		const initial = snapshot([1, 2]);
+		initial.activeParticipantId = 1;
+
+		await pushSnapshotToScene(initial);
+		const activeToken = items.find((item) => item.metadata?.[OWLBEAR_PARTICIPANT_ID_KEY] === 1 && item.type === "IMAGE");
+		expect(sdkMock.obr.viewport.animateTo).toHaveBeenCalledWith({
+			position: { x: 500 - activeToken.position.x, y: 400 - activeToken.position.y },
+			scale: 0.75,
+		});
+
+		sdkMock.obr.viewport.animateTo.mockClear();
+		await pushSnapshotToScene({ ...initial, snapshotId: "snapshot-2", participants: initial.participants.map((participant) => ({ ...participant, hpCurrent: 5 })) }, initial);
+		expect(sdkMock.obr.viewport.animateTo).not.toHaveBeenCalled();
+
+		const next = { ...initial, snapshotId: "snapshot-3", activeParticipantId: 2 };
+		await pushSnapshotToScene(next, initial);
+		const nextToken = items.find((item) => item.metadata?.[OWLBEAR_PARTICIPANT_ID_KEY] === 2 && item.type === "IMAGE");
+		expect(sdkMock.obr.viewport.animateTo).toHaveBeenCalledWith({
+			position: { x: 500 - nextToken.position.x, y: 400 - nextToken.position.y },
+			scale: 0.75,
+		});
+	});
+
 	it("removes only scene items owned by DnD DM Tools", async () => {
 		const items = mockScene([
 			{ id: "managed-token", metadata: { [`${OWLBEAR_METADATA_NAMESPACE}/participantId`]: 1 } },

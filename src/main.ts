@@ -117,6 +117,7 @@ export default class DndStatblockPlugin extends Plugin {
 			this.registerOwlbearPreviewContextMenus();
 			console.log("dnd-dm-tools has been loaded.");
 		});
+		if (this.settings.owlbearSync.enabled) void this.prepareCloudflared();
 	}
 
 	onunload() {
@@ -156,6 +157,7 @@ export default class DndStatblockPlugin extends Plugin {
 	}
 
 	getOwlbearServerStatus(): OwlbearServerStatus { return this.owlbearServerStatus; }
+	isOwlbearIntegrationEnabled(): boolean { return this.settings.owlbearSync.enabled; }
 	getOwlbearRuntimeStatus(): OwlbearRuntimeStatus { return this.owlbearRuntimeStatus; }
 	subscribeOwlbearRuntimeStatus(listener: () => void): () => void {
 		this.owlbearRuntimeListeners.add(listener);
@@ -172,6 +174,7 @@ export default class DndStatblockPlugin extends Plugin {
 
 	async setOwlbearIntegrationEnabled(enabled: boolean): Promise<void> {
 		await this.updateOwlbearSettings({ enabled });
+		this.notifyOwlbearRuntimeStatus();
 		if (!enabled) {
 			this.cloudflaredInstaller?.dispose();
 			await this.stopOwlbearIntegration();
