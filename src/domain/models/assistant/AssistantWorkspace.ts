@@ -12,6 +12,7 @@ export const PANEL_KEYS = [
 	"classes",
 	"character-sheets",
 	"initiative-tracker",
+	"owlbear-preview",
 ] as const;
 
 export type PanelKey = typeof PANEL_KEYS[number];

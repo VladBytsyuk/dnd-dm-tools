@@ -68,12 +68,16 @@ const backgroundMock = vi.hoisted(() => {
 		},
 	};
 	const pushSnapshotToScene = vi.fn();
+	const pushPreviewToScene = vi.fn();
+	const clearPreviewFromScene = vi.fn();
 
 	return {
 		FakeBroadcastChannel,
 		FakeWebSocket,
 		obr,
 		pushSnapshotToScene,
+		pushPreviewToScene,
+		clearPreviewFromScene,
 		getReadyChange: () => readyChange,
 		resetReadyChange: () => { readyChange = null; },
 	};
@@ -82,6 +86,10 @@ const backgroundMock = vi.hoisted(() => {
 vi.mock("@owlbear-rodeo/sdk", () => ({ default: backgroundMock.obr }));
 vi.mock("../../owlbear-extension/src/owlbearSync", () => ({
 	pushSnapshotToScene: backgroundMock.pushSnapshotToScene,
+}));
+vi.mock("../../owlbear-extension/src/previewSync", () => ({
+	pushPreviewToScene: backgroundMock.pushPreviewToScene,
+	clearPreviewFromScene: backgroundMock.clearPreviewFromScene,
 }));
 
 function diagnostics(sceneReady: boolean) {
@@ -132,6 +140,8 @@ beforeEach(() => {
 	backgroundMock.obr.scene.isReady.mockReset().mockResolvedValue(true);
 	backgroundMock.obr.scene.onReadyChange.mockClear();
 	backgroundMock.pushSnapshotToScene.mockReset();
+	backgroundMock.pushPreviewToScene.mockReset();
+	backgroundMock.clearPreviewFromScene.mockReset().mockResolvedValue(undefined);
 	vi.stubGlobal("BroadcastChannel", backgroundMock.FakeBroadcastChannel);
 	vi.stubGlobal("WebSocket", backgroundMock.FakeWebSocket);
 });
@@ -175,5 +185,26 @@ describe("Owlbear background synchronization", () => {
 		backgroundMock.FakeBroadcastChannel.instances[0].emit({ type: "ui.command", command: "reconnect" });
 
 		await vi.waitFor(() => expect(backgroundMock.pushSnapshotToScene).toHaveBeenCalledWith(current, null));
+	});
+
+	it("acknowledges preview publication after applying the scene overlay", async () => {
+		backgroundMock.pushPreviewToScene.mockResolvedValue(undefined);
+		const socket = await loadConnectedBackground();
+		socket.message({
+			type: "preview.publish",
+			previewId: "preview-1",
+			preview: {
+				schemaVersion: 1,
+				previewId: "preview-1",
+				name: "Handout",
+				createdAt: "2026-08-17T00:00:00.000Z",
+				imageMime: "image/png",
+				imageWidth: 100,
+				imageHeight: 100,
+				imageUrl: "https://example.com/handout.png",
+			},
+		});
+
+		await vi.waitFor(() => expect(socket.sent.some((message) => message.type === "preview.applied" && message.previewId === "preview-1")).toBe(true));
 	});
 });

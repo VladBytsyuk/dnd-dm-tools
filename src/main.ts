@@ -1,4 +1,4 @@
-import { FileSystemAdapter, Notice, Platform, Plugin } from 'obsidian';
+import { FileSystemAdapter, Notice, Platform, Plugin, TFile, type Menu } from 'obsidian';
 import { registerThemeChangeListener } from './ui/theme';
 import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor/encounter_md_code_block_processor';
 import { registerNoteLinkProcessor } from './ui/components/processor/note_link_processor';
@@ -37,10 +37,18 @@ import {
 } from './domain/models/owlbear/OwlbearSync';
 import { PanelManager } from './ui/components/sidepanel/PanelManager';
 import type { PanelHost } from './ui/components/sidepanel/PanelHost';
+import { OwlbearPreviewPanel } from './ui/components/sidepanel/OwlbearPreviewPanel';
 import { createOwlbearAuthToken, OwlbearIntegrationServer, type OwlbearServerStatus } from './data/owlbear/OwlbearIntegrationServer';
 import { OwlbearSettingsTab } from './ui/settings/OwlbearSettingsTab';
 import { CLOUDFLARED_VERSION, CloudflaredInstaller, type CloudflaredInstallStatus } from './data/owlbear/CloudflaredInstaller';
 import { CloudflareQuickTunnel, type OwlbearTunnelStatus } from './data/owlbear/CloudflareQuickTunnel';
+import type { OwlbearPreviewSnapshot } from './domain/models/owlbear/OwlbearPreview';
+import {
+	isSupportedOwlbearPreviewFile,
+	isSupportedOwlbearPreviewUrl,
+	loadOwlbearPreviewRemoteImage,
+	loadOwlbearPreviewVaultImage,
+} from './data/owlbear/OwlbearPreviewImage';
 
 export type OwlbearRuntimeStatus = {
 	cloudflared: CloudflaredInstallStatus;
@@ -74,6 +82,9 @@ export default class DndStatblockPlugin extends Plugin {
 	private cloudflaredInstaller: CloudflaredInstaller | null = null;
 	private cloudflaredBinaryPath: string | null = null;
 	private owlbearTunnel: CloudflareQuickTunnel | null = null;
+	private owlbearReadyNoticeShown = false;
+	private activeOwlbearPreview: (OwlbearPreviewSnapshot & { dataUrl: string }) | null = null;
+	private lastContextImageUrl: string | null = null;
 	private owlbearStartPromise: Promise<void> | null = null;
 	private owlbearRuntimeStatus: OwlbearRuntimeStatus = {
 		cloudflared: { state: "checking", version: CLOUDFLARED_VERSION, platform: runtimePlatform(), arch: runtimeArchitecture() },
@@ -88,6 +99,7 @@ export default class DndStatblockPlugin extends Plugin {
 		const loadResult = loadPluginSettings(await this.loadData());
 		this.settings = loadResult.settings;
 		this.assistantWorkspace = this.settings.workspace;
+		this.removeStaleOwlbearPreviewTab();
 		this.shouldResetLegacyViews = loadResult.shouldResetLegacyViews;
 		await this.resetOwlbearSnapshotForNewSession();
 		this.addSettingTab(new OwlbearSettingsTab(this));
@@ -102,13 +114,14 @@ export default class DndStatblockPlugin extends Plugin {
 			registerNoteLinkProcessor(this, this.#uiEventListener);
 			registerAddEncounterCommand(this);
 			registerThemeChangeListener();
+			this.registerOwlbearPreviewContextMenus();
 			console.log("dnd-dm-tools has been loaded.");
 		});
 	}
 
 	onunload() {
 		this.cloudflaredInstaller?.dispose();
-		void this.stopOwlbearIntegration();
+		void this.hideOwlbearPreview().catch(() => {}).finally(() => this.stopOwlbearIntegration());
 		this.#dispose();
 		console.log("dnd-dm-tools has been unloaded.");
 	}
@@ -219,6 +232,48 @@ export default class DndStatblockPlugin extends Plugin {
 		server.publishPrepared(prepared);
 	}
 
+	getActiveOwlbearPreview(): (OwlbearPreviewSnapshot & { dataUrl: string }) | null {
+		return this.activeOwlbearPreview;
+	}
+
+	async publishOwlbearPreviewFromFile(file: TFile): Promise<void> {
+		const image = await loadOwlbearPreviewVaultImage(this.app, file);
+		await this.publishOwlbearPreview(image.name, image.mime, image.width, image.height, image.dataUrl);
+	}
+
+	async publishOwlbearPreviewFromUrl(url: string): Promise<void> {
+		const image = await loadOwlbearPreviewRemoteImage(url);
+		await this.publishOwlbearPreview(image.name, image.mime, image.width, image.height, image.dataUrl);
+	}
+
+	async hideOwlbearPreview(): Promise<void> {
+		const preview = this.activeOwlbearPreview;
+		if (!preview) return;
+		const server = this.owlbearServer;
+		if (!server?.getStatus().connected) throw new Error("Расширение Owlbear не подключено.");
+		await server.clearPreview(preview.previewId);
+		this.activeOwlbearPreview = null;
+	}
+
+	private async publishOwlbearPreview(name: string, imageMime: string, imageWidth: number, imageHeight: number, dataUrl: string): Promise<void> {
+		if (!this.settings.owlbearSync.enabled) throw new Error("Интеграция с Owlbear выключена. Включите её в настройках плагина.");
+		const server = this.owlbearServer;
+		if (!server?.getStatus().connected) throw new Error("Расширение Owlbear не подключено.");
+		if (!server.getAssetBaseUrl()) throw new Error("Публичный туннель изображений Owlbear ещё не готов.");
+		const preview: OwlbearPreviewSnapshot = {
+			schemaVersion: 1,
+			previewId: crypto.randomUUID(),
+			name,
+			createdAt: new Date().toISOString(),
+			imageMime,
+			imageWidth,
+			imageHeight,
+			imageDataUrl: dataUrl,
+		};
+		const prepared = await server.publishPreview(preview);
+		this.activeOwlbearPreview = { ...prepared, dataUrl };
+	}
+
 	private async updateOwlbearSettings(patch: Partial<OwlbearSyncSettings>): Promise<void> {
 		await this.updateSettings({ owlbearSync: { ...this.settings.owlbearSync, ...patch } });
 	}
@@ -248,8 +303,9 @@ export default class DndStatblockPlugin extends Plugin {
 				this.getOwlbearImageCacheDirectory(),
 				() => this.settings.owlbearSync.authToken,
 				() => this.settings.owlbearSync.latestSnapshot,
+				() => this.activeOwlbearPreview ?? undefined,
 				(snapshotId, links, diagnostics) => this.persistOwlbearApplied(snapshotId, links, diagnostics),
-				(status) => { this.owlbearServerStatus = status; this.notifyOwlbearRuntimeStatus(); },
+				(status) => { this.owlbearServerStatus = status; this.notifyOwlbearRuntimeStatus(); this.notifyOwlbearReady(); },
 			);
 			const port = await server.start(sync.port ?? 0);
 			this.owlbearServer = server;
@@ -272,11 +328,19 @@ export default class DndStatblockPlugin extends Plugin {
 					activeServer.setPublicAssetOrigin(origin);
 					const current = this.settings.owlbearSync.latestSnapshot;
 					if (current && activeServer.getStatus().connected) activeServer.publishPrepared(current);
+					const preview = this.activeOwlbearPreview;
+					if (preview && activeServer.getStatus().connected) {
+						try {
+							const prepared = await activeServer.publishPreview(preview);
+							this.activeOwlbearPreview = { ...prepared, dataUrl: preview.dataUrl };
+						} catch { /* the current preview will be retried on reconnect */ }
+					}
 				},
 				() => activeServer.clearPublicAssetOrigin(),
 				(status) => {
 					this.owlbearRuntimeStatus = { ...this.owlbearRuntimeStatus, tunnel: status };
 					this.notifyOwlbearRuntimeStatus();
+					this.notifyOwlbearReady();
 				},
 			);
 			this.owlbearTunnel = tunnel;
@@ -292,6 +356,12 @@ export default class DndStatblockPlugin extends Plugin {
 	}
 
 	private async stopOwlbearIntegration(): Promise<void> {
+		this.owlbearReadyNoticeShown = false;
+		try {
+			await this.hideOwlbearPreview();
+		} catch {
+			this.activeOwlbearPreview = null;
+		}
 		const tunnel = this.owlbearTunnel;
 		this.owlbearTunnel = null;
 		if (tunnel) await tunnel.stop();
@@ -300,6 +370,17 @@ export default class DndStatblockPlugin extends Plugin {
 		if (server) await server.stop();
 		this.owlbearRuntimeStatus = { ...this.owlbearRuntimeStatus, tunnel: { state: "stopped" } };
 		this.notifyOwlbearRuntimeStatus();
+	}
+
+	private notifyOwlbearReady(): void {
+		const ready = this.settings.owlbearSync.enabled
+			&& this.owlbearServerStatus.running
+			&& this.owlbearServerStatus.connected
+			&& this.owlbearRuntimeStatus.tunnel.state === "ready";
+		if (!ready) return;
+		if (this.owlbearReadyNoticeShown) return;
+		this.owlbearReadyNoticeShown = true;
+		new Notice("Интеграция с Owlbear готова к работе.");
 	}
 
 	private async prepareCloudflared(force = false): Promise<void> {
@@ -357,6 +438,49 @@ export default class DndStatblockPlugin extends Plugin {
 		const adapter = this.app.vault.adapter;
 		if (!(adapter instanceof FileSystemAdapter)) throw new Error("Локальный путь плагина недоступен.");
 		return [adapter.getBasePath(), this.app.vault.configDir, "plugins", this.manifest.id, "cloudflared"].join("/");
+	}
+
+	private removeStaleOwlbearPreviewTab(): void {
+		for (const tile of this.assistantWorkspace.tiles) {
+			const index = tile.tabs.indexOf("owlbear-preview");
+			if (index < 0) continue;
+			tile.tabs = tile.tabs.filter((key) => key !== "owlbear-preview");
+			if (tile.activeTab === "owlbear-preview") tile.activeTab = tile.tabs[Math.min(index, tile.tabs.length - 1)] ?? null;
+		}
+	}
+
+	private registerOwlbearPreviewContextMenus(): void {
+		this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => {
+			if (!(file instanceof TFile) || !isSupportedOwlbearPreviewFile(file)) return;
+			this.addOwlbearPreviewMenuItem(menu, () => this.publishOwlbearPreviewFromFile(file));
+		}));
+		this.registerEvent(this.app.workspace.on("url-menu", (menu, url) => {
+			if (url !== this.lastContextImageUrl || !isSupportedOwlbearPreviewUrl(url)) return;
+			this.addOwlbearPreviewMenuItem(menu, () => this.publishOwlbearPreviewFromUrl(url));
+		}));
+		const registerDocument = (document: Document) => this.registerDomEvent(document, "contextmenu", (event) => {
+			const target = event.target instanceof Element ? event.target : null;
+			const image = target instanceof HTMLImageElement
+				? target
+				: target?.closest(".image-embed, .internal-embed")?.querySelector("img") ?? null;
+			this.lastContextImageUrl = image && /^https:\/\//i.test(image.src) ? image.src : null;
+		}, true);
+		registerDocument(document);
+		this.registerEvent(this.app.workspace.on("window-open", (_workspaceWindow, window) => registerDocument(window.document)));
+	}
+
+	private addOwlbearPreviewMenuItem(menu: Menu, action: () => Promise<void>): void {
+		if (!this.settings.owlbearSync.enabled) return;
+		menu.addItem((item) => item
+			.setTitle("Отправить в Owlbear")
+			.setIcon("send")
+			.onClick(() => void action().then(async () => {
+				this.panelManager.discardPanel("owlbear-preview");
+				await this.panelManager.openPanel("owlbear-preview");
+				new Notice("Изображение отправлено в Owlbear.");
+			}).catch((error) => {
+				new Notice(error instanceof Error ? error.message : "Не удалось отправить изображение в Owlbear.");
+			})));
 	}
 
 	// ---- private methods ----
@@ -419,6 +543,7 @@ export default class DndStatblockPlugin extends Plugin {
 			.map((feature) => feature.sidePanel)
 			.filter((panel): panel is NonNullable<typeof panel> => Boolean(panel));
 		panels.push(new InitiativeTrackerPanel(this, this.#uiEventListener));
+		panels.push(new OwlbearPreviewPanel(this));
 		await this.panelManager.register(panels, this.shouldResetLegacyViews);
 		await this.persistAssistantWorkspace(this.assistantWorkspace);
 		

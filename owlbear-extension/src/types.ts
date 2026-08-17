@@ -9,6 +9,8 @@ export const OWLBEAR_TURN_HIGHLIGHT_KEY = `${OWLBEAR_METADATA_NAMESPACE}/turnHig
 export const OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY = `${OWLBEAR_METADATA_NAMESPACE}/turnHighlightRole`;
 export const OWLBEAR_DEAD_OVERLAY_KEY = `${OWLBEAR_METADATA_NAMESPACE}/deadOverlay`;
 export const OWLBEAR_MARKER_LAYOUT_KEY = `${OWLBEAR_METADATA_NAMESPACE}/markerLayout`;
+export const OWLBEAR_PREVIEW_ID_KEY = `${OWLBEAR_METADATA_NAMESPACE}/previewId`;
+export const OWLBEAR_PREVIEW_KIND_KEY = `${OWLBEAR_METADATA_NAMESPACE}/previewKind`;
 
 export interface OwlbearEncounterSnapshot {
 	schemaVersion: 1;
@@ -71,6 +73,18 @@ export interface OwlbearSyncDiagnostics {
 	lastSyncAt?: string;
 	lastError?: string;
 	fallbackParticipantIds: number[];
+}
+
+export interface OwlbearPreviewSnapshot {
+	schemaVersion: 1;
+	previewId: string;
+	name: string;
+	createdAt: string;
+	imageMime: string;
+	imageWidth: number;
+	imageHeight: number;
+	imageAssetId?: string;
+	imageUrl?: string;
 }
 
 export type MarkerKind = "bloodied" | "concentration" | "condition";

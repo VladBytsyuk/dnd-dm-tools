@@ -6,6 +6,7 @@ import { WebSocket, type RawData } from "ws";
 import { OwlbearIntegrationServer } from "src/data/owlbear/OwlbearIntegrationServer";
 import { createTokenVisualSvg } from "src/data/owlbear/OwlbearImageAssetStore";
 import type { OwlbearEncounterSnapshot } from "src/domain/models/owlbear/OwlbearSync";
+import type { OwlbearPreviewSnapshot } from "src/domain/models/owlbear/OwlbearPreview";
 
 const temporaryDirectories: string[] = [];
 const runningServers: OwlbearIntegrationServer[] = [];
@@ -50,7 +51,7 @@ async function createServer(): Promise<{ server: OwlbearIntegrationServer; cache
 	temporaryDirectories.push(cacheDirectory);
 	return {
 		cacheDirectory,
-		server: new OwlbearIntegrationServer([], cacheDirectory, () => "token", () => undefined, async () => {}, () => {}),
+		server: new OwlbearIntegrationServer([], cacheDirectory, () => "token", () => undefined, () => undefined, async () => {}, () => {}),
 	};
 }
 
@@ -132,6 +133,30 @@ describe("Owlbear integration server snapshots", () => {
 });
 
 describe("Owlbear integration server transport", () => {
+	it("materializes and publishes a preview, then waits for its acknowledgement", async () => {
+		const { server, port } = await createRunningServer();
+		const client = await connectClient(port);
+		const ready = waitForMessage(client, "server.ready");
+		client.send(JSON.stringify({ protocolVersion: 2, messageId: "hello-1", type: "client.hello", token: "token" }));
+		await ready;
+		const preview: OwlbearPreviewSnapshot = {
+			schemaVersion: 1,
+			previewId: "preview-1",
+			name: "Handout",
+			createdAt: "2026-08-17T00:00:00.000Z",
+			imageMime: "image/png",
+			imageWidth: 32,
+			imageHeight: 16,
+			imageDataUrl: "data:image/png;base64,UE5H",
+		};
+		const published = waitForMessage(client, "preview.publish");
+		const publishing = server.publishPreview(preview);
+		const message = await published;
+		expect(message.preview.imageUrl).toMatch(/\/token-images\/[a-f0-9]{64}\/image%2Fpng$/);
+		client.send(JSON.stringify({ protocolVersion: 2, messageId: "preview-applied", type: "preview.applied", previewId: "preview-1" }));
+		await expect(publishing).resolves.toMatchObject({ imageAssetId: expect.any(String), imageDataUrl: undefined });
+	});
+
 	it("accepts a fragmented authenticated message and returns server.ready", async () => {
 		const { server, port } = await createRunningServer();
 		const client = await connectClient(port);
@@ -265,7 +290,7 @@ async function createRunningServer(
 	const assets = join(root, "assets");
 	const cache = join(root, "cache");
 	await createExtensionAssets(assets);
-	const server = new OwlbearIntegrationServer([assets], cache, () => "token", () => undefined, onApplied, () => {});
+	const server = new OwlbearIntegrationServer([assets], cache, () => "token", () => undefined, () => undefined, onApplied, () => {});
 	runningServers.push(server);
 	const port = await server.start(0);
 	server.setPublicAssetOrigin("https://test.trycloudflare.com");

@@ -6,10 +6,12 @@ import { join } from "path";
 import { WebSocket, WebSocketServer, type RawData } from "ws";
 import { OwlbearImageAssetStore, createFallbackSvg, createTokenVisualSvg, type TokenVisualState } from "./OwlbearImageAssetStore";
 import type { OwlbearEncounterSnapshot, OwlbearSyncDiagnostics, OwlbearTokenLink } from "src/domain/models/owlbear/OwlbearSync";
+import type { OwlbearPreviewSnapshot } from "src/domain/models/owlbear/OwlbearPreview";
 
 const PROTOCOL_VERSION = 2;
 const HANDSHAKE_TIMEOUT_MS = 5_000;
 const APPLY_TIMEOUT_MS = 30_000;
+const PREVIEW_TIMEOUT_MS = 30_000;
 const AUTH_ERROR_CLOSE_CODE = 4001;
 const PROTOCOL_ERROR_CLOSE_CODE = 4002;
 const ASSETS: Record<string, { filename: string; contentType: string }> = {
@@ -57,6 +59,12 @@ export class OwlbearIntegrationServer {
 	private applyTimeout: ReturnType<typeof setTimeout> | null = null;
 	private inFlightSnapshotId: string | null = null;
 	private pendingSnapshot: OwlbearEncounterSnapshot | null = null;
+	private previewOperation: {
+		previewId: string;
+		resolve: () => void;
+		reject: (error: Error) => void;
+		timeout: ReturnType<typeof setTimeout>;
+	} | null = null;
 	private status: OwlbearServerStatus = { running: false, port: null, connected: false };
 	private readonly imageStore: OwlbearImageAssetStore;
 
@@ -65,6 +73,7 @@ export class OwlbearIntegrationServer {
 		private readonly imageCacheDirectory: string,
 		private readonly getToken: () => string | null,
 		private readonly getSnapshot: () => OwlbearEncounterSnapshot | undefined,
+		private readonly getPreview: () => OwlbearPreviewSnapshot | undefined,
 		private readonly onApplied: (snapshotId: string, links: OwlbearTokenLink[], diagnostics: OwlbearSyncDiagnostics) => Promise<void>,
 		private readonly onStatus: (status: OwlbearServerStatus) => void,
 	) {
@@ -130,6 +139,7 @@ export class OwlbearIntegrationServer {
 	}
 
 	async stop(): Promise<void> {
+		this.rejectPreviewOperation(new Error("Интеграция Owlbear остановлена."));
 		this.disconnectClient();
 		this.clearApplyTimeout();
 		this.pendingSnapshot = null;
@@ -149,6 +159,8 @@ export class OwlbearIntegrationServer {
 	async materializeSnapshot(snapshot: OwlbearEncounterSnapshot, previousSnapshot?: OwlbearEncounterSnapshot): Promise<OwlbearEncounterSnapshot> {
 		const previousParticipants = new Map(previousSnapshot?.participants.map((participant) => [participant.participantId, participant]));
 		const protectedIds = snapshot.participants.map((participant) => participant.imageAssetId).filter((value): value is string => Boolean(value));
+		const activePreviewAssetId = this.getPreview()?.imageAssetId;
+		if (activePreviewAssetId) protectedIds.push(activePreviewAssetId);
 		const materializedAssetIds: string[] = [];
 		const participants: OwlbearEncounterSnapshot["participants"] = [];
 		for (const participant of snapshot.participants) {
@@ -198,13 +210,47 @@ export class OwlbearIntegrationServer {
 			participants.push(materializedParticipant);
 			materializedAssetIds.push(assetId);
 		}
-		await this.imageStore.cleanup(participants.map((participant) => participant.imageAssetId).filter((value): value is string => Boolean(value)));
+		const protectedAssetIds = participants.map((participant) => participant.imageAssetId).filter((value): value is string => Boolean(value));
+		if (activePreviewAssetId) protectedAssetIds.push(activePreviewAssetId);
+		await this.imageStore.cleanup(protectedAssetIds);
 		return { ...snapshot, participants };
+	}
+
+	async materializePreview(preview: OwlbearPreviewSnapshot): Promise<OwlbearPreviewSnapshot> {
+		const freshImage = parseImageDataUrl(preview.imageDataUrl);
+		let assetId = preview.imageAssetId;
+		if (freshImage) {
+			const protectedIds = this.getSnapshot()?.participants
+				.map((participant) => participant.imageAssetId)
+				.filter((value): value is string => Boolean(value)) ?? [];
+			assetId = await this.imageStore.put(freshImage.mime, freshImage.bytes, protectedIds);
+		}
+		if (!assetId || !(await this.imageStore.has(assetId))) {
+			throw new Error("Не удалось подготовить изображение превью Owlbear.");
+		}
+		await this.imageStore.cleanup([
+			...(this.getSnapshot()?.participants.map((participant) => participant.imageAssetId).filter((value): value is string => Boolean(value)) ?? []),
+			assetId,
+		]);
+		return { ...preview, imageAssetId: assetId, imageDataUrl: undefined, imageUrl: undefined };
 	}
 
 	publishPrepared(snapshot: OwlbearEncounterSnapshot): void {
 		if (!this.authenticated || !this.client) throw new Error("Расширение Owlbear не подключено.");
 		this.enqueueSnapshot(this.rebindSnapshotUrls(snapshot));
+	}
+
+	async publishPreview(preview: OwlbearPreviewSnapshot): Promise<OwlbearPreviewSnapshot> {
+		if (!this.authenticated || !this.client) throw new Error("Расширение Owlbear не подключено.");
+		if (!this.getAssetBaseUrl()) throw new Error("Публичный туннель изображений Owlbear ещё не готов.");
+		const prepared = await this.materializePreview(preview);
+		await this.sendPreviewCommand("preview.publish", this.rebindPreviewUrl(prepared));
+		return prepared;
+	}
+
+	async clearPreview(previewId: string): Promise<void> {
+		if (!this.authenticated || !this.client) throw new Error("Расширение Owlbear не подключено.");
+		await this.sendPreviewCommand("preview.clear", undefined, previewId);
 	}
 
 	private async handleHttp(request: IncomingMessage, response: ServerResponse): Promise<void> {
@@ -348,7 +394,31 @@ export class OwlbearIntegrationServer {
 			}
 			return;
 		}
+		if (message.type === "preview.request") {
+			const preview = this.getPreview();
+			if (!preview) {
+				this.send({ type: "preview.empty" });
+				return;
+			}
+			try {
+				const prepared = await this.materializePreview(preview);
+				void this.sendPreviewCommand("preview.publish", this.rebindPreviewUrl(prepared)).catch((error) => {
+					this.setStatus({ ...this.status, error: error instanceof Error ? error.message : String(error) });
+				});
+			} catch (error) {
+				this.setStatus({ ...this.status, error: error instanceof Error ? error.message : String(error) });
+			}
+			return;
+		}
 		if (message.type === "ping") { this.send({ type: "pong" }); return; }
+		if (message.type === "preview.applied" && typeof message.previewId === "string") {
+			if (message.previewId === this.previewOperation?.previewId) this.resolvePreviewOperation();
+			return;
+		}
+		if (message.type === "preview.failed" && typeof message.previewId === "string" && typeof message.error === "string") {
+			if (message.previewId === this.previewOperation?.previewId) this.rejectPreviewOperation(new Error(message.error));
+			return;
+		}
 		if (message.type === "snapshot.applied" && typeof message.snapshotId === "string" && Array.isArray(message.tokenLinks) && message.diagnostics && typeof message.diagnostics === "object") {
 			if (message.snapshotId !== this.inFlightSnapshotId) return;
 			const snapshotId = this.inFlightSnapshotId;
@@ -402,12 +472,46 @@ export class OwlbearIntegrationServer {
 		this.client.send(JSON.stringify({ protocolVersion: PROTOCOL_VERSION, messageId: randomBytes(8).toString("hex"), ...payload }));
 	}
 
+	private sendPreviewCommand(type: "preview.publish" | "preview.clear", preview?: OwlbearPreviewSnapshot, previewId?: string): Promise<void> {
+		if (this.previewOperation) return Promise.reject(new Error("Предыдущее превью Owlbear ещё применяется."));
+		const id = preview?.previewId ?? previewId;
+		if (!id) return Promise.reject(new Error("Не указан идентификатор превью Owlbear."));
+		return new Promise<void>((resolve, reject) => {
+			const timeout = setTimeout(() => {
+				if (this.previewOperation?.previewId !== id) return;
+				this.previewOperation = null;
+				reject(new Error("Расширение Owlbear не подтвердило изменение превью за 30 секунд."));
+			}, PREVIEW_TIMEOUT_MS);
+			this.previewOperation = { previewId: id, resolve, reject, timeout };
+			this.send(type === "preview.publish"
+				? { type, previewId: id, preview }
+				: { type, previewId: id });
+		});
+	}
+
+	private resolvePreviewOperation(): void {
+		const operation = this.previewOperation;
+		if (!operation) return;
+		this.previewOperation = null;
+		clearTimeout(operation.timeout);
+		operation.resolve();
+	}
+
+	private rejectPreviewOperation(error: Error): void {
+		const operation = this.previewOperation;
+		if (!operation) return;
+		this.previewOperation = null;
+		clearTimeout(operation.timeout);
+		operation.reject(error);
+	}
+
 	private disconnectClient(): void {
 		if (this.handshakeTimeout) clearTimeout(this.handshakeTimeout);
 		this.handshakeTimeout = null;
 		this.clearApplyTimeout();
 		this.inFlightSnapshotId = null;
 		this.pendingSnapshot = null;
+		this.rejectPreviewOperation(new Error("Расширение Owlbear отключено."));
 		const client = this.client;
 		this.client = null;
 		client?.terminate();
@@ -424,6 +528,7 @@ export class OwlbearIntegrationServer {
 		this.authenticated = false;
 		this.inFlightSnapshotId = null;
 		this.pendingSnapshot = null;
+		this.rejectPreviewOperation(new Error(reason));
 		if (this.status.running) this.setStatus({ ...this.status, connected: false });
 		client?.close(code, reason);
 	}
@@ -443,6 +548,10 @@ export class OwlbearIntegrationServer {
 		const assetBaseUrl = this.getAssetBaseUrl();
 		if (!assetBaseUrl) throw new Error("Публичный туннель изображений Owlbear ещё не готов.");
 		return { ...snapshot, assetBaseUrl, participants: snapshot.participants.map((participant) => ({ ...participant, imageUrl: participant.imageAssetId ? this.assetUrl(participant.imageAssetId, participant.imageMime) : participant.imageUrl, imageDataUrl: undefined })) };
+	}
+	private rebindPreviewUrl(preview: OwlbearPreviewSnapshot): OwlbearPreviewSnapshot {
+		if (!preview.imageAssetId) throw new Error("У превью Owlbear отсутствует подготовленный asset.");
+		return { ...preview, imageUrl: this.assetUrl(preview.imageAssetId, preview.imageMime), imageDataUrl: undefined };
 	}
 	private setStatus(status: OwlbearServerStatus): void { this.status = status; this.onStatus(status); }
 

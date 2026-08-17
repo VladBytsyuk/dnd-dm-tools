@@ -61,6 +61,14 @@ Starting a new Obsidian process intentionally replaces the persisted encounter w
 
 Token images are content-addressed by SHA-256 of MIME and bytes. The transport copy of a snapshot receives an ephemeral HTTPS `assetBaseUrl`; persisted snapshots never store the Quick Tunnel host. Shared Owlbear items use `/assets/{session-secret}/token-images/{hash}/{mime}` and `/assets/{session-secret}/status-icons/{known-icon}.svg`. The public server returns 404 for the manifest, WebSocket, HTML, scripts, unknown icons, and incorrect session secrets. The cache is capped at 250 MB with LRU cleanup; current and in-flight encounter assets are protected. Missing, invalid, or unavailable images become generated 512×512 SVG tokens with initials and a side/participant color. Fallback use is reported in diagnostics.
 
+## Image preview
+
+When the integration is enabled, the context menu for PNG, JPEG, WebP, GIF, and SVG files in the vault contains **«Отправить в Owlbear»**. The same action is available for a rendered HTTPS image in Reading or Live Preview. Images are limited to 8 MB and external URLs use the same public-host, redirect, and timeout safeguards as token images.
+
+The extension adds a locked image and a dimmed backdrop on the `POPOVER` scene layer. They are centered in the GM's current viewport and the image is fitted into 90% of it. This is a shared scene overlay, not a modal: it does not move a player's camera. Enable Owlbear Sync View when players should see it at approximately full-screen size.
+
+Only one preview is active. Sending another image replaces it. The **«Убрать из Owlbear»** button, closing the preview tab, disabling the integration, and a disconnected Obsidian session remove managed preview items. The current preview exists only for the current Obsidian session; a later connection clears stale preview objects.
+
 When the user enables Owlbear integration on desktop, the plugin downloads a pinned official `cloudflared` artifact for the current supported platform, enforces a size limit, verifies its SHA-256, and installs it atomically. macOS archives are extracted with an allowlist containing only the expected regular file. The install manifest and binary checksum are verified again when the integration is enabled again. Mobile and unsupported architectures do not download anything.
 
 Quick Tunnel runs only while Owlbear integration is enabled. Its public health endpoint must respond before snapshots can be published. If `cloudflared` exits, the plugin removes the public URL immediately, stops new synchronization, retries with exponential backoff capped at 30 seconds, and republishes the latest snapshot after a new tunnel passes health verification. There is deliberately no localhost or Data URL fallback for shared scene items.
@@ -69,6 +77,7 @@ Quick Tunnel runs only while Owlbear integration is enabled. Its public health e
 
 - The Install Link, extension pages, pairing code, and WebSocket intentionally remain on `http://localhost` and are required only by the GM browser. Token images and marker icons use the temporary HTTPS Quick Tunnel so remote players can fetch them.
 - The public asset path contains a random session secret but is not an authorization boundary. Do not use the integration for sensitive images.
+- The preview image URL uses the same temporary public asset path. Removing a preview hides it from the Owlbear scene but cannot prevent a player from retaining a URL or a copy that they already received.
 - Quick Tunnel has no availability guarantee; the integration is fail-closed while it is unavailable.
 - Keep asset URLs stable because users install the extension through the manifest URL.
 - Request iframe permissions only when required and include a concrete reason in the manifest.

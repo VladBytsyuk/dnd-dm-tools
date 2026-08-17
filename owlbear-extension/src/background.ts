@@ -1,7 +1,8 @@
 import OBR from "@owlbear-rodeo/sdk";
 import { pushSnapshotToScene } from "./owlbearSync";
+import { clearPreviewFromScene, pushPreviewToScene } from "./previewSync";
 import { state, createInitialDiagnostics } from "./state";
-import type { OwlbearEncounterSnapshot } from "./types";
+import type { OwlbearEncounterSnapshot, OwlbearPreviewSnapshot } from "./types";
 import {
 	AUTH_ERROR_CLOSE_CODE,
 	MANUAL_DISCONNECT_KEY,
@@ -101,6 +102,7 @@ function disconnect(): void {
 function handleSocketClose(closedSocket: WebSocket, event: CloseEvent): void {
 	if (socket !== closedSocket) return;
 	socket = null;
+	void clearPreview(undefined);
 	if (event.code === AUTH_ERROR_CLOSE_CODE) {
 		connectionState = "auth-error";
 		lastError = event.reason || "Плагин отклонил код сопряжения.";
@@ -136,6 +138,7 @@ async function onSocketMessage(data: unknown): Promise<void> {
 		lastError = undefined;
 		postState();
 		send({ type: "snapshot.request" });
+		send({ type: "preview.request" });
 		return;
 	}
 	if (message.type === "snapshot.publish") {
@@ -147,6 +150,14 @@ async function onSocketMessage(data: unknown): Promise<void> {
 		state.snapshot = null;
 		state.diagnostics = createInitialDiagnostics();
 		postState();
+		return;
+	}
+	if (message.type === "preview.publish") {
+		void applyPreview(message.preview, typeof message.previewId === "string" ? message.previewId : undefined);
+		return;
+	}
+	if (message.type === "preview.clear" || message.type === "preview.empty") {
+		void clearPreview(typeof message.previewId === "string" ? message.previewId : undefined);
 		return;
 	}
 	if (message.type === "pong") {
@@ -193,6 +204,27 @@ async function applySnapshot(value: unknown, snapshotId: string | undefined): Pr
 	}
 }
 
+async function applyPreview(value: unknown, previewId: string | undefined): Promise<void> {
+	if (typeof previewId !== "string" || !isPreview(value)) return;
+	await readyPromise;
+	try {
+		await pushPreviewToScene(value);
+		send({ type: "preview.applied", previewId });
+	} catch (error) {
+		send({ type: "preview.failed", previewId, error: localizeSceneError(formatError(error)) });
+	}
+}
+
+async function clearPreview(previewId: string | undefined): Promise<void> {
+	await readyPromise;
+	try {
+		await clearPreviewFromScene();
+		if (typeof previewId === "string") send({ type: "preview.applied", previewId });
+	} catch (error) {
+		if (typeof previewId === "string") send({ type: "preview.failed", previewId, error: formatError(error) });
+	}
+}
+
 async function reconnectSceneItems(): Promise<void> {
 	if (!state.snapshot) throw new Error("Плагин ещё не отправил столкновение.");
 	const result = await pushSnapshotToScene(state.snapshot, null);
@@ -228,6 +260,17 @@ function isSnapshot(value: unknown): value is OwlbearEncounterSnapshot {
 	return snapshot.schemaVersion === 1 && typeof snapshot.snapshotId === "string" && Array.isArray(snapshot.participants) && Array.isArray(snapshot.tokenLinks);
 }
 
+function isPreview(value: unknown): value is OwlbearPreviewSnapshot {
+	if (!value || typeof value !== "object") return false;
+	const preview = value as Record<string, unknown>;
+	return preview.schemaVersion === 1
+		&& typeof preview.previewId === "string"
+		&& typeof preview.imageUrl === "string"
+		&& typeof preview.imageMime === "string"
+		&& typeof preview.imageWidth === "number"
+		&& typeof preview.imageHeight === "number";
+}
+
 function formatError(error: unknown): string {
 	if (error instanceof Error) return error.message;
 	if (typeof error === "string") return error;
@@ -241,6 +284,7 @@ function localizeSceneError(error: string): string {
 function closeCurrentSocket(): void {
 	const currentSocket = socket;
 	socket = null;
+	void clearPreview(undefined);
 	if (currentSocket && currentSocket.readyState < WebSocket.CLOSING) currentSocket.close(1000, "Client disconnect");
 }
 

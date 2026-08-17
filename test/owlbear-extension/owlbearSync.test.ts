@@ -14,7 +14,7 @@ const sdkMock = vi.hoisted(() => {
 		const builder: any = { build: () => item };
 		for (const property of [
 			"name", "position", "layer", "zIndex", "disableAutoZIndex", "metadata", "attachedTo", "locked", "disableHit",
-			"shapeType", "width", "height", "style", "padding", "fontSize", "fontWeight", "fillColor", "textAlign",
+			"shapeType", "width", "height", "style", "padding", "fontSize", "fontWeight", "fillColor", "textAlign", "scale",
 			"textAlignVertical",
 		]) {
 			builder[property] = (value: unknown) => {
@@ -47,7 +47,7 @@ const sdkMock = vi.hoisted(() => {
 				updateItems: vi.fn(),
 			},
 		},
-		viewport: { getPosition: vi.fn() },
+		viewport: { getPosition: vi.fn(), getWidth: vi.fn(), getHeight: vi.fn(), inverseTransformPoint: vi.fn() },
 	};
 	return {
 		obr,
@@ -80,6 +80,8 @@ import {
 	OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY,
 } from "../../owlbear-extension/src/types";
 import type { OwlbearEncounterSnapshot } from "../../owlbear-extension/src/types";
+import { clearPreviewFromScene, pushPreviewToScene } from "../../owlbear-extension/src/previewSync";
+import { OWLBEAR_PREVIEW_ID_KEY, OWLBEAR_PREVIEW_KIND_KEY, type OwlbearPreviewSnapshot } from "../../owlbear-extension/src/types";
 
 function snapshot(participantIds: number[], encounterId = "encounter-1"): OwlbearEncounterSnapshot {
 	return {
@@ -117,6 +119,9 @@ function mockScene(initialItems: any[] = []) {
 	const OBR = sdkMock.obr;
 	OBR.scene.isReady.mockReset().mockResolvedValue(true);
 	OBR.viewport.getPosition.mockReset().mockResolvedValue({ x: 0, y: 0 });
+	OBR.viewport.getWidth.mockReset().mockResolvedValue(1000);
+	OBR.viewport.getHeight.mockReset().mockResolvedValue(800);
+	OBR.viewport.inverseTransformPoint.mockReset().mockImplementation(({ x, y }: { x: number; y: number }) => Promise.resolve({ x, y }));
 	OBR.scene.grid.getDpi.mockReset().mockResolvedValue(100);
 	OBR.scene.items.getItems.mockReset().mockImplementation((filter?: any) => {
 		if (typeof filter === "function") return Promise.resolve(items.filter(filter)) as any;
@@ -494,5 +499,37 @@ describe("Owlbear scene synchronization", () => {
 		delete current.assetBaseUrl;
 
 		await expect(pushSnapshotToScene(current)).rejects.toThrow("публичный адрес ресурсов");
+	});
+});
+
+describe("Owlbear preview synchronization", () => {
+	it("creates a locked viewport-sized backdrop and a contained image, then removes stale previews", async () => {
+		const stale = {
+			id: "stale-preview",
+			metadata: { [OWLBEAR_PREVIEW_ID_KEY]: "old", [OWLBEAR_PREVIEW_KIND_KEY]: "image" },
+		};
+		const items = mockScene([stale]);
+		const preview: OwlbearPreviewSnapshot = {
+			schemaVersion: 1,
+			previewId: "preview-1",
+			name: "Handout",
+			createdAt: "2026-08-17T00:00:00.000Z",
+			imageMime: "image/png",
+			imageWidth: 1200,
+			imageHeight: 600,
+			imageUrl: "https://example.com/handout.png",
+		};
+
+		await pushPreviewToScene(preview);
+
+		expect(items).toHaveLength(2);
+		const backdrop = items.find((item) => item.metadata[OWLBEAR_PREVIEW_KIND_KEY] === "backdrop");
+		const image = items.find((item) => item.metadata[OWLBEAR_PREVIEW_KIND_KEY] === "image");
+		expect(backdrop).toMatchObject({ layer: "POPOVER", width: 1000, height: 800, locked: true, disableHit: true, position: { x: 0, y: 0 } });
+		expect(image).toMatchObject({ layer: "POPOVER", locked: true, disableHit: true, position: { x: 500, y: 400 } });
+		expect(image.scale.x).toBeCloseTo(9);
+
+		await clearPreviewFromScene();
+		expect(items).toEqual([]);
 	});
 });
