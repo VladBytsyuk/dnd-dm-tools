@@ -16,6 +16,7 @@ export default defineConfig({
       exclude: [
         'node_modules/**',
         'dist/**',
+        '.pages/**',
         'coverage/**',
         '**/*.d.ts',
         '**/__mocks__/**',

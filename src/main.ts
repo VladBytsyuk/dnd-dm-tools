@@ -49,6 +49,8 @@ import {
 	loadOwlbearPreviewRemoteImage,
 	loadOwlbearPreviewVaultImage,
 } from './data/owlbear/OwlbearPreviewImage';
+import { getOwlbearExtensionInstallUrl } from './data/owlbear/OwlbearExtensionHosting';
+import { clearActiveOwlbearPreview } from './data/owlbear/OwlbearPreviewLifecycle';
 
 export type OwlbearRuntimeStatus = {
 	cloudflared: CloudflaredInstallStatus;
@@ -164,7 +166,7 @@ export default class DndStatblockPlugin extends Plugin {
 		return () => this.owlbearRuntimeListeners.delete(listener);
 	}
 	getOwlbearInstallLink(): string {
-		return this.owlbearServer?.getPublicExtensionUrl() ?? "";
+		return getOwlbearExtensionInstallUrl(__DND_DM_TOOLS_DEV__);
 	}
 	getOwlbearPairingCode(): string {
 		const { port, authToken } = this.settings.owlbearSync;
@@ -251,9 +253,7 @@ export default class DndStatblockPlugin extends Plugin {
 	async hideOwlbearPreview(): Promise<void> {
 		const preview = this.activeOwlbearPreview;
 		if (!preview) return;
-		const server = this.owlbearServer;
-		if (!server?.getStatus().connected) throw new Error("Расширение Owlbear не подключено.");
-		await server.clearPreview(preview.previewId);
+		await clearActiveOwlbearPreview(preview, this.owlbearServer);
 		this.activeOwlbearPreview = null;
 	}
 

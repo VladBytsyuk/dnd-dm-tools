@@ -257,7 +257,7 @@ describe("Owlbear integration server transport", () => {
 		expect(() => server.publishPrepared(snapshot())).toThrow("Публичный туннель");
 	});
 
-	it("exposes the secret-scoped extension bundle alongside images and status icons", async () => {
+	it("exposes only secret-scoped shared assets through the public server", async () => {
 		const { server } = await createRunningServer();
 		const prepared = await server.materializeSnapshot(snapshot());
 		const port = server.getPublicAssetPort()!;
@@ -281,22 +281,12 @@ describe("Owlbear integration server transport", () => {
 		expect(token.headers.get("cache-control")).toContain("immutable");
 		expect(visual.headers.get("content-type")).toContain("image/svg+xml");
 		expect(icon.status).toBe(200);
-		expect(manifest.status).toBe(200);
-		expect(manifest.headers.get("access-control-allow-origin")).toBe("https://www.owlbear.rodeo");
-		expect(await manifest.json()).toMatchObject({
-			icon: `${server.getPublicAssetPath()}/icon-v2.svg`,
-			background_url: `${server.getPublicAssetPath()}/background.html`,
-			action: { popover: `${server.getPublicAssetPath()}/index.html` },
-		});
-		expect(main.status).toBe(200);
-		expect(main.headers.get("access-control-allow-origin")).toBe("https://www.owlbear.rodeo");
-		expect([websocket.status, wrongSecret.status]).toEqual([404, 404]);
-		expect(server.getPublicExtensionUrl()).toBe(`https://test.trycloudflare.com${server.getPublicAssetPath()}/manifest.json`);
+		expect([manifest.status, main.status, websocket.status, wrongSecret.status]).toEqual([404, 404, 404, 404]);
 	});
 
-	it("accepts the current public tunnel as the WebSocket origin", async () => {
+	it("accepts the stable GitHub Pages extension as the WebSocket origin", async () => {
 		const { port } = await createRunningServer();
-		const client = new WebSocket(`ws://127.0.0.1:${port}/ws`, { origin: "https://test.trycloudflare.com" });
+		const client = new WebSocket(`ws://127.0.0.1:${port}/ws`, { origin: "https://vladbytsyuk.github.io" });
 		openClients.push(client);
 		await new Promise<void>((resolve, reject) => {
 			client.once("open", resolve);
@@ -339,9 +329,9 @@ async function createExtensionAssets(directory: string): Promise<void> {
 	await mkdir(join(directory, "status-icons"), { recursive: true });
 	for (const name of ["manifest.json", "index.html", "background.html", "main.js", "background.js", "icon.svg", "icon-v2.svg"]) {
 		await writeFile(join(directory, name), name === "manifest.json" ? JSON.stringify({
-			icon: "/icon-v2.svg",
-			background_url: "/background.html",
-			action: { icon: "/icon-v2.svg", popover: "/index.html" },
+				icon: "./icon-v2.svg",
+				background_url: "./background.html",
+				action: { icon: "./icon-v2.svg", popover: "./index.html" },
 		}) : name);
 	}
 	for (const name of [

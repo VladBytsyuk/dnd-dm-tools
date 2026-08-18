@@ -32,6 +32,7 @@ export async function publishPublicInitiative(snapshot: OwlbearEncounterSnapshot
 }
 
 export async function clearPublicInitiative(): Promise<void> {
+	if (!(await OBR.scene.isReady())) return;
 	await OBR.scene.setMetadata({ [OWLBEAR_PUBLIC_INITIATIVE_KEY]: null });
 }
 

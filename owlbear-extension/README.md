@@ -47,8 +47,10 @@ Production-сборка корневого проекта также собир�
 
 ## Разработка и релиз
 
-- Production-сборка использует только bundle расширения, установленный рядом с плагином Obsidian.
-- Dev-сборка использует только настроенный `developmentExtensionPath`, указывающий на `owlbear-extension/dist`.
+- Production Install Link: `https://vladbytsyuk.github.io/dnd-dm-tools/owlbear-extension/manifest.json`. GitHub Pages публикует `owlbear-extension/dist` после успешных проверок на `main`.
+- Dev Install Link: `http://localhost:5173/manifest.json`, который запускается командой `npm run owlbear:dev`.
+- Production-сборка плагина также хранит bundle расширения рядом с Obsidian-плагином для локальных ресурсов интеграции.
+- Dev-сборка использует настроенный `developmentExtensionPath`, указывающий на `owlbear-extension/dist`.
 - Если dev-bundle отсутствует или неполон, сборка сообщает об ошибке и не подменяет его release-bundle.
 
-После изменения настроенного порта скопируйте новый Install Link и код сопряжения и обновите установленное расширение Owlbear.
+После изменения настроенного порта обновите код сопряжения. Install Link остаётся прежним.

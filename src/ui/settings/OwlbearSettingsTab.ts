@@ -35,7 +35,7 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 		}
 		new Setting(containerEl)
 			.setName("Порт")
-			.setDesc("1024–65535. После смены обновите Install Link в Owlbear.")
+			.setDesc("1024–65535. После смены обновите код сопряжения в Owlbear.")
 			.addText((text) => text.setValue(pendingPort).setPlaceholder("Случайный").onChange((value) => { pendingPort = value; }))
 			.addButton((button) => button.setButtonText("Применить").onClick(async () => {
 				await this.plugin.setOwlbearPort(pendingPort.trim() ? Number(pendingPort) : null);
@@ -83,10 +83,10 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 				this.display();
 			}));
 		}
+		if (settings.enabled) {
+			this.copySetting(containerEl, "Install Link", this.plugin.getOwlbearInstallLink());
+		}
 		if (settings.enabled && settings.port && settings.authToken) {
-			const installLink = this.plugin.getOwlbearInstallLink();
-			if (installLink) this.copySetting(containerEl, "Install Link", installLink);
-			else containerEl.createEl("p", { text: "Install Link появится после запуска публичного Quick Tunnel." });
 			this.copySetting(containerEl, "Код сопряжения", this.plugin.getOwlbearPairingCode());
 		}
 		this.unsubscribeRuntime = this.plugin.subscribeOwlbearRuntimeStatus(() => {

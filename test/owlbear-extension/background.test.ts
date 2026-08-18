@@ -6,6 +6,7 @@ const backgroundMock = vi.hoisted(() => {
 	class FakeBroadcastChannel {
 		static instances: FakeBroadcastChannel[] = [];
 		private readonly listeners: Array<(event: MessageEvent) => void> = [];
+		readonly messages: unknown[] = [];
 
 		constructor(_name: string) {
 			FakeBroadcastChannel.instances.push(this);
@@ -15,7 +16,7 @@ const backgroundMock = vi.hoisted(() => {
 			this.listeners.push(listener);
 		}
 
-		postMessage(_message: unknown): void {}
+		postMessage(message: unknown): void { this.messages.push(message); }
 
 		emit(data: unknown): void {
 			for (const listener of this.listeners) listener({ data } as MessageEvent);
@@ -276,5 +277,30 @@ describe("Owlbear background synchronization", () => {
 		await vi.waitFor(() => expect(backgroundMock.clearManagedSceneItems).toHaveBeenCalledOnce());
 		expect(backgroundMock.obr.scene.setMetadata).toHaveBeenCalledWith(expect.objectContaining({ "club.ttg.dnd-dm-tools/publicInitiative": null }));
 		expect(socket.readyState).toBe(backgroundMock.FakeWebSocket.CLOSED);
+	});
+
+	it("closes the socket without writing metadata when no scene is active", async () => {
+		backgroundMock.obr.scene.isReady.mockResolvedValue(false);
+		const socket = await loadConnectedBackground();
+
+		backgroundMock.FakeBroadcastChannel.instances[0].emit({ type: "ui.command", command: "disconnect" });
+
+		await vi.waitFor(() => expect(socket.readyState).toBe(backgroundMock.FakeWebSocket.CLOSED));
+		expect(backgroundMock.obr.scene.setMetadata).not.toHaveBeenCalled();
+		expect(localStorage.getItem("dnd-dm-tools.owlbear.manual-disconnect")).toBe("true");
+	});
+
+	it("closes the socket and reports diagnostics when scene metadata cleanup fails", async () => {
+		backgroundMock.obr.scene.setMetadata.mockRejectedValue(new Error("metadata unavailable"));
+		const socket = await loadConnectedBackground();
+		const channel = backgroundMock.FakeBroadcastChannel.instances[0];
+
+		channel.emit({ type: "ui.command", command: "disconnect" });
+
+		await vi.waitFor(() => expect(socket.readyState).toBe(backgroundMock.FakeWebSocket.CLOSED));
+		expect(channel.messages).toContainEqual(expect.objectContaining({
+			type: "runtime.state",
+			state: expect.objectContaining({ connectionState: "disconnected", lastError: "metadata unavailable" }),
+		}));
 	});
 });

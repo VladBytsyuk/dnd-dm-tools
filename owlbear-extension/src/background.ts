@@ -94,11 +94,17 @@ async function disconnect(): Promise<void> {
 	localStorage.setItem(MANUAL_DISCONNECT_KEY, "true");
 	reconnectAttempts = 0;
 	cancelReconnect();
-	await clearManagedScene();
-	closeCurrentSocket(false);
-	connectionState = localStorage.getItem(PAIRING_KEY) ? "disconnected" : "unauthorized";
-	lastError = undefined;
-	postState();
+	let cleanupError: string | undefined;
+	try {
+		cleanupError = await clearManagedScene() ?? undefined;
+	} catch (error) {
+		cleanupError = formatError(error);
+	} finally {
+		closeCurrentSocket(false);
+		connectionState = localStorage.getItem(PAIRING_KEY) ? "disconnected" : "unauthorized";
+		lastError = cleanupError;
+		postState();
+	}
 }
 
 function handleSocketClose(closedSocket: WebSocket, event: CloseEvent): void {
@@ -237,7 +243,7 @@ async function clearPreview(previewId: string | undefined): Promise<void> {
 	}
 }
 
-async function clearManagedScene(clearId?: string): Promise<void> {
+async function clearManagedScene(clearId?: string): Promise<string | null> {
 	await readyPromise;
 	try {
 		await clearManagedSceneItems();
@@ -245,8 +251,11 @@ async function clearManagedScene(clearId?: string): Promise<void> {
 		state.snapshot = null;
 		state.diagnostics = createInitialDiagnostics();
 		if (typeof clearId === "string") send({ type: "scene.applied", clearId });
+		return null;
 	} catch (error) {
-		if (typeof clearId === "string") send({ type: "scene.failed", clearId, error: formatError(error) });
+		const message = formatError(error);
+		if (typeof clearId === "string") send({ type: "scene.failed", clearId, error: message });
+		return message;
 	} finally {
 		postState();
 	}

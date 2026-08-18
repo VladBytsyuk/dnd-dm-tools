@@ -23,13 +23,13 @@ Minimum manifest shape:
   "version": "0.1.0",
   "manifest_version": 1,
   "description": "DnD DM Tools integration for Owlbear Rodeo.",
-  "icon": "/icon.svg",
+  "icon": "./icon.svg",
   "author": "dnd-dm-tools",
   "homepage_url": "https://example.com/owlbear",
   "action": {
     "title": "DnD DM Tools",
-    "icon": "/icon.svg",
-    "popover": "/index.html",
+    "icon": "./icon.svg",
+    "popover": "./index.html",
     "width": 360,
     "height": 540
   }
@@ -51,11 +51,11 @@ Relevant SDK areas for this project:
 
 ## DnD DM Tools live sync
 
-Obsidian remains the source of truth. The local Obsidian server hosts the manifest, popover, background page, and authenticated WebSocket. A second asset-only server exposes token images and known status icons through a session-scoped Cloudflare Quick Tunnel. The background page keeps one authenticated local WebSocket open, reconnects with bounded exponential backoff, requests the current snapshot after reconnect, and applies snapshots to the active Owlbear scene in order. The popover only edits pairing, sends commands, and displays diagnostics through a `BroadcastChannel`.
+Obsidian remains the source of truth. GitHub Pages hosts the production manifest, popover, background page, scripts, and static UI icons at a stable origin. Development uses `http://localhost:5173/manifest.json`. The local Obsidian server owns the authenticated WebSocket, while a second asset-only server exposes token images, scene status icons, and previews through a session-scoped Cloudflare Quick Tunnel. The background page keeps one authenticated local WebSocket open, reconnects with bounded exponential backoff, requests the current snapshot after reconnect, and applies snapshots to the active Owlbear scene in order. The popover only edits pairing, sends commands, and displays diagnostics through a `BroadcastChannel`.
 
 The WebSocket protocol is version 2. Only one snapshot is in flight at a time. A `snapshot.publish` is acknowledged with the same `snapshotId`; newer pending snapshots replace older pending ones. An unacknowledged snapshot times out after 30 seconds so later updates can continue.
 
-Pairing is stored in browser `localStorage`. Manual disconnect suppresses automatic reconnect until the user connects again. After changing the Obsidian port, copy the new Install Link and pairing code and update the Owlbear extension.
+Pairing is stored in browser `localStorage`. Manual disconnect suppresses automatic reconnect until the user connects again. After changing the Obsidian port, update only the pairing code; the production Install Link remains stable.
 
 Starting a new Obsidian process intentionally replaces the persisted encounter with an empty session-reset snapshot. When the background page reconnects, that snapshot removes every token managed by the previous session, including its saved scene position. This is destructive by design: the user must explicitly send the encounter again for the new session.
 
@@ -75,7 +75,8 @@ Quick Tunnel runs only while Owlbear integration is enabled. Its public health e
 
 ## Hosting And Security
 
-- The Install Link, extension pages, pairing code, and WebSocket intentionally remain on `http://localhost` and are required only by the GM browser. Token images and marker icons use the temporary HTTPS Quick Tunnel so remote players can fetch them.
+- The production Install Link and extension pages use `https://vladbytsyuk.github.io/dnd-dm-tools/owlbear-extension/`; development uses `http://localhost:5173`. The authenticated WebSocket remains on `http://localhost` and is required only by the GM browser.
+- Token images, scene marker icons, and previews use the temporary HTTPS Quick Tunnel so remote players can fetch them. The tunnel never hosts the extension manifest, HTML, or JavaScript.
 - The public asset path contains a random session secret but is not an authorization boundary. Do not use the integration for sensitive images.
 - The preview image URL uses the same temporary public asset path. Removing a preview hides it from the Owlbear scene but cannot prevent a player from retaining a URL or a copy that they already received.
 - Quick Tunnel has no availability guarantee; the integration is fail-closed while it is unavailable.

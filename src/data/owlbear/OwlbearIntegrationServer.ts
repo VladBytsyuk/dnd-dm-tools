@@ -7,6 +7,7 @@ import { WebSocket, WebSocketServer, type RawData } from "ws";
 import { OwlbearImageAssetStore, createFallbackSvg, createTokenVisualSvg, type TokenVisualState } from "./OwlbearImageAssetStore";
 import type { OwlbearEncounterSnapshot, OwlbearSyncDiagnostics, OwlbearTokenLink } from "src/domain/models/owlbear/OwlbearSync";
 import type { OwlbearPreviewSnapshot } from "src/domain/models/owlbear/OwlbearPreview";
+import { isAllowedOwlbearExtensionOrigin } from "./OwlbearExtensionHosting";
 
 const PROTOCOL_VERSION = 2;
 const HANDSHAKE_TIMEOUT_MS = 5_000;
@@ -91,10 +92,6 @@ export class OwlbearIntegrationServer {
 	getPublicAssetPort(): number | null { return this.publicAssetPort; }
 	getPublicAssetPath(): string { return `/assets/${this.publicAssetSecret}`; }
 	getAssetBaseUrl(): string | null { return this.publicAssetOrigin ? `${this.publicAssetOrigin}${this.getPublicAssetPath()}` : null; }
-	getPublicExtensionUrl(): string | null {
-		const baseUrl = this.getAssetBaseUrl();
-		return baseUrl ? `${baseUrl}/manifest.json` : null;
-	}
 	setPublicAssetOrigin(origin: string): void {
 		const url = new URL(origin);
 		if (url.protocol !== "https:" || !/^[a-z0-9-]+\.trycloudflare\.com$/i.test(url.hostname) || url.pathname !== "/") throw new Error("cloudflared вернул недопустимый публичный адрес.");
@@ -328,18 +325,6 @@ export class OwlbearIntegrationServer {
 			response.writeHead(200, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" }).end("ok");
 			return;
 		}
-		if (path === "/manifest.json") {
-			await this.servePublicManifest(prefix, response);
-			return;
-		}
-		const extensionAsset = ASSETS[path];
-		if (extensionAsset) {
-			try {
-				const content = await readFile(join(this.assetDirectory!, extensionAsset.filename));
-				response.writeHead(200, { "Content-Type": extensionAsset.contentType, "Cache-Control": "no-cache" }).end(content);
-			} catch { response.writeHead(503).end("Owlbear extension assets are unavailable"); }
-			return;
-		}
 		const assetMatch = /^\/token-images\/([a-f0-9]{64})(?:\/([^/]+))?$/.exec(path);
 		if (assetMatch?.[1]) {
 			await this.serveTokenImage(requestUrl, response, assetMatch[1], assetMatch[2], true);
@@ -354,21 +339,6 @@ export class OwlbearIntegrationServer {
 			return;
 		}
 		response.writeHead(404).end("Not found");
-	}
-
-	private async servePublicManifest(prefix: string, response: ServerResponse): Promise<void> {
-		try {
-			const manifest = JSON.parse(await readFile(join(this.assetDirectory!, "manifest.json"), "utf8")) as Record<string, any>;
-			if (typeof manifest.icon === "string") manifest.icon = `${prefix}/icon-v2.svg`;
-			if (typeof manifest.background_url === "string") manifest.background_url = `${prefix}/background.html`;
-			if (manifest.action && typeof manifest.action === "object") {
-				if (typeof manifest.action.icon === "string") manifest.action.icon = `${prefix}/icon-v2.svg`;
-				if (typeof manifest.action.popover === "string") manifest.action.popover = `${prefix}/index.html`;
-			}
-			response.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-cache" }).end(JSON.stringify(manifest));
-		} catch {
-			response.writeHead(503).end("Owlbear extension manifest is unavailable");
-		}
 	}
 
 	private async serveTokenImage(requestUrl: URL, response: ServerResponse, assetId: string, encodedMime: string | undefined, publicCache: boolean): Promise<void> {
@@ -621,7 +591,7 @@ export class OwlbearIntegrationServer {
 
 	private origin(): string { return `http://localhost:${this.status.port}`; }
 	private isAllowedWebSocketOrigin(origin: string | undefined): boolean {
-		return origin === this.origin() || origin === this.publicAssetOrigin;
+		return isAllowedOwlbearExtensionOrigin(origin, this.origin());
 	}
 	private assetUrl(assetId: string, mime = "image/png"): string {
 		const baseUrl = this.getAssetBaseUrl();
