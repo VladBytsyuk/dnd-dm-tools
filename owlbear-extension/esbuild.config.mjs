@@ -77,6 +77,7 @@ if (watch) {
 	const context = await esbuild.context(options);
 	await context.watch();
 	const distDirectory = join(__dirname, "dist");
+	const productionPathPrefix = "/dnd-dm-tools/owlbear-extension";
 	const devAssets = new Map([
 		["/manifest.json", "manifest.json"],
 		["/index.html", "index.html"],
@@ -88,7 +89,10 @@ if (watch) {
 		...Object.keys(conditionIcons).concat(Object.keys(statusIcons)).map((name) => [`/status-icons/${name}.svg`, `status-icons/${name}.svg`]),
 	]);
 	const server = createServer(async (request, response) => {
-		const requestPath = request.url?.split("?")[0] ?? "/";
+		const rawRequestPath = request.url?.split("?")[0] ?? "/";
+		const requestPath = rawRequestPath.startsWith(`${productionPathPrefix}/`)
+			? rawRequestPath.slice(productionPathPrefix.length)
+			: rawRequestPath;
 		const relativePath = devAssets.get(requestPath === "/" ? "/index.html" : requestPath);
 
 		response.setHeader("Access-Control-Allow-Origin", "https://www.owlbear.rodeo");

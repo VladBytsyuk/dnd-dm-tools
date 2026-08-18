@@ -20,16 +20,23 @@ describe("Owlbear extension hosting", () => {
 		expect(isAllowedOwlbearExtensionOrigin("https://temporary.trycloudflare.com", "http://localhost:43125")).toBe(false);
 	});
 
-	it("resolves every manifest asset under the production extension directory", async () => {
+	it("uses Owlbear-compatible root paths for production and development assets", async () => {
 		const manifest = JSON.parse(await readFile("owlbear-extension/public/manifest.json", "utf8"));
-		const assetUrls = [manifest.icon, manifest.background_url, manifest.action.icon, manifest.action.popover]
-			.map((path) => new URL(path, OWLBEAR_PRODUCTION_EXTENSION_URL).toString());
+		const assetPaths = [manifest.icon, manifest.background_url, manifest.action.icon, manifest.action.popover];
+		const productionOrigin = new URL(OWLBEAR_PRODUCTION_EXTENSION_URL).origin;
+		const developmentOrigin = new URL(OWLBEAR_DEVELOPMENT_EXTENSION_URL).origin;
 
-		expect(assetUrls).toEqual([
+		expect(assetPaths.map((path: string) => productionOrigin + path)).toEqual([
 			"https://vladbytsyuk.github.io/dnd-dm-tools/owlbear-extension/icon-v2.svg",
 			"https://vladbytsyuk.github.io/dnd-dm-tools/owlbear-extension/background.html",
 			"https://vladbytsyuk.github.io/dnd-dm-tools/owlbear-extension/icon-v2.svg",
 			"https://vladbytsyuk.github.io/dnd-dm-tools/owlbear-extension/index.html",
+		]);
+		expect(assetPaths.map((path: string) => developmentOrigin + path)).toEqual([
+			"http://localhost:5173/dnd-dm-tools/owlbear-extension/icon-v2.svg",
+			"http://localhost:5173/dnd-dm-tools/owlbear-extension/background.html",
+			"http://localhost:5173/dnd-dm-tools/owlbear-extension/icon-v2.svg",
+			"http://localhost:5173/dnd-dm-tools/owlbear-extension/index.html",
 		]);
 	});
 });
