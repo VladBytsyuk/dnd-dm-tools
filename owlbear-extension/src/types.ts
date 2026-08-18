@@ -9,6 +9,9 @@ export const OWLBEAR_TURN_HIGHLIGHT_KEY = `${OWLBEAR_METADATA_NAMESPACE}/turnHig
 export const OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY = `${OWLBEAR_METADATA_NAMESPACE}/turnHighlightRole`;
 export const OWLBEAR_DEAD_OVERLAY_KEY = `${OWLBEAR_METADATA_NAMESPACE}/deadOverlay`;
 export const OWLBEAR_MARKER_LAYOUT_KEY = `${OWLBEAR_METADATA_NAMESPACE}/markerLayout`;
+export const OWLBEAR_PREVIEW_ID_KEY = `${OWLBEAR_METADATA_NAMESPACE}/previewId`;
+export const OWLBEAR_PREVIEW_KIND_KEY = `${OWLBEAR_METADATA_NAMESPACE}/previewKind`;
+export const OWLBEAR_PUBLIC_INITIATIVE_KEY = `${OWLBEAR_METADATA_NAMESPACE}/publicInitiative`;
 
 export interface OwlbearEncounterSnapshot {
 	schemaVersion: 1;
@@ -73,6 +76,18 @@ export interface OwlbearSyncDiagnostics {
 	fallbackParticipantIds: number[];
 }
 
+export interface OwlbearPreviewSnapshot {
+	schemaVersion: 1;
+	previewId: string;
+	name: string;
+	createdAt: string;
+	imageMime: string;
+	imageWidth: number;
+	imageHeight: number;
+	imageAssetId?: string;
+	imageUrl?: string;
+}
+
 export type MarkerKind = "bloodied" | "concentration" | "condition";
 export type TurnHighlightRole = "active" | "next";
 
@@ -80,5 +95,33 @@ export interface TokenMarker {
 	kind: MarkerKind;
 	icon: string;
 	conditionUrl?: string;
+	remainingRounds?: number;
+}
+
+/**
+ * The only encounter data shared through Owlbear scene metadata.
+ * Keep this separate from OwlbearEncounterSnapshot: the latter is GM-local
+ * and deliberately includes data that players must not receive.
+ */
+export interface PublicInitiativeState {
+	schemaVersion: 1;
+	round: number;
+	participants: PublicInitiativeParticipant[];
+}
+
+export interface PublicInitiativeParticipant {
+	name: string;
+	color: string;
+	portraitUrl?: string;
+	initiative: number;
+	isActive: boolean;
+	statuses: PublicInitiativeStatus[];
+}
+
+export type PublicInitiativeStatusKind = "bloodied" | "concentration" | "condition" | "down" | "dead";
+
+export interface PublicInitiativeStatus {
+	kind: PublicInitiativeStatusKind;
+	icon: string;
 	remainingRounds?: number;
 }

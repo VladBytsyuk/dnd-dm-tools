@@ -1,6 +1,10 @@
+import OBR from "@owlbear-rodeo/sdk";
 import { connectionStatusText, formatDiagnosticsLog, type ConnectionState } from "./popoverUi";
+import { publicInitiativeFromMetadata } from "./publicInitiative";
+import { renderPublicInitiative } from "./publicInitiativeUi";
 import { createInitialDiagnostics } from "./state";
 import { MANUAL_DISCONNECT_KEY, PAIRING_KEY, RUNTIME_CHANNEL_NAME, type RuntimeMessage, type RuntimeState } from "./protocol";
+import type { PublicInitiativeState } from "./types";
 
 const authStatusEl = document.querySelector<HTMLSpanElement>("#auth-status");
 const statusEl = document.querySelector<HTMLDivElement>("#status");
@@ -11,6 +15,8 @@ const connectButton = document.querySelector<HTMLButtonElement>("#connect");
 const reconnectButton = document.querySelector<HTMLButtonElement>("#reconnect");
 const statusButton = document.querySelector<HTMLButtonElement>("#toggle-status");
 const copyStatusButton = document.querySelector<HTMLButtonElement>("#copy-status");
+const servicePanel = document.querySelector<HTMLElement>("#service-panel");
+const initiativePanel = document.querySelector<HTMLElement>("#initiative-panel");
 const channel = new BroadcastChannel(RUNTIME_CHANNEL_NAME);
 
 let runtimeState: RuntimeState = {
@@ -23,6 +29,8 @@ let copyFeedbackTimer: number | null = null;
 let isEditingPairing = false;
 let isLogVisible = false;
 let statusCopied = false;
+let isGm = false;
+let publicInitiative: PublicInitiativeState | null = null;
 
 channel.addEventListener("message", (event: MessageEvent<RuntimeMessage>) => {
 		if (event.data?.type !== "runtime.state") return;
@@ -106,6 +114,9 @@ function openPairingEditor(): void {
 }
 
 function render(): void {
+	if (initiativePanel) renderPublicInitiative(initiativePanel, publicInitiative);
+	if (servicePanel) servicePanel.hidden = !isGm;
+	if (!isGm) return;
 	const error = runtimeState.lastError ?? runtimeState.diagnostics.lastError;
 	if (authStatusEl) {
 		authStatusEl.hidden = isEditingPairing;
@@ -177,3 +188,38 @@ function icon(content: string): string {
 
 render();
 command({ type: "ui.request" });
+void initializeActionPanel();
+
+async function initializeActionPanel(): Promise<void> {
+	try {
+		await OBR.onReady(async () => {
+			isGm = await OBR.player.getRole() === "GM";
+			await refreshPublicInitiative();
+			OBR.scene.onMetadataChange((metadata) => {
+				publicInitiative = publicInitiativeFromMetadata(metadata);
+				render();
+			});
+			OBR.scene.onReadyChange((ready) => {
+				if (ready) void refreshPublicInitiative();
+				else {
+					publicInitiative = null;
+					render();
+				}
+			});
+			render();
+		});
+	} catch {
+		publicInitiative = null;
+		render();
+	}
+}
+
+async function refreshPublicInitiative(): Promise<void> {
+	if (!await OBR.scene.isReady()) {
+		publicInitiative = null;
+		render();
+		return;
+	}
+	publicInitiative = publicInitiativeFromMetadata(await OBR.scene.getMetadata());
+	render();
+}

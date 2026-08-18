@@ -44,11 +44,13 @@
 	import { OwlbearSyncScheduler } from "./OwlbearSyncScheduler";
 	import ParticipantItem from "./ParticipantItem.svelte";
 
-	let { app, encounter, isEditable, onPortraitClick, onConditionClick, onImageRequested, onOwlbearSnapshotCreated, onOwlbearTurnChanged } =
+	let { app, encounter, isEditable, isOwlbearIntegrationEnabled = () => false, subscribeOwlbearRuntimeStatus = () => () => {}, onPortraitClick, onConditionClick, onImageRequested, onOwlbearSnapshotCreated, onOwlbearTurnChanged } =
 		$props<{
 			app: any;
 			encounter: Encounter;
 			isEditable: boolean;
+			isOwlbearIntegrationEnabled?: () => boolean;
+			subscribeOwlbearRuntimeStatus?: (listener: () => void) => () => void;
 			onPortraitClick: (url: string) => void;
 			onConditionClick: (url: string) => void;
 			onImageRequested: (url: string) => Promise<string>;
@@ -68,15 +70,28 @@
 		canUndo: encounterManager.canUndo,
 		canRedo: encounterManager.canRedo,
 	});
+	function getInitialOwlbearIntegrationState(): boolean {
+		return isOwlbearIntegrationEnabled();
+	}
+
+	function subscribeToOwlbearRuntimeStatus(): () => void {
+		return subscribeOwlbearRuntimeStatus(() => {
+			owlbearIntegrationEnabled = isOwlbearIntegrationEnabled();
+		});
+	}
+
 	let owlbearSynced = $state(false);
+	let owlbearIntegrationEnabled = $state(getInitialOwlbearIntegrationState());
 	const imageLoadCache = new Map<string, Promise<{ dataUrl: string; width: number; height: number }>>();
 	function createOwlbearSyncScheduler() {
 		return new OwlbearSyncScheduler(createOwlbearSnapshotWithImages, onOwlbearTurnChanged);
 	}
 	const owlbearSyncScheduler = createOwlbearSyncScheduler();
+	const unsubscribeOwlbearRuntimeStatus = subscribeToOwlbearRuntimeStatus();
 
 	onDestroy(() => {
 		owlbearSyncScheduler.dispose();
+		unsubscribeOwlbearRuntimeStatus();
 	});
 
 	encounterManager.setOnUpdate(() => {
@@ -323,14 +338,16 @@
 			</button>
 
 			{#if isEditable}
-				<button
-					class="btn ghost"
-					onclick={sendOwlbearSnapshot}
-					aria-label="Отправить столкновение в Owlbear"
-					title="Отправить столкновение в Owlbear"
-				>
-					<Download size={16} />
-				</button>
+				{#if owlbearIntegrationEnabled}
+					<button
+						class="btn ghost"
+						onclick={sendOwlbearSnapshot}
+						aria-label="Отправить столкновение в Owlbear"
+						title="Отправить столкновение в Owlbear"
+					>
+						<Download size={16} />
+					</button>
+				{/if}
 
 				<button
 					class="btn ghost replaceAction"

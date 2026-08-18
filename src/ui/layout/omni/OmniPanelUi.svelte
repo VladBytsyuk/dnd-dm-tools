@@ -22,7 +22,7 @@
 		MIN_TILE_RATIO,
 	} from "./OmniTileResize";
 
-	type PanelSummary = { key: PanelKey; title: string; icon: string };
+	type PanelSummary = { key: PanelKey; title: string; icon: string; toolbarVisible: boolean };
 	type DraggedTab = { key: PanelKey; tileIndex: 0 | 1 };
 	type DropIndicator = {
 		tileIndex: 0 | 1;
@@ -37,6 +37,7 @@
 		openResult,
 		mountPanel,
 		discardPanel,
+		requestClosePanel,
 		saveWorkspace,
 	}: {
 		panels: PanelSummary[];
@@ -45,6 +46,7 @@
 		openResult: (result: PanelSearchResult) => Promise<void>;
 		mountPanel: (key: PanelKey, element: Element) => Promise<() => void>;
 		discardPanel: (key: PanelKey) => void;
+		requestClosePanel: (key: PanelKey) => Promise<boolean>;
 		saveWorkspace: (workspace: AssistantWorkspaceState) => Promise<void>;
 	} = $props();
 
@@ -157,7 +159,8 @@
 		persist();
 	}
 
-	function closeTab(tile: AssistantTileState, key: PanelKey) {
+	async function closeTab(tile: AssistantTileState, key: PanelKey) {
+		if (!(await requestClosePanel(key))) return;
 		const index = tile.tabs.indexOf(key);
 		discardPanel(key);
 		tile.tabs = tile.tabs.filter((tab) => tab !== key);
@@ -313,7 +316,7 @@
 			/>
 		</div>
 		<div class="omni-toolbar__icons" aria-label="Открыть панель">
-			{#each panels as panel (panel.key)}
+			{#each panels.filter((panel) => panel.toolbarVisible) as panel (panel.key)}
 				<div
 					class="omni-toolbar__icon"
 					class:active={isPanelOpen(panel.key)}

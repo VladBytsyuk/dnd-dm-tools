@@ -68,6 +68,7 @@ export class PanelManager {
 				key: panel.getKey(),
 				title: panel.getTitle(),
 				icon: panel.getRibbonIconName(),
+				toolbarVisible: panel.isToolbarVisible?.() !== false,
 			}));
 	}
 
@@ -120,6 +121,23 @@ export class PanelManager {
 	discardPanel(key: PanelKey): void {
 		this.panelSessions.discard(key);
 		this.currentItems.delete(key);
+	}
+
+	async requestClosePanel(key: PanelKey): Promise<boolean> {
+		return await this.panels.get(key)?.onBeforeClose?.() ?? true;
+	}
+
+	async closePanel(key: PanelKey): Promise<void> {
+		const workspace = this.getWorkspace();
+		for (const tile of workspace.tiles) {
+			const index = tile.tabs.indexOf(key);
+			if (index < 0) continue;
+			tile.tabs = tile.tabs.filter((tab) => tab !== key);
+			if (tile.activeTab === key) tile.activeTab = tile.tabs[Math.min(index, tile.tabs.length - 1)] ?? null;
+		}
+		this.discardPanel(key);
+		await this.persistWorkspace(workspace);
+		this.assistantView?.refresh();
 	}
 
 	dispose(): void {
@@ -195,6 +213,7 @@ class AssistantItemView extends ItemView {
 				openResult: (result: PanelSearchResult) => this.manager.openSearchResult(result),
 				mountPanel: (key: PanelKey, element: Element) => this.manager.mountPanel(key, element),
 				discardPanel: (key: PanelKey) => this.manager.discardPanel(key),
+				requestClosePanel: (key: PanelKey) => this.manager.requestClosePanel(key),
 				saveWorkspace: (workspace: AssistantWorkspaceState) => this.manager.saveWorkspace(workspace),
 			},
 		});

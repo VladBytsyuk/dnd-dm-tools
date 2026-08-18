@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildQuickTunnelArguments, findQuickTunnelOrigin } from "src/data/owlbear/CloudflareQuickTunnel";
+import { buildQuickTunnelArguments, CloudflareQuickTunnel, findQuickTunnelOrigin } from "src/data/owlbear/CloudflareQuickTunnel";
 
 describe("Cloudflare Quick Tunnel", () => {
 	it("uses an explicit empty config, loopback asset origin and disables auto-update", () => {
@@ -22,5 +22,25 @@ describe("Cloudflare Quick Tunnel", () => {
 
 	it("ignores non-Cloudflare and non-HTTPS URLs", () => {
 		expect(findQuickTunnelOrigin("http://local.trycloudflare.com https://example.com")).toBeNull();
+	});
+
+	it("keeps the last tunnel diagnostic while automatic reconnection starts", async () => {
+		const statuses: ReturnType<CloudflareQuickTunnel["getStatus"]>[] = [];
+		const tunnel = new CloudflareQuickTunnel(
+			"/missing/cloudflared",
+			32123,
+			"/tmp/dnd-dm-tools-tunnel-test",
+			"/token-images",
+			() => {},
+			() => {},
+			(status) => statuses.push(status),
+		);
+
+		tunnel.start();
+		await new Promise((resolve) => setTimeout(resolve, 25));
+		const retrying = statuses.find((status) => status.state === "retrying");
+		expect(retrying?.error).toBeTruthy();
+		expect(retrying?.diagnostic).toBe(retrying?.error);
+		await tunnel.stop();
 	});
 });

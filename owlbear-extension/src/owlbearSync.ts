@@ -4,6 +4,7 @@ import { resolveTokenVisualImage, type TokenImage } from "./tokenVisuals";
 import {
 	OWLBEAR_ENCOUNTER_ID_KEY,
 	OWLBEAR_DEAD_OVERLAY_KEY,
+	OWLBEAR_METADATA_NAMESPACE,
 	OWLBEAR_MARKER_KIND_KEY,
 	OWLBEAR_MARKER_LAYOUT_KEY,
 	OWLBEAR_PARTICIPANT_ID_KEY,
@@ -101,7 +102,8 @@ export async function pushSnapshotToScene(
 	const markerIdsToDelete = new Set<string>();
 	const tokenUpdates = new Map<string, { participant: OwlbearParticipantSnapshot; image: ResolvedImage }>();
 	const now = new Date().toISOString();
-	const center = await OBR.viewport.getPosition();
+	const [viewportWidth, viewportHeight] = await Promise.all([OBR.viewport.getWidth(), OBR.viewport.getHeight()]);
+	const center = await OBR.viewport.inverseTransformPoint({ x: viewportWidth / 2, y: viewportHeight / 2 });
 	const gridDpi = await OBR.scene.grid.getDpi();
 	const tokenSize = Number.isFinite(gridDpi) && gridDpi > 0 ? gridDpi : DEFAULT_TOKEN_SIZE;
 	let createdIndex = 0;
@@ -149,8 +151,46 @@ export async function pushSnapshotToScene(
 
 	const refreshedItems = await OBR.scene.items.getItems() as SceneItem[];
 	await reconcileTurnHighlights(snapshot, refreshedItems, tokenSize, gridDpi);
+	await focusActiveParticipant(snapshot, previousSnapshot, refreshedItems);
 	const diagnostics = createDiagnostics(snapshot, true, refreshedItems, findLinkedTokens(refreshedItems, snapshot), undefined, now);
 	return { diagnostics, tokenLinks: createTokenLinks(refreshedItems, snapshot, now) };
+}
+
+async function focusActiveParticipant(
+	snapshot: OwlbearEncounterSnapshot,
+	previousSnapshot: OwlbearEncounterSnapshot | null,
+	items: SceneItem[],
+): Promise<void> {
+	if (snapshot.activeParticipantId == null || snapshot.activeParticipantId === previousSnapshot?.activeParticipantId) return;
+	const token = findLinkedTokens(items, snapshot).get(snapshot.activeParticipantId);
+	if (!token?.position) return;
+	try {
+		const [viewportPosition, scale, viewportWidth, viewportHeight] = await Promise.all([
+			OBR.viewport.getPosition(),
+			OBR.viewport.getScale(),
+			OBR.viewport.getWidth(),
+			OBR.viewport.getHeight(),
+		]);
+		const viewportCenter = await OBR.viewport.inverseTransformPoint({ x: viewportWidth / 2, y: viewportHeight / 2 });
+		await OBR.viewport.animateTo({
+			position: {
+				x: viewportPosition.x + viewportCenter.x - token.position.x,
+				y: viewportPosition.y + viewportCenter.y - token.position.y,
+			},
+			scale,
+		});
+	} catch {
+		// The scene changes are still valid if Owlbear cannot move the local viewport.
+	}
+}
+
+export async function clearManagedSceneItems(): Promise<void> {
+	if (!(await OBR.scene.isReady())) return;
+	const items = await OBR.scene.items.getItems() as SceneItem[];
+	const managedIds = items
+		.filter((item) => Object.keys(item.metadata ?? {}).some((key) => key.startsWith(`${OWLBEAR_METADATA_NAMESPACE}/`)))
+		.map((item) => item.id);
+	if (managedIds.length > 0) await OBR.scene.items.deleteItems(managedIds);
 }
 
 function hasTokenVisualChange(

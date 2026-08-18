@@ -11,6 +11,8 @@ export interface PanelSearchResult {
 
 export interface PanelHost {
 	onDetach?(): void;
+	isToolbarVisible?(): boolean;
+	onBeforeClose?(): Promise<boolean>;
 	getKey(): PanelKey;
 	getRibbonIconName(): string;
 	getTitle(): string;

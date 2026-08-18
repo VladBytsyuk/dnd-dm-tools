@@ -29,6 +29,8 @@ export class InitiativeTrackerPanel implements PanelHost {
 				app: this.plugin.app,
 				encounter: { name: "", participants: [] },
 				isEditable: true,
+				isOwlbearIntegrationEnabled: () => this.plugin.isOwlbearIntegrationEnabled(),
+				subscribeOwlbearRuntimeStatus: (listener: () => void) => this.plugin.subscribeOwlbearRuntimeStatus(listener),
 				onPortraitClick: this.uiEventListener.onBeastClick,
 				onConditionClick: this.uiEventListener.onScreenItemClick,
 				onImageRequested: async (url: string) => this.uiEventListener.onImageRequested(url),

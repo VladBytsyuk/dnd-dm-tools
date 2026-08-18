@@ -11,6 +11,7 @@ export type OwlbearTunnelStatus = {
 	state: "stopped" | "starting" | "ready" | "retrying" | "error";
 	publicHost?: string;
 	error?: string;
+	diagnostic?: string;
 	retryInMs?: number;
 };
 
@@ -21,6 +22,7 @@ export class CloudflareQuickTunnel {
 	private attempt = 0;
 	private generation = 0;
 	private diagnostic = "";
+	private lastFailure: { error: string; diagnostic: string } | null = null;
 	private status: OwlbearTunnelStatus = { state: "stopped" };
 
 	constructor(
@@ -39,12 +41,14 @@ export class CloudflareQuickTunnel {
 		if (this.desiredRunning) return;
 		this.desiredRunning = true;
 		this.attempt = 0;
+		this.lastFailure = null;
 		void this.launch(false);
 	}
 
 	async restart(): Promise<void> {
 		this.desiredRunning = true;
 		this.attempt = 0;
+		this.lastFailure = null;
 		this.clearRetry();
 		this.generation += 1;
 		this.onUnavailable();
@@ -65,7 +69,10 @@ export class CloudflareQuickTunnel {
 		if (!this.desiredRunning || this.child) return;
 		const generation = ++this.generation;
 		this.diagnostic = "";
-		this.setStatus({ state: retrying ? "retrying" : "starting" });
+		this.setStatus({
+			state: retrying ? "retrying" : "starting",
+			...(this.lastFailure ?? {}),
+		});
 		try {
 			await mkdir(this.configDirectory, { recursive: true });
 			const configPath = join(this.configDirectory, "quick-tunnel.yml");
@@ -96,6 +103,7 @@ export class CloudflareQuickTunnel {
 			if (!this.desiredRunning || this.child !== child || this.generation !== generation) return;
 			this.attempt = 0;
 			await this.onReady(origin);
+			this.lastFailure = null;
 			this.setStatus({ state: "ready", publicHost: origin });
 		} catch (error) {
 			if (this.child !== child || generation !== this.generation) return;
@@ -122,7 +130,8 @@ export class CloudflareQuickTunnel {
 		this.clearRetry();
 		const delay = Math.min(1_000 * (2 ** this.attempt), MAX_RETRY_DELAY_MS);
 		this.attempt += 1;
-		this.setStatus({ state: "retrying", error, retryInMs: delay });
+		this.lastFailure = { error, diagnostic: this.diagnostic.trim() || error };
+		this.setStatus({ state: "retrying", ...this.lastFailure, retryInMs: delay });
 		this.retryTimer = setTimeout(() => {
 			this.retryTimer = null;
 			void this.launch(true);

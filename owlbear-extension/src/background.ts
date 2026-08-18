@@ -1,7 +1,9 @@
 import OBR from "@owlbear-rodeo/sdk";
-import { pushSnapshotToScene } from "./owlbearSync";
+import { clearManagedSceneItems, pushSnapshotToScene } from "./owlbearSync";
+import { clearPreviewFromScene, pushPreviewToScene } from "./previewSync";
+import { clearPublicInitiative, publishPublicInitiative } from "./publicInitiative";
 import { state, createInitialDiagnostics } from "./state";
-import type { OwlbearEncounterSnapshot } from "./types";
+import type { OwlbearEncounterSnapshot, OwlbearPreviewSnapshot } from "./types";
 import {
 	AUTH_ERROR_CLOSE_CODE,
 	MANUAL_DISCONNECT_KEY,
@@ -53,7 +55,7 @@ async function handleRuntimeMessage(message: RuntimeMessage): Promise<void> {
 		await connect(message.pairingCode ?? localStorage.getItem(PAIRING_KEY) ?? "", true);
 		return;
 	}
-	if (message.command === "disconnect") { disconnect(); return; }
+	if (message.command === "disconnect") { await disconnect(); return; }
 	await runAction(reconnectSceneItems);
 }
 
@@ -87,20 +89,28 @@ async function connect(pairingCode: string, resetAttempts: boolean): Promise<voi
 	nextSocket.onclose = (event) => handleSocketClose(nextSocket, event);
 }
 
-function disconnect(): void {
+async function disconnect(): Promise<void> {
 	manuallyDisconnected = true;
 	localStorage.setItem(MANUAL_DISCONNECT_KEY, "true");
 	reconnectAttempts = 0;
 	cancelReconnect();
-	closeCurrentSocket();
-	connectionState = localStorage.getItem(PAIRING_KEY) ? "disconnected" : "unauthorized";
-	lastError = undefined;
-	postState();
+	let cleanupError: string | undefined;
+	try {
+		cleanupError = await clearManagedScene() ?? undefined;
+	} catch (error) {
+		cleanupError = formatError(error);
+	} finally {
+		closeCurrentSocket(false);
+		connectionState = localStorage.getItem(PAIRING_KEY) ? "disconnected" : "unauthorized";
+		lastError = cleanupError;
+		postState();
+	}
 }
 
 function handleSocketClose(closedSocket: WebSocket, event: CloseEvent): void {
 	if (socket !== closedSocket) return;
 	socket = null;
+	void clearPreview(undefined);
 	if (event.code === AUTH_ERROR_CLOSE_CODE) {
 		connectionState = "auth-error";
 		lastError = event.reason || "Плагин отклонил код сопряжения.";
@@ -136,6 +146,7 @@ async function onSocketMessage(data: unknown): Promise<void> {
 		lastError = undefined;
 		postState();
 		send({ type: "snapshot.request" });
+		send({ type: "preview.request" });
 		return;
 	}
 	if (message.type === "snapshot.publish") {
@@ -144,9 +155,26 @@ async function onSocketMessage(data: unknown): Promise<void> {
 		return;
 	}
 	if (message.type === "snapshot.empty") {
+		try {
+			await clearPublicInitiative();
+		} catch (error) {
+			lastError = formatError(error);
+		}
 		state.snapshot = null;
 		state.diagnostics = createInitialDiagnostics();
 		postState();
+		return;
+	}
+	if (message.type === "preview.publish") {
+		void applyPreview(message.preview, typeof message.previewId === "string" ? message.previewId : undefined);
+		return;
+	}
+	if (message.type === "preview.clear" || message.type === "preview.empty") {
+		void clearPreview(typeof message.previewId === "string" ? message.previewId : undefined);
+		return;
+	}
+	if (message.type === "scene.clear") {
+		void clearManagedScene(typeof message.clearId === "string" ? message.clearId : undefined);
 		return;
 	}
 	if (message.type === "pong") {
@@ -181,6 +209,7 @@ async function applySnapshot(value: unknown, snapshotId: string | undefined): Pr
 			send({ type: "snapshot.failed", snapshotId, error: lastError });
 			return;
 		}
+		await publishPublicInitiative(value);
 		state.snapshot = value;
 		state.diagnostics = result.diagnostics;
 		lastError = result.diagnostics.lastError ? localizeSceneError(result.diagnostics.lastError) : undefined;
@@ -188,6 +217,45 @@ async function applySnapshot(value: unknown, snapshotId: string | undefined): Pr
 	} catch (error) {
 		lastError = formatError(error);
 		send({ type: "snapshot.failed", snapshotId, error: lastError });
+	} finally {
+		postState();
+	}
+}
+
+async function applyPreview(value: unknown, previewId: string | undefined): Promise<void> {
+	if (typeof previewId !== "string" || !isPreview(value)) return;
+	await readyPromise;
+	try {
+		await pushPreviewToScene(value);
+		send({ type: "preview.applied", previewId });
+	} catch (error) {
+		send({ type: "preview.failed", previewId, error: localizeSceneError(formatError(error)) });
+	}
+}
+
+async function clearPreview(previewId: string | undefined): Promise<void> {
+	await readyPromise;
+	try {
+		await clearPreviewFromScene();
+		if (typeof previewId === "string") send({ type: "preview.applied", previewId });
+	} catch (error) {
+		if (typeof previewId === "string") send({ type: "preview.failed", previewId, error: formatError(error) });
+	}
+}
+
+async function clearManagedScene(clearId?: string): Promise<string | null> {
+	await readyPromise;
+	try {
+		await clearManagedSceneItems();
+		await clearPublicInitiative();
+		state.snapshot = null;
+		state.diagnostics = createInitialDiagnostics();
+		if (typeof clearId === "string") send({ type: "scene.applied", clearId });
+		return null;
+	} catch (error) {
+		const message = formatError(error);
+		if (typeof clearId === "string") send({ type: "scene.failed", clearId, error: message });
+		return message;
 	} finally {
 		postState();
 	}
@@ -228,6 +296,17 @@ function isSnapshot(value: unknown): value is OwlbearEncounterSnapshot {
 	return snapshot.schemaVersion === 1 && typeof snapshot.snapshotId === "string" && Array.isArray(snapshot.participants) && Array.isArray(snapshot.tokenLinks);
 }
 
+function isPreview(value: unknown): value is OwlbearPreviewSnapshot {
+	if (!value || typeof value !== "object") return false;
+	const preview = value as Record<string, unknown>;
+	return preview.schemaVersion === 1
+		&& typeof preview.previewId === "string"
+		&& typeof preview.imageUrl === "string"
+		&& typeof preview.imageMime === "string"
+		&& typeof preview.imageWidth === "number"
+		&& typeof preview.imageHeight === "number";
+}
+
 function formatError(error: unknown): string {
 	if (error instanceof Error) return error.message;
 	if (typeof error === "string") return error;
@@ -238,9 +317,10 @@ function localizeSceneError(error: string): string {
 	return error === "No active Owlbear scene." ? "Откройте комнату Owlbear и выберите активную сцену, затем отправьте encounter снова." : error;
 }
 
-function closeCurrentSocket(): void {
+function closeCurrentSocket(shouldClearPreview = true): void {
 	const currentSocket = socket;
 	socket = null;
+	if (shouldClearPreview) void clearPreview(undefined);
 	if (currentSocket && currentSocket.readyState < WebSocket.CLOSING) currentSocket.close(1000, "Client disconnect");
 }
 

@@ -35,7 +35,7 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 		}
 		new Setting(containerEl)
 			.setName("Порт")
-			.setDesc("1024–65535. После смены обновите Install Link в Owlbear.")
+			.setDesc("1024–65535. После смены обновите код сопряжения в Owlbear.")
 			.addText((text) => text.setValue(pendingPort).setPlaceholder("Случайный").onChange((value) => { pendingPort = value; }))
 			.addButton((button) => button.setButtonText("Применить").onClick(async () => {
 				await this.plugin.setOwlbearPort(pendingPort.trim() ? Number(pendingPort) : null);
@@ -45,8 +45,11 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 				await this.plugin.setOwlbearPort(null);
 				this.display();
 			}));
+		const statusDetails = containerEl.createEl("details");
+		statusDetails.createEl("summary", { text: "Статус интеграции" });
+		const statusContainer = statusDetails.createDiv();
 		const status = this.plugin.getOwlbearServerStatus();
-		containerEl.createEl("p", { text: `Статус: ${status.running ? (status.connected ? "расширение подключено" : "ожидание расширения") : "выключено"}${status.error ? `. Ошибка: ${status.error}` : ""}` });
+		statusContainer.createEl("p", { text: `Статус: ${status.running ? (status.connected ? "расширение подключено" : "ожидание расширения") : "выключено"}${status.error ? `. Ошибка: ${status.error}` : ""}` });
 		const runtime = this.plugin.getOwlbearRuntimeStatus();
 		const install = runtime.cloudflared;
 		let installText = `cloudflared ${install.version}: ${cloudflaredStateLabel(install.state)}`;
@@ -57,9 +60,9 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 			installText += ` — ${percent}% (${formatBytes(downloaded)} / ${formatBytes(total)})`;
 		}
 		if (install.error) installText += `. Ошибка: ${install.error}`;
-		containerEl.createEl("p", { text: installText });
+		statusContainer.createEl("p", { text: installText });
 		if (settings.enabled && (install.state === "checking" || install.state === "downloading")) {
-			containerEl.createEl("p", { text: "Ожидание cloudflared. Интеграция запустится автоматически после загрузки." });
+			statusContainer.createEl("p", { text: "Ожидание cloudflared. Интеграция запустится автоматически после загрузки." });
 		}
 		if (install.state === "error") {
 			new Setting(containerEl).setName("Загрузка cloudflared").addButton((button) => button.setButtonText("Повторить загрузку").onClick(async () => {
@@ -68,18 +71,22 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 			}));
 		}
 		const tunnel = runtime.tunnel;
-		containerEl.createEl("p", { text: `Туннель: ${tunnelStateLabel(tunnel.state)}${tunnel.publicHost ? `. Публичный host: ${tunnel.publicHost}` : ""}${tunnel.error ? `. Ошибка: ${tunnel.error}` : ""}` });
+		statusContainer.createEl("p", { text: `Туннель: ${tunnelStateLabel(tunnel.state)}${tunnel.publicHost ? `. Публичный host: ${tunnel.publicHost}` : ""}${tunnel.error ? `. Ошибка: ${tunnel.error}` : ""}` });
+		if (tunnel.diagnostic) {
+			const details = statusContainer.createEl("details");
+			details.createEl("summary", { text: "Технический лог последней ошибки туннеля" });
+			details.createEl("pre", { text: tunnel.diagnostic });
+		}
 		if (settings.enabled && install.state === "ready") {
 			new Setting(containerEl).setName("Quick Tunnel").addButton((button) => button.setButtonText("Перезапустить туннель").onClick(async () => {
 				await this.plugin.restartOwlbearTunnel();
 				this.display();
 			}));
 		}
-		containerEl.createEl("p", {
-			text: "Новая сессия Obsidian намеренно сбрасывает прежнее столкновение: после подключения Owlbear удалит созданные интеграцией токены вместе с их позициями. Отправьте нужное столкновение из трекера заново.",
-		});
-		if (settings.enabled && settings.port && settings.authToken) {
+		if (settings.enabled) {
 			this.copySetting(containerEl, "Install Link", this.plugin.getOwlbearInstallLink());
+		}
+		if (settings.enabled && settings.port && settings.authToken) {
 			this.copySetting(containerEl, "Код сопряжения", this.plugin.getOwlbearPairingCode());
 		}
 		this.unsubscribeRuntime = this.plugin.subscribeOwlbearRuntimeStatus(() => {
