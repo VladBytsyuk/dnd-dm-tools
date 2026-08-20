@@ -66,6 +66,19 @@ The build produces:
 
 Release builds copy these to `.release/dnd-dm-tools/`.
 
+## GitHub Release
+
+GitHub Actions publishes a release after a push to `main` that increases the root `package.json` version. The release job waits for the full test matrix and the Owlbear extension deployment to GitHub Pages, then creates tag `v<version>` on that commit and uploads `dnd-dm-tools-<version>.7z`.
+
+Before pushing a release version:
+
+1. Run `npm version <major|minor|patch|prerelease>` so `package.json` and `package-lock.json` are updated.
+2. Confirm that `manifest.json` and `versions.json` contain the same version.
+3. Add exactly one changelog line in this format: `- **<version>** - <release notes>`.
+4. Push the commit to `main` and wait for the tests, Pages deployment, and **GitHub Release** job to finish.
+
+Published release tags and archives are immutable. Re-running a successful workflow only verifies the existing release; a tag on another commit, a draft release, or a missing archive fails with diagnostics instead of replacing published files.
+
 ## Project Structure
 
 ```
