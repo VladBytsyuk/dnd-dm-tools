@@ -284,6 +284,52 @@ describe("Owlbear integration server transport", () => {
 		expect([manifest.status, main.status, websocket.status, wrongSecret.status]).toEqual([404, 404, 404, 404]);
 	});
 
+	it("accepts an authenticated WebSocket through the secret-scoped public server", async () => {
+		const { server } = await createRunningServer();
+		const publicPort = server.getPublicAssetPort()!;
+		const client = await openWebSocket(
+			`ws://127.0.0.1:${publicPort}${server.getPublicAssetPath()}/ws`,
+			"https://vladbytsyuk.github.io",
+		);
+		const ready = waitForMessage(client, "server.ready");
+
+		client.send(JSON.stringify({ protocolVersion: 2, messageId: "hello-public", type: "client.hello", token: "token" }));
+
+		expect(await ready).toMatchObject({ type: "server.ready" });
+		expect(server.getPublicWebSocketUrl()).toMatch(/^wss:\/\/test\.trycloudflare\.com\/assets\/[A-Za-z0-9_-]{32}\/ws$/);
+	});
+
+	it.each([
+		["wrong secret", "https://vladbytsyuk.github.io", "/assets/wrong/ws"],
+		["wrong origin", "https://evil.example", null],
+	])("rejects a public WebSocket with %s", async (_case, origin, overriddenPath) => {
+		const { server } = await createRunningServer();
+		const publicPort = server.getPublicAssetPort()!;
+		const path = overriddenPath ?? `${server.getPublicAssetPath()}/ws`;
+
+		await expect(openWebSocket(`ws://127.0.0.1:${publicPort}${path}`, origin)).rejects.toThrow();
+	});
+
+	it("rejects an invalid token on the public WebSocket", async () => {
+		const { server } = await createRunningServer();
+		const client = await openWebSocket(
+			`ws://127.0.0.1:${server.getPublicAssetPort()}${server.getPublicAssetPath()}/ws`,
+			"https://vladbytsyuk.github.io",
+		);
+		const closed = new Promise<number>((resolve) => client.once("close", resolve));
+
+		client.send(JSON.stringify({ protocolVersion: 2, messageId: "hello-public", type: "client.hello", token: "wrong" }));
+
+		expect(await closed).toBe(4001);
+	});
+
+	it("rejects query parameters on the public WebSocket path", async () => {
+		const { server } = await createRunningServer();
+		const url = `ws://127.0.0.1:${server.getPublicAssetPort()}${server.getPublicAssetPath()}/ws?token=must-not-be-in-url`;
+
+		await expect(openWebSocket(url, "https://vladbytsyuk.github.io")).rejects.toThrow();
+	});
+
 	it("accepts the stable GitHub Pages extension as the WebSocket origin", async () => {
 		const { port } = await createRunningServer();
 		const client = new WebSocket(`ws://127.0.0.1:${port}/ws`, { origin: "https://vladbytsyuk.github.io" });
@@ -341,7 +387,11 @@ async function createExtensionAssets(directory: string): Promise<void> {
 }
 
 async function connectClient(port: number): Promise<WebSocket> {
-	const client = new WebSocket(`ws://127.0.0.1:${port}/ws`, { origin: `http://localhost:${port}` });
+	return await openWebSocket(`ws://127.0.0.1:${port}/ws`, `http://localhost:${port}`);
+}
+
+async function openWebSocket(url: string, origin: string): Promise<WebSocket> {
+	const client = new WebSocket(url, { origin });
 	openClients.push(client);
 	await new Promise<void>((resolve, reject) => {
 		client.once("open", resolve);

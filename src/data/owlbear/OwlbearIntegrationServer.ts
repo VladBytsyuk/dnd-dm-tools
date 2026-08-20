@@ -92,6 +92,9 @@ export class OwlbearIntegrationServer {
 	getPublicAssetPort(): number | null { return this.publicAssetPort; }
 	getPublicAssetPath(): string { return `/assets/${this.publicAssetSecret}`; }
 	getAssetBaseUrl(): string | null { return this.publicAssetOrigin ? `${this.publicAssetOrigin}${this.getPublicAssetPath()}` : null; }
+	getPublicWebSocketUrl(): string | null {
+		return this.publicAssetOrigin ? `wss://${new URL(this.publicAssetOrigin).host}${this.getPublicAssetPath()}/ws` : null;
+	}
 	setPublicAssetOrigin(origin: string): void {
 		const url = new URL(origin);
 		if (url.protocol !== "https:" || !/^[a-z0-9-]+\.trycloudflare\.com$/i.test(url.hostname) || url.pathname !== "/") throw new Error("cloudflared вернул недопустимый публичный адрес.");
@@ -112,6 +115,7 @@ export class OwlbearIntegrationServer {
 		this.publicAssetSecret = randomBytes(24).toString("base64url");
 		this.publicAssetOrigin = null;
 		this.publicAssetServer = createServer((request, response) => void this.handlePublicAssetHttp(request, response));
+		this.publicAssetServer.on("upgrade", (request, socket, head) => this.handlePublicUpgrade(request, socket, head));
 		await listen(this.publicAssetServer, 0);
 		const publicAddress = this.publicAssetServer.address();
 		if (!publicAddress || typeof publicAddress === "string") throw new Error("Не удалось определить порт публичных Owlbear-ресурсов.");
@@ -362,7 +366,16 @@ export class OwlbearIntegrationServer {
 	}
 
 	private handleUpgrade(request: IncomingMessage, socket: Duplex, head: Buffer): void {
-		if (new URL(request.url ?? "/", "http://127.0.0.1").pathname !== "/ws" || !this.isAllowedWebSocketOrigin(request.headers.origin)) { socket.destroy(); return; }
+		this.upgradeWebSocket(request, socket, head, "/ws");
+	}
+
+	private handlePublicUpgrade(request: IncomingMessage, socket: Duplex, head: Buffer): void {
+		this.upgradeWebSocket(request, socket, head, `${this.getPublicAssetPath()}/ws`);
+	}
+
+	private upgradeWebSocket(request: IncomingMessage, socket: Duplex, head: Buffer, expectedPath: string): void {
+		const requestUrl = new URL(request.url ?? "/", "http://127.0.0.1");
+		if (requestUrl.pathname !== expectedPath || requestUrl.search || !this.isAllowedWebSocketOrigin(request.headers.origin)) { socket.destroy(); return; }
 		const websocketServer = this.websocketServer;
 		if (!websocketServer) { socket.destroy(); return; }
 		websocketServer.handleUpgrade(request, socket, head, (client) => this.handleConnection(client));
