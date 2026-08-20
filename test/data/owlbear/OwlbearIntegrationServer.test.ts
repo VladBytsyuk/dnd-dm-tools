@@ -342,6 +342,31 @@ describe("Owlbear integration server transport", () => {
 		expect(await pong).toMatchObject({ type: "pong" });
 	});
 
+	it("does not promote a candidate that closes before its queued hello is processed", async () => {
+		const { server } = await createRunningServer();
+		const publicUrl = `ws://127.0.0.1:${server.getPublicAssetPort()}${server.getPublicAssetPath()}/ws`;
+		const client = await openWebSocket(publicUrl, "https://vladbytsyuk.github.io");
+		const ready = waitForMessage(client, "server.ready");
+		client.send(JSON.stringify({ protocolVersion: 2, messageId: "hello-valid", type: "client.hello", token: "token" }));
+		await ready;
+		const activeClient = (server as unknown as { client: WebSocket | null }).client;
+
+		let releaseQueue!: () => void;
+		const blockedQueue = new Promise<void>((resolve) => { releaseQueue = resolve; });
+		(server as unknown as { messageQueue: Promise<void> }).messageQueue = blockedQueue;
+		const candidate = await openWebSocket(publicUrl, "https://vladbytsyuk.github.io");
+		const candidateClosed = new Promise<void>((resolve) => candidate.once("close", () => resolve()));
+		candidate.send(JSON.stringify({ protocolVersion: 2, messageId: "hello-stale", type: "client.hello", token: "token" }));
+		candidate.terminate();
+		await candidateClosed;
+
+		releaseQueue();
+		await (server as unknown as { messageQueue: Promise<void> }).messageQueue;
+
+		expect((server as unknown as { client: WebSocket | null }).client).toBe(activeClient);
+		expect(server.getStatus().connected).toBe(true);
+	});
+
 	it("rejects query parameters on the public WebSocket path", async () => {
 		const { server } = await createRunningServer();
 		const url = `ws://127.0.0.1:${server.getPublicAssetPort()}${server.getPublicAssetPath()}/ws?token=must-not-be-in-url`;

@@ -187,7 +187,7 @@ jobs:
           fi
           echo "already_published=true" >> "$GITHUB_OUTPUT"
         else
-          if ! grep -q 'HTTP 404' "${RUNNER_TEMP}/existing-release-error.txt"; then
+          if ! grep -qi 'release not found' "${RUNNER_TEMP}/existing-release-error.txt"; then
             cat "${RUNNER_TEMP}/existing-release-error.txt" >&2
             exit 1
           fi
