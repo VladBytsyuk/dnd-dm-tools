@@ -51,15 +51,15 @@ Relevant SDK areas for this project:
 
 ## DnD DM Tools live sync
 
-Obsidian remains the source of truth. GitHub Pages hosts the production manifest, popover, background page, scripts, and static UI icons at a stable origin. Development uses `http://localhost:5173/manifest.json`. The local Obsidian server owns the authenticated WebSocket, while a second asset-only server exposes token images, scene status icons, and previews through a session-scoped Cloudflare Quick Tunnel. The background page keeps one authenticated local WebSocket open, reconnects with bounded exponential backoff, requests the current snapshot after reconnect, and applies snapshots to the active Owlbear scene in order. The popover only edits pairing, sends commands, and displays diagnostics through a `BroadcastChannel`.
+Obsidian remains the source of truth. GitHub Pages hosts the production manifest, popover, background page, scripts, and static UI icons at a stable origin. Development uses `http://localhost:5173/manifest.json`. A session-scoped Cloudflare Quick Tunnel exposes the authenticated WebSocket, token images, scene status icons, and previews. The background page keeps one authenticated secure WebSocket open, reconnects with bounded exponential backoff while the tunnel host remains valid, requests the current snapshot after reconnect, and applies snapshots to the active Owlbear scene in order. The popover only edits pairing, sends commands, and displays diagnostics through a `BroadcastChannel`.
 
 The WebSocket protocol is version 2. Only one snapshot is in flight at a time. A `snapshot.publish` is acknowledged with the same `snapshotId`; newer pending snapshots replace older pending ones. An unacknowledged snapshot times out after 30 seconds so later updates can continue.
 
-Pairing is stored in browser `localStorage`. Manual disconnect suppresses automatic reconnect until the user connects again. After changing the Obsidian port, update only the pairing code; the production Install Link remains stable.
+Pairing is stored in browser `localStorage`. Production pairing code v2 contains the current `trycloudflare.com` host, random asset-path secret, and authentication token. Manual disconnect suppresses automatic reconnect until the user connects again. Each Obsidian or Quick Tunnel restart requires a fresh pairing code; the production Install Link remains stable. Legacy v1 localhost codes remain accepted for development compatibility.
 
 Starting a new Obsidian process intentionally replaces the persisted encounter with an empty session-reset snapshot. When the background page reconnects, that snapshot removes every token managed by the previous session, including its saved scene position. This is destructive by design: the user must explicitly send the encounter again for the new session.
 
-Token images are content-addressed by SHA-256 of MIME and bytes. The transport copy of a snapshot receives an ephemeral HTTPS `assetBaseUrl`; persisted snapshots never store the Quick Tunnel host. Shared Owlbear items use `/assets/{session-secret}/token-images/{hash}/{mime}` and `/assets/{session-secret}/status-icons/{known-icon}.svg`. The public server returns 404 for the manifest, WebSocket, HTML, scripts, unknown icons, and incorrect session secrets. The cache is capped at 250 MB with LRU cleanup; current and in-flight encounter assets are protected. Missing, invalid, or unavailable images become generated 512×512 SVG tokens with initials and a side/participant color. Fallback use is reported in diagnostics.
+Token images are content-addressed by SHA-256 of MIME and bytes. The transport copy of a snapshot receives an ephemeral HTTPS `assetBaseUrl`; persisted snapshots never store the Quick Tunnel host. Shared Owlbear items use `/assets/{session-secret}/token-images/{hash}/{mime}` and `/assets/{session-secret}/status-icons/{known-icon}.svg`; the authenticated WebSocket uses `/assets/{session-secret}/ws`. Ordinary HTTP requests to the WebSocket path, extension files, unknown icons, and incorrect session secrets return 404. The cache is capped at 250 MB with LRU cleanup; current and in-flight encounter assets are protected. Missing, invalid, or unavailable images become generated 512×512 SVG tokens with initials and a side/participant color. Fallback use is reported in diagnostics.
 
 ## Image preview
 
@@ -75,9 +75,9 @@ Quick Tunnel runs only while Owlbear integration is enabled. Its public health e
 
 ## Hosting And Security
 
-- The production Install Link and extension pages use `https://vladbytsyuk.github.io/dnd-dm-tools/owlbear-extension/`; development uses `http://localhost:5173`. The authenticated WebSocket remains on `http://localhost` and is required only by the GM browser.
-- Token images, scene marker icons, and previews use the temporary HTTPS Quick Tunnel so remote players can fetch them. The tunnel never hosts the extension manifest, HTML, or JavaScript.
-- The public asset path contains a random session secret but is not an authorization boundary. Do not use the integration for sensitive images.
+- The production Install Link and extension pages use `https://vladbytsyuk.github.io/dnd-dm-tools/owlbear-extension/`; development uses `http://localhost:5173`. Production WebSocket traffic uses authenticated `wss://` through the current Quick Tunnel; localhost v1 remains a development fallback.
+- WebSocket traffic, token images, scene marker icons, and previews use the temporary Quick Tunnel. The tunnel never hosts the extension manifest, HTML, or JavaScript.
+- The public path contains a random session secret, and the WebSocket additionally requires the rotated session authentication token and an allowed Owlbear extension Origin. Do not use the integration for sensitive images.
 - The preview image URL uses the same temporary public asset path. Removing a preview hides it from the Owlbear scene but cannot prevent a player from retaining a URL or a copy that they already received.
 - Quick Tunnel has no availability guarantee; the integration is fail-closed while it is unavailable.
 - Keep asset URLs stable because users install the extension through the manifest URL.

@@ -51,6 +51,7 @@ import {
 } from './data/owlbear/OwlbearPreviewImage';
 import { getOwlbearExtensionInstallUrl } from './data/owlbear/OwlbearExtensionHosting';
 import { clearActiveOwlbearPreview } from './data/owlbear/OwlbearPreviewLifecycle';
+import { createOwlbearPairingCode } from './data/owlbear/OwlbearPairing';
 
 export type OwlbearRuntimeStatus = {
 	cloudflared: CloudflaredInstallStatus;
@@ -169,8 +170,9 @@ export default class DndStatblockPlugin extends Plugin {
 		return getOwlbearExtensionInstallUrl(__DND_DM_TOOLS_DEV__);
 	}
 	getOwlbearPairingCode(): string {
-		const { port, authToken } = this.settings.owlbearSync;
-		return port && authToken ? `dnd-dm-tools:v1:${port}:${authToken}` : "";
+		const authToken = this.settings.owlbearSync.authToken;
+		const websocketUrl = this.owlbearServer?.getPublicWebSocketUrl();
+		return websocketUrl && authToken ? createOwlbearPairingCode(websocketUrl, authToken) : "";
 	}
 
 	async setOwlbearIntegrationEnabled(enabled: boolean): Promise<void> {
@@ -295,15 +297,15 @@ export default class DndStatblockPlugin extends Plugin {
 	private async doStartOwlbearIntegration(): Promise<void> {
 		if (!Platform.isDesktopApp || !this.cloudflaredBinaryPath) return;
 		const sync = this.settings.owlbearSync;
-		const authToken = sync.authToken ?? createOwlbearAuthToken();
-		if (authToken !== sync.authToken) await this.updateOwlbearSettings({ authToken });
 		await this.stopOwlbearIntegration();
+		const authToken = createOwlbearAuthToken();
+		await this.updateOwlbearSettings({ authToken });
 		let server: OwlbearIntegrationServer | null = null;
 		try {
 			server = new OwlbearIntegrationServer(
 				this.getOwlbearExtensionDirectories(),
 				this.getOwlbearImageCacheDirectory(),
-				() => this.settings.owlbearSync.authToken,
+				() => authToken,
 				() => this.settings.owlbearSync.latestSnapshot,
 				() => this.activeOwlbearPreview ?? undefined,
 				(snapshotId, links, diagnostics) => this.persistOwlbearApplied(snapshotId, links, diagnostics),

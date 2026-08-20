@@ -72,6 +72,9 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 		}
 		const tunnel = runtime.tunnel;
 		statusContainer.createEl("p", { text: `Туннель: ${tunnelStateLabel(tunnel.state)}${tunnel.publicHost ? `. Публичный host: ${tunnel.publicHost}` : ""}${tunnel.error ? `. Ошибка: ${tunnel.error}` : ""}` });
+		if (settings.enabled && tunnel.state === "ready" && !status.connected) {
+			statusContainer.createEl("p", { text: "Скопируйте текущий код сопряжения в Owlbear. После перезапуска Obsidian или туннеля код изменится." });
+		}
 		if (tunnel.diagnostic) {
 			const details = statusContainer.createEl("details");
 			details.createEl("summary", { text: "Технический лог последней ошибки туннеля" });
@@ -86,8 +89,9 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 		if (settings.enabled) {
 			this.copySetting(containerEl, "Install Link", this.plugin.getOwlbearInstallLink());
 		}
-		if (settings.enabled && settings.port && settings.authToken) {
-			this.copySetting(containerEl, "Код сопряжения", this.plugin.getOwlbearPairingCode());
+		const pairingCode = this.plugin.getOwlbearPairingCode();
+		if (settings.enabled && pairingCode) {
+			this.copySetting(containerEl, "Код сопряжения", pairingCode);
 		}
 		this.unsubscribeRuntime = this.plugin.subscribeOwlbearRuntimeStatus(() => {
 			if (this.refreshQueued) return;
