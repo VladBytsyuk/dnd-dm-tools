@@ -388,6 +388,7 @@ export class OwlbearIntegrationServer {
 	private handleConnection(client: WebSocket): void {
 		const connection: ClientConnection = { authenticated: false, handshakeTimeout: null };
 		connection.handshakeTimeout = setTimeout(() => {
+			connection.handshakeTimeout = null;
 			if (!connection.authenticated) client.terminate();
 		}, HANDSHAKE_TIMEOUT_MS);
 		client.on("message", (data, isBinary) => this.enqueueClientMessage(client, connection, data, isBinary));
@@ -429,6 +430,7 @@ export class OwlbearIntegrationServer {
 	}
 
 	private authenticateClient(client: WebSocket, connection: ClientConnection, hello: IntegrationMessage): void {
+		if (connection.authenticated || connection.handshakeTimeout === null || client.readyState !== WebSocket.OPEN) return;
 		if (hello.protocolVersion !== PROTOCOL_VERSION || typeof hello.type !== "string") {
 			this.closePendingClient(client, connection, PROTOCOL_ERROR_CLOSE_CODE, "Несовместимая версия протокола.");
 			return;
