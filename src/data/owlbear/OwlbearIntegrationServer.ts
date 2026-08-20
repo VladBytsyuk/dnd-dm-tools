@@ -39,6 +39,11 @@ type IntegrationMessage = {
 	[key: string]: unknown;
 };
 
+type ClientConnection = {
+	authenticated: boolean;
+	handshakeTimeout: ReturnType<typeof setTimeout> | null;
+};
+
 export type OwlbearServerStatus = {
 	running: boolean;
 	port: number | null;
@@ -57,7 +62,6 @@ export class OwlbearIntegrationServer {
 	private client: WebSocket | null = null;
 	private messageQueue: Promise<void> = Promise.resolve();
 	private authenticated = false;
-	private handshakeTimeout: ReturnType<typeof setTimeout> | null = null;
 	private applyTimeout: ReturnType<typeof setTimeout> | null = null;
 	private inFlightSnapshotId: string | null = null;
 	private pendingSnapshot: OwlbearEncounterSnapshot | null = null;
@@ -92,6 +96,9 @@ export class OwlbearIntegrationServer {
 	getPublicAssetPort(): number | null { return this.publicAssetPort; }
 	getPublicAssetPath(): string { return `/assets/${this.publicAssetSecret}`; }
 	getAssetBaseUrl(): string | null { return this.publicAssetOrigin ? `${this.publicAssetOrigin}${this.getPublicAssetPath()}` : null; }
+	getPublicWebSocketUrl(): string | null {
+		return this.publicAssetOrigin ? `wss://${new URL(this.publicAssetOrigin).host}${this.getPublicAssetPath()}/ws` : null;
+	}
 	setPublicAssetOrigin(origin: string): void {
 		const url = new URL(origin);
 		if (url.protocol !== "https:" || !/^[a-z0-9-]+\.trycloudflare\.com$/i.test(url.hostname) || url.pathname !== "/") throw new Error("cloudflared вернул недопустимый публичный адрес.");
@@ -112,6 +119,7 @@ export class OwlbearIntegrationServer {
 		this.publicAssetSecret = randomBytes(24).toString("base64url");
 		this.publicAssetOrigin = null;
 		this.publicAssetServer = createServer((request, response) => void this.handlePublicAssetHttp(request, response));
+		this.publicAssetServer.on("upgrade", (request, socket, head) => this.handlePublicUpgrade(request, socket, head));
 		await listen(this.publicAssetServer, 0);
 		const publicAddress = this.publicAssetServer.address();
 		if (!publicAddress || typeof publicAddress === "string") throw new Error("Не удалось определить порт публичных Owlbear-ресурсов.");
@@ -362,27 +370,50 @@ export class OwlbearIntegrationServer {
 	}
 
 	private handleUpgrade(request: IncomingMessage, socket: Duplex, head: Buffer): void {
-		if (new URL(request.url ?? "/", "http://127.0.0.1").pathname !== "/ws" || !this.isAllowedWebSocketOrigin(request.headers.origin)) { socket.destroy(); return; }
+		this.upgradeWebSocket(request, socket, head, "/ws");
+	}
+
+	private handlePublicUpgrade(request: IncomingMessage, socket: Duplex, head: Buffer): void {
+		this.upgradeWebSocket(request, socket, head, `${this.getPublicAssetPath()}/ws`);
+	}
+
+	private upgradeWebSocket(request: IncomingMessage, socket: Duplex, head: Buffer, expectedPath: string): void {
+		const requestUrl = new URL(request.url ?? "/", "http://127.0.0.1");
+		if (requestUrl.pathname !== expectedPath || requestUrl.search || !this.isAllowedWebSocketOrigin(request.headers.origin)) { socket.destroy(); return; }
 		const websocketServer = this.websocketServer;
 		if (!websocketServer) { socket.destroy(); return; }
 		websocketServer.handleUpgrade(request, socket, head, (client) => this.handleConnection(client));
 	}
 
 	private handleConnection(client: WebSocket): void {
-		this.disconnectClient();
-		this.client = client;
-		this.messageQueue = Promise.resolve();
-		this.authenticated = false;
-		this.setStatus({ ...this.status, connected: false });
-		client.on("message", (data, isBinary) => this.enqueueClientMessage(client, data, isBinary));
-		client.on("close", () => { if (this.client === client) this.disconnectClient(); });
-		client.on("error", () => { if (this.client === client) this.disconnectClient(); });
-		this.handshakeTimeout = setTimeout(() => { if (!this.authenticated && this.client === client) client.terminate(); }, HANDSHAKE_TIMEOUT_MS);
+		const connection: ClientConnection = { authenticated: false, handshakeTimeout: null };
+		connection.handshakeTimeout = setTimeout(() => {
+			if (!connection.authenticated) client.terminate();
+		}, HANDSHAKE_TIMEOUT_MS);
+		client.on("message", (data, isBinary) => this.enqueueClientMessage(client, connection, data, isBinary));
+		client.on("close", () => {
+			this.clearHandshakeTimeout(connection);
+			if (this.client === client) this.disconnectClient();
+		});
+		client.on("error", () => {
+			this.clearHandshakeTimeout(connection);
+			if (this.client === client) this.disconnectClient();
+		});
 	}
 
-	private enqueueClientMessage(client: WebSocket, data: RawData, isBinary: boolean): void {
+	private enqueueClientMessage(client: WebSocket, connection: ClientConnection, data: RawData, isBinary: boolean): void {
 		this.messageQueue = this.messageQueue.then(async () => {
-			if (client !== this.client) return;
+			if (client !== this.client) {
+				if (connection.authenticated) return;
+				if (isBinary) { this.closePendingClient(client, connection, PROTOCOL_ERROR_CLOSE_CODE, "Ожидалось текстовое сообщение."); return; }
+				let hello: IntegrationMessage;
+				try { hello = JSON.parse(data.toString()) as IntegrationMessage; } catch {
+					this.closePendingClient(client, connection, PROTOCOL_ERROR_CLOSE_CODE, "Некорректное сообщение протокола.");
+					return;
+				}
+				this.authenticateClient(client, connection, hello);
+				return;
+			}
 			if (isBinary) { this.closeClient(PROTOCOL_ERROR_CLOSE_CODE, "Ожидалось текстовое сообщение."); return; }
 			let message: IntegrationMessage;
 			try { message = JSON.parse(data.toString()) as IntegrationMessage; } catch {
@@ -397,17 +428,27 @@ export class OwlbearIntegrationServer {
 		});
 	}
 
-	private async handleMessage(message: IntegrationMessage): Promise<void> {
-		if (message.protocolVersion !== PROTOCOL_VERSION || typeof message.type !== "string") { this.closeClient(PROTOCOL_ERROR_CLOSE_CODE, "Несовместимая версия протокола."); return; }
-		if (!this.authenticated) {
-			if (message.type !== "client.hello" || message.token !== this.getToken()) { this.closeClient(AUTH_ERROR_CLOSE_CODE, "Неверный код сопряжения."); return; }
-			this.authenticated = true;
-			if (this.handshakeTimeout) clearTimeout(this.handshakeTimeout);
-			this.handshakeTimeout = null;
-			this.setStatus({ ...this.status, connected: true, error: undefined });
-			this.send({ type: "server.ready" });
+	private authenticateClient(client: WebSocket, connection: ClientConnection, hello: IntegrationMessage): void {
+		if (hello.protocolVersion !== PROTOCOL_VERSION || typeof hello.type !== "string") {
+			this.closePendingClient(client, connection, PROTOCOL_ERROR_CLOSE_CODE, "Несовместимая версия протокола.");
 			return;
 		}
+		if (hello.type !== "client.hello" || hello.token !== this.getToken()) {
+			this.closePendingClient(client, connection, AUTH_ERROR_CLOSE_CODE, "Неверный код сопряжения.");
+			return;
+		}
+
+		connection.authenticated = true;
+		this.clearHandshakeTimeout(connection);
+		this.disconnectClient();
+		this.client = client;
+		this.authenticated = true;
+		this.setStatus({ ...this.status, connected: true, error: undefined });
+		this.send({ type: "server.ready" });
+	}
+
+	private async handleMessage(message: IntegrationMessage): Promise<void> {
+		if (message.protocolVersion !== PROTOCOL_VERSION || typeof message.type !== "string") { this.closeClient(PROTOCOL_ERROR_CLOSE_CODE, "Несовместимая версия протокола."); return; }
 		if (message.type === "snapshot.request") {
 			const snapshot = this.getSnapshot();
 			if (!snapshot) { this.send({ type: "snapshot.empty" }); return; }
@@ -555,8 +596,6 @@ export class OwlbearIntegrationServer {
 	}
 
 	private disconnectClient(): void {
-		if (this.handshakeTimeout) clearTimeout(this.handshakeTimeout);
-		this.handshakeTimeout = null;
 		this.clearApplyTimeout();
 		this.inFlightSnapshotId = null;
 		this.pendingSnapshot = null;
@@ -570,8 +609,6 @@ export class OwlbearIntegrationServer {
 	}
 
 	private closeClient(code: number, reason: string): void {
-		if (this.handshakeTimeout) clearTimeout(this.handshakeTimeout);
-		this.handshakeTimeout = null;
 		this.clearApplyTimeout();
 		const client = this.client;
 		this.client = null;
@@ -582,6 +619,16 @@ export class OwlbearIntegrationServer {
 		this.rejectSceneClearOperation(new Error(reason));
 		if (this.status.running) this.setStatus({ ...this.status, connected: false });
 		client?.close(code, reason);
+	}
+
+	private closePendingClient(client: WebSocket, connection: ClientConnection, code: number, reason: string): void {
+		this.clearHandshakeTimeout(connection);
+		client.close(code, reason);
+	}
+
+	private clearHandshakeTimeout(connection: ClientConnection): void {
+		if (connection.handshakeTimeout) clearTimeout(connection.handshakeTimeout);
+		connection.handshakeTimeout = null;
 	}
 
 	private clearApplyTimeout(): void {

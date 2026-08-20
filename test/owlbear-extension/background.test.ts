@@ -35,8 +35,10 @@ const backgroundMock = vi.hoisted(() => {
 		onerror: (() => void) | null = null;
 		onclose: ((event: CloseEvent) => void) | null = null;
 		readonly sent: Record<string, unknown>[] = [];
+		readonly url: string;
 
-		constructor(_url: string) {
+		constructor(url: string) {
+			this.url = url;
 			FakeWebSocket.instances.push(this);
 		}
 
@@ -159,6 +161,28 @@ afterEach(() => {
 });
 
 describe("Owlbear background synchronization", () => {
+	it("connects v2 pairing through the current Quick Tunnel WebSocket", async () => {
+		const secret = "s".repeat(32);
+		localStorage.setItem("dnd-dm-tools.owlbear.pairing", `dnd-dm-tools:v2:test.trycloudflare.com:${secret}:${"a".repeat(32)}`);
+
+		await import("../../owlbear-extension/src/background");
+
+		expect(backgroundMock.FakeWebSocket.instances[0].url).toBe(`wss://test.trycloudflare.com/assets/${secret}/ws`);
+	});
+
+	it("asks for a fresh v2 code when the tunnel endpoint is unavailable", async () => {
+		localStorage.setItem("dnd-dm-tools.owlbear.pairing", `dnd-dm-tools:v2:test.trycloudflare.com:${"s".repeat(32)}:${"a".repeat(32)}`);
+		await import("../../owlbear-extension/src/background");
+		const channel = backgroundMock.FakeBroadcastChannel.instances[0];
+
+		backgroundMock.FakeWebSocket.instances[0].onerror?.();
+
+		expect(channel.messages).toContainEqual(expect.objectContaining({
+			type: "runtime.state",
+			state: expect.objectContaining({ lastError: expect.stringContaining("скопируйте новый код сопряжения") }),
+		}));
+	});
+
 	it("does not acknowledge or store a snapshot when the scene is not ready", async () => {
 		backgroundMock.pushSnapshotToScene.mockResolvedValue({ diagnostics: diagnostics(false), tokenLinks: [] });
 		const socket = await loadConnectedBackground();

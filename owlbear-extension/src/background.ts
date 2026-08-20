@@ -16,6 +16,7 @@ import {
 	type RuntimeState,
 } from "./protocol";
 import type { ConnectionState } from "./popoverUi";
+import { parsePairingCode, type OwlbearPairing } from "./pairing";
 
 const APPLY_QUEUE_EMPTY = Symbol("empty");
 const channel = new BroadcastChannel(RUNTIME_CHANNEL_NAME);
@@ -25,6 +26,7 @@ let reconnectAttempts = 0;
 let manuallyDisconnected = localStorage.getItem(MANUAL_DISCONNECT_KEY) === "true";
 let connectionState: ConnectionState = localStorage.getItem(PAIRING_KEY) ? "disconnected" : "unauthorized";
 let lastError: string | undefined;
+let activePairing: OwlbearPairing | null = null;
 let actionPending = false;
 let applying = false;
 let pendingSnapshot: unknown | typeof APPLY_QUEUE_EMPTY = APPLY_QUEUE_EMPTY;
@@ -73,17 +75,20 @@ async function connect(pairingCode: string, resetAttempts: boolean): Promise<voi
 	manuallyDisconnected = false;
 	cancelReconnect();
 	closeCurrentSocket();
+	activePairing = pairing;
 	connectionState = "connecting";
 	lastError = undefined;
 	postState();
 
-	const nextSocket = new WebSocket(`ws://localhost:${pairing.port}/ws`);
+	const nextSocket = new WebSocket(pairing.websocketUrl);
 	socket = nextSocket;
 	nextSocket.onopen = () => send({ type: "client.hello", token: pairing.token });
 	nextSocket.onmessage = (event) => void onSocketMessage(event.data);
 	nextSocket.onerror = () => {
 		if (socket !== nextSocket) return;
-		lastError = "Obsidian недоступен. Запустите Obsidian и включите интеграцию Owlbear.";
+		lastError = pairing.version === 2
+			? "Сессия Obsidian недоступна. После перезапуска Obsidian или туннеля скопируйте новый код сопряжения."
+			: "Локальный код v1 может блокироваться браузером. Скопируйте новый код сопряжения из DnD DM Tools.";
 		postState();
 	};
 	nextSocket.onclose = (event) => handleSocketClose(nextSocket, event);
@@ -124,7 +129,11 @@ function handleSocketClose(closedSocket: WebSocket, event: CloseEvent): void {
 		return;
 	}
 	connectionState = localStorage.getItem(PAIRING_KEY) ? "disconnected" : "unauthorized";
-	if (!lastError && event.code !== 1000) lastError = "Соединение с Obsidian потеряно.";
+	if (!lastError && event.code !== 1000) {
+		lastError = activePairing?.version === 2
+			? "Сессия Obsidian завершилась. Скопируйте новый код сопряжения из DnD DM Tools."
+			: "Соединение с Obsidian потеряно.";
+	}
 	postState();
 	if (!manuallyDisconnected && localStorage.getItem(PAIRING_KEY)) {
 		reconnectAttempts += 1;
@@ -281,13 +290,6 @@ async function runAction(action: () => Promise<void>): Promise<void> {
 function send(payload: Record<string, unknown>): void {
 	if (socket?.readyState !== WebSocket.OPEN) return;
 	socket.send(JSON.stringify({ protocolVersion: PROTOCOL_VERSION, messageId: crypto.randomUUID(), ...payload }));
-}
-
-function parsePairingCode(value: string): { port: number; token: string } | null {
-	const match = /^dnd-dm-tools:v1:(\d{4,5}):([A-Za-z0-9_-]{32,})$/.exec(value);
-	if (!match) return null;
-	const port = Number(match[1]);
-	return port >= 1024 && port <= 65535 ? { port, token: match[2] } : null;
 }
 
 function isSnapshot(value: unknown): value is OwlbearEncounterSnapshot {

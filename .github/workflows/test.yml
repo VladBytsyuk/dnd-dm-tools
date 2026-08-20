@@ -7,6 +7,36 @@ on:
     branches: [main]
 
 jobs:
+  detect-release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.version.outputs.should_release }}
+
+    steps:
+    - name: Checkout код
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Настройка Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+
+    - name: Проверка повышения версии
+      id: version
+      env:
+        PREVIOUS_SHA: ${{ github.event.before }}
+      run: |
+        git show "${PREVIOUS_SHA}:package.json" > "${RUNNER_TEMP}/package.previous.json"
+        node scripts/release-metadata.mjs detect "${RUNNER_TEMP}/package.previous.json" package.json > "${RUNNER_TEMP}/release-detection.json"
+        node -e "const result = require(process.argv[1]); process.stdout.write('should_release=' + result.shouldRelease + '\\n')" "${RUNNER_TEMP}/release-detection.json" >> "$GITHUB_OUTPUT"
+
+        if [ "$(node -p "require('${RUNNER_TEMP}/release-detection.json').shouldRelease")" = "true" ]; then
+          node scripts/release-metadata.mjs validate "${RUNNER_TEMP}/release-notes.md" > /dev/null
+        fi
+
   test:
     runs-on: ubuntu-latest
     
@@ -97,3 +127,110 @@ jobs:
     - name: Публикация GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
+
+  publish-release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.detect-release.outputs.should_release == 'true'
+    needs: [test, deploy-owlbear-extension, detect-release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout код
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Настройка Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+
+    - name: Установка зависимостей
+      run: npm ci
+
+    - name: Проверка метаданных релиза
+      run: |
+        node scripts/release-metadata.mjs validate "${RUNNER_TEMP}/release-notes.md" > "${RUNNER_TEMP}/release-metadata.json"
+        node -e "const metadata = require(process.argv[1]); for (const key of ['version', 'tag', 'archiveName', 'title', 'isPrerelease']) console.log(key + '=' + metadata[key])" "${RUNNER_TEMP}/release-metadata.json" >> "$GITHUB_ENV"
+
+    - name: Проверка существующего тега и Release
+      id: existing
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        if git ls-remote --exit-code --refs origin "refs/tags/${tag}" > "${RUNNER_TEMP}/remote-tag.txt"; then
+          remote_tag_sha="$(cut -f1 "${RUNNER_TEMP}/remote-tag.txt")"
+          if [ "${remote_tag_sha}" != "${GITHUB_SHA}" ]; then
+            echo "Release tag ${tag} points to ${remote_tag_sha}, not ${GITHUB_SHA}." >&2
+            exit 1
+          fi
+          echo "tag_exists=true" >> "$GITHUB_OUTPUT"
+        else
+          lookup_status=$?
+          if [ "${lookup_status}" != "2" ]; then
+            echo "Could not check whether release tag ${tag} exists." >&2
+            exit "${lookup_status}"
+          fi
+          echo "tag_exists=false" >> "$GITHUB_OUTPUT"
+        fi
+
+        if gh release view "${tag}" --json isDraft,assets > "${RUNNER_TEMP}/existing-release.json" 2> "${RUNNER_TEMP}/existing-release-error.txt"; then
+          if [ "$(node -p "require('${RUNNER_TEMP}/existing-release.json').isDraft")" = "true" ]; then
+            echo "Release ${tag} is still a draft." >&2
+            exit 1
+          fi
+          if ! node -e "const release = require(process.argv[1]); process.exit(release.assets.some((asset) => asset.name === process.argv[2]) ? 0 : 1)" "${RUNNER_TEMP}/existing-release.json" "${archiveName}"; then
+            echo "Release ${tag} does not contain ${archiveName}." >&2
+            exit 1
+          fi
+          echo "already_published=true" >> "$GITHUB_OUTPUT"
+        else
+          if ! grep -q 'HTTP 404' "${RUNNER_TEMP}/existing-release-error.txt"; then
+            cat "${RUNNER_TEMP}/existing-release-error.txt" >&2
+            exit 1
+          fi
+          echo "already_published=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Сборка release-артефактов
+      if: steps.existing.outputs.already_published != 'true'
+      run: npm run release
+
+    - name: Создание 7z-архива
+      if: steps.existing.outputs.already_published != 'true'
+      run: |
+        command -v 7z
+        cd .release
+        7z a -t7z -mx=9 "${RUNNER_TEMP}/${archiveName}" dnd-dm-tools
+
+    - name: Публикация GitHub Release
+      if: steps.existing.outputs.already_published != 'true'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        release_args=(--title "${title}" --notes-file "${RUNNER_TEMP}/release-notes.md")
+        if [ "${isPrerelease}" = "true" ]; then
+          release_args+=(--prerelease)
+        fi
+        if [ "${{ steps.existing.outputs.tag_exists }}" = "true" ]; then
+          release_args+=(--verify-tag)
+        else
+          release_args+=(--target "${GITHUB_SHA}")
+        fi
+        gh release create "${tag}" "${RUNNER_TEMP}/${archiveName}" "${release_args[@]}"
+
+    - name: Итог публикации
+      env:
+        RELEASE_STATUS: ${{ steps.existing.outputs.already_published == 'true' && 'already published' || 'created' }}
+      run: |
+        {
+          echo '## GitHub Release'
+          echo
+          echo "- Result: ${RELEASE_STATUS}"
+          echo "- Version: ${version}"
+          echo "- Tag: ${tag}"
+          echo "- Archive: ${archiveName}"
+          echo "- Release: https://github.com/${GITHUB_REPOSITORY}/releases/tag/${tag}"
+        } >> "$GITHUB_STEP_SUMMARY"
