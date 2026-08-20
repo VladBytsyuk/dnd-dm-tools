@@ -323,6 +323,25 @@ describe("Owlbear integration server transport", () => {
 		expect(await closed).toBe(4001);
 	});
 
+	it("keeps the authenticated public client connected when another client fails authentication", async () => {
+		const { server } = await createRunningServer();
+		const publicUrl = `ws://127.0.0.1:${server.getPublicAssetPort()}${server.getPublicAssetPath()}/ws`;
+		const client = await openWebSocket(publicUrl, "https://vladbytsyuk.github.io");
+		const ready = waitForMessage(client, "server.ready");
+		client.send(JSON.stringify({ protocolVersion: 2, messageId: "hello-valid", type: "client.hello", token: "token" }));
+		await ready;
+
+		const candidate = await openWebSocket(publicUrl, "https://vladbytsyuk.github.io");
+		const candidateClosed = new Promise<number>((resolve) => candidate.once("close", resolve));
+		candidate.send(JSON.stringify({ protocolVersion: 2, messageId: "hello-invalid", type: "client.hello", token: "wrong" }));
+		expect(await candidateClosed).toBe(4001);
+
+		expect(server.getStatus().connected).toBe(true);
+		const pong = waitForMessage(client, "pong");
+		client.send(JSON.stringify({ protocolVersion: 2, messageId: "ping-after-rejection", type: "ping" }));
+		expect(await pong).toMatchObject({ type: "pong" });
+	});
+
 	it("rejects query parameters on the public WebSocket path", async () => {
 		const { server } = await createRunningServer();
 		const url = `ws://127.0.0.1:${server.getPublicAssetPort()}${server.getPublicAssetPath()}/ws?token=must-not-be-in-url`;
