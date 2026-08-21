@@ -1,9 +1,11 @@
 {
 	"name": "dnd-dm-tools",
-	"version": "1.1.1",
+	"version": "1.1.2",
 	"description": "A plugin for Obsidian.md with DnD 5e DM tools in russian.",
 	"main": "main.js",
-	"workspaces": ["owlbear-extension"],
+	"workspaces": [
+		"owlbear-extension"
+	],
 	"scripts": {
 		"dev": "npm run copy:assets && node esbuild.config.mjs",
 		"build": "npm run copy:assets && tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && npm run owlbear:build",
