@@ -11,6 +11,7 @@ export interface ItemReadStore<
 	readSmallItemsPage(filter: TFilter | null, request: PageRequest): Promise<PageResult<TSmall>>;
 	readAllSmallItemNames(): Promise<string[]>;
 	readSmallItemByName(name: string): Promise<TSmall | null>;
+	readSmallItemByUrl(url: string): Promise<TSmall | null>;
 	readFullItemByName(name: string): Promise<TFull | null>;
 	readFullItemByUrl(url: string): Promise<TFull | null>;
 }

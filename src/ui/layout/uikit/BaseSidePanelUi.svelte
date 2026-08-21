@@ -135,6 +135,12 @@
         return true;
     }
 
+    async function onItemSave(item: any, context: any) {
+        const result = await repository.putItem(item, context);
+        if (result.ok) await updateGroups();
+        return result;
+    }
+
     // ---- private functions ----
     async function updateGroups() {
         const generation = ++requestGeneration;
@@ -243,7 +249,7 @@
                 uiEventListener={uiEventListener}
                 isEditable=true
                 onClose={() => currentItem = undefined}
-                onItemSave={async (item: any) => await repository.putItem(item)}
+                {onItemSave}
                 {onItemDelete}
             />
         </div>

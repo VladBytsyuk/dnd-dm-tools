@@ -53,7 +53,7 @@ describe("CharacterSheetRepository", () => {
 
 		const result = await repository.putItem(sheet);
 
-		expect(result).toBe(true);
+		expect(result).toEqual({ ok: true });
 		expect(characterSheetDao.createItem).toHaveBeenCalledWith(sheet);
 		expect(characterSheetDao.updateItem).not.toHaveBeenCalled();
 		expect(storedItems).toHaveLength(1);
@@ -69,7 +69,7 @@ describe("CharacterSheetRepository", () => {
 		sheet.name.rus = "Existing Updated";
 		const result = await repository.putItem(sheet);
 
-		expect(result).toBe(true);
+		expect(result).toEqual({ ok: true });
 		expect(characterSheetDao.updateItem).toHaveBeenCalledWith(sheet);
 		expect(characterSheetDao.createItem).not.toHaveBeenCalled();
 	});

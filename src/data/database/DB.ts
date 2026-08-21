@@ -25,6 +25,7 @@ import { FullRaceSqlTableDao } from './FullRaceSqlTableDao';
 import { SmallClassSqlTableDao } from './SmallClassSqlTableDao';
 import { FullClassSqlTableDao } from './FullClassSqlTableDao';
 import { CharacterSheetSqlTableDao } from './CharacterSheetSqlTableDao';
+import { EntityOriginDao } from './EntityOriginDao';
 import type { Initializable } from 'src/domain/Initializable';
 import { DatabaseSeedOrchestrator } from 'src/data/services';
 import { DbTransactionalStore, SeedStore } from 'src/data/stores';
@@ -55,6 +56,7 @@ export default class DB implements Initializable {
     public smallClassDao: SmallClassSqlTableDao;
     public fullClassDao: FullClassSqlTableDao;
     public characterSheetDao: CharacterSheetSqlTableDao;
+    public entityOriginDao: EntityOriginDao;
 
     constructor(
         private app: App,
@@ -90,6 +92,7 @@ export default class DB implements Initializable {
             const database = new SQL.Database(databaseData);
             this.database = database;
             const sqlTableDaos = this.initDaos(database);
+            this.entityOriginDao = new EntityOriginDao(database);
 
             // Check if classes migration needed
             const needsClassesMigration = await this.checkClassesMigration();
@@ -100,12 +103,14 @@ export default class DB implements Initializable {
 
             // Create tables if they do not exist
             await this.transaction(async () => {
+                await this.entityOriginDao.initialize();
                 await Promise.all(
                     sqlTableDaos.map(tableDao => tableDao.initialize())
                 );
             });
 
             await this.createSeedOrchestrator().seedAll();
+            await this.backfillRemoteOrigins();
 
             console.log('Database initialized');
         } catch (error) {
@@ -269,5 +274,29 @@ export default class DB implements Initializable {
         });
         await this.createSeedOrchestrator().seedSmallClass();
         console.log('Classes migration complete.');
+    }
+
+    private async backfillRemoteOrigins(): Promise<void> {
+        const tables: Array<[string, string]> = [
+            ["bestiary", "small_bestiary"],
+            ["spellbook", "small_spellbook"],
+            ["dm-screen", "dm_screen_items"],
+            ["arsenal", "small_arsenal"],
+            ["armory", "small_armory"],
+            ["equipment", "small_equipment"],
+            ["artifactory", "small_artifactory"],
+            ["backgrounds", "small_backgrounds"],
+            ["feats", "small_feats"],
+            ["races", "small_races"],
+            ["classes", "small_classes"],
+        ];
+        await this.transaction(async () => {
+            for (const [kind, table] of tables) {
+                this.database!.exec(
+                    `INSERT OR IGNORE INTO entity_origins (entity_kind, url, origin) SELECT ?, url, 'remote' FROM ${table};`,
+                    [kind],
+                );
+            }
+        });
     }
 }

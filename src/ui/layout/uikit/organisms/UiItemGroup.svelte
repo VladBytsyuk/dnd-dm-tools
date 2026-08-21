@@ -23,10 +23,12 @@
 	<details open>
 		<summary class="item-group__title">{groupTitle}</summary>
 		<div class="item-group__grid">
-			{#each items as item (item.url)}
-				<PanelTypeTint {panelKey}>
+		{#each items as item (item.url)}
+				<div class:manual-item={item.origin === "manual"}>
+					<PanelTypeTint {panelKey}>
 					<SmallItemSlot smallItem={item} onItemClick={() => onItemClick(item)} />
-				</PanelTypeTint>
+					</PanelTypeTint>
+				</div>
 			{/each}
 		</div>
 	</details>
@@ -111,5 +113,15 @@
 		gap: var(--dnd-ui-space-4);
 		padding: var(--dnd-ui-space-8) 0 0;
 		background: var(--dnd-ui-pattern-group-content-bg);
+	}
+
+	.manual-item {
+		border-radius: var(--dnd-ui-radius-lg);
+	}
+
+	.manual-item :global(.item-card__name-rus)::after {
+		content: " ⭐";
+		font-size: 0.8em;
+		vertical-align: 0.1em;
 	}
 </style>
