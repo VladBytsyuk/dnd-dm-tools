@@ -19,6 +19,7 @@ import type { ConnectionState } from "./popoverUi";
 import { parsePairingCode, type OwlbearPairing } from "./pairing";
 
 const APPLY_QUEUE_EMPTY = Symbol("empty");
+const MAX_AUTOMATIC_RECONNECT_ATTEMPTS = 3;
 const channel = new BroadcastChannel(RUNTIME_CHANNEL_NAME);
 let socket: WebSocket | null = null;
 let reconnectTimer: number | null = null;
@@ -135,9 +136,14 @@ function handleSocketClose(closedSocket: WebSocket, event: CloseEvent): void {
 			: "Соединение с Obsidian потеряно.";
 	}
 	postState();
-	if (!manuallyDisconnected && localStorage.getItem(PAIRING_KEY)) {
+	if (!manuallyDisconnected && localStorage.getItem(PAIRING_KEY) && reconnectAttempts < MAX_AUTOMATIC_RECONNECT_ATTEMPTS) {
 		reconnectAttempts += 1;
 		reconnectTimer = window.setTimeout(() => void connect(localStorage.getItem(PAIRING_KEY) ?? "", false), Math.min(30_000, 1000 * 2 ** Math.min(reconnectAttempts - 1, 5)));
+		return;
+	}
+	if (!manuallyDisconnected && localStorage.getItem(PAIRING_KEY)) {
+		lastError = "Не удалось восстановить соединение после 3 попыток. Скопируйте новый код сопряжения и подключитесь вручную.";
+		postState();
 	}
 }
 
