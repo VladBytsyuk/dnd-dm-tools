@@ -19,6 +19,8 @@ import type {
 	PageResult,
 	Repository,
 } from "src/domain/repositories/Repository";
+import type { EntityKind, ItemSaveContext, ItemSaveResult } from "src/domain/models/common/EntityOrigin";
+import type { EntityOriginDao } from "src/data/database/EntityOriginDao";
 
 export interface SimpleRepositoryDependencies<
 	TSmall extends BaseItem,
@@ -31,6 +33,8 @@ export interface SimpleRepositoryDependencies<
 	service: FullItemReadService<TResponse>;
 	mapper: FullItemMapper<TResponse, TFull>;
 	projector: SmallItemProjector<TFull, TSmall>;
+	entityKind?: EntityKind;
+	origins?: EntityOriginDao;
 }
 
 export interface SimpleRepositoryDatabase {
@@ -49,19 +53,25 @@ export function createSimpleRepositoryDependencies<
 	mapper: FullItemMapper<TResponse, TFull>,
 	projector: SmallItemProjector<TFull, TSmall>,
 	service: FullItemReadService<TResponse> = new TtgService() as FullItemReadService<TResponse>,
+	entityKind?: EntityKind,
+	origins?: EntityOriginDao,
 ): SimpleRepositoryDependencies<TSmall, TFull, TFilter, TResponse> {
 	const transactions = new DbTransactionalStore(database);
 
 	return {
-		readStore: new GenericSqlItemReadStore<TSmall, TFull, TFilter>(smallItemDao, fullItemDao),
+		readStore: new GenericSqlItemReadStore<TSmall, TFull, TFilter>(smallItemDao, fullItemDao, entityKind, origins),
 		writeStore: new GenericSqlItemWriteStore<TSmall, TFull, TFilter, unknown>(
 			smallItemDao,
 			fullItemDao,
 			transactions,
+			entityKind,
+			origins,
 		),
 		service,
 		mapper,
 		projector,
+		entityKind,
+		origins,
 	};
 }
 
@@ -178,20 +188,33 @@ export abstract class SimpleRepository<
 		return await this.getFullItemByUrl(smallItem.url);
 	}
 
-	async putItem(fullItem: TFull): Promise<boolean> {
+	async putItem(fullItem: TFull, context: ItemSaveContext = {}): Promise<ItemSaveResult> {
 		if (!fullItem.url) {
-			console.warn("Cannot put item without URL");
-			return false;
+			return { ok: false, code: "url-required", message: "URL не должен быть пустым." };
+		}
+		const originalUrl = context.originalUrl?.trim();
+		const originalOrigin = context.originalOrigin ?? "remote";
+		if (originalUrl) {
+			if (originalOrigin === "remote" && fullItem.url === originalUrl) {
+				return { ok: false, code: "url-unchanged", message: "Для ручной копии укажите новый URL." };
+			}
+			if (originalOrigin === "manual" && fullItem.url !== originalUrl) {
+				return { ok: false, code: "manual-url-immutable", message: "URL ручной сущности нельзя изменить после создания." };
+			}
 		}
 
 		try {
+			if (originalUrl && fullItem.url !== originalUrl) {
+				const existingByUrl = await this.dependencies.readStore.readFullItemByUrl(fullItem.url);
+				if (existingByUrl) return { ok: false, code: "url-occupied", message: "Этот URL уже занят в данном справочнике." };
+			}
 			const smallItem = this.dependencies.projector.project(fullItem);
 			await this.dependencies.writeStore.upsertUserItem(smallItem, fullItem);
 			await this.reloadCaches();
-			return true;
+			return { ok: true };
 		} catch (error) {
 			console.error("Failed to put item:", error);
-			return false;
+			return { ok: false, code: "save-failed", message: "Не удалось сохранить сущность." };
 		}
 	}
 

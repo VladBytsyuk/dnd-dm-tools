@@ -7,11 +7,13 @@
 
     let { 
 		currentItem,
-        isInEditMode,
+		isInEditMode,
+		isUrlEditable = true,
 		uiEventListener,
 	} = $props<{
         currentItem: FullMonster;
         isInEditMode: boolean;
+		isUrlEditable?: boolean;
         uiEventListener: IUiEventListener;
     }>();
     
@@ -47,9 +49,9 @@
     </div>
     <div class="header-line">
         <input class="header-subtext inputlike"
-            class:inputlike-editable={isInEditMode}
+            class:inputlike-editable={isInEditMode && isUrlEditable}
             bind:value={currentItem.url} 
-            readonly={!isInEditMode} />
+            readonly={!isInEditMode || !isUrlEditable} />
         <div 
             class="header-subtext" 
             role="button"

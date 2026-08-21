@@ -12,6 +12,31 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 		this.unsubscribeRuntime?.();
 		const { containerEl } = this;
 		containerEl.empty();
+		containerEl.createEl("h2", { text: "Ручные сущности" });
+		new Setting(containerEl)
+			.setName("Экспортировать ручные сущности")
+			.setDesc("Скачать JSON с созданными и отредактированными вручную сущностями.")
+			.addButton((button) => button.setButtonText("Экспортировать").onClick(async () => {
+				try {
+					const json = await this.plugin.exportManualEntities();
+					downloadJson(json, `dnd-dm-tools-manual-entities-${new Date().toISOString().slice(0, 10)}.json`);
+					new Notice("Архив ручных сущностей скачан.");
+				} catch (error) {
+					new Notice(`Не удалось экспортировать сущности: ${error instanceof Error ? error.message : String(error)}`);
+				}
+			}));
+		new Setting(containerEl)
+			.setName("Импортировать ручные сущности")
+			.setDesc("Загрузить JSON-архив. Ручные совпадения будут обновлены, внешние — пропущены.")
+			.addButton((button) => button.setButtonText("Импортировать").onClick(() => chooseArchive(async (json) => {
+				try {
+					const report = await this.plugin.importManualEntities(json);
+					new Notice(`Импорт: создано ${report.created}, обновлено ${report.updated}, пропущено ${report.skipped}, ошибок ${report.failed}.`);
+				} catch (error) {
+					new Notice(`Не удалось импортировать сущности: ${error instanceof Error ? error.message : String(error)}`);
+				}
+			})));
+		containerEl.createEl("hr");
 		containerEl.createEl("h2", { text: "Интеграция с Owlbear" });
 		const settings = this.plugin.getSettings().owlbearSync;
 		let pendingPort = settings.port?.toString() ?? "";
@@ -115,6 +140,31 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 			}
 		}));
 	}
+}
+
+function downloadJson(json: string, filename: string): void {
+	const blob = new Blob([json], { type: "application/json" });
+	const url = URL.createObjectURL(blob);
+	const link = document.createElement("a");
+	link.href = url;
+	link.download = filename;
+	link.click();
+	window.setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function chooseArchive(onLoad: (json: string) => Promise<void>): void {
+	const input = document.createElement("input");
+	input.type = "file";
+	input.accept = ".json,application/json";
+	input.onchange = () => {
+		const file = input.files?.[0];
+		if (!file) return;
+		const reader = new FileReader();
+		reader.onload = () => { if (typeof reader.result === "string") void onLoad(reader.result); };
+		reader.onerror = () => new Notice("Не удалось прочитать выбранный файл.");
+		reader.readAsText(file);
+	};
+	input.click();
 }
 
 function cloudflaredStateLabel(state: ReturnType<DndStatblockPlugin["getOwlbearRuntimeStatus"]>["cloudflared"]["state"]): string {

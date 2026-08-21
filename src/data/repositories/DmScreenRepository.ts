@@ -4,12 +4,14 @@ import { TtgService, type TtgJsonObject } from "src/data/services";
 import { DbTransactionalStore, DmScreenStore } from "src/data/stores";
 import { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import type { DmScreen } from "src/domain/repositories/DmScreen";
+import type { ItemSaveContext, ItemSaveResult } from "src/domain/models/common/EntityOrigin";
 
 type DmScreenRepositoryDatabase = {
 	transaction(callback: (...args: any[]) => Promise<void>): Promise<void> | void;
 	dmScreenGroupDao: {
 		readAllItems(name: string | null, filter: any | null): Promise<DmScreenItem[]>;
 		readAllItemsNames(): Promise<string[]>;
+		createItem(item: DmScreenItem): Promise<void>;
 		readChildren(parentUrl?: string): Promise<DmScreenItem[]>;
 		readChildrenCount(parentUrl: string): Promise<number>;
 		readItemByName(name: string): Promise<DmScreenItem | null>;
@@ -166,8 +168,25 @@ export class DmScreenRepository implements DmScreen {
 		}
 	}
 
-	async putItem(_fullItem: DmScreenItem): Promise<boolean> {
-		return false;
+	async putItem(fullItem: DmScreenItem, context: ItemSaveContext = {}): Promise<ItemSaveResult> {
+		if (!fullItem.url) return { ok: false, code: "url-required", message: "URL не должен быть пустым." };
+		const originalUrl = context.originalUrl?.trim();
+		const originalOrigin = context.originalOrigin ?? "remote";
+		if (originalUrl && originalOrigin === "remote" && fullItem.url === originalUrl) {
+			return { ok: false, code: "url-unchanged", message: "Для ручной копии укажите новый URL." };
+		}
+		if (originalUrl && originalOrigin === "manual" && fullItem.url !== originalUrl) {
+			return { ok: false, code: "manual-url-immutable", message: "URL ручной сущности нельзя изменить после создания." };
+		}
+		try {
+			if (originalUrl && fullItem.url !== originalUrl && await this.#store.readItemByUrl(fullItem.url)) {
+				return { ok: false, code: "url-occupied", message: "Этот URL уже занят в данном справочнике." };
+			}
+			await this.#store.saveManualItem(fullItem);
+			return { ok: true };
+		} catch {
+			return { ok: false, code: "save-failed", message: "Не удалось сохранить сущность." };
+		}
 	}
 
 	async deleteItem(_url: string): Promise<boolean> {

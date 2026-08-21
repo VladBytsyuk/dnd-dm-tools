@@ -164,7 +164,7 @@ describe("SimpleRepository orchestration", () => {
 
 		const result = await repository.putItem(fullSpellFireball);
 
-		expect(result).toBe(true);
+		expect(result).toEqual({ ok: true });
 		expect(database.transaction).toHaveBeenCalledTimes(1);
 		expect(smallSpellDao.createItem).toHaveBeenCalledWith(savedSmallSpellFromFull(fullSpellFireball));
 		expect(fullSpellDao.createItem).toHaveBeenCalledWith(fullSpellFireball);
@@ -184,10 +184,29 @@ describe("SimpleRepository orchestration", () => {
 
 		const result = await repository.putItem(updatedFullSpell);
 
-		expect(result).toBe(true);
+		expect(result).toEqual({ ok: true });
 		expect(smallSpellDao.updateItem).toHaveBeenCalledWith(savedSmallSpellFromFull(updatedFullSpell));
 		expect(fullSpellDao.updateItem).toHaveBeenCalledWith(updatedFullSpell);
 		expect(fullItems).toEqual([updatedFullSpell]);
+	});
+
+	it("requires a new URL when saving an external item as a manual copy", async () => {
+		const { repository } = createStatefulSpellRepository();
+
+		await expect(repository.putItem(fullSpellFireball, {
+			originalUrl: fullSpellFireball.url,
+			originalOrigin: "remote",
+		})).resolves.toMatchObject({ ok: false, code: "url-unchanged" });
+	});
+
+	it("does not allow changing the URL of an existing manual item", async () => {
+		const { repository } = createStatefulSpellRepository();
+		const renamed = { ...fullSpellFireball, url: "/spells/fireball-custom" };
+
+		await expect(repository.putItem(renamed, {
+			originalUrl: fullSpellFireball.url,
+			originalOrigin: "manual",
+		})).resolves.toMatchObject({ ok: false, code: "manual-url-immutable" });
 	});
 
 	it("deletes both records and reloads invalidated small/filter caches", async () => {
@@ -221,7 +240,7 @@ describe("SimpleRepository orchestration", () => {
 
 		const result = await repository.putItem(fullSpellFireball);
 
-		expect(result).toBe(false);
+		expect(result.ok).toBe(false);
 		expect(smallSpellDao.createItem).not.toHaveBeenCalled();
 		expect(fullSpellDao.createItem).not.toHaveBeenCalled();
 	});
