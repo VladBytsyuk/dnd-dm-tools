@@ -27,15 +27,15 @@ describe("Owlbear extension hosting", () => {
 		const developmentOrigin = new URL(OWLBEAR_DEVELOPMENT_EXTENSION_URL).origin;
 
 		expect(assetPaths.map((path: string) => productionOrigin + path)).toEqual([
-			"https://vladbytsyuk.github.io/dnd-dm-tools/owlbear-extension/icon-v2.svg",
+			"https://vladbytsyuk.github.io/dnd-dm-tools/owlbear-extension/dnd-dm-tools-colored-outlined.svg",
 			"https://vladbytsyuk.github.io/dnd-dm-tools/owlbear-extension/background.html",
-			"https://vladbytsyuk.github.io/dnd-dm-tools/owlbear-extension/icon-v2.svg",
+			"https://vladbytsyuk.github.io/dnd-dm-tools/owlbear-extension/dnd-dm-tools-transparent.svg",
 			"https://vladbytsyuk.github.io/dnd-dm-tools/owlbear-extension/index.html",
 		]);
 		expect(assetPaths.map((path: string) => developmentOrigin + path)).toEqual([
-			"http://localhost:5173/dnd-dm-tools/owlbear-extension/icon-v2.svg",
+			"http://localhost:5173/dnd-dm-tools/owlbear-extension/dnd-dm-tools-colored-outlined.svg",
 			"http://localhost:5173/dnd-dm-tools/owlbear-extension/background.html",
-			"http://localhost:5173/dnd-dm-tools/owlbear-extension/icon-v2.svg",
+			"http://localhost:5173/dnd-dm-tools/owlbear-extension/dnd-dm-tools-transparent.svg",
 			"http://localhost:5173/dnd-dm-tools/owlbear-extension/index.html",
 		]);
 	});

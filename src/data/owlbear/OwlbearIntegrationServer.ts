@@ -22,8 +22,8 @@ const ASSETS: Record<string, { filename: string; contentType: string }> = {
 	"/background.html": { filename: "background.html", contentType: "text/html; charset=utf-8" },
 	"/main.js": { filename: "main.js", contentType: "text/javascript; charset=utf-8" },
 	"/background.js": { filename: "background.js", contentType: "text/javascript; charset=utf-8" },
-	"/icon.svg": { filename: "icon.svg", contentType: "image/svg+xml" },
-	"/icon-v2.svg": { filename: "icon-v2.svg", contentType: "image/svg+xml" },
+	"/dnd-dm-tools-colored-outlined.svg": { filename: "dnd-dm-tools-colored-outlined.svg", contentType: "image/svg+xml" },
+	"/dnd-dm-tools-transparent.svg": { filename: "dnd-dm-tools-transparent.svg", contentType: "image/svg+xml" },
 };
 const STATUS_ICON_NAMES = [
 	"bloodied", "concentration", "condition", "dead", "down",

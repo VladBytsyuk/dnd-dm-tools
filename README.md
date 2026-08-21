@@ -1,13 +1,10 @@
 # DnD DM Tools для Obsidian
 
-![DnD DM Tools](src/assets/icon.svg)
+![DnD DM Tools](logo/dnd-dm-tools-colored-outlined.svg)
 
 [![Tests](https://github.com/VladBytsyuk/dnd-dm-tools/actions/workflows/test.yml/badge.svg)](https://github.com/VladBytsyuk/dnd-dm-tools/actions/workflows/test.yml)
 
 DnD DM Tools — плагин для [Obsidian](https://obsidian.md/) с русскоязычными инструментами и справочниками для Мастера Подземелий в Dungeons & Dragons 5-й редакции.
-
-Текущая версия плагина: **1.1.1**. Минимальная версия Obsidian — **0.15.0**.
-Версия расширения для Owlbear Rodeo: **0.3.2**.
 
 ## Помощник ДМа
 

@@ -1,6 +1,6 @@
 import { addIcon, ItemView, type WorkspaceLeaf } from "obsidian";
 import { mount, unmount } from "svelte";
-import omniIcon from "src/assets/icon.svg";
+import omniIcon from "logo/dnd-dm-tools-transparent.svg";
 import type { BaseItem } from "src/domain/models/common/BaseItem";
 import {
 	activateOrOpenAssistantPanel,
@@ -21,8 +21,14 @@ const OMNI_ICON_ID = "dnd-dm-tools-omni";
 function extractSvgContent(svg: string): string {
 	const openingTagEnd = svg.indexOf(">") + 1;
 	const closingTagStart = svg.lastIndexOf("</svg>");
-	if (openingTagEnd <= 0 || closingTagStart <= openingTagEnd) return svg;
-	return svg.slice(openingTagEnd, closingTagStart).trim();
+	const content = openingTagEnd <= 0 || closingTagStart <= openingTagEnd
+		? svg
+		: svg.slice(openingTagEnd, closingTagStart).trim();
+	const viewBox = svg.match(/viewBox="([-\d.]+) ([-\d.]+) (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)"/);
+	if (!viewBox) return content.replace(/stroke="black"/g, 'stroke="currentColor"');
+
+	const [, x, y, width, height] = viewBox;
+	return `<g transform="scale(${100 / Number(width)} ${100 / Number(height)}) translate(${-Number(x)} ${-Number(y)})">${content.replace(/stroke="black"/g, 'stroke="currentColor"')}</g>`;
 }
 
 export class PanelManager {

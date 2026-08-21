@@ -12,8 +12,8 @@ mkdirSync(join(__dirname, "dist"), { recursive: true });
 copyFileSync(join(__dirname, "public", "index.html"), join(__dirname, "dist", "index.html"));
 copyFileSync(join(__dirname, "public", "background.html"), join(__dirname, "dist", "background.html"));
 copyFileSync(join(__dirname, "public", "manifest.json"), join(__dirname, "dist", "manifest.json"));
-copyFileSync(join(__dirname, "public", "icon.svg"), join(__dirname, "dist", "icon.svg"));
-copyFileSync(join(__dirname, "public", "icon-v2.svg"), join(__dirname, "dist", "icon-v2.svg"));
+copyFileSync(join(__dirname, "..", "logo", "dnd-dm-tools-colored-outlined.svg"), join(__dirname, "dist", "dnd-dm-tools-colored-outlined.svg"));
+copyFileSync(join(__dirname, "..", "logo", "dnd-dm-tools-transparent.svg"), join(__dirname, "dist", "dnd-dm-tools-transparent.svg"));
 const conditionIcons = {
 	unconscious: "Unconscious",
 	frightened: "Frightened",
@@ -84,8 +84,8 @@ if (watch) {
 		["/main.js", "main.js"],
 		["/background.html", "background.html"],
 		["/background.js", "background.js"],
-		["/icon.svg", "icon.svg"],
-		["/icon-v2.svg", "icon-v2.svg"],
+		["/dnd-dm-tools-colored-outlined.svg", "dnd-dm-tools-colored-outlined.svg"],
+		["/dnd-dm-tools-transparent.svg", "dnd-dm-tools-transparent.svg"],
 		...Object.keys(conditionIcons).concat(Object.keys(statusIcons)).map((name) => [`/status-icons/${name}.svg`, `status-icons/${name}.svg`]),
 	]);
 	const server = createServer(async (request, response) => {

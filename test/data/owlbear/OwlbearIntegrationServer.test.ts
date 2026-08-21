@@ -417,11 +417,11 @@ async function createRunningServer(
 
 async function createExtensionAssets(directory: string): Promise<void> {
 	await mkdir(join(directory, "status-icons"), { recursive: true });
-	for (const name of ["manifest.json", "index.html", "background.html", "main.js", "background.js", "icon.svg", "icon-v2.svg"]) {
+	for (const name of ["manifest.json", "index.html", "background.html", "main.js", "background.js", "dnd-dm-tools-colored-outlined.svg", "dnd-dm-tools-transparent.svg"]) {
 		await writeFile(join(directory, name), name === "manifest.json" ? JSON.stringify({
-				icon: "./icon-v2.svg",
+				icon: "./dnd-dm-tools-colored-outlined.svg",
 				background_url: "./background.html",
-				action: { icon: "./icon-v2.svg", popover: "./index.html" },
+				action: { icon: "./dnd-dm-tools-transparent.svg", popover: "./index.html" },
 		}) : name);
 	}
 	for (const name of [
