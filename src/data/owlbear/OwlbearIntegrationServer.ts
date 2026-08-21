@@ -217,6 +217,13 @@ export class OwlbearIntegrationServer {
 			}
 			if (!imageBytes) throw new Error(`Не удалось подготовить изображение токена «${participant.name}».`);
 			if (isRoundTokenSvg(imageBytes)) {
+				if (freshImage || !assetId) {
+					assetId = await this.imageStore.put(
+						"image/svg+xml",
+						imageBytes,
+						protectedIds.concat(materializedAssetIds),
+					);
+				}
 				mime = "image/svg+xml";
 				const diameter = roundTokenDiameter(width, height);
 				width = diameter;

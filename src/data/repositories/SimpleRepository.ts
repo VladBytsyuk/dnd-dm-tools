@@ -246,7 +246,7 @@ export abstract class SimpleRepository<
 		return true;
 	}
 
-	private async reloadCaches(): Promise<void> {
+	protected async reloadCaches(): Promise<void> {
 		this.#smallItems = undefined;
 		this.#filters = undefined;
 		if (this.shouldPreloadSmallItems()) {

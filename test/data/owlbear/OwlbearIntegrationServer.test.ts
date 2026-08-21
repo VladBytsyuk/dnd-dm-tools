@@ -125,6 +125,26 @@ describe("Owlbear integration server snapshots", () => {
 		expect((await readFile(join(cacheDirectory, participant.imageAssetId!))).toString("utf8")).toContain('preserveAspectRatio="xMidYMid slice"');
 	});
 
+	it("stores a fresh portrait that is already a rounded SVG", async () => {
+		const { server } = await createServer();
+		const rounded = createRoundTokenSvg("image/png", Buffer.from("PNG"), 100, 100).toString("base64");
+		const prepared = await server.materializeSnapshot(snapshot({
+			participants: [{
+				...snapshot().participants[0],
+				imageDataUrl: `data:image/svg+xml;base64,${rounded}`,
+				imageWidth: 100,
+				imageHeight: 100,
+			}],
+		}));
+
+		expect(prepared.participants[0]).toMatchObject({
+			imageAssetId: expect.stringMatching(/^[a-f0-9]{64}$/),
+			imageMime: "image/svg+xml",
+			imageWidth: 100,
+			imageHeight: 100,
+		});
+	});
+
 	it("reuses a previous asset when only combat state changes", async () => {
 		const { server } = await createServer();
 		const first = await server.materializeSnapshot(snapshot());

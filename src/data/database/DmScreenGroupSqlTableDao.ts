@@ -104,7 +104,9 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
                     group_name = ?,
                     group_short_name = ?,
                     group_item = ?,
-                    description = ?
+                    icon = ?,
+                    description = ?,
+                    parent_url = ?
                 WHERE url = ? COLLATE NOCASE;
             `, [
                 item.name.rus,
@@ -115,7 +117,9 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
                 item.source.group.name || null,
                 item.source.group.shortName || null,
                 item.group || null,
+                item.icon || null,
                 item.description || null,
+                item.parentUrl || null,
                 item.url
             ]);
         } catch (error) {
