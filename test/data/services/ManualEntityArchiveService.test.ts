@@ -49,4 +49,47 @@ describe("ManualEntityArchiveService", () => {
 		const { service } = createService();
 		await expect(service.importArchive({ schemaVersion: 2, entities: [] })).rejects.toThrow("Неподдерживаемая версия");
 	});
+
+	it("skips malformed entries without interrupting the import", async () => {
+		const { service, repository } = createService();
+
+		const report = await service.importArchive({
+			schemaVersion: 1,
+			entities: [null, { kind: "bestiary", url: item.url, item }],
+		});
+
+		expect(report).toEqual({ created: 1, updated: 0, skipped: 1, failed: 0 });
+		expect(repository.putItem).toHaveBeenCalledTimes(1);
+	});
+
+	it("imports parent races before their descendants", async () => {
+		const origins = new Map<string, "manual">();
+		const raceRepository = {
+			getFullItemByUrl: vi.fn(),
+			putItem: vi.fn(async (race: { url: string }) => {
+				origins.set(race.url, "manual");
+				return { ok: true };
+			}),
+		};
+		const originDao = {
+			listManual: vi.fn(),
+			exists: vi.fn(async (_kind: string, url: string) => origins.has(url)),
+			get: vi.fn(async (_kind: string, url: string) => origins.get(url) ?? "remote"),
+		};
+		const service = new ManualEntityArchiveService(originDao as any, { races: raceRepository as any }, "1.1.2");
+		const parent = { url: "/races/elf-custom", name: { rus: "Эльф", eng: "Elf" } };
+		const child = { url: "/races/high-elf-custom", name: { rus: "Высший эльф", eng: "High elf" } };
+
+		const report = await service.importArchive({
+			schemaVersion: 1,
+			entities: [
+				{ kind: "races", url: child.url, item: child, parentUrl: parent.url },
+				{ kind: "races", url: parent.url, item: parent },
+			],
+		});
+
+		expect(report).toEqual({ created: 2, updated: 0, skipped: 0, failed: 0 });
+		expect(raceRepository.putItem.mock.calls.map(([race]) => race.url)).toEqual([parent.url, child.url]);
+		expect(raceRepository.putItem.mock.calls[1][1]).toEqual({ parentUrl: parent.url });
+	});
 });

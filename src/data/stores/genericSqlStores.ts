@@ -41,6 +41,10 @@ export class GenericSqlItemReadStore<
 		return this.withOrigin(await this.smallItemDao.readItemByName(name));
 	}
 
+	async readSmallItemByUrl(url: string): Promise<TSmall | null> {
+		return this.withOrigin(await this.smallItemDao.readItemByUrl(url));
+	}
+
 	async readFullItemByName(name: string): Promise<TFull | null> {
 		return this.withOrigin(await this.fullItemDao.readItemByName(name));
 	}

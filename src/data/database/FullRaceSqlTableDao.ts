@@ -96,6 +96,11 @@ export class FullRaceSqlTableDao extends Dao<FullRace, any> {
         }
     }
 
+    async readParentUrl(url: string): Promise<string | null> {
+        const result = this.database.exec(`SELECT parent_url FROM ${this.getTableName()} WHERE url = ?;`, [url]);
+		return (result[0]?.values[0]?.[0] as string | null | undefined) ?? null;
+    }
+
     async updateItem(item: FullRace): Promise<void> {
         try {
             this.database.exec(`

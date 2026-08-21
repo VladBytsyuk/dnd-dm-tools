@@ -13,6 +13,7 @@ import { baseRaces, collectSourceBooks } from "src/assets/data/races";
 import { sortSources } from "src/domain/utils/SourceSorter";
 import type { Races } from "src/domain/repositories/Races";
 import type { Group } from "src/domain/repositories/Repository";
+import type { ItemSaveContext, ItemSaveResult } from "src/domain/models/common/EntityOrigin";
 import {
 	createSimpleRepositoryDependencies,
 	SimpleRepository,
@@ -22,6 +23,7 @@ import {
 
 type RaceRepositoryDatabase = SimpleRepositoryDatabase & {
 	smallRaceDao: Dao<SmallRace, RaceFilters> & {
+		createItemWithParent(race: SmallRace, parentUrl: string | null): Promise<void>;
 		readAllItemsWithParentUrl(
 			name: string | null,
 			filters: RaceFilters | null,
@@ -30,7 +32,8 @@ type RaceRepositoryDatabase = SimpleRepositoryDatabase & {
 		readSubracesByParentUrl(parentUrl: string): Promise<SmallRace[]>;
 	};
 	fullRaceDao: Dao<FullRace, unknown> & {
-		createItemWithParent(race: FullRace, parentUrl: string): Promise<void>;
+		createItemWithParent(race: FullRace, parentUrl: string | null): Promise<void>;
+		readParentUrl(url: string): Promise<string | null>;
 		readSubracesByParentUrl(parentUrl: string): Promise<FullRace[]>;
 	};
 };
@@ -171,6 +174,33 @@ export class RacesRepository
 			console.error("Failed to load race from service response:", error);
 			return null;
 		}
+	}
+
+	override async putItem(fullItem: FullRace, context: ItemSaveContext = {}): Promise<ItemSaveResult> {
+		if (!fullItem.url) return { ok: false, code: "url-required", message: "URL не должен быть пустым." };
+		const originalUrl = context.originalUrl?.trim();
+		const originalOrigin = context.originalOrigin ?? "remote";
+		if (originalUrl && originalOrigin === "remote" && fullItem.url === originalUrl) {
+			return { ok: false, code: "url-unchanged", message: "Для ручной копии укажите новый URL." };
+		}
+		if (originalUrl && originalOrigin === "manual" && fullItem.url !== originalUrl) {
+			return { ok: false, code: "manual-url-immutable", message: "URL ручной сущности нельзя изменить после создания." };
+		}
+		try {
+		const existing = await this.#raceStore.readSmallRaceByUrl(fullItem.url);
+		const updatesSameManualItem = originalOrigin === "manual" && originalUrl === fullItem.url;
+		if (existing && !updatesSameManualItem) {
+				return { ok: false, code: "url-occupied", message: "Этот URL уже занят в данном справочнике." };
+			}
+			await this.#raceStore.saveManualRaceTree(fullItem, context.parentUrl ?? null);
+			return { ok: true };
+		} catch {
+			return { ok: false, code: "save-failed", message: "Не удалось сохранить сущность." };
+		}
+	}
+
+	async getParentUrl(url: string): Promise<string | null> {
+		return this.#raceStore.readParentUrl(url);
 	}
 
 	async getRacesWithSubraces(): Promise<SmallRace[]> {

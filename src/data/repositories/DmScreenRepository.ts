@@ -125,7 +125,7 @@ export class DmScreenRepository implements DmScreen {
 
 	async getFullItemByName(name: string): Promise<DmScreenItem | null> {
 		const cachedFullItem = await this.#store.readItemByName(name) || null;
-		if (cachedFullItem && cachedFullItem.description) {
+		if (cachedFullItem && (cachedFullItem.description || cachedFullItem.origin === "manual")) {
 			console.log(`Loaded ${cachedFullItem.name.rus} from local storage.`);
 			return cachedFullItem;
 		}
@@ -140,7 +140,7 @@ export class DmScreenRepository implements DmScreen {
 
 	async getFullItemByUrl(url: string): Promise<DmScreenItem | null> {
 		const cachedFullItem = await this.#store.readItemByUrl(url) || null;
-		if (cachedFullItem && cachedFullItem.description) {
+		if (cachedFullItem && (cachedFullItem.description || cachedFullItem.origin === "manual")) {
 			console.log(`Loaded ${cachedFullItem.name.rus} from local storage.`);
 			return cachedFullItem;
 		}
@@ -179,10 +179,13 @@ export class DmScreenRepository implements DmScreen {
 			return { ok: false, code: "manual-url-immutable", message: "URL ручной сущности нельзя изменить после создания." };
 		}
 		try {
-			if (originalUrl && fullItem.url !== originalUrl && await this.#store.readItemByUrl(fullItem.url)) {
+			const existing = await this.#store.readItemByUrl(fullItem.url);
+			const updatesSameManualItem = originalOrigin === "manual" && originalUrl === fullItem.url;
+			if (existing && !updatesSameManualItem) {
 				return { ok: false, code: "url-occupied", message: "Этот URL уже занят в данном справочнике." };
 			}
 			await this.#store.saveManualItem(fullItem);
+			this.#rootItems = await this.#store.readRootItems();
 			return { ok: true };
 		} catch {
 			return { ok: false, code: "save-failed", message: "Не удалось сохранить сущность." };

@@ -204,9 +204,10 @@ export abstract class SimpleRepository<
 		}
 
 		try {
-			if (originalUrl && fullItem.url !== originalUrl) {
-				const existingByUrl = await this.dependencies.readStore.readFullItemByUrl(fullItem.url);
-				if (existingByUrl) return { ok: false, code: "url-occupied", message: "Этот URL уже занят в данном справочнике." };
+			const existingByUrl = await this.dependencies.readStore.readSmallItemByUrl(fullItem.url);
+			const updatesSameManualItem = originalOrigin === "manual" && originalUrl === fullItem.url;
+			if (existingByUrl && !updatesSameManualItem) {
+				return { ok: false, code: "url-occupied", message: "Этот URL уже занят в данном справочнике." };
 			}
 			const smallItem = this.dependencies.projector.project(fullItem);
 			await this.dependencies.writeStore.upsertUserItem(smallItem, fullItem);

@@ -182,7 +182,10 @@ describe("SimpleRepository orchestration", () => {
 			[fullSpellFireball]
 		);
 
-		const result = await repository.putItem(updatedFullSpell);
+		const result = await repository.putItem(updatedFullSpell, {
+			originalUrl: updatedFullSpell.url,
+			originalOrigin: "manual",
+		});
 
 		expect(result).toEqual({ ok: true });
 		expect(smallSpellDao.updateItem).toHaveBeenCalledWith(savedSmallSpellFromFull(updatedFullSpell));
@@ -197,6 +200,18 @@ describe("SimpleRepository orchestration", () => {
 			originalUrl: fullSpellFireball.url,
 			originalOrigin: "remote",
 		})).resolves.toMatchObject({ ok: false, code: "url-unchanged" });
+	});
+
+	it("rejects a manual copy URL that already belongs to a small cached external item", async () => {
+		const occupiedUrl = "/spells/occupied";
+		const { repository, smallSpellDao, fullSpellDao } = createStatefulSpellRepository([
+			{ ...toSmallSpell(fullSpellAwaken), url: occupiedUrl },
+		]);
+
+		await expect(repository.putItem({ ...fullSpellFireball, url: occupiedUrl })).resolves.toMatchObject({ ok: false, code: "url-occupied" });
+
+		expect(smallSpellDao.createItem).not.toHaveBeenCalled();
+		expect(fullSpellDao.createItem).not.toHaveBeenCalled();
 	});
 
 	it("does not allow changing the URL of an existing manual item", async () => {

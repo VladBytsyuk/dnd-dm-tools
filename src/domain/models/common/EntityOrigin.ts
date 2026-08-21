@@ -18,6 +18,7 @@ export type EntityOrigin = "remote" | "manual";
 export interface ItemSaveContext {
 	originalUrl?: string;
 	originalOrigin?: EntityOrigin;
+	parentUrl?: string;
 }
 
 export type ItemSaveResult =

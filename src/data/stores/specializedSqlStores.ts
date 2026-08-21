@@ -19,6 +19,7 @@ import type { RaceFilters } from "src/domain/models/race/RaceFilters";
 import type { SmallRace } from "src/domain/models/race/SmallRace";
 import type { EntityKind } from "src/domain/models/common/EntityOrigin";
 import type { EntityOriginDao } from "src/data/database/EntityOriginDao";
+import { smallItemProjectors } from "src/data/projectors/smallItemProjectors";
 
 type RaceWithParent<T> = {
 	race: T;
@@ -29,11 +30,11 @@ export class RaceStore {
 	constructor(
 		private readonly smallRaceDao: Pick<
 			SmallRaceSqlTableDao,
-			"readAllItemsWithParentUrl" | "readTopLevelRaces" | "readSubracesByParentUrl"
+			"createItemWithParent" | "readAllItemsWithParentUrl" | "readItemByUrl" | "readTopLevelRaces" | "readSubracesByParentUrl" | "updateItem"
 		>,
 		private readonly fullRaceDao: Pick<
 			FullRaceSqlTableDao,
-			"createItem" | "createItemWithParent" | "readItemByUrl" | "readSubracesByParentUrl"
+			"createItem" | "createItemWithParent" | "readItemByUrl" | "readParentUrl" | "readSubracesByParentUrl" | "updateItem"
 		>,
 		private readonly transactions: TransactionalStore,
 		private readonly entityKind?: EntityKind,
@@ -45,6 +46,12 @@ export class RaceStore {
 			await this.fullRaceDao.createItem(race);
 			if (this.entityKind && this.origins) await this.origins.ensureRemote(this.entityKind, race.url);
 			await this.saveSubraces(race.subraces ?? [], race.url);
+		});
+	}
+
+	async saveManualRaceTree(race: FullRace, parentUrl: string | null = null): Promise<void> {
+		await this.transactions.transaction(async () => {
+			await this.saveManualRaceAndSubraces(race, parentUrl);
 		});
 	}
 
@@ -90,12 +97,33 @@ export class RaceStore {
 		return Promise.all((await this.smallRaceDao.readSubracesByParentUrl(parentUrl)).map((race) => this.withOrigin(race)));
 	}
 
+	async readSmallRaceByUrl(url: string): Promise<SmallRace | null> {
+		const race = await this.smallRaceDao.readItemByUrl(url);
+		return race ? this.withOrigin(race) : null;
+	}
+
+	async readParentUrl(url: string): Promise<string | null> {
+		return this.fullRaceDao.readParentUrl(url);
+	}
+
 	private async saveSubraces(subraces: FullRace[], parentUrl: string): Promise<void> {
 		for (const subrace of subraces) {
 			await this.fullRaceDao.createItemWithParent(subrace, parentUrl);
 			if (this.entityKind && this.origins) await this.origins.ensureRemote(this.entityKind, subrace.url);
 			await this.saveSubraces(subrace.subraces ?? [], subrace.url);
 		}
+	}
+
+	private async saveManualRaceAndSubraces(race: FullRace, parentUrl: string | null): Promise<void> {
+		const smallRace = smallItemProjectors.race.project(race);
+		if (await this.smallRaceDao.readItemByUrl(race.url)) await this.smallRaceDao.updateItem(smallRace);
+		else await this.smallRaceDao.createItemWithParent(smallRace, parentUrl);
+
+		if (await this.fullRaceDao.readItemByUrl(race.url)) await this.fullRaceDao.updateItem(race);
+		else await this.fullRaceDao.createItemWithParent(race, parentUrl);
+
+		if (this.entityKind && this.origins) await this.origins.markManual(this.entityKind, race.url);
+		for (const subrace of race.subraces ?? []) await this.saveManualRaceAndSubraces(subrace, race.url);
 	}
 
 	private reconstructHierarchy(flatRaces: RaceWithParent<SmallRace>[]): SmallRace[] {
