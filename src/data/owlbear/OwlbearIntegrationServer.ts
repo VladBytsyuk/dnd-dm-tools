@@ -4,7 +4,7 @@ import { randomBytes } from "crypto";
 import { readFile } from "fs/promises";
 import { join } from "path";
 import { WebSocket, WebSocketServer, type RawData } from "ws";
-import { OwlbearImageAssetStore, createFallbackSvg, createTokenVisualSvg, type TokenVisualState } from "./OwlbearImageAssetStore";
+import { OwlbearImageAssetStore, createFallbackSvg, createRoundTokenSvg, createTokenVisualSvg, isRoundTokenSvg, roundTokenDiameter, type TokenVisualState } from "./OwlbearImageAssetStore";
 import type { OwlbearEncounterSnapshot, OwlbearSyncDiagnostics, OwlbearTokenLink } from "src/domain/models/owlbear/OwlbearSync";
 import type { OwlbearPreviewSnapshot } from "src/domain/models/owlbear/OwlbearPreview";
 import { isAllowedOwlbearExtensionOrigin } from "./OwlbearExtensionHosting";
@@ -188,30 +188,49 @@ export class OwlbearIntegrationServer {
 			let width = participant.imageWidth;
 			let height = participant.imageHeight;
 			let usedFallback = participant.imageFallback === true;
+			let imageBytes: Buffer | null = null;
 			if (freshImage) {
-				assetId = await this.imageStore.put(freshImage.mime, freshImage.bytes, protectedIds.concat(materializedAssetIds));
 				mime = freshImage.mime;
+				imageBytes = freshImage.bytes;
 				usedFallback = false;
+			} else if (assetId) {
+				imageBytes = await this.imageStore.get(assetId);
 			}
-			if (!assetId && previous?.imageSource && previous.imageSource === participant.imageSource && previous.imageAssetId) {
+			if (!imageBytes && previous?.imageSource && previous.imageSource === participant.imageSource && previous.imageAssetId) {
 				const previousBytes = await this.imageStore.get(previous.imageAssetId);
 				if (previousBytes) {
 					assetId = previous.imageAssetId;
+					imageBytes = previousBytes;
 					mime = mime ?? previous.imageMime;
 					width = width ?? previous.imageWidth;
 					height = height ?? previous.imageHeight;
 					usedFallback = previous.imageFallback === true;
 				}
 			}
-			if (!assetId || !(await this.imageStore.has(assetId))) {
-				if (!freshImage) {
-					const fallback = createFallbackSvg(participant.name, participant.colorHex, participant.side);
-					assetId = await this.imageStore.put(fallback.mime, fallback.bytes, protectedIds.concat(materializedAssetIds));
-					mime = fallback.mime;
-					width = 512;
-					height = 512;
-					usedFallback = true;
-				}
+			if (!imageBytes) {
+				const fallback = createFallbackSvg(participant.name, participant.colorHex, participant.side);
+				mime = fallback.mime;
+				imageBytes = fallback.bytes;
+				width = 512;
+				height = 512;
+				usedFallback = true;
+			}
+			if (!imageBytes) throw new Error(`Не удалось подготовить изображение токена «${participant.name}».`);
+			if (isRoundTokenSvg(imageBytes)) {
+				mime = "image/svg+xml";
+				const diameter = roundTokenDiameter(width, height);
+				width = diameter;
+				height = diameter;
+			} else {
+				const diameter = roundTokenDiameter(width, height);
+				assetId = await this.imageStore.put(
+					"image/svg+xml",
+					createRoundTokenSvg(mime ?? "image/png", imageBytes, diameter, diameter),
+					protectedIds.concat(materializedAssetIds),
+				);
+				mime = "image/svg+xml";
+				width = diameter;
+				height = diameter;
 			}
 			if (!assetId) throw new Error(`Не удалось подготовить изображение токена «${participant.name}».`);
 			const materializedParticipant = {

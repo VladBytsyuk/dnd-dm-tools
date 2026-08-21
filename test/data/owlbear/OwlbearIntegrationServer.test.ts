@@ -1,10 +1,11 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { WebSocket, type RawData } from "ws";
 import { OwlbearIntegrationServer } from "src/data/owlbear/OwlbearIntegrationServer";
-import { createTokenVisualSvg } from "src/data/owlbear/OwlbearImageAssetStore";
+import { createRoundTokenSvg, createTokenVisualSvg } from "src/data/owlbear/OwlbearImageAssetStore";
 import type { OwlbearEncounterSnapshot } from "src/domain/models/owlbear/OwlbearSync";
 import type { OwlbearPreviewSnapshot } from "src/domain/models/owlbear/OwlbearPreview";
 
@@ -56,6 +57,17 @@ async function createServer(): Promise<{ server: OwlbearIntegrationServer; cache
 }
 
 describe("Owlbear integration server snapshots", () => {
+	it("creates a center-cropped circular SVG token with transparent corners", () => {
+		const token = createRoundTokenSvg("image/png", Buffer.from("PNG"), 640, 480).toString("utf8");
+
+		expect(token).toContain('width="480" height="480"');
+		expect(token).toContain("dnd-dm-tools-round-token-v1");
+		expect(token).toContain('<clipPath id="round-token"><circle cx="240" cy="240" r="240"/></clipPath>');
+		expect(token).toContain('href="data:image/png;base64,UE5H"');
+		expect(token).toContain('preserveAspectRatio="xMidYMid slice"');
+		expect(token).toContain('clip-path="url(#round-token)"');
+	});
+
 	it("wraps token assets in a native-label-safe visual SVG", () => {
 		const visual = createTokenVisualSvg("image/png", Buffer.from("PNG"), "dead", 512, 256).toString("utf8");
 
@@ -86,9 +98,31 @@ describe("Owlbear integration server snapshots", () => {
 
 		expect(participant.imageAssetId).toMatch(/^[a-f0-9]{64}$/);
 		expect(participant.imageFallback).toBe(true);
+		expect(participant.imageMime).toBe("image/svg+xml");
+		expect(participant.imageWidth).toBe(512);
+		expect(participant.imageHeight).toBe(512);
 		expect(participant.imageDataUrl).toBeUndefined();
 		expect(participant.imageUrl).toBeUndefined();
-		expect((await readFile(join(cacheDirectory, participant.imageAssetId!))).toString("utf8")).toContain("ЛР");
+		const cached = (await readFile(join(cacheDirectory, participant.imageAssetId!))).toString("utf8");
+		const embeddedFallback = /base64,([^\"]+)/.exec(cached);
+		expect(Buffer.from(embeddedFallback?.[1] ?? "", "base64").toString("utf8")).toContain("ЛР");
+		expect(cached).toContain("dnd-dm-tools-round-token-v1");
+	});
+
+	it("materializes rectangular portraits as square circular SVG assets", async () => {
+		const { server, cacheDirectory } = await createServer();
+		const prepared = await server.materializeSnapshot(snapshot({
+			participants: [{
+				...snapshot().participants[0],
+				imageDataUrl: "data:image/png;base64,UE5H",
+				imageWidth: 640,
+				imageHeight: 480,
+			}],
+		}));
+		const participant = prepared.participants[0];
+
+		expect(participant).toMatchObject({ imageMime: "image/svg+xml", imageWidth: 480, imageHeight: 480, imageFallback: false });
+		expect((await readFile(join(cacheDirectory, participant.imageAssetId!))).toString("utf8")).toContain('preserveAspectRatio="xMidYMid slice"');
 	});
 
 	it("reuses a previous asset when only combat state changes", async () => {
@@ -97,6 +131,29 @@ describe("Owlbear integration server snapshots", () => {
 		const second = await server.materializeSnapshot(snapshot({ snapshotId: "snapshot-2", participants: [{ ...first.participants[0], hpCurrent: 4 }] }), first);
 
 		expect(second.participants[0].imageAssetId).toBe(first.participants[0].imageAssetId);
+	});
+
+	it("migrates a cached raw portrait once and reuses the circular asset", async () => {
+		const { server, cacheDirectory } = await createServer();
+		const bytes = Buffer.from("LEGACY");
+		const assetId = createHash("sha256").update("image/png").update(bytes).digest("hex");
+		await writeFile(join(cacheDirectory, assetId), bytes);
+		const legacy = snapshot({
+			participants: [{
+				...snapshot().participants[0],
+				imageAssetId: assetId,
+				imageMime: "image/png",
+				imageWidth: 120,
+				imageHeight: 80,
+			}],
+		});
+
+		const migrated = await server.materializeSnapshot(legacy);
+		const repeated = await server.materializeSnapshot({ ...legacy, snapshotId: "snapshot-2", participants: migrated.participants });
+
+		expect(migrated.participants[0]).toMatchObject({ imageMime: "image/svg+xml", imageWidth: 80, imageHeight: 80 });
+		expect(migrated.participants[0].imageAssetId).not.toBe(assetId);
+		expect(repeated.participants[0].imageAssetId).toBe(migrated.participants[0].imageAssetId);
 	});
 
 	it("replaces a cached fallback when the original image becomes available", async () => {
@@ -167,6 +224,7 @@ describe("Owlbear integration server transport", () => {
 		const publishing = server.publishPreview(preview);
 		const message = await published;
 		expect(message.preview.imageUrl).toMatch(/\/token-images\/[a-f0-9]{64}\/image%2Fpng$/);
+		expect(message.preview).toMatchObject({ imageMime: "image/png", imageWidth: 32, imageHeight: 16 });
 		client.send(JSON.stringify({ protocolVersion: 2, messageId: "preview-applied", type: "preview.applied", previewId: "preview-1" }));
 		await expect(publishing).resolves.toMatchObject({ imageAssetId: expect.any(String), imageDataUrl: undefined });
 	});

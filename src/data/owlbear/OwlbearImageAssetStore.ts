@@ -3,6 +3,7 @@ import { mkdir, readdir, readFile, rename, stat, unlink, utimes, writeFile } fro
 import { join } from "path";
 
 const DEFAULT_MAX_BYTES = 250 * 1024 * 1024;
+const ROUND_TOKEN_SVG_MARKER = "dnd-dm-tools-round-token-v1";
 
 export type ImageAsset = {
 	assetId: string;
@@ -101,6 +102,23 @@ export function createFallbackSvg(name: string, colorHex: string | undefined, si
 	const escapedInitials = initials.replace(/[&<>"']/g, (value) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" }[value]!));
 	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><circle cx="256" cy="256" r="248" fill="${color}"/><text x="256" y="286" text-anchor="middle" font-family="sans-serif" font-size="150" font-weight="700" fill="#ffffff">${escapedInitials}</text></svg>`;
 	return { assetId: "", mime: "image/svg+xml", bytes: Buffer.from(svg), };
+}
+
+export function createRoundTokenSvg(mime: string, bytes: Buffer, width: number, height: number): Buffer {
+	const diameter = roundTokenDiameter(width, height);
+	const source = `data:${mime};base64,${bytes.toString("base64")}`;
+	const radius = diameter / 2;
+	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${diameter}" height="${diameter}" viewBox="0 0 ${diameter} ${diameter}"><metadata>${ROUND_TOKEN_SVG_MARKER}</metadata><defs><clipPath id="round-token"><circle cx="${radius}" cy="${radius}" r="${radius}"/></clipPath></defs><image href="${source}" width="${diameter}" height="${diameter}" preserveAspectRatio="xMidYMid slice" clip-path="url(#round-token)"/></svg>`;
+	return Buffer.from(svg);
+}
+
+export function isRoundTokenSvg(bytes: Buffer): boolean {
+	return bytes.includes(ROUND_TOKEN_SVG_MARKER);
+}
+
+export function roundTokenDiameter(width: number | undefined, height: number | undefined): number {
+	const smallestSide = Math.min(width ?? 512, height ?? 512);
+	return Number.isFinite(smallestSide) && smallestSide > 0 ? Math.max(1, Math.floor(smallestSide)) : 512;
 }
 
 export function createTokenVisualSvg(mime: string, bytes: Buffer, state: TokenVisualState, width: number, height: number): Buffer {
