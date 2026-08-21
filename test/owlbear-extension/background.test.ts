@@ -183,6 +183,25 @@ describe("Owlbear background synchronization", () => {
 		}));
 	});
 
+	it("stops automatic reconnection after three failed attempts", async () => {
+		vi.useFakeTimers();
+		localStorage.setItem("dnd-dm-tools.owlbear.pairing", `dnd-dm-tools:v2:test.trycloudflare.com:${"s".repeat(32)}:${"a".repeat(32)}`);
+		await import("../../owlbear-extension/src/background");
+		const channel = backgroundMock.FakeBroadcastChannel.instances[0];
+
+		for (let attempt = 0; attempt < 3; attempt += 1) {
+			backgroundMock.FakeWebSocket.instances.at(-1)?.onclose?.({ code: 1006, reason: "" } as CloseEvent);
+			await vi.advanceTimersByTimeAsync(30_000);
+		}
+		backgroundMock.FakeWebSocket.instances.at(-1)?.onclose?.({ code: 1006, reason: "" } as CloseEvent);
+
+		expect(backgroundMock.FakeWebSocket.instances).toHaveLength(4);
+		expect(channel.messages).toContainEqual(expect.objectContaining({
+			type: "runtime.state",
+			state: expect.objectContaining({ lastError: expect.stringContaining("после 3 попыток") }),
+		}));
+	});
+
 	it("does not acknowledge or store a snapshot when the scene is not ready", async () => {
 		backgroundMock.pushSnapshotToScene.mockResolvedValue({ diagnostics: diagnostics(false), tokenLinks: [] });
 		const socket = await loadConnectedBackground();
