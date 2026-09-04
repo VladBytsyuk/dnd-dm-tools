@@ -1,6 +1,8 @@
 # UIKit
 
-The UIKit is the shared Svelte design system for DnD DM Tools. Its purpose is to reduce duplicated UI logic, keep list/detail behavior consistent across features, and centralize shared styling through semantic tokens.
+The UIKit is the plugin-local collection of existing Svelte components. Its purpose is to reduce duplicated UI logic, keep list/detail behavior consistent across features, and centralize shared styling through semantic tokens.
+
+The independent `design-system` workspace is currently an empty package scaffold. Existing UIKit components and tokens have not been migrated. New framework-agnostic primitives should be added to that package with a public export and Storybook story; repository-, domain-, or Obsidian-dependent compositions remain here.
 
 See also [UI Layer](./ui-layer.md).
 

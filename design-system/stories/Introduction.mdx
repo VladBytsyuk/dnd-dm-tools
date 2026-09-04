@@ -1,0 +1,16 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Introduction" />
+
+# DnD DM Tools Design System
+
+Это приватная Svelte-библиотека компонентов проекта DnD DM Tools.
+
+Первый релиз содержит только инфраструктуру. Компоненты и дизайн-токены будут добавляться отдельно.
+
+Каждый публичный компонент должен:
+
+- находиться в `src/lib`;
+- экспортироваться из `src/lib/index.ts`;
+- иметь colocated-файл `*.stories.ts`;
+- не импортировать код основного приложения, Obsidian или Electron.

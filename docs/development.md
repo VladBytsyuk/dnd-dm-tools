@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- **Node.js** 18.x or 20.x
+- **Node.js** 20.19 or newer
 - **npm** (bundled with Node.js)
 - An Obsidian vault for testing
 
@@ -34,6 +34,8 @@ For local testing, run `npm run release`, then symlink or copy `.release/dnd-dm-
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:cov` | Run tests with coverage report |
 | `npm run svelte-check` | Run Svelte type checking |
+| `npm run design-system:storybook` | Start the design-system Storybook on port 6006 |
+| `npm run design-system:validate` | Check and build the design-system package and Storybook |
 
 ## Svelte Warning Checks
 
@@ -68,7 +70,7 @@ Release builds copy these to `.release/dnd-dm-tools/`.
 
 ## GitHub Release
 
-GitHub Actions publishes a release after a push to `main` that increases the root `package.json` version. The release job waits for the full test matrix and the Owlbear extension deployment to GitHub Pages, then creates tag `v<version>` on that commit and uploads `dnd-dm-tools-<version>.7z`.
+GitHub Actions publishes a release after a push to `main` that increases the root `package.json` version. The release job waits for all checks and the Owlbear extension deployment to GitHub Pages, then creates tag `v<version>` on that commit and uploads `dnd-dm-tools-<version>.7z`.
 
 Before pushing a release version:
 
@@ -83,6 +85,7 @@ Published release tags and archives are immutable. Re-running a successful workf
 
 ```
 dnd-dm-tools/
+├── design-system/          # Private Svelte package and local Storybook
 ├── src/                    # Source code (see architecture.md)
 │   ├── main.ts             # Plugin entry point
 │   ├── domain/             # Business logic, models, interfaces
@@ -107,6 +110,7 @@ dnd-dm-tools/
 |------------|---------|---------|
 | TypeScript | 5.9 | Language |
 | Svelte | 5.38 | UI framework |
+| Storybook | 10 | Local design-system catalog |
 | Obsidian API | latest | Plugin host |
 | SQL.js | 1.13 | In-memory SQLite via WASM |
 | esbuild | 0.25 | Bundler |
@@ -127,16 +131,17 @@ Configured in `tsconfig.json` and `vitest.config.mts`:
 GitHub Actions (`.github/workflows/test.yml`) runs on push/PR to `main`:
 
 1. Checkout code
-2. Setup Node.js (matrix: 18.x, 20.x)
+2. Setup Node.js 20.x
 3. `npm ci`
-4. `npm run svelte-check`
-5. `npm test`
-6. `npm run test:cov`
-7. Upload coverage to Codecov
+4. `npm run design-system:validate`
+5. `npm run svelte-check`
+6. `npm test`
+7. `npm run test:cov`
+8. Upload coverage to Codecov
 
 ## Notes
 
 - Plugin UI text is in Russian
 - The plugin uses Svelte 5 runes syntax
 - `styles.css` defines the shared `--dnd-ui-*` design tokens and pattern tokens used by the UIKit
-- New shared UI work should extend `src/ui/layout/uikit/` before introducing feature-local chrome
+- Framework-agnostic shared components belong in `design-system`; plugin-specific compositions remain in `src/ui/layout/uikit/`
