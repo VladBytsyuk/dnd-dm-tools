@@ -32,6 +32,8 @@ export { default as Wrench } from "lucide-svelte/icons/wrench";
 export { default as SearchBar } from "./SearchBar.svelte";
 export type { SearchBarAction } from "./SearchBar.svelte";
 export { default as BaseSmallItem } from "./BaseSmallItem.svelte";
+export { default as FullItemHeader } from "./FullItemHeader.svelte";
+export type { FullItemSource } from "./FullItemHeader.svelte";
 export { default as SmallStatblock } from "./SmallStatblock.svelte";
 export { default as SmallSpell } from "./SmallSpell.svelte";
 export { default as SmallWeapon } from "./SmallWeapon.svelte";
