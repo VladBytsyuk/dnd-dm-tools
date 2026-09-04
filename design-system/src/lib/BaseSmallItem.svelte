@@ -1,6 +1,7 @@
 <script lang="ts">
 	import "@fontsource/golos-text/400.css";
 	import "@fontsource/golos-text/700.css";
+	import "./colors.css";
 	import type { SvelteHTMLElements } from "svelte/elements";
 	import UserCog from "lucide-svelte/icons/user-cog";
 
@@ -10,6 +11,7 @@
 		accentColor?: string;
 		primaryColor?: string;
 		secondaryColor?: string;
+		height?: number;
 		value?: string | number;
 		title?: string;
 		subtitle?: string;
@@ -21,9 +23,10 @@
 	};
 
 	let {
-		accentColor = "#ff0000",
+		accentColor,
 		primaryColor = "#303030",
 		secondaryColor = "#303030",
+		height = 64,
 		value,
 		title,
 		subtitle,
@@ -40,11 +43,14 @@
 	{...articleProps}
 	class="small-item"
 	data-state={state}
+	data-has-accent={Boolean(accentColor)}
 	data-has-value={value !== undefined}
 	data-has-meta={Boolean(source || secondarySource || Icon)}
-	style={`--accent-color: ${accentColor}; --primary-color: ${primaryColor}; --secondary-color: ${secondaryColor}`}
+	style={`--accent-color: ${accentColor}; --primary-color: ${primaryColor}; --secondary-color: ${secondaryColor}; --item-height: ${height}px`}
 >
-	<div class="accent" aria-hidden="true"></div>
+	{#if accentColor}
+		<div class="accent" aria-hidden="true"></div>
+	{/if}
 	{#if value !== undefined}
 		<div class="value">{value}</div>
 	{/if}
@@ -74,7 +80,7 @@
 		grid-template-columns: 8px 48px minmax(0, 1fr) 32px;
 		width: 100%;
 		min-width: 0;
-		height: 64px;
+		height: var(--item-height);
 		overflow: hidden;
 		border: 0;
 		border-radius: 8px;
@@ -96,7 +102,11 @@
 	.content span, .content p, .meta span { font-size: 8px; font-weight: 400; line-height: 10px; }
 	.content p { margin: 0; }
 	.meta { align-items: end; min-width: 0; padding: 8px; color: rgb(255 255 255 / 80%); }
-	.small-item[data-has-value="false"] { grid-template-columns: 8px minmax(0, 1fr) 32px; }
-	.small-item[data-has-meta="false"] { grid-template-columns: 8px 48px minmax(0, 1fr); }
-	.small-item[data-has-value="false"][data-has-meta="false"] { grid-template-columns: 8px minmax(0, 1fr); }
+	.small-item[data-has-accent="true"][data-has-value="false"] { grid-template-columns: 8px minmax(0, 1fr) 32px; }
+	.small-item[data-has-accent="true"][data-has-meta="false"] { grid-template-columns: 8px 48px minmax(0, 1fr); }
+	.small-item[data-has-accent="true"][data-has-value="false"][data-has-meta="false"] { grid-template-columns: 8px minmax(0, 1fr); }
+	.small-item[data-has-accent="false"] { grid-template-columns: 48px minmax(0, 1fr) 32px; }
+	.small-item[data-has-accent="false"][data-has-value="false"] { grid-template-columns: minmax(0, 1fr) 32px; }
+	.small-item[data-has-accent="false"][data-has-meta="false"] { grid-template-columns: 48px minmax(0, 1fr); }
+	.small-item[data-has-accent="false"][data-has-value="false"][data-has-meta="false"] { grid-template-columns: minmax(0, 1fr); }
 </style>
