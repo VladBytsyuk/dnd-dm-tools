@@ -34,6 +34,7 @@
 		"svelte": "^5.38.1"
 	},
 	"dependencies": {
+		"@fontsource/golos-text": "^5.3.0",
 		"lucide-svelte": "^0.477.0"
 	},
 	"devDependencies": {
