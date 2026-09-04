@@ -18,7 +18,8 @@
 			"types": "./dist/index.d.ts",
 			"svelte": "./dist/index.js",
 			"default": "./dist/index.js"
-		}
+		},
+		"./colors.css": "./dist/colors.css"
 	},
 	"scripts": {
 		"check:boundaries": "node scripts/check-boundaries.mjs",
