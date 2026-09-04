@@ -36,6 +36,8 @@ export { default as FullItemHeader } from "./FullItemHeader.svelte";
 export type { FullItemSource } from "./FullItemHeader.svelte";
 export { default as ImageGroup } from "./ImageGroup.svelte";
 export { default as Chip } from "./Chip.svelte";
+export { default as ChipsList } from "./ChipsList.svelte";
+export type { ChipsListItem } from "./ChipsList.svelte";
 export { default as SmallStatblock } from "./SmallStatblock.svelte";
 export { default as SmallSpell } from "./SmallSpell.svelte";
 export { default as SmallWeapon } from "./SmallWeapon.svelte";
