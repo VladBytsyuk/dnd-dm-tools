@@ -6,7 +6,9 @@ const config: StorybookConfig = {
 	addons: ["@storybook/addon-docs"],
 	framework: {
 		name: "@storybook/svelte-vite",
-		options: {},
+		options: {
+			docgen: false,
+		},
 	},
 	viteFinal: async (viteConfig) => ({
 		...viteConfig,
