@@ -31,6 +31,7 @@ export { default as Weight } from "lucide-svelte/icons/weight";
 export { default as Wrench } from "lucide-svelte/icons/wrench";
 export { default as SearchBar } from "./SearchBar.svelte";
 export type { SearchBarAction } from "./SearchBar.svelte";
+export { default as BaseSmallItem } from "./BaseSmallItem.svelte";
 export { default as EyeDashed } from "./icons/EyeDashed.svelte";
 export { default as HandFist } from "./icons/HandFist.svelte";
 export { default as One } from "./icons/One.svelte";
