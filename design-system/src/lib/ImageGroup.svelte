@@ -1,21 +1,32 @@
 <script lang="ts">
 	import ChevronLeft from "lucide-svelte/icons/chevron-left";
 	import ChevronRight from "lucide-svelte/icons/chevron-right";
+	import Plus from "lucide-svelte/icons/plus";
+	import Chip from "./Chip.svelte";
 
 	type Props = {
-		images: string[];
+		images?: string[];
 		alt?: string;
 		size?: number;
 		fluid?: boolean;
 		initialIndex?: number;
 		onChange?: (index: number) => void;
+		editable?: boolean;
 	};
 
 	function getInitialIndex() {
 		return Math.min(Math.max(initialIndex, 0), Math.max(images.length - 1, 0));
 	}
 
-	let { images, alt = "Изображение", size = 128, fluid = false, initialIndex = 0, onChange }: Props = $props();
+	let {
+		images = $bindable<string[]>([]),
+		alt = "Изображение",
+		size = 128,
+		fluid = false,
+		initialIndex = 0,
+		onChange,
+		editable = false,
+	}: Props = $props();
 	let currentIndex = $state(getInitialIndex());
 	let currentImage = $derived(images[currentIndex]);
 	let hasControls = $derived(images.length > 1);
@@ -26,7 +37,14 @@
 	}
 </script>
 
-{#if currentImage}
+{#if editable}
+	<div class="image-inputs">
+		{#each images as _, index}
+			<input bind:value={images[index]} aria-label={`Ссылка на изображение ${index + 1}`} />
+		{/each}
+		<Chip icon={Plus} />
+	</div>
+{:else if currentImage}
 	<div class:fluid class="image-group" style={`--image-size: ${size}px`}>
 		<img src={currentImage} {alt} />
 		{#if hasControls}
@@ -47,6 +65,40 @@
 		position: relative;
 		width: var(--image-size);
 		height: var(--image-size);
+	}
+
+	.image-inputs {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 4px;
+		width: 100%;
+		min-width: 0;
+		font-family: "Golos Text", sans-serif;
+	}
+
+	.image-inputs input {
+		box-sizing: border-box;
+		width: 100%;
+		min-width: 0;
+		padding: 4px 6px;
+		border: 0;
+		border-radius: 4px;
+		outline: 0;
+		background: rgb(212 212 212 / 40%);
+		color: #fff;
+		font: inherit;
+		font-size: 10px;
+		line-height: 12px;
+	}
+
+	.image-inputs input:focus-visible {
+		outline: 1px solid #fff;
+		outline-offset: 2px;
+	}
+
+	.image-inputs :global(.chip) {
+		align-self: center;
 	}
 
 	.image-group.fluid {

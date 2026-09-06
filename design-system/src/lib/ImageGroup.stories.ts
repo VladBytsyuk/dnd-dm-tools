@@ -22,3 +22,11 @@ export const Multiple: Story = {
 export const Single: Story = {
 	args: { images: [image("#6d28d9", "1")], alt: "Иллюстрация существа" },
 };
+
+export const Editable: Story = {
+	args: {
+		images: [image("#6d28d9", "1"), image("#0f766e", "2")],
+		alt: "Иллюстрация существа",
+		editable: true,
+	},
+};
