@@ -19,6 +19,7 @@
 		initialIndex?: number;
 		onChange?: (index: number) => void;
 		editable?: boolean;
+		theme?: "dark" | "light";
 	};
 
 	let {
@@ -37,20 +38,21 @@
 		initialIndex,
 		onChange,
 		editable = false,
+		theme = "dark",
 	}: Props = $props();
 
 	let coloredChips = $derived(chips.map((chip) => ({ ...chip, background: chip.background ?? accentColor })));
 </script>
 
-<section class="max-item-header" style={`--image-size: ${size ?? 128}px`}>
+<section class="max-item-header" data-theme={theme} style={`--image-size: ${size ?? 128}px`}>
 	<div class="content">
-		<FullItemHeader {russianName} {englishName} {entityLink} {badge} {info} {source} {onCopy} {editable} />
+		<FullItemHeader {russianName} {englishName} {entityLink} {badge} {info} {source} {onCopy} {editable} {theme} />
 		{#if coloredChips.length > 0 || editable}
-			<ChipsList chips={coloredChips} {editable} />
+			<ChipsList chips={coloredChips} {editable} {theme} />
 		{/if}
 	</div>
 
-	<ImageGroup {images} {alt} {size} fluid {initialIndex} {onChange} {editable} />
+	<ImageGroup {images} {alt} {size} fluid {initialIndex} {onChange} {editable} {theme} />
 </section>
 
 <style>

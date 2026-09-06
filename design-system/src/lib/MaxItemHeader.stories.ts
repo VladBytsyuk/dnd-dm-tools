@@ -37,7 +37,18 @@ export const Default: Story = {
 		],
 		images: [image("#4d7c0f", "O"), image("#0f766e", "2")],
 		alt: "Огремох",
+		theme: "dark",
 	},
+};
+
+export const Dark: Story = {
+	globals: { backgrounds: { value: "dark" } },
+	args: { ...Default.args, theme: "dark" },
+};
+
+export const Light: Story = {
+	globals: { backgrounds: { value: "light" } },
+	args: { ...Default.args, theme: "light" },
 };
 
 export const WithoutImage: Story = {
