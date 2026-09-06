@@ -21,6 +21,7 @@
 		source?: FullItemSource;
 		onCopy?: (text: string) => void;
 		editable?: boolean;
+		theme?: "dark" | "light";
 	};
 
 	let {
@@ -32,6 +33,7 @@
 		source = $bindable(),
 		onCopy,
 		editable = false,
+		theme = "dark",
 	}: Props = $props();
 
 	async function copy(text: string) {
@@ -53,7 +55,7 @@
 	}
 </script>
 
-<header class="full-item-header">
+<header class="full-item-header" data-theme={theme}>
 	<div class="names">
 		{#if editable}
 			<input class="name russian-name" bind:value={russianName} aria-label="Русское название" />
@@ -147,6 +149,8 @@
 	.russian-name { font-size: 16px; font-weight: 700; line-height: 19px; }
 	.english-name, .info { font-size: 10px; font-weight: 400; line-height: 12px; }
 	.entity-link, .source { color: rgb(255 255 255 / 70%); font-size: 8px; font-weight: 400; line-height: 10px; }
+	.full-item-header[data-theme="light"] { color: #1f2937; }
+	.full-item-header[data-theme="light"] .entity-link, .full-item-header[data-theme="light"] .source { color: rgb(31 41 55 / 70%); }
 	.badge { font-size: 16px; font-weight: 700; line-height: 19px; }
 	button.name:hover, button.entity-link:hover, .source:hover { text-decoration: underline; }
 	button.name:focus-visible, button.entity-link:focus-visible, .source:focus-visible, input.name:focus-visible, input.entity-link:focus-visible, input.badge:focus-visible, input.info:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
