@@ -26,3 +26,10 @@ export const Default: Story = {
 		},
 	},
 };
+
+export const Editable: Story = {
+	args: {
+		...Default.args,
+		editable: true,
+	},
+};
