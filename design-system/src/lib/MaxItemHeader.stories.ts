@@ -22,6 +22,7 @@ export const Default: Story = {
 		russianName: "Огремох",
 		englishName: "Ogrémoch",
 		entityLink: "/bestiary/ogremoch",
+		badge: 20,
 		info: "Громадный элементаль",
 		source: {
 			shortName: "PHB",
