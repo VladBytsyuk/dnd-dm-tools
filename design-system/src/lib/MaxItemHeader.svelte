@@ -18,6 +18,7 @@
 		size?: number;
 		initialIndex?: number;
 		onChange?: (index: number) => void;
+		editable?: boolean;
 	};
 
 	let {
@@ -35,6 +36,7 @@
 		size,
 		initialIndex,
 		onChange,
+		editable = false,
 	}: Props = $props();
 
 	let coloredChips = $derived(chips.map((chip) => ({ ...chip, background: chip.background ?? accentColor })));
@@ -42,13 +44,13 @@
 
 <section class="max-item-header" style={`--image-size: ${size ?? 128}px`}>
 	<div class="content">
-		<FullItemHeader {russianName} {englishName} {entityLink} {badge} {info} {source} {onCopy} />
-		{#if coloredChips.length > 0}
-			<ChipsList chips={coloredChips} />
+		<FullItemHeader {russianName} {englishName} {entityLink} {badge} {info} {source} {onCopy} {editable} />
+		{#if coloredChips.length > 0 || editable}
+			<ChipsList chips={coloredChips} {editable} />
 		{/if}
 	</div>
 
-	<ImageGroup {images} {alt} {size} fluid {initialIndex} {onChange} />
+	<ImageGroup {images} {alt} {size} fluid {initialIndex} {onChange} {editable} />
 </section>
 
 <style>

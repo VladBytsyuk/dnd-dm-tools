@@ -45,3 +45,10 @@ export const WithoutImage: Story = {
 		images: [],
 	},
 };
+
+export const Editable: Story = {
+	args: {
+		...Default.args,
+		editable: true,
+	},
+};
