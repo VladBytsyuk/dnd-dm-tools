@@ -42,6 +42,8 @@ export { default as Chip } from "./Chip.svelte";
 export { default as ChipsList } from "./ChipsList.svelte";
 export type { ChipsListItem } from "./ChipsList.svelte";
 export { default as Components } from "./Components.svelte";
+export { default as ActionsBlock } from "./ActionsBlock.svelte";
+export type { ActionsBlockItem } from "./ActionsBlock.svelte";
 export { default as TextBlock } from "./TextBlock.svelte";
 export { default as FilledTextBlock } from "./FilledTextBlock.svelte";
 export { default as Footer } from "./Footer.svelte";
