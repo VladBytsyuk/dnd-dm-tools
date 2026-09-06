@@ -26,9 +26,26 @@ const args = {
 	icon: UserCog,
 };
 
-export const Default: Story = { args };
-export const Hovered: Story = { args: { ...args, state: "hovered" } };
-export const Clicked: Story = { args: { ...args, state: "clicked" } };
+const lightArgs = {
+	...args,
+	accentColor: "#334155",
+	primaryColor: "#f8fafc",
+	secondaryColor: "#e2e8f0",
+};
+
+export const Dark: Story = {
+	globals: { backgrounds: { value: "dark" } },
+	args: { ...args, theme: "dark" },
+};
+
+export const Light: Story = {
+	globals: { backgrounds: { value: "light" } },
+	args: { ...lightArgs, theme: "light" },
+};
+
+export const Default: Story = { args: { ...args, theme: "dark" } };
+export const Hovered: Story = { args: { ...args, theme: "dark", state: "hovered" } };
+export const Clicked: Story = { args: { ...args, theme: "dark", state: "clicked" } };
 export const Compact: Story = {
 	args: {
 		accentColor: "#0f766e",
@@ -37,5 +54,6 @@ export const Compact: Story = {
 		title: "Арбалетные болты",
 		subtitle: "Crossbow Bolt",
 		source: "PHB",
+		theme: "dark",
 	},
 };

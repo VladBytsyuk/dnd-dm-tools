@@ -20,6 +20,7 @@
 		secondarySource?: string;
 		icon?: Icon;
 		state?: "default" | "hovered" | "clicked";
+		theme?: "dark" | "light";
 	};
 
 	let {
@@ -35,6 +36,7 @@
 		secondarySource,
 		icon: Icon,
 		state = "default",
+		theme = "dark",
 		...articleProps
 	}: Props = $props();
 </script>
@@ -43,6 +45,7 @@
 	{...articleProps}
 	class="small-item"
 	data-state={state}
+	data-theme={theme}
 	data-has-accent={Boolean(accentColor)}
 	data-has-value={value !== undefined}
 	data-has-meta={Boolean(source || secondarySource || Icon)}
@@ -104,6 +107,9 @@
 	.small-item:hover::after, .small-item[data-state="hovered"]::after { background: rgb(0 0 0 / 10%); }
 	.small-item:active, .small-item[data-state="clicked"] { box-shadow: 0 1px 1px rgb(0 0 0 / 25%); }
 	.small-item:active::after, .small-item[data-state="clicked"]::after { background: rgb(0 0 0 / 25%); }
+	.small-item[data-theme="light"] { color: #1f2937; }
+	.small-item[data-theme="light"]:hover::after, .small-item[data-theme="light"][data-state="hovered"]::after { background: rgb(15 23 42 / 12%); }
+	.small-item[data-theme="light"]:active::after, .small-item[data-theme="light"][data-state="clicked"]::after { background: rgb(15 23 42 / 24%); }
 	.accent { background: var(--accent-color); }
 	.value { display: grid; place-items: center; padding: 8px; font-size: 24px; font-weight: 700; line-height: 1; }
 	.content, .meta { display: flex; flex-direction: column; justify-content: space-between; }
@@ -114,6 +120,7 @@
 	.content span, .content p, .meta span { font-size: 8px; font-weight: 400; line-height: 10px; }
 	.content p { margin: 0; }
 	.meta { align-items: end; min-width: 0; padding: 8px; color: rgb(255 255 255 / 80%); }
+	.small-item[data-theme="light"] .meta { color: rgb(31 41 55 / 80%); }
 	.small-item[data-has-accent="true"][data-has-value="false"] { grid-template-columns: 8px minmax(0, 1fr) 32px; }
 	.small-item[data-has-accent="true"][data-has-meta="false"] { grid-template-columns: 8px 48px minmax(0, 1fr); }
 	.small-item[data-has-accent="true"][data-has-value="false"][data-has-meta="false"] { grid-template-columns: 8px minmax(0, 1fr); }
