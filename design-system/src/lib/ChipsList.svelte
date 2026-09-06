@@ -18,17 +18,18 @@
 	type Props = {
 		chips?: ChipsListItem[];
 		editable?: boolean;
+		theme?: "dark" | "light";
 	};
 
-	let { chips = [], editable = false }: Props = $props();
+	let { chips = [], editable = false, theme = "dark" }: Props = $props();
 </script>
 
-<div class="chips-list">
+<div class="chips-list" data-theme={theme}>
 	{#each chips as chip}
-		<Chip {...chip} editable={editable || chip.editable} />
+		<Chip {...chip} {theme} editable={editable || chip.editable} />
 	{/each}
 	{#if editable}
-		<Chip icon={Plus} />
+		<Chip icon={Plus} {theme} />
 	{/if}
 </div>
 
