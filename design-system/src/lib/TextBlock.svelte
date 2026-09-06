@@ -11,6 +11,7 @@
 		icon?: Icon;
 		expanded?: boolean;
 		editable?: boolean;
+		theme?: "dark" | "light";
 	};
 
 	let {
@@ -19,13 +20,14 @@
 		icon: Icon,
 		expanded = $bindable(true),
 		editable = false,
+		theme = "dark",
 	}: Props = $props();
 
 	let isCollapsible = $derived(Boolean(Icon && title));
 	let isContentVisible = $derived(!isCollapsible || expanded || editable);
 </script>
 
-<section class="text-block">
+<section class="text-block" data-theme={theme}>
 	{#if title || editable}
 		{#if isCollapsible && !editable}
 			<button
@@ -67,6 +69,8 @@
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
 	}
+
+	.text-block[data-theme="light"] { color: #1f2937; }
 
 	.header {
 		display: flex;

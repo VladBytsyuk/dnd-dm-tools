@@ -11,6 +11,7 @@
 		expanded?: boolean;
 		editable?: boolean;
 		background?: string;
+		theme?: "dark" | "light";
 	};
 
 	let {
@@ -20,11 +21,12 @@
 		expanded = $bindable(true),
 		editable = false,
 		background = "rgb(212 212 212 / 40%)",
+		theme = "dark",
 	}: Props = $props();
 </script>
 
-<section class="filled-text-block" style:background>
-	<TextBlock bind:title bind:text icon={Icon} bind:expanded {editable} />
+<section class="filled-text-block" data-theme={theme} style:background>
+	<TextBlock bind:title bind:text icon={Icon} bind:expanded {editable} {theme} />
 </section>
 
 <style>
