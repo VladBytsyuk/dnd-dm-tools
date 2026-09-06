@@ -15,6 +15,7 @@
 	font-weight: 400;
 	line-height: 10px;
 	text-align: center;
+	table-layout: fixed;
 }
 
 .dnd-table th,
@@ -24,15 +25,15 @@
 	overflow-wrap: anywhere;
 }
 
+.dnd-table tbody td {
+	height: 14px;
+}
+
 .dnd-table thead th {
 	height: 16px;
 	background: var(--dnd-table-accent);
 	color: #fff;
 	font-weight: 700;
-}
-
-.dnd-table tbody td {
-	height: 14px;
 }
 
 .dnd-table tbody tr:nth-child(odd) {
@@ -41,4 +42,39 @@
 
 .dnd-table tbody tr:nth-child(even) {
 	background: color-mix(in srgb, var(--dnd-table-accent) 5%, transparent);
+}
+
+.dnd-table[data-theme="light"] {
+	color: #1f2937;
+}
+
+.dnd-table[data-theme="light"] thead th {
+	color: #1f2937;
+}
+
+.dnd-table[data-theme="light"] tbody tr:nth-child(odd) {
+	background: color-mix(in srgb, var(--dnd-table-accent) 15%, white);
+}
+
+.dnd-table[data-theme="light"] tbody tr:nth-child(even) {
+	background: color-mix(in srgb, var(--dnd-table-accent) 5%, white);
+}
+
+.dnd-table input {
+	box-sizing: border-box;
+	width: 100%;
+	min-width: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	line-height: inherit;
+	text-align: inherit;
+}
+
+.dnd-table input:focus-visible {
+	outline: 1px solid currentcolor;
+	outline-offset: -1px;
 }

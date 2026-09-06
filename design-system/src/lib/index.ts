@@ -48,6 +48,8 @@ export type { ActionsBlockItem } from "./ActionsBlock.svelte";
 export { default as TextBlock } from "./TextBlock.svelte";
 export { default as FilledTextBlock } from "./FilledTextBlock.svelte";
 export { default as Footer } from "./Footer.svelte";
+export { default as Table } from "./Table.svelte";
+export type { TableValue } from "./Table.svelte";
 export { default as SmallStatblock } from "./SmallStatblock.svelte";
 export { default as SmallSpell } from "./SmallSpell.svelte";
 export { default as SmallWeapon } from "./SmallWeapon.svelte";
