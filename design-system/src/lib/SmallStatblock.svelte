@@ -9,9 +9,10 @@
 		source: string;
 		secondarySource: string;
 		state?: "default" | "hovered" | "clicked";
+		theme?: "dark" | "light";
 	};
 
-	let { challengeRating, creatureTypeColor, title, subtitle, description, source, secondarySource, state }: Props = $props();
+	let { challengeRating, creatureTypeColor, title, subtitle, description, source, secondarySource, state, theme = "dark" }: Props = $props();
 </script>
 
 <BaseSmallItem
@@ -26,4 +27,5 @@
 	{source}
 	{secondarySource}
 	{state}
+	{theme}
 />
