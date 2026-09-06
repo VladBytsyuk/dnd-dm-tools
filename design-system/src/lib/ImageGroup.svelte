@@ -6,6 +6,7 @@
 		images: string[];
 		alt?: string;
 		size?: number;
+		fluid?: boolean;
 		initialIndex?: number;
 		onChange?: (index: number) => void;
 	};
@@ -14,7 +15,7 @@
 		return Math.min(Math.max(initialIndex, 0), Math.max(images.length - 1, 0));
 	}
 
-	let { images, alt = "Изображение", size = 128, initialIndex = 0, onChange }: Props = $props();
+	let { images, alt = "Изображение", size = 128, fluid = false, initialIndex = 0, onChange }: Props = $props();
 	let currentIndex = $state(getInitialIndex());
 	let currentImage = $derived(images[currentIndex]);
 	let hasControls = $derived(images.length > 1);
@@ -26,7 +27,7 @@
 </script>
 
 {#if currentImage}
-	<div class="image-group" style={`--image-size: ${size}px`}>
+	<div class:fluid class="image-group" style={`--image-size: ${size}px`}>
 		<img src={currentImage} {alt} />
 		{#if hasControls}
 			<div class="controls" aria-label="Переключение изображений">
@@ -46,6 +47,12 @@
 		position: relative;
 		width: var(--image-size);
 		height: var(--image-size);
+	}
+
+	.image-group.fluid {
+		width: min(var(--image-size), 100%);
+		height: auto;
+		aspect-ratio: 1;
 	}
 
 	img {

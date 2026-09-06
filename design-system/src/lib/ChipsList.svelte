@@ -4,14 +4,15 @@
 
 	type Icon = typeof Sword;
 
-	export type ChipsListItem = {
-		text?: string;
-		icon?: Icon;
-		iconTooltip?: string;
-		imageSrc?: string;
-		imageAlt?: string;
-		editable?: boolean;
-	};
+export type ChipsListItem = {
+	text?: string;
+	icon?: Icon;
+	iconTooltip?: string;
+	imageSrc?: string;
+	imageAlt?: string;
+	editable?: boolean;
+	background?: string;
+};
 
 	type Props = {
 		chips?: ChipsListItem[];

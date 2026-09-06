@@ -11,6 +11,7 @@
 		imageSrc?: string;
 		imageAlt?: string;
 		editable?: boolean;
+		background?: string;
 	};
 
 	let {
@@ -20,10 +21,11 @@
 		imageSrc,
 		imageAlt = "",
 		editable = false,
+		background = "rgb(212 212 212 / 40%)",
 	}: Props = $props();
 </script>
 
-<span class="chip" data-editable={editable}>
+<span class="chip" data-editable={editable} style:--chip-background={background}>
 	{#if Icon}
 		{#if iconTooltip}
 			<button type="button" class="icon-wrapper" aria-label={iconTooltip}>
@@ -52,7 +54,7 @@
 		min-width: 0;
 		padding: 2px;
 		border-radius: 4px;
-		background: rgb(212 212 212 / 40%);
+		background: var(--chip-background);
 		box-shadow: 0 2px 2px rgb(0 0 0 / 25%);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
@@ -63,12 +65,12 @@
 	}
 
 	.chip:hover {
-		background: linear-gradient(rgb(48 48 48 / 20%), rgb(48 48 48 / 20%)), rgb(212 212 212 / 40%);
+		background: linear-gradient(rgb(48 48 48 / 20%), rgb(48 48 48 / 20%)), var(--chip-background);
 		box-shadow: 0 6px 6px rgb(0 0 0 / 25%);
 	}
 
 	.chip:active {
-		background: linear-gradient(rgb(0 0 0 / 40%), rgb(0 0 0 / 40%)), rgb(212 212 212 / 40%);
+		background: linear-gradient(rgb(0 0 0 / 40%), rgb(0 0 0 / 40%)), var(--chip-background);
 		box-shadow: 0 1px 1px rgb(0 0 0 / 25%);
 	}
 
