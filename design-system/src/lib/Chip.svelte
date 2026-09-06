@@ -39,7 +39,7 @@
 	{#if imageSrc}<img class="image" src={imageSrc} alt={imageAlt} />{/if}
 	{#if editable}
 		<input bind:value={text} aria-label="Текст чипа" />
-	{:else}
+	{:else if text}
 		<span class="text">{text}</span>
 	{/if}
 </span>
