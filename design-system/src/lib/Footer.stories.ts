@@ -19,3 +19,7 @@ export const Default: Story = {
 export const LongText: Story = {
 	args: { text: "Волшебник школы воплощения, использующий тайную магию" },
 };
+
+export const Editable: Story = {
+	args: { text: "Волшебник", editable: true },
+};

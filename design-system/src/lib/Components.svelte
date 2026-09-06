@@ -9,42 +9,87 @@
 		verbal?: boolean;
 		material?: string;
 		background?: string;
+		editable?: boolean;
 	};
 
 	let {
-		somatic = false,
-		verbal = false,
-		material,
+		somatic = $bindable(false),
+		verbal = $bindable(false),
+		material = $bindable<string | undefined>(),
 		background = "rgb(212 212 212 / 40%)",
+		editable = false,
 	}: Props = $props();
+
+	let materialIsActive = $derived(material !== undefined);
+
+	function toggleMaterial() {
+		material = materialIsActive ? undefined : "";
+	}
 </script>
 
 <div class="components" aria-label="Компоненты заклинания">
-	{#if somatic}
-		<span class="component-chip" style:--component-background={background}>
-			<button type="button" class="icon-button" aria-label="Соматический">
+	{#if editable || somatic}
+		<span
+			class:inactive={!somatic}
+			class:editable
+			class="component-chip"
+			style:--component-background={background}
+		>
+			<button
+				type="button"
+				class="icon-button"
+				aria-label="Соматический"
+				aria-pressed={editable ? somatic : undefined}
+				onclick={editable ? () => (somatic = !somatic) : undefined}
+			>
 				<HandHelping size={12} strokeWidth={1.5} aria-hidden={true} />
 				<span class="tooltip" role="tooltip">Соматический</span>
 			</button>
 		</span>
 	{/if}
 
-	{#if verbal}
-		<span class="component-chip" style:--component-background={background}>
-			<button type="button" class="icon-button" aria-label="Вербальный">
+	{#if editable || verbal}
+		<span
+			class:inactive={!verbal}
+			class:editable
+			class="component-chip"
+			style:--component-background={background}
+		>
+			<button
+				type="button"
+				class="icon-button"
+				aria-label="Вербальный"
+				aria-pressed={editable ? verbal : undefined}
+				onclick={editable ? () => (verbal = !verbal) : undefined}
+			>
 				<Speech size={12} strokeWidth={1.5} aria-hidden={true} />
 				<span class="tooltip" role="tooltip">Вербальный</span>
 			</button>
 		</span>
 	{/if}
 
-	{#if material}
-		<span class="component-chip material" style:--component-background={background}>
-			<button type="button" class="icon-button" aria-label="Материальный">
+	{#if editable || materialIsActive}
+		<span
+			class:inactive={!materialIsActive}
+			class:editable
+			class="component-chip material"
+			style:--component-background={background}
+		>
+			<button
+				type="button"
+				class="icon-button"
+				aria-label="Материальный"
+				aria-pressed={editable ? materialIsActive : undefined}
+				onclick={editable ? toggleMaterial : undefined}
+			>
 				<PackageOpen size={12} strokeWidth={1.5} aria-hidden={true} />
 				<span class="tooltip" role="tooltip">Материальный</span>
 			</button>
-			<span class="material-text">{material}</span>
+			{#if editable && materialIsActive}
+				<input class="material-text" bind:value={material} aria-label="Материальный компонент" />
+			{:else}
+				<span class="material-text">{material}</span>
+			{/if}
 		</span>
 	{/if}
 </div>
@@ -84,6 +129,10 @@
 		box-shadow: 0 1px 1px rgb(0 0 0 / 25%);
 	}
 
+	.component-chip.inactive {
+		opacity: 0.4;
+	}
+
 	.material {
 		flex: 0 1 auto;
 		align-items: flex-start;
@@ -103,6 +152,10 @@
 		background: transparent;
 		color: inherit;
 		cursor: default;
+	}
+
+	.component-chip.editable .icon-button {
+		cursor: pointer;
 	}
 
 	.icon-button:focus-visible {
@@ -146,5 +199,22 @@
 		font-weight: 400;
 		line-height: 12px;
 		overflow-wrap: anywhere;
+	}
+
+	input.material-text {
+		box-sizing: border-box;
+		flex: 1 1 auto;
+		width: 100%;
+		padding: 0;
+		border: 0;
+		border-radius: 0;
+		appearance: none;
+		background: transparent;
+		text-align: inherit;
+	}
+
+	input.material-text:focus-visible {
+		outline: 1px solid #fff;
+		outline-offset: 1px;
 	}
 </style>

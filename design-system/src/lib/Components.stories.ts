@@ -28,6 +28,14 @@ export const Material: Story = {
 	args: { material: "небольшой кусочек фосфора" },
 };
 
+export const Editable: Story = {
+	args: { material: "небольшой кусочек фосфора", editable: true },
+};
+
+export const EditableEmpty: Story = {
+	args: { editable: true },
+};
+
 export const LongMaterial: Story = {
 	args: {
 		somatic: true,

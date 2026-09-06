@@ -3,12 +3,19 @@
 
 	type Props = {
 		text?: string;
+		editable?: boolean;
 	};
 
-	let { text = "" }: Props = $props();
+	let { text = $bindable(""), editable = false }: Props = $props();
 </script>
 
-<footer>{text}</footer>
+<footer>
+	{#if editable}
+		<input bind:value={text} aria-label="Текст подвала" />
+	{:else}
+		{text}
+	{/if}
+</footer>
 
 <style>
 	footer {
@@ -20,5 +27,26 @@
 		font-weight: 400;
 		line-height: 10px;
 		overflow-wrap: anywhere;
+	}
+
+	footer input {
+		width: 100%;
+		min-width: 0;
+		padding: 0;
+		border: 0;
+		border-radius: 0;
+		appearance: none;
+		background: transparent;
+		color: inherit;
+		font-family: inherit;
+		font-size: inherit;
+		font-weight: inherit;
+		line-height: inherit;
+		text-align: inherit;
+	}
+
+	footer input:focus-visible {
+		outline: 1px solid currentcolor;
+		outline-offset: 2px;
 	}
 </style>
