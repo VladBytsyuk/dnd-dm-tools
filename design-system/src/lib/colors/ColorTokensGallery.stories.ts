@@ -11,4 +11,14 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const All: Story = {};
+export const Dark: Story = {
+	globals: { backgrounds: { value: "dark" } },
+	args: { theme: "dark" },
+};
+
+export const Light: Story = {
+	globals: { backgrounds: { value: "light" } },
+	args: { theme: "light" },
+};
+
+export const All: Story = { args: { theme: "dark" } };

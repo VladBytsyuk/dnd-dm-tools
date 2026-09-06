@@ -1,6 +1,9 @@
 <script lang="ts">
 	import "../colors.css";
 
+	type Props = { theme?: "dark" | "light" };
+	let { theme = "dark" }: Props = $props();
+
 	const groups = [
 		["Разделы", [["DsBestiary", "--ds-bestiary", "#B91C1C"], ["DsBestiarySub", "--ds-bestiary-sub", "#FB7185"], ["DsSpell", "--ds-spell", "#6D28D9"], ["DsSpellSub", "--ds-spell-sub", "#67E8F9"], ["DsWeapon", "--ds-weapon", "#B7791F"], ["DsWeaponSub", "--ds-weapon-sub", "#F2C14E"], ["DsArmor", "--ds-armor", "#64748B"], ["DsArmorSub", "--ds-armor-sub", "#B8C4D6"], ["DsEquipment", "--ds-equipment", "#0F766E"], ["DsEquipmentSub", "--ds-equipment-sub", "#5EEAD4"], ["DsArtifacts", "--ds-artifacts", "#7C3AED"], ["DsArtifactsSub", "--ds-artifacts-sub", "#E879F9"], ["DsFeat", "--ds-feat", "#C2410C"], ["DsFeatSub", "--ds-feat-sub", "#FDBA74"], ["DsBackground", "--ds-background", "#854D0E"], ["DsBackgroundSub", "--ds-background-sub", "#D6A86A"], ["DsRace", "--ds-race", "#15803D"], ["DsRaceSub", "--ds-race-sub", "#86EFAC"], ["DsClass", "--ds-class", "#1D4ED8"], ["DsClassSub", "--ds-class-sub", "#60A5FA"]]],
 		["Классы", [
@@ -20,15 +23,14 @@
 	] as const;
 </script>
 
-<div class="gallery">
+<div class="gallery" data-theme={theme}>
 	{#each groups as [groupName, colors]}
 		<section>
 			<h2>{groupName}</h2>
-			{#each colors as [name, token, value]}
+			{#each colors as [name, token]}
 				<div class="color-token">
 					<div class="swatch" style:background-color={`var(${token})`}></div>
 					<div><strong>{name}</strong><code>{token}</code></div>
-					<code>{value}</code>
 				</div>
 			{/each}
 		</section>
@@ -39,9 +41,13 @@
 	.gallery { display: grid; gap: 24px; padding: 16px; }
 	section { display: grid; gap: 8px; }
 	h2 { margin: 0; font: 600 18px/1.4 sans-serif; }
-	.color-token { display: grid; grid-template-columns: 32px minmax(180px, 1fr) auto; align-items: center; gap: 12px; padding: 10px; border: 1px solid #d9d9d9; border-radius: 8px; }
+	.color-token { display: grid; grid-template-columns: 32px minmax(180px, 1fr); align-items: center; gap: 12px; padding: 10px; border: 1px solid #d9d9d9; border-radius: 8px; }
 	.swatch { width: 32px; height: 32px; border-radius: 6px; }
 	strong, code { display: block; font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
 	strong { color: #1f2937; }
 	code { color: #6b7280; }
+	.gallery[data-theme="dark"] { background: #1f1f1f; }
+	.gallery[data-theme="dark"] .color-token { border-color: #525252; }
+	.gallery[data-theme="dark"] strong { color: #fff; }
+	.gallery[data-theme="dark"] code { color: rgb(255 255 255 / 70%); }
 </style>
