@@ -40,7 +40,18 @@ export const Expanded: Story = {
 		blocks,
 		accentColor: "#d4d4d4",
 		blocksExpanded: true,
+		theme: "dark",
 	},
+};
+
+export const Dark: Story = {
+	globals: { backgrounds: { value: "dark" } },
+	args: { ...Expanded.args, theme: "dark" },
+};
+
+export const Light: Story = {
+	globals: { backgrounds: { value: "light" } },
+	args: { ...Expanded.args, theme: "light" },
 };
 
 export const Collapsed: Story = {

@@ -18,6 +18,7 @@
 		accentColor?: string;
 		blocksExpanded?: boolean;
 		editable?: boolean;
+		theme?: "dark" | "light";
 	};
 
 	let {
@@ -27,6 +28,7 @@
 		accentColor = "#d4d4d4",
 		blocksExpanded = true,
 		editable = false,
+		theme = "dark",
 	}: Props = $props();
 
 	let blockBackground = $derived(`color-mix(in srgb, ${accentColor} 40%, transparent)`);
@@ -39,7 +41,7 @@
 	});
 </script>
 
-<section class="actions-block">
+<section class="actions-block" data-theme={theme}>
 	{#if title || editable}
 		{#if editable}
 			<input class="title-input" bind:value={title} aria-label="Заголовок блока действий" />
@@ -73,6 +75,7 @@
 							expanded={blocksExpanded}
 							background={blockBackground}
 							{editable}
+							{theme}
 						/>
 					{/each}
 				</div>
@@ -82,7 +85,7 @@
 
 	{#if editable}
 		<div class="add-block-chip">
-			<Chip icon={Plus} background={blockBackground} />
+			<Chip icon={Plus} background={blockBackground} {theme} />
 		</div>
 	{/if}
 </section>
@@ -95,6 +98,8 @@
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
 	}
+
+	.actions-block[data-theme="light"] { color: #1f2937; }
 
 	h2,
 	p {
@@ -137,7 +142,7 @@
 
 	.title-input:focus-visible,
 	.description-input:focus-visible {
-		outline: 1px solid color-mix(in srgb, #fff 70%, transparent);
+		outline: 1px solid currentcolor;
 		outline-offset: 2px;
 	}
 
