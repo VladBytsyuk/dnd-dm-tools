@@ -19,7 +19,8 @@
 			"svelte": "./dist/index.js",
 			"default": "./dist/index.js"
 		},
-		"./colors.css": "./dist/colors.css"
+		"./colors.css": "./dist/colors.css",
+		"./table.css": "./dist/table.css"
 	},
 	"scripts": {
 		"check:boundaries": "node scripts/check-boundaries.mjs",
