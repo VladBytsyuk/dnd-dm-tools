@@ -12,6 +12,7 @@
 		imageAlt?: string;
 		editable?: boolean;
 		background?: string;
+		theme?: "dark" | "light";
 	};
 
 	let {
@@ -22,10 +23,11 @@
 		imageAlt = "",
 		editable = false,
 		background = "rgb(212 212 212 / 40%)",
+		theme = "dark",
 	}: Props = $props();
 </script>
 
-<span class="chip" data-editable={editable} style:--chip-background={background}>
+<span class="chip" data-editable={editable} data-theme={theme} style:--chip-background={background}>
 	{#if Icon}
 		{#if iconTooltip}
 			<button type="button" class="icon-wrapper" aria-label={iconTooltip}>
@@ -74,8 +76,12 @@
 		box-shadow: 0 1px 1px rgb(0 0 0 / 25%);
 	}
 
-	.icon-wrapper { position: relative; align-self: flex-start; display: inline-flex; flex: 0 0 auto; padding: 0; border: 0; background: transparent; color: #fff; outline: none; }
-	.icon-wrapper:focus-visible { outline: 1px solid #fff; border-radius: 2px; }
+	.chip[data-theme="light"] { color: #1f2937; }
+	.chip[data-theme="light"]:hover { background: linear-gradient(rgb(15 23 42 / 12%), rgb(15 23 42 / 12%)), var(--chip-background); }
+	.chip[data-theme="light"]:active { background: linear-gradient(rgb(15 23 42 / 24%), rgb(15 23 42 / 24%)), var(--chip-background); }
+
+	.icon-wrapper { position: relative; align-self: flex-start; display: inline-flex; flex: 0 0 auto; padding: 0; border: 0; background: transparent; color: inherit; outline: none; }
+	.icon-wrapper:focus-visible { outline: 1px solid currentcolor; border-radius: 2px; }
 	.image { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 2px; object-fit: cover; }
 	.text { min-width: 0; overflow-wrap: anywhere; }
 	input {
