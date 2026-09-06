@@ -8,25 +8,33 @@ const meta = {
 	title: "Components/ImageGroup",
 	component: ImageGroup,
 	parameters: { layout: "centered" },
-	globals: { backgrounds: { value: "dark" } },
 } satisfies Meta<typeof ImageGroup>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Multiple: Story = {
-	args: { images: [image("#6d28d9", "1"), image("#0f766e", "2"), image("#c2410c", "3")], alt: "Иллюстрация существа" },
+const multipleImages = [image("#6d28d9", "1"), image("#0f766e", "2"), image("#c2410c", "3")];
+
+export const Dark: Story = {
+	globals: { backgrounds: { value: "dark" } },
+	args: { images: multipleImages, alt: "Иллюстрация существа", theme: "dark" },
+};
+
+export const Light: Story = {
+	globals: { backgrounds: { value: "light" } },
+	args: { images: multipleImages, alt: "Иллюстрация существа", theme: "light" },
 };
 
 export const Single: Story = {
-	args: { images: [image("#6d28d9", "1")], alt: "Иллюстрация существа" },
+	args: { images: [image("#6d28d9", "1")], alt: "Иллюстрация существа", theme: "dark" },
 };
 
 export const Editable: Story = {
 	args: {
 		images: [image("#6d28d9", "1"), image("#0f766e", "2")],
 		alt: "Иллюстрация существа",
+		theme: "dark",
 		editable: true,
 	},
 };

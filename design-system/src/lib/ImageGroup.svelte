@@ -12,6 +12,7 @@
 		initialIndex?: number;
 		onChange?: (index: number) => void;
 		editable?: boolean;
+		theme?: "dark" | "light";
 	};
 
 	function getInitialIndex() {
@@ -26,6 +27,7 @@
 		initialIndex = 0,
 		onChange,
 		editable = false,
+		theme = "dark",
 	}: Props = $props();
 	let currentIndex = $state(getInitialIndex());
 	let currentImage = $derived(images[currentIndex]);
@@ -38,14 +40,14 @@
 </script>
 
 {#if editable}
-	<div class="image-inputs">
+	<div class="image-inputs" data-theme={theme}>
 		{#each images as _, index}
 			<input bind:value={images[index]} aria-label={`Ссылка на изображение ${index + 1}`} />
 		{/each}
-		<Chip icon={Plus} />
+		<Chip icon={Plus} {theme} />
 	</div>
 {:else if currentImage}
-	<div class:fluid class="image-group" style={`--image-size: ${size}px`}>
+	<div class:fluid class="image-group" data-theme={theme} style={`--image-size: ${size}px`}>
 		<img src={currentImage} {alt} />
 		{#if hasControls}
 			<div class="controls" aria-label="Переключение изображений">
@@ -93,9 +95,11 @@
 	}
 
 	.image-inputs input:focus-visible {
-		outline: 1px solid #fff;
+		outline: 1px solid currentcolor;
 		outline-offset: 2px;
 	}
+
+	.image-inputs[data-theme="light"] input { color: #1f2937; }
 
 	.image-inputs :global(.chip) {
 		align-self: center;
@@ -158,4 +162,12 @@
 	}
 
 	.controls button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+	.image-group[data-theme="light"] .controls button {
+		border-color: #1f2937;
+		background: rgb(255 255 255 / 80%);
+		color: #1f2937;
+	}
+	.image-group[data-theme="light"] .controls button:hover, .image-group[data-theme="light"] .controls button:focus-visible { background: rgb(255 255 255 / 92%); }
+	.image-group[data-theme="light"] .controls button:active { background: rgb(255 255 255 / 68%); }
+	.image-group[data-theme="light"] .controls button:focus-visible { outline-color: #1f2937; }
 </style>
