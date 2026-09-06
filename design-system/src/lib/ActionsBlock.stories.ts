@@ -50,6 +50,13 @@ export const Collapsed: Story = {
 	},
 };
 
+export const Editable: Story = {
+	args: {
+		...Expanded.args,
+		editable: true,
+	},
+};
+
 export const WithoutBlocks: Story = {
 	args: {
 		title: "Легендарные действия",
