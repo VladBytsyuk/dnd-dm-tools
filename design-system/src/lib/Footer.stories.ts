@@ -12,14 +12,24 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+export const Dark: Story = {
+	globals: { backgrounds: { value: "dark" } },
+	args: { text: "Волшебник", theme: "dark" },
+};
+
+export const Light: Story = {
+	globals: { backgrounds: { value: "light" } },
+	args: { text: "Волшебник", theme: "light" },
+};
+
 export const Default: Story = {
-	args: { text: "Волшебник" },
+	args: { text: "Волшебник", theme: "dark" },
 };
 
 export const LongText: Story = {
-	args: { text: "Волшебник школы воплощения, использующий тайную магию" },
+	args: { text: "Волшебник школы воплощения, использующий тайную магию", theme: "dark" },
 };
 
 export const Editable: Story = {
-	args: { text: "Волшебник", editable: true },
+	args: { text: "Волшебник", theme: "dark", editable: true },
 };

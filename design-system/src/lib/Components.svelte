@@ -10,6 +10,7 @@
 		material?: string;
 		background?: string;
 		editable?: boolean;
+		theme?: "dark" | "light";
 	};
 
 	let {
@@ -18,6 +19,7 @@
 		material = $bindable<string | undefined>(),
 		background = "rgb(212 212 212 / 40%)",
 		editable = false,
+		theme = "dark",
 	}: Props = $props();
 
 	let materialIsActive = $derived(material !== undefined);
@@ -27,7 +29,7 @@
 	}
 </script>
 
-<div class="components" aria-label="Компоненты заклинания">
+<div class="components" data-theme={theme} aria-label="Компоненты заклинания">
 	{#if editable || somatic}
 		<span
 			class:inactive={!somatic}
@@ -129,6 +131,10 @@
 		box-shadow: 0 1px 1px rgb(0 0 0 / 25%);
 	}
 
+	.components[data-theme="light"] .component-chip { color: #1f2937; }
+	.components[data-theme="light"] .component-chip:hover { background: linear-gradient(rgb(15 23 42 / 12%), rgb(15 23 42 / 12%)), var(--component-background); }
+	.components[data-theme="light"] .component-chip:active { background: linear-gradient(rgb(15 23 42 / 24%), rgb(15 23 42 / 24%)), var(--component-background); }
+
 	.component-chip.inactive {
 		opacity: 0.4;
 	}
@@ -159,7 +165,7 @@
 	}
 
 	.icon-button:focus-visible {
-		outline: 1px solid #fff;
+		outline: 1px solid currentcolor;
 		outline-offset: 1px;
 		border-radius: 2px;
 	}
@@ -201,6 +207,8 @@
 		overflow-wrap: anywhere;
 	}
 
+	.components[data-theme="light"] .material-text { color: rgb(31 41 55 / 75%); }
+
 	input.material-text {
 		box-sizing: border-box;
 		flex: 1 1 auto;
@@ -214,7 +222,7 @@
 	}
 
 	input.material-text:focus-visible {
-		outline: 1px solid #fff;
+		outline: 1px solid currentcolor;
 		outline-offset: 1px;
 	}
 </style>

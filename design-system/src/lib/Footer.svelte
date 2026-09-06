@@ -4,12 +4,13 @@
 	type Props = {
 		text?: string;
 		editable?: boolean;
+		theme?: "dark" | "light";
 	};
 
-	let { text = $bindable(""), editable = false }: Props = $props();
+	let { text = $bindable(""), editable = false, theme = "dark" }: Props = $props();
 </script>
 
-<footer>
+<footer data-theme={theme}>
 	{#if editable}
 		<input bind:value={text} aria-label="Текст подвала" />
 	{:else}
@@ -28,6 +29,8 @@
 		line-height: 10px;
 		overflow-wrap: anywhere;
 	}
+
+	footer[data-theme="light"] { color: rgb(31 41 55 / 70%); }
 
 	footer input {
 		width: 100%;
