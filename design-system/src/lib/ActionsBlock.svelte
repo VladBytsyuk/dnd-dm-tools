@@ -7,6 +7,8 @@
 
 <script lang="ts">
 	import ChevronRight from "lucide-svelte/icons/chevron-right";
+	import Plus from "lucide-svelte/icons/plus";
+	import Chip from "./Chip.svelte";
 	import FilledTextBlock from "./FilledTextBlock.svelte";
 
 	type Props = {
@@ -75,6 +77,12 @@
 					{/each}
 				</div>
 			{/each}
+		</div>
+	{/if}
+
+	{#if editable}
+		<div class="add-block-chip">
+			<Chip icon={Plus} background={blockBackground} />
 		</div>
 	{/if}
 </section>
@@ -152,5 +160,15 @@
 		flex-direction: column;
 		gap: 12px;
 		min-width: 0;
+	}
+
+	.add-block-chip {
+		width: 100%;
+		margin-top: 12px;
+	}
+
+	.add-block-chip :global(.chip) {
+		width: 100%;
+		justify-content: center;
 	}
 </style>
