@@ -2,6 +2,7 @@
 	export type ActionsBlockItem = {
 		title?: string;
 		text?: string;
+		html?: string;
 	};
 </script>
 
@@ -10,13 +11,17 @@
 	import Plus from "lucide-svelte/icons/plus";
 	import Chip from "./Chip.svelte";
 	import FilledTextBlock from "./FilledTextBlock.svelte";
+	import TextBlock from "./TextBlock.svelte";
 
 	type Props = {
 		title?: string;
 		description?: string;
+		descriptionHtml?: string;
 		blocks?: ActionsBlockItem[];
 		accentColor?: string;
 		blocksExpanded?: boolean;
+		sectionExpanded?: boolean;
+		onSpellLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -24,14 +29,23 @@
 	let {
 		title = $bindable(""),
 		description = $bindable(""),
+		descriptionHtml,
 		blocks = $bindable<ActionsBlockItem[]>([]),
 		accentColor = "#d4d4d4",
 		blocksExpanded = true,
+		sectionExpanded = true,
+		onSpellLinkClick,
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
 
+	function getInitialSectionExpanded() {
+		return sectionExpanded;
+	}
+
+	let isSectionExpanded = $state(getInitialSectionExpanded());
 	let blockBackground = $derived(`color-mix(in srgb, ${accentColor} 40%, transparent)`);
+	let isContentVisible = $derived(!title || isSectionExpanded || editable);
 	let columns = $derived.by(() => {
 		const result: [ActionsBlockItem[], ActionsBlockItem[]] = [[], []];
 
@@ -46,11 +60,13 @@
 		{#if editable}
 			<input class="title-input" bind:value={title} aria-label="Заголовок блока действий" />
 		{:else}
-			<h2>{title}</h2>
+			<button type="button" class="section-toggle" aria-expanded={isSectionExpanded} onclick={() => (isSectionExpanded = !isSectionExpanded)}>
+				{title}
+			</button>
 		{/if}
 	{/if}
 
-	{#if description || editable}
+	{#if isContentVisible && (description || descriptionHtml || editable)}
 		{#if editable}
 			<textarea
 				class="description-input"
@@ -58,25 +74,44 @@
 				aria-label="Описание блока действий"
 				rows="2"
 			></textarea>
+		{:else if descriptionHtml !== undefined}
+			<TextBlock html={descriptionHtml} {accentColor} {onSpellLinkClick} {theme} />
 		{:else}
 			<p class="description">{description}</p>
 		{/if}
 	{/if}
 
-	{#if blocks.length}
+	{#if isContentVisible && blocks.length}
 		<div class="blocks">
 			{#each columns as column}
 				<div class="column">
 					{#each column as block}
-						<FilledTextBlock
-							bind:title={block.title}
-							bind:text={block.text}
-							icon={block.title ? ChevronRight : undefined}
-							expanded={blocksExpanded}
-							background={blockBackground}
-							{editable}
-							{theme}
-						/>
+						{#if editable}
+							<FilledTextBlock
+								bind:title={block.title}
+								bind:text={block.text}
+								html={block.html}
+								icon={block.title ? ChevronRight : undefined}
+								expanded={blocksExpanded}
+								background={blockBackground}
+								{accentColor}
+								{onSpellLinkClick}
+								{editable}
+								{theme}
+							/>
+						{:else}
+							<FilledTextBlock
+								title={block.title}
+								text={block.text}
+								html={block.html}
+								icon={block.title ? ChevronRight : undefined}
+								expanded={blocksExpanded}
+								background={blockBackground}
+								{accentColor}
+								{onSpellLinkClick}
+								{theme}
+							/>
+						{/if}
 					{/each}
 				</div>
 			{/each}
@@ -101,17 +136,9 @@
 
 	.actions-block[data-theme="light"] { color: #1f2937; }
 
-	h2,
-	p {
-		margin: 0;
-	}
+	p { margin: 0; }
 
-	h2 {
-		font-size: 16px;
-		font-weight: 700;
-		line-height: 19px;
-	}
-
+	.section-toggle,
 	.title-input,
 	.description-input {
 		box-sizing: border-box;
@@ -124,10 +151,23 @@
 		padding: 0;
 	}
 
+	.section-toggle,
 	.title-input {
 		font-size: 16px;
 		font-weight: 700;
 		line-height: 19px;
+	}
+
+	.section-toggle {
+		text-align: left;
+		cursor: pointer;
+	}
+	.section-toggle:hover { text-decoration: underline; }
+	.section-toggle:focus-visible,
+	.title-input:focus-visible,
+	.description-input:focus-visible {
+		outline: 2px solid currentcolor;
+		outline-offset: 2px;
 	}
 
 	.description-input {
@@ -138,12 +178,6 @@
 		font-size: 10px;
 		font-weight: 400;
 		line-height: 12px;
-	}
-
-	.title-input:focus-visible,
-	.description-input:focus-visible {
-		outline: 1px solid currentcolor;
-		outline-offset: 2px;
 	}
 
 	.description {
@@ -175,5 +209,9 @@
 	.add-block-chip :global(.chip) {
 		width: 100%;
 		justify-content: center;
+	}
+
+	@media (max-width: 280px) {
+		.blocks { flex-direction: column; }
 	}
 </style>

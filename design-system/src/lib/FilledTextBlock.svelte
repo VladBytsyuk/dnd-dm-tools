@@ -7,8 +7,11 @@
 	type Props = {
 		title?: string;
 		text?: string;
+		html?: string;
 		icon?: Icon;
 		expanded?: boolean;
+		accentColor?: string;
+		onSpellLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
 		editable?: boolean;
 		background?: string;
 		theme?: "dark" | "light";
@@ -17,8 +20,11 @@
 	let {
 		title = $bindable(""),
 		text = $bindable(""),
+		html,
 		icon: Icon,
-		expanded = $bindable(true),
+		expanded = true,
+		accentColor = "#d4d4d4",
+		onSpellLinkClick,
 		editable = false,
 		background = "rgb(212 212 212 / 40%)",
 		theme = "dark",
@@ -26,7 +32,11 @@
 </script>
 
 <section class="filled-text-block" data-theme={theme} style:background>
-	<TextBlock bind:title bind:text icon={Icon} bind:expanded {editable} {theme} />
+	{#if editable}
+		<TextBlock bind:title bind:text {html} icon={Icon} {expanded} {accentColor} {onSpellLinkClick} {editable} {theme} />
+	{:else}
+		<TextBlock {title} {text} {html} icon={Icon} {expanded} {accentColor} {onSpellLinkClick} {theme} />
+	{/if}
 </section>
 
 <style>

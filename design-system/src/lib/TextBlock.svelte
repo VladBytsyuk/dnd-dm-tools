@@ -1,6 +1,7 @@
 <script lang="ts">
 	import "@fontsource/golos-text/400.css";
 	import "@fontsource/golos-text/700.css";
+	import "./table.css";
 	import type ChevronRight from "lucide-svelte/icons/chevron-right";
 
 	type Icon = typeof ChevronRight;
@@ -8,8 +9,11 @@
 	type Props = {
 		title?: string;
 		text?: string;
+		html?: string;
 		icon?: Icon;
 		expanded?: boolean;
+		accentColor?: string;
+		onSpellLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -17,14 +21,45 @@
 	let {
 		title = $bindable(""),
 		text = $bindable(""),
+		html,
 		icon: Icon,
-		expanded = $bindable(true),
+		expanded = true,
+		accentColor = "#d4d4d4",
+		onSpellLinkClick,
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
 
+	function getInitialExpanded() {
+		return expanded;
+	}
+
+	let isExpanded = $state(getInitialExpanded());
 	let isCollapsible = $derived(Boolean(Icon && title));
-	let isContentVisible = $derived(!isCollapsible || expanded || editable);
+	let isContentVisible = $derived(!isCollapsible || isExpanded || editable);
+	let decoratedHtml = $derived(decorateTables(html ?? ""));
+
+	function decorateTables(value: string): string {
+		return value.replace(
+			/<table\b/gi,
+			`<table class="dnd-table" data-theme="${theme}" style="--dnd-table-accent: ${accentColor};"`,
+		);
+	}
+
+	function handleRichTextClick(event: MouseEvent) {
+		if (!onSpellLinkClick || !(event.target instanceof Element)) return;
+
+		const link = event.target.closest<HTMLAnchorElement>('a[href^="/spells/"]');
+		if (!link) return;
+
+		event.preventDefault();
+		void onSpellLinkClick({ href: link.getAttribute("href") ?? "", label: link.textContent?.trim() ?? "" });
+	}
+
+	function richTextLinkListener(node: HTMLElement) {
+		node.addEventListener("click", handleRichTextClick);
+		return { destroy: () => node.removeEventListener("click", handleRichTextClick) };
+	}
 </script>
 
 <section class="text-block" data-theme={theme}>
@@ -33,8 +68,8 @@
 			<button
 				type="button"
 				class="header toggle"
-				aria-expanded={expanded}
-				onclick={() => (expanded = !expanded)}
+				aria-expanded={isExpanded}
+				onclick={() => (isExpanded = !isExpanded)}
 			>
 				<Icon class="icon" size={14} strokeWidth={2} aria-hidden={true} />
 				<span>{title}</span>
@@ -54,6 +89,10 @@
 	{#if isContentVisible}
 		{#if editable}
 			<textarea bind:value={text} aria-label="Текст блока" rows={1}></textarea>
+		{:else if html !== undefined}
+			<div class="rich-content" use:richTextLinkListener>
+				{@html decoratedHtml}
+			</div>
 		{:else if text}
 			<p>{text}</p>
 		{/if}
@@ -102,7 +141,7 @@
 	:global(.icon) { flex: 0 0 auto; }
 	.toggle[aria-expanded="true"] :global(.icon) { transform: rotate(90deg); }
 
-	p, textarea {
+	p, textarea, .rich-content {
 		box-sizing: border-box;
 		width: 100%;
 		min-width: 0;
@@ -114,6 +153,11 @@
 		line-height: 12px;
 		overflow-wrap: anywhere;
 	}
+
+	.rich-content :global(p) { margin: 0; }
+	.rich-content :global(p + p) { margin-top: 4px; }
+	.rich-content :global(a) { color: inherit; text-decoration: underline; }
+	.rich-content :global(.dnd-table) { margin: 4px 0; }
 
 	input, textarea {
 		padding: 0;

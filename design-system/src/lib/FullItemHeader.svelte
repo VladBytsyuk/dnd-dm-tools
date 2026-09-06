@@ -20,6 +20,7 @@
 		info?: string;
 		source?: FullItemSource;
 		onCopy?: (text: string) => void;
+		onNameClick?: (name: string) => void | Promise<void>;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -32,6 +33,7 @@
 		info = $bindable(),
 		source = $bindable(),
 		onCopy,
+		onNameClick,
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
@@ -53,6 +55,15 @@
 
 		onCopy?.(text);
 	}
+
+	async function copyName(name: string) {
+		if (onNameClick) {
+			await onNameClick(name);
+			return;
+		}
+
+		await copy(name);
+	}
 </script>
 
 <header class="full-item-header" data-theme={theme}>
@@ -62,10 +73,10 @@
 			<input class="name english-name" bind:value={englishName} aria-label="Английское название" />
 			<input class="entity-link" bind:value={entityLink} aria-label="Ссылка на сущность" />
 		{:else}
-			<button type="button" class="name russian-name" onclick={() => copy(russianName)} aria-label={`Скопировать: ${russianName}`}>
+			<button type="button" class="name russian-name" onclick={() => copyName(russianName)} aria-label={`Скопировать: ${russianName}`}>
 				{russianName}
 			</button>
-			<button type="button" class="name english-name" onclick={() => copy(englishName)} aria-label={`Скопировать: ${englishName}`}>
+			<button type="button" class="name english-name" onclick={() => copyName(englishName)} aria-label={`Скопировать: ${englishName}`}>
 				{englishName}
 			</button>
 			<button type="button" class="entity-link" onclick={() => copy(entityLink)} aria-label={`Скопировать ссылку: ${entityLink}`}>

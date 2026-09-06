@@ -38,6 +38,16 @@ export { default as BaseSmallItem } from "./BaseSmallItem.svelte";
 export { default as FullItemHeader } from "./FullItemHeader.svelte";
 export type { FullItemSource } from "./FullItemHeader.svelte";
 export { default as MaxItemHeader } from "./MaxItemHeader.svelte";
+export { default as FullStatblock } from "./FullStatblock.svelte";
+export type {
+	FullStatblockAbility,
+	FullStatblockActionSection,
+	FullStatblockLair,
+	FullStatblockRichTextItem,
+	FullStatblockSource,
+	FullStatblockSpellLink,
+	FullStatblockViewModel,
+} from "./FullStatblockViewModel";
 export { default as ImageGroup } from "./ImageGroup.svelte";
 export { default as Chip } from "./Chip.svelte";
 export { default as ChipsList } from "./ChipsList.svelte";
