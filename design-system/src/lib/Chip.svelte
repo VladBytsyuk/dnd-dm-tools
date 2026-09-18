@@ -6,10 +6,14 @@
 
 	type Props = {
 		text?: string;
+		suffix?: string;
 		icon?: Icon;
 		iconTooltip?: string;
 		imageSrc?: string;
 		imageAlt?: string;
+		href?: string;
+		onLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
+		onTextChange?: (text: string) => void;
 		editable?: boolean;
 		background?: string;
 		theme?: "dark" | "light";
@@ -17,14 +21,31 @@
 
 	let {
 		text = $bindable(""),
+		suffix,
 		icon: Icon,
 		iconTooltip,
 		imageSrc,
 		imageAlt = "",
+		href,
+		onLinkClick,
+		onTextChange,
 		editable = false,
 		background = "#d4d4d4",
 		theme = "dark",
 	}: Props = $props();
+
+	function handleTextInput(event: Event) {
+		const value = (event.currentTarget as HTMLInputElement).value;
+		text = value;
+		onTextChange?.(value);
+	}
+
+	function handleLinkClick(event: MouseEvent) {
+		if (!href || !onLinkClick) return;
+
+		event.preventDefault();
+		void onLinkClick({ href, label: text });
+	}
 </script>
 
 <span class="chip" data-editable={editable} data-theme={theme} style:--chip-background={background}>
@@ -40,10 +61,13 @@
 	{/if}
 	{#if imageSrc}<img class="image" src={imageSrc} alt={imageAlt} />{/if}
 	{#if editable}
-		<input bind:value={text} aria-label="Текст чипа" />
+		<input value={text} oninput={handleTextInput} aria-label="Текст чипа" />
+	{:else if href && text}
+		<a class="text link" {href} onclick={handleLinkClick}>{text}</a>
 	{:else if text}
 		<span class="text">{text}</span>
 	{/if}
+	{#if suffix}<span class="suffix">{suffix}</span>{/if}
 </span>
 
 <style>
@@ -84,6 +108,8 @@
 	.icon-wrapper:focus-visible { outline: 1px solid currentcolor; border-radius: 2px; }
 	.image { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 2px; object-fit: cover; }
 	.text { min-width: 0; overflow-wrap: anywhere; }
+	.link { color: inherit; text-decoration: underline; }
+	.suffix { flex: 0 1 auto; overflow-wrap: anywhere; }
 	input {
 		width: 100%;
 		min-width: 0;

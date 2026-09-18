@@ -22,7 +22,7 @@
 	let {
 		title = $bindable(""),
 		text = $bindable(""),
-		html,
+		html = $bindable<string | undefined>(),
 		icon: Icon,
 		expanded = true,
 		accentColor = "#d4d4d4",
@@ -31,6 +31,21 @@
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
+
+	const dndEntityPathPrefixes = [
+		"/bestiary/",
+		"/spells/",
+		"/screens/",
+		"/weapons/",
+		"/armors/",
+		"/backgrounds/",
+		"/feats/",
+		"/races/",
+		"/classes/",
+		"/character-sheets/",
+		"/items/magic/",
+		"/items/",
+	] as const;
 
 	function getInitialExpanded() {
 		return expanded;
@@ -56,7 +71,7 @@
 		const href = link.getAttribute("href") ?? "";
 		const value = { href, label: link.textContent?.trim() ?? "" };
 
-		if (onEntityLinkClick && href.startsWith("/")) {
+		if (onEntityLinkClick && dndEntityPathPrefixes.some((prefix) => href.startsWith(prefix))) {
 			event.preventDefault();
 			void onEntityLinkClick(value);
 			return;
@@ -100,7 +115,11 @@
 
 	{#if isContentVisible}
 		{#if editable}
-			<textarea bind:value={text} aria-label="Текст блока" rows={1}></textarea>
+			{#if html !== undefined}
+				<textarea bind:value={html} aria-label="HTML блока" rows={1}></textarea>
+			{:else}
+				<textarea bind:value={text} aria-label="Текст блока" rows={1}></textarea>
+			{/if}
 		{:else if html !== undefined}
 			<div class="rich-content" use:richTextLinkListener>
 				{@html decoratedHtml}

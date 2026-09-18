@@ -21,7 +21,7 @@
 	let {
 		title = $bindable(""),
 		text = $bindable(""),
-		html,
+		html = $bindable<string | undefined>(),
 		icon: Icon,
 		expanded = true,
 		accentColor = "#d4d4d4",
@@ -35,7 +35,7 @@
 
 <section class="filled-text-block" data-theme={theme} style:background>
 	{#if editable}
-		<TextBlock bind:title bind:text {html} icon={Icon} {expanded} {accentColor} {onSpellLinkClick} {onEntityLinkClick} {editable} {theme} />
+		<TextBlock bind:title bind:text bind:html icon={Icon} {expanded} {accentColor} {onSpellLinkClick} {onEntityLinkClick} {editable} {theme} />
 	{:else}
 		<TextBlock {title} {text} {html} icon={Icon} {expanded} {accentColor} {onSpellLinkClick} {onEntityLinkClick} {theme} />
 	{/if}

@@ -7,10 +7,14 @@
 
 	export type ChipsListItem = {
 		text?: string;
+		suffix?: string;
 		icon?: Icon;
 		iconTooltip?: string;
 		imageSrc?: string;
 		imageAlt?: string;
+		href?: string;
+		onLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
+		onTextChange?: (text: string) => void;
 		editable?: boolean;
 		background?: string;
 	};
