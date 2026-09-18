@@ -125,7 +125,13 @@
 		width: 100%;
 		min-width: 0;
 		padding: 8px;
-		background: linear-gradient(180deg, var(--full-spell-gradient-start), var(--full-spell-gradient-end));
+		background:
+			linear-gradient(
+				180deg,
+				color-mix(in srgb, var(--full-spell-gradient-start) 20%, transparent),
+				color-mix(in srgb, var(--full-spell-gradient-end) 20%, transparent)
+			),
+			rgb(48 48 48 / 40%);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
 	}
