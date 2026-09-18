@@ -65,6 +65,13 @@ export type {
 	FullWeaponSource,
 	FullWeaponViewModel,
 } from "./FullWeaponViewModel";
+export { default as FullArmor } from "./FullArmor.svelte";
+export type {
+	FullArmorEntityLink,
+	FullArmorHtmlContent,
+	FullArmorSource,
+	FullArmorViewModel,
+} from "./FullArmorViewModel";
 export { default as ImageGroup } from "./ImageGroup.svelte";
 export { default as Chip } from "./Chip.svelte";
 export { default as ChipsList } from "./ChipsList.svelte";
