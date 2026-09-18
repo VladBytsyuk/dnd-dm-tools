@@ -48,6 +48,15 @@ export type {
 	FullStatblockSpellLink,
 	FullStatblockViewModel,
 } from "./FullStatblockViewModel";
+export { default as FullSpell } from "./FullSpell.svelte";
+export type {
+	FullSpellClass,
+	FullSpellComponents,
+	FullSpellEntityLink,
+	FullSpellHtmlContent,
+	FullSpellSource,
+	FullSpellViewModel,
+} from "./FullSpellViewModel";
 export { default as ImageGroup } from "./ImageGroup.svelte";
 export { default as Chip } from "./Chip.svelte";
 export { default as ChipsList } from "./ChipsList.svelte";

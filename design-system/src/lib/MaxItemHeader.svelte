@@ -24,7 +24,7 @@
 	};
 
 	let {
-		accentColor = "rgb(212 212 212 / 40%)",
+		accentColor = "#d4d4d4",
 		russianName,
 		englishName,
 		entityLink,

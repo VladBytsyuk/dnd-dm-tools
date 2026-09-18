@@ -14,6 +14,7 @@
 		expanded?: boolean;
 		accentColor?: string;
 		onSpellLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
+		onEntityLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -26,6 +27,7 @@
 		expanded = true,
 		accentColor = "#d4d4d4",
 		onSpellLinkClick,
+		onEntityLinkClick,
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
@@ -47,13 +49,23 @@
 	}
 
 	function handleRichTextClick(event: MouseEvent) {
-		if (!onSpellLinkClick || !(event.target instanceof Element)) return;
+		if (!(event.target instanceof Element)) return;
 
-		const link = event.target.closest<HTMLAnchorElement>('a[href^="/spells/"]');
+		const link = event.target.closest<HTMLAnchorElement>("a[href]");
 		if (!link) return;
+		const href = link.getAttribute("href") ?? "";
+		const value = { href, label: link.textContent?.trim() ?? "" };
+
+		if (onEntityLinkClick && href.startsWith("/")) {
+			event.preventDefault();
+			void onEntityLinkClick(value);
+			return;
+		}
+
+		if (!onSpellLinkClick || !href.startsWith("/spells/")) return;
 
 		event.preventDefault();
-		void onSpellLinkClick({ href: link.getAttribute("href") ?? "", label: link.textContent?.trim() ?? "" });
+		void onSpellLinkClick(value);
 	}
 
 	function richTextLinkListener(node: HTMLElement) {

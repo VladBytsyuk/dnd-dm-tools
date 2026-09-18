@@ -22,7 +22,7 @@
 		imageSrc,
 		imageAlt = "",
 		editable = false,
-		background = "rgb(212 212 212 / 40%)",
+		background = "#d4d4d4",
 		theme = "dark",
 	}: Props = $props();
 </script>
@@ -56,7 +56,7 @@
 		min-width: 0;
 		padding: 2px;
 		border-radius: 4px;
-		background: var(--chip-background);
+		background: color-mix(in srgb, var(--chip-background) 40%, transparent);
 		box-shadow: 0 2px 2px rgb(0 0 0 / 25%);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
@@ -67,18 +67,18 @@
 	}
 
 	.chip:hover {
-		background: linear-gradient(rgb(48 48 48 / 20%), rgb(48 48 48 / 20%)), var(--chip-background);
+		background: linear-gradient(rgb(48 48 48 / 20%), rgb(48 48 48 / 20%)), color-mix(in srgb, var(--chip-background) 40%, transparent);
 		box-shadow: 0 6px 6px rgb(0 0 0 / 25%);
 	}
 
 	.chip:active {
-		background: linear-gradient(rgb(0 0 0 / 40%), rgb(0 0 0 / 40%)), var(--chip-background);
+		background: linear-gradient(rgb(0 0 0 / 40%), rgb(0 0 0 / 40%)), color-mix(in srgb, var(--chip-background) 40%, transparent);
 		box-shadow: 0 1px 1px rgb(0 0 0 / 25%);
 	}
 
 	.chip[data-theme="light"] { color: #1f2937; }
-	.chip[data-theme="light"]:hover { background: linear-gradient(rgb(15 23 42 / 12%), rgb(15 23 42 / 12%)), var(--chip-background); }
-	.chip[data-theme="light"]:active { background: linear-gradient(rgb(15 23 42 / 24%), rgb(15 23 42 / 24%)), var(--chip-background); }
+	.chip[data-theme="light"]:hover { background: linear-gradient(rgb(15 23 42 / 12%), rgb(15 23 42 / 12%)), color-mix(in srgb, var(--chip-background) 40%, transparent); }
+	.chip[data-theme="light"]:active { background: linear-gradient(rgb(15 23 42 / 24%), rgb(15 23 42 / 24%)), color-mix(in srgb, var(--chip-background) 40%, transparent); }
 
 	.icon-wrapper { position: relative; align-self: flex-start; display: inline-flex; flex: 0 0 auto; padding: 0; border: 0; background: transparent; color: inherit; outline: none; }
 	.icon-wrapper:focus-visible { outline: 1px solid currentcolor; border-radius: 2px; }

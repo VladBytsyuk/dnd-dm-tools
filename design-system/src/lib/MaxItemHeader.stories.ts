@@ -18,7 +18,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
 	args: {
-		accentColor: "rgb(251 113 133 / 40%)",
+		accentColor: "rgb(251 113 133)",
 		russianName: "Огремох",
 		englishName: "Ogrémoch",
 		entityLink: "/bestiary/ogremoch",

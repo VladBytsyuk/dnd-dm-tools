@@ -120,7 +120,7 @@
 
 	{#if editable}
 		<div class="add-block-chip">
-			<Chip icon={Plus} background={blockBackground} {theme} />
+			<Chip icon={Plus} background={accentColor} {theme} />
 		</div>
 	{/if}
 </section>

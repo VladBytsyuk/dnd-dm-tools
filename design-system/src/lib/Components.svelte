@@ -17,7 +17,7 @@
 		somatic = $bindable(false),
 		verbal = $bindable(false),
 		material = $bindable<string | undefined>(),
-		background = "rgb(212 212 212 / 40%)",
+		background = "#d4d4d4",
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
@@ -115,25 +115,25 @@
 		min-height: 16px;
 		padding: 2px;
 		border-radius: 4px;
-		background: var(--component-background);
+		background: color-mix(in srgb, var(--component-background) 40%, transparent);
 		box-shadow: 0 2px 2px rgb(0 0 0 / 25%);
 		color: #fff;
 		transition: background-color 120ms ease, box-shadow 120ms ease;
 	}
 
 	.component-chip:hover {
-		background: linear-gradient(rgb(48 48 48 / 20%), rgb(48 48 48 / 20%)), var(--component-background);
+		background: linear-gradient(rgb(48 48 48 / 20%), rgb(48 48 48 / 20%)), color-mix(in srgb, var(--component-background) 40%, transparent);
 		box-shadow: 0 6px 6px rgb(0 0 0 / 25%);
 	}
 
 	.component-chip:active {
-		background: linear-gradient(rgb(0 0 0 / 40%), rgb(0 0 0 / 40%)), var(--component-background);
+		background: linear-gradient(rgb(0 0 0 / 40%), rgb(0 0 0 / 40%)), color-mix(in srgb, var(--component-background) 40%, transparent);
 		box-shadow: 0 1px 1px rgb(0 0 0 / 25%);
 	}
 
 	.components[data-theme="light"] .component-chip { color: #1f2937; }
-	.components[data-theme="light"] .component-chip:hover { background: linear-gradient(rgb(15 23 42 / 12%), rgb(15 23 42 / 12%)), var(--component-background); }
-	.components[data-theme="light"] .component-chip:active { background: linear-gradient(rgb(15 23 42 / 24%), rgb(15 23 42 / 24%)), var(--component-background); }
+	.components[data-theme="light"] .component-chip:hover { background: linear-gradient(rgb(15 23 42 / 12%), rgb(15 23 42 / 12%)), color-mix(in srgb, var(--component-background) 40%, transparent); }
+	.components[data-theme="light"] .component-chip:active { background: linear-gradient(rgb(15 23 42 / 24%), rgb(15 23 42 / 24%)), color-mix(in srgb, var(--component-background) 40%, transparent); }
 
 	.component-chip.inactive {
 		opacity: 0.4;

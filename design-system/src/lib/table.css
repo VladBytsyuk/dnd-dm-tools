@@ -37,11 +37,11 @@
 }
 
 .dnd-table tbody tr:nth-child(odd) {
-	background: color-mix(in srgb, var(--dnd-table-accent) 15%, transparent);
+	background: color-mix(in srgb, var(--dnd-table-accent) 5%, transparent);
 }
 
 .dnd-table tbody tr:nth-child(even) {
-	background: color-mix(in srgb, var(--dnd-table-accent) 5%, transparent);
+	background: color-mix(in srgb, var(--dnd-table-accent) 15%, transparent);
 }
 
 .dnd-table[data-theme="light"] {
@@ -53,11 +53,11 @@
 }
 
 .dnd-table[data-theme="light"] tbody tr:nth-child(odd) {
-	background: color-mix(in srgb, var(--dnd-table-accent) 15%, white);
+	background: color-mix(in srgb, var(--dnd-table-accent) 5%, white);
 }
 
 .dnd-table[data-theme="light"] tbody tr:nth-child(even) {
-	background: color-mix(in srgb, var(--dnd-table-accent) 5%, white);
+	background: color-mix(in srgb, var(--dnd-table-accent) 15%, white);
 }
 
 .dnd-table input {
