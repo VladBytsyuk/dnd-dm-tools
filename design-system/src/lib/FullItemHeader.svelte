@@ -19,8 +19,11 @@
 		badge?: string | number;
 		info?: string;
 		source?: FullItemSource;
+		sourceSuffix?: string;
+		wrapRussianName?: boolean;
 		onCopy?: (text: string) => void;
 		onNameClick?: (name: string) => void | Promise<void>;
+		onInfoChange?: (info: string) => void;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -32,11 +35,18 @@
 		badge = $bindable(),
 		info = $bindable(),
 		source = $bindable(),
+		sourceSuffix = "",
+		wrapRussianName = false,
 		onCopy,
 		onNameClick,
+		onInfoChange,
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
+
+	function handleInfoInput(event: Event) {
+		onInfoChange?.((event.currentTarget as HTMLInputElement).value);
+	}
 
 	async function copy(text: string) {
 		try {
@@ -66,7 +76,7 @@
 	}
 </script>
 
-<header class="full-item-header" data-theme={theme}>
+<header class="full-item-header" data-theme={theme} data-wrap-russian-name={wrapRussianName}>
 	<div class="names">
 		{#if editable}
 			<input class="name russian-name" bind:value={russianName} aria-label="Русское название" />
@@ -96,17 +106,20 @@
 			{/if}
 			{#if info}
 				{#if editable}
-					<input class="info" bind:value={info} aria-label="Описание" />
+					<input class="info" bind:value={info} oninput={handleInfoInput} aria-label="Описание" />
 				{:else}
 					<span class="info">{info}</span>
 				{/if}
 			{/if}
 			{#if source}
 				{#if editable}
-					<input class="source" bind:value={source.shortName} aria-label="Краткое название источника" />
+					<span class="source-edit">
+						<input class="source" bind:value={source.shortName} aria-label="Краткое название источника" />
+						{#if sourceSuffix}<span aria-hidden="true">{sourceSuffix}</span>{/if}
+					</span>
 				{:else}
 					<span class="source-wrapper">
-						<button type="button" class="source" aria-describedby="source-tooltip">{source.shortName}</button>
+						<button type="button" class="source" aria-describedby="source-tooltip">{source.shortName}{sourceSuffix}</button>
 						<span id="source-tooltip" role="tooltip" class="source-tooltip">
 							<strong>{source.name}</strong>
 							<span>{source.group.name}{source.homebrew ? " · Homebrew" : ""}</span>
@@ -133,6 +146,8 @@
 	.names, .details { display: flex; flex-direction: column; min-width: 0; }
 	.names { flex: 1 1 auto; gap: 2px; }
 	.details { flex: 0 1 auto; align-items: end; justify-content: space-between; text-align: right; }
+	.source-edit { display: inline-flex; align-items: baseline; min-width: 0; }
+	.source-edit input { min-width: 0; }
 	.name, .entity-link, .source {
 		max-width: 100%;
 		padding: 0;
@@ -157,6 +172,11 @@
 		cursor: text;
 	}
 	.name, .entity-link { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+	.full-item-header[data-wrap-russian-name="true"] .russian-name {
+		overflow: visible;
+		text-overflow: clip;
+		white-space: normal;
+	}
 	.russian-name { font-size: 16px; font-weight: 700; line-height: 19px; }
 	.english-name, .info { font-size: 10px; font-weight: 400; line-height: 12px; }
 	.entity-link, .source { color: rgb(255 255 255 / 70%); font-size: 8px; font-weight: 400; line-height: 10px; }
