@@ -88,7 +88,7 @@ const complexSpell: FullSpellViewModel = {
 };
 
 const meta = {
-	title: "Components/FullSpell",
+	title: "Items/FullSpell",
 	component: FullSpell,
 	parameters: { layout: "padded" },
 	globals: { backgrounds: { value: "dark" } },

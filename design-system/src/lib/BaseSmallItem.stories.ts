@@ -3,7 +3,7 @@ import { UserCog } from "./index";
 import BaseSmallItem from "./BaseSmallItem.svelte";
 
 const meta = {
-	title: "Components/BaseSmallItem",
+	title: "Items/BaseSmallItem",
 	component: BaseSmallItem,
 	tags: ["autodocs"],
 	parameters: { layout: "padded" },

@@ -68,7 +68,7 @@ const complexWeapon: FullWeaponViewModel = {
 };
 
 const meta = {
-	title: "Components/FullWeapon",
+	title: "Items/FullWeapon",
 	component: FullWeapon,
 	parameters: { layout: "padded" },
 	globals: { backgrounds: { value: "dark" } },

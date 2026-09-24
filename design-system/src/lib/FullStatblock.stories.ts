@@ -66,7 +66,7 @@ const ogremoch: FullStatblockViewModel = {
 };
 
 const meta = {
-	title: "Components/FullStatblock",
+	title: "Items/FullStatblock",
 	component: FullStatblock,
 	parameters: { layout: "padded" },
 	globals: { backgrounds: { value: "dark" } },

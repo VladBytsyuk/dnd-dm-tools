@@ -70,7 +70,7 @@ const complexArmor: FullArmorViewModel = {
 };
 
 const meta = {
-	title: "Components/FullArmor",
+	title: "Items/FullArmor",
 	component: FullArmor,
 	parameters: { layout: "padded" },
 	globals: { backgrounds: { value: "dark" } },
