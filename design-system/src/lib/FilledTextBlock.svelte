@@ -13,6 +13,7 @@
 		accentColor?: string;
 		onSpellLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
 		onEntityLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
+		onHtmlChange?: (html: string) => void;
 		editable?: boolean;
 		background?: string;
 		theme?: "dark" | "light";
@@ -27,6 +28,7 @@
 		accentColor = "#d4d4d4",
 		onSpellLinkClick,
 		onEntityLinkClick,
+		onHtmlChange,
 		editable = false,
 		background = "rgb(212 212 212 / 40%)",
 		theme = "dark",
@@ -35,9 +37,9 @@
 
 <section class="filled-text-block" data-theme={theme} style:background>
 	{#if editable}
-		<TextBlock bind:title bind:text bind:html icon={Icon} {expanded} {accentColor} {onSpellLinkClick} {onEntityLinkClick} {editable} {theme} />
+		<TextBlock bind:title bind:text bind:html icon={Icon} {expanded} {accentColor} {onSpellLinkClick} {onEntityLinkClick} {onHtmlChange} {editable} {theme} />
 	{:else}
-		<TextBlock {title} {text} {html} icon={Icon} {expanded} {accentColor} {onSpellLinkClick} {onEntityLinkClick} {theme} />
+		<TextBlock {title} {text} {html} icon={Icon} {expanded} {accentColor} {onSpellLinkClick} {onEntityLinkClick} {onHtmlChange} {theme} />
 	{/if}
 </section>
 

@@ -6,6 +6,7 @@
 
 	type Props = {
 		text?: string;
+		html?: string;
 		suffix?: string;
 		icon?: Icon;
 		iconTooltip?: string;
@@ -14,6 +15,8 @@
 		href?: string;
 		onLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
 		onTextChange?: (text: string) => void;
+		onHtmlChange?: (html: string) => void;
+		onEntityLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
 		editable?: boolean;
 		background?: string;
 		theme?: "dark" | "light";
@@ -21,6 +24,7 @@
 
 	let {
 		text = $bindable(""),
+		html = $bindable<string | undefined>(),
 		suffix,
 		icon: Icon,
 		iconTooltip,
@@ -29,10 +33,27 @@
 		href,
 		onLinkClick,
 		onTextChange,
+		onHtmlChange,
+		onEntityLinkClick,
 		editable = false,
 		background = "#d4d4d4",
 		theme = "dark",
 	}: Props = $props();
+
+	const dndEntityPathPrefixes = [
+		"/bestiary/",
+		"/spells/",
+		"/screens/",
+		"/weapons/",
+		"/armors/",
+		"/backgrounds/",
+		"/feats/",
+		"/races/",
+		"/classes/",
+		"/character-sheets/",
+		"/items/magic/",
+		"/items/",
+	] as const;
 
 	function handleTextInput(event: Event) {
 		const value = (event.currentTarget as HTMLInputElement).value;
@@ -40,11 +61,35 @@
 		onTextChange?.(value);
 	}
 
+	function handleHtmlInput(event: Event) {
+		const value = (event.currentTarget as HTMLInputElement).value;
+		html = value;
+		onHtmlChange?.(value);
+	}
+
 	function handleLinkClick(event: MouseEvent) {
 		if (!href || !onLinkClick) return;
 
 		event.preventDefault();
 		void onLinkClick({ href, label: text });
+	}
+
+	function handleHtmlLinkClick(event: MouseEvent) {
+		if (!(event.target instanceof Element)) return;
+
+		const link = event.target.closest<HTMLAnchorElement>("a[href]");
+		if (!link) return;
+		const href = link.getAttribute("href") ?? "";
+
+		if (!onEntityLinkClick || !dndEntityPathPrefixes.some((prefix) => href.startsWith(prefix))) return;
+
+		event.preventDefault();
+		void onEntityLinkClick({ href, label: link.textContent?.trim() ?? "" });
+	}
+
+	function richHtmlLinkListener(node: HTMLElement) {
+		node.addEventListener("click", handleHtmlLinkClick);
+		return { destroy: () => node.removeEventListener("click", handleHtmlLinkClick) };
 	}
 </script>
 
@@ -60,8 +105,12 @@
 		{/if}
 	{/if}
 	{#if imageSrc}<img class="image" src={imageSrc} alt={imageAlt} />{/if}
-	{#if editable}
+	{#if editable && html !== undefined}
+		<input value={html} oninput={handleHtmlInput} aria-label="HTML чипа" />
+	{:else if editable}
 		<input value={text} oninput={handleTextInput} aria-label="Текст чипа" />
+	{:else if html !== undefined}
+		<span class="html" use:richHtmlLinkListener>{@html html}</span>
 	{:else if href && text}
 		<a class="text link" {href} onclick={handleLinkClick}>{text}</a>
 	{:else if text}
@@ -108,6 +157,9 @@
 	.icon-wrapper:focus-visible { outline: 1px solid currentcolor; border-radius: 2px; }
 	.image { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 2px; object-fit: cover; }
 	.text { min-width: 0; overflow-wrap: anywhere; }
+	.html { min-width: 0; overflow-wrap: anywhere; }
+	.html :global(p) { display: inline; margin: 0; }
+	.html :global(a) { color: inherit; text-decoration: underline; }
 	.link { color: inherit; text-decoration: underline; }
 	.suffix { flex: 0 1 auto; overflow-wrap: anywhere; }
 	input {

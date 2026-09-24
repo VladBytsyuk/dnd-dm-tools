@@ -15,6 +15,9 @@
 		href?: string;
 		onLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
 		onTextChange?: (text: string) => void;
+		html?: string;
+		onHtmlChange?: (html: string) => void;
+		onEntityLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
 		editable?: boolean;
 		background?: string;
 	};

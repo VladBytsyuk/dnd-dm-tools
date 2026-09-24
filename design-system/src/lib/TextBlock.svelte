@@ -15,6 +15,7 @@
 		accentColor?: string;
 		onSpellLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
 		onEntityLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
+		onHtmlChange?: (html: string) => void;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -28,6 +29,7 @@
 		accentColor = "#d4d4d4",
 		onSpellLinkClick,
 		onEntityLinkClick,
+		onHtmlChange,
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
@@ -61,6 +63,12 @@
 			/<table\b/gi,
 			`<table class="dnd-table" data-theme="${theme}" style="--dnd-table-accent: ${accentColor};"`,
 		);
+	}
+
+	function handleHtmlInput(event: Event) {
+		const value = (event.currentTarget as HTMLTextAreaElement).value;
+		html = value;
+		onHtmlChange?.(value);
 	}
 
 	function handleRichTextClick(event: MouseEvent) {
@@ -116,7 +124,7 @@
 	{#if isContentVisible}
 		{#if editable}
 			{#if html !== undefined}
-				<textarea bind:value={html} aria-label="HTML блока" rows={1}></textarea>
+				<textarea value={html} oninput={handleHtmlInput} aria-label="HTML блока" rows={1}></textarea>
 			{:else}
 				<textarea bind:value={text} aria-label="Текст блока" rows={1}></textarea>
 			{/if}

@@ -87,6 +87,14 @@ export type {
 	FullFeatSource,
 	FullFeatViewModel,
 } from "./FullFeatViewModel";
+export { default as FullBackground } from "./FullBackground.svelte";
+export type {
+	FullBackgroundEntityLink,
+	FullBackgroundHtmlContent,
+	FullBackgroundOrigin,
+	FullBackgroundSource,
+	FullBackgroundViewModel,
+} from "./FullBackgroundViewModel";
 export { default as FullArtifact } from "./FullArtifact.svelte";
 export type {
 	FullArtifactDetailType,
