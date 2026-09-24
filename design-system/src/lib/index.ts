@@ -95,6 +95,21 @@ export type {
 	FullBackgroundSource,
 	FullBackgroundViewModel,
 } from "./FullBackgroundViewModel";
+export { default as FullRace } from "./FullRace.svelte";
+export type {
+	FullRaceAbility,
+	FullRaceAdditionalSection,
+	FullRaceDarkvision,
+	FullRaceEntityLink,
+	FullRaceHtmlContent,
+	FullRaceOrigin,
+	FullRaceSkill,
+	FullRaceSource,
+	FullRaceSpeed,
+	FullRaceSubrace,
+	FullRaceType,
+	FullRaceViewModel,
+} from "./FullRaceViewModel";
 export { default as FullArtifact } from "./FullArtifact.svelte";
 export type {
 	FullArtifactDetailType,

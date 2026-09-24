@@ -11,9 +11,13 @@
 		badge?: string | number;
 		info?: string;
 		source?: FullItemSource;
+		sourceSuffix?: string;
+		wrapRussianName?: boolean;
 		onCopy?: (text: string) => void;
 		onNameClick?: (name: string) => void | Promise<void>;
+		onInfoChange?: (info: string) => void;
 		chips?: ChipsListItem[];
+		secondaryChips?: ChipsListItem[];
 		images?: string[];
 		alt?: string;
 		size?: number;
@@ -25,15 +29,19 @@
 
 	let {
 		accentColor = "#d4d4d4",
-		russianName,
-		englishName,
-		entityLink,
+		russianName = $bindable(""),
+		englishName = $bindable(""),
+		entityLink = $bindable(""),
 		badge,
-		info,
-		source,
+		info = $bindable<string | undefined>(),
+		source = $bindable<FullItemSource | undefined>(),
+		sourceSuffix = "",
+		wrapRussianName = false,
 		onCopy,
 		onNameClick,
+		onInfoChange,
 		chips = [],
+		secondaryChips = [],
 		images = [],
 		alt,
 		size,
@@ -44,14 +52,32 @@
 	}: Props = $props();
 
 	let coloredChips = $derived(chips.map((chip) => ({ ...chip, background: chip.background ?? accentColor })));
+	let coloredSecondaryChips = $derived(secondaryChips.map((chip) => ({ ...chip, background: chip.background ?? accentColor })));
 	let hasImage = $derived(images.length > 0 || editable);
 </script>
 
 <section class:hasImage class="max-item-header" data-theme={theme} style={`--image-size: ${size ?? 128}px`}>
 	<div class="content">
-		<FullItemHeader {russianName} {englishName} {entityLink} {badge} {info} {source} {onCopy} {onNameClick} {editable} {theme} />
+		<FullItemHeader
+			bind:russianName
+			bind:englishName
+			bind:entityLink
+			{badge}
+			bind:info
+			bind:source
+			{sourceSuffix}
+			{wrapRussianName}
+			{onCopy}
+			{onNameClick}
+			{onInfoChange}
+			{editable}
+			{theme}
+		/>
 		{#if coloredChips.length > 0 || editable}
 			<ChipsList chips={coloredChips} {editable} {theme} />
+		{/if}
+		{#if coloredSecondaryChips.length > 0}
+			<ChipsList chips={coloredSecondaryChips} showAddButton={false} {editable} {theme} />
 		{/if}
 	</div>
 

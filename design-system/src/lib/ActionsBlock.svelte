@@ -22,6 +22,7 @@
 		blocksExpanded?: boolean;
 		sectionExpanded?: boolean;
 		onSpellLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
+		onEntityLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -35,6 +36,7 @@
 		blocksExpanded = true,
 		sectionExpanded = true,
 		onSpellLinkClick,
+		onEntityLinkClick,
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
@@ -75,7 +77,7 @@
 				rows="2"
 			></textarea>
 		{:else if descriptionHtml !== undefined}
-			<TextBlock html={descriptionHtml} {accentColor} {onSpellLinkClick} {theme} />
+			<TextBlock html={descriptionHtml} {accentColor} {onSpellLinkClick} {onEntityLinkClick} {theme} />
 		{:else}
 			<p class="description">{description}</p>
 		{/if}
@@ -87,18 +89,33 @@
 				<div class="column">
 					{#each column as block}
 						{#if editable}
-							<FilledTextBlock
-								bind:title={block.title}
-								bind:text={block.text}
-								html={block.html}
-								icon={block.title ? ChevronRight : undefined}
-								expanded={blocksExpanded}
-								background={blockBackground}
-								{accentColor}
-								{onSpellLinkClick}
-								{editable}
-								{theme}
-							/>
+							{#if block.html !== undefined}
+								<FilledTextBlock
+									bind:title={block.title}
+									bind:html={block.html}
+									icon={block.title ? ChevronRight : undefined}
+									expanded={blocksExpanded}
+									background={blockBackground}
+									{accentColor}
+									{onSpellLinkClick}
+									{onEntityLinkClick}
+									{editable}
+									{theme}
+								/>
+							{:else}
+								<FilledTextBlock
+									bind:title={block.title}
+									bind:text={block.text}
+									icon={block.title ? ChevronRight : undefined}
+									expanded={blocksExpanded}
+									background={blockBackground}
+									{accentColor}
+									{onSpellLinkClick}
+									{onEntityLinkClick}
+									{editable}
+									{theme}
+								/>
+							{/if}
 						{:else}
 							<FilledTextBlock
 								title={block.title}
@@ -109,6 +126,7 @@
 								background={blockBackground}
 								{accentColor}
 								{onSpellLinkClick}
+								{onEntityLinkClick}
 								{theme}
 							/>
 						{/if}
