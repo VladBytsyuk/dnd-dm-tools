@@ -7,6 +7,11 @@
 
 # npm
 node_modules
+design-system/dist/
+design-system/storybook-static/
+design-system/.svelte-kit/
+design-system/node_modules/.cache/
+design-system/debug-storybook.log
 
 # Don't include the compiled main.js file in the repo.
 # They should be uploaded to GitHub releases instead.

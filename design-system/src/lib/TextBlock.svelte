@@ -1,0 +1,248 @@
+<script lang="ts">
+	import "@fontsource/golos-text/400.css";
+	import "@fontsource/golos-text/700.css";
+	import "./table.css";
+	import type ChevronRight from "lucide-svelte/icons/chevron-right";
+	import { sanitizeRichHtml } from "./sanitizeRichHtml";
+
+	type Icon = typeof ChevronRight;
+
+	type Props = {
+		title?: string;
+		titleSuffix?: string;
+		titleMeta?: string;
+		text?: string;
+		html?: string;
+		icon?: Icon;
+		expanded?: boolean;
+		accentColor?: string;
+		onSpellLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
+		onEntityLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
+		onHtmlChange?: (html: string) => void;
+		editable?: boolean;
+		theme?: "dark" | "light";
+	};
+
+	let {
+		title = $bindable(""),
+		titleSuffix,
+		titleMeta,
+		text = $bindable(""),
+		html = $bindable<string | undefined>(),
+		icon: Icon,
+		expanded = true,
+		accentColor = "#d4d4d4",
+		onSpellLinkClick,
+		onEntityLinkClick,
+		onHtmlChange,
+		editable = false,
+		theme = "dark",
+	}: Props = $props();
+
+	const dndEntityPathPrefixes = [
+		"/bestiary/",
+		"/spells/",
+		"/screens/",
+		"/weapons/",
+		"/armors/",
+		"/backgrounds/",
+		"/feats/",
+		"/races/",
+		"/classes/",
+		"/character-sheets/",
+		"/items/magic/",
+		"/items/",
+	] as const;
+
+	function getInitialExpanded() {
+		return expanded;
+	}
+
+	let isExpanded = $state(getInitialExpanded());
+	let isCollapsible = $derived(Boolean(Icon && title));
+	let isContentVisible = $derived(!isCollapsible || isExpanded || editable);
+	let decoratedHtml = $derived(decorateTables(sanitizeRichHtml(html ?? "")));
+
+	function decorateTables(value: string): string {
+		return value.replace(
+			/<table\b/gi,
+			`<table class="dnd-table" data-theme="${theme}" style="--dnd-table-accent: ${accentColor};"`,
+		);
+	}
+
+	function handleHtmlInput(event: Event) {
+		const value = (event.currentTarget as HTMLTextAreaElement).value;
+		html = value;
+		onHtmlChange?.(value);
+	}
+
+	function handleRichTextClick(event: MouseEvent) {
+		if (!(event.target instanceof Element)) return;
+
+		const link = event.target.closest<HTMLAnchorElement>("a[href]");
+		if (!link) return;
+		const href = link.getAttribute("href") ?? "";
+		const value = { href, label: link.textContent?.trim() ?? "" };
+
+		if (onEntityLinkClick && dndEntityPathPrefixes.some((prefix) => href.startsWith(prefix))) {
+			event.preventDefault();
+			void onEntityLinkClick(value);
+			return;
+		}
+
+		if (!onSpellLinkClick || !href.startsWith("/spells/")) return;
+
+		event.preventDefault();
+		void onSpellLinkClick(value);
+	}
+
+	function richTextLinkListener(node: HTMLElement) {
+		node.addEventListener("click", handleRichTextClick);
+		return { destroy: () => node.removeEventListener("click", handleRichTextClick) };
+	}
+</script>
+
+<section class="text-block" data-theme={theme}>
+	{#if title || editable}
+		{#if isCollapsible && !editable}
+			<button
+				type="button"
+				class:has-title-meta={Boolean(titleMeta)}
+				class="header toggle"
+				aria-expanded={isExpanded}
+				onclick={() => (isExpanded = !isExpanded)}
+			>
+				<Icon class="icon" size={14} strokeWidth={2} aria-hidden={true} />
+				<span>{title}</span>
+				{#if titleSuffix}<span class="title-suffix">{titleSuffix}</span>{/if}
+				{#if titleMeta}<span class="title-meta">{titleMeta}</span>{/if}
+			</button>
+		{:else}
+			<div class="header">
+				{#if isCollapsible}<Icon class="icon" size={14} strokeWidth={2} aria-hidden={true} />{/if}
+				{#if editable}
+					<input bind:value={title} aria-label="Заголовок текстового блока" />
+				{:else}
+					<span>{title}</span>
+				{/if}
+				{#if titleSuffix}<span class="title-suffix">{titleSuffix}</span>{/if}
+				{#if titleMeta}<span class="title-meta">{titleMeta}</span>{/if}
+			</div>
+		{/if}
+	{/if}
+
+	{#if isContentVisible}
+		{#if editable}
+			{#if html !== undefined}
+				<textarea value={html} oninput={handleHtmlInput} aria-label="HTML блока" rows={1}></textarea>
+			{:else}
+				<textarea bind:value={text} aria-label="Текст блока" rows={1}></textarea>
+			{/if}
+		{:else if html !== undefined}
+			<div class="rich-content" use:richTextLinkListener>
+				{@html decoratedHtml}
+			</div>
+		{:else if text}
+			<p>{text}</p>
+		{/if}
+	{/if}
+</section>
+
+<style>
+	.text-block {
+		display: grid;
+		gap: 4px;
+		width: 100%;
+		min-width: 0;
+		color: #fff;
+		font-family: "Golos Text", sans-serif;
+	}
+
+	.text-block[data-theme="light"] { color: #1f2937; }
+
+	.header {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		min-width: 0;
+		color: inherit;
+		font-size: 12px;
+		font-weight: 700;
+		line-height: 14px;
+	}
+
+	.header > span { overflow-wrap: anywhere; }
+	.title-suffix, .title-meta {
+		font-size: 8px;
+		font-weight: 400;
+		line-height: 10px;
+		opacity: 0.7;
+	}
+	.title-meta {
+		margin-left: auto;
+		white-space: nowrap;
+	}
+	.toggle {
+		width: fit-content;
+		max-width: 100%;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		font-family: inherit;
+		font-size: 12px;
+		font-weight: 700;
+		line-height: 14px;
+		text-align: left;
+		cursor: pointer;
+	}
+	.toggle.has-title-meta { width: 100%; }
+	.toggle .title-suffix, .toggle .title-meta { font-size: 8px; font-weight: 400; line-height: 10px; }
+	.toggle .title-meta { margin-left: auto; }
+	.toggle:hover { text-decoration: underline; }
+	.toggle:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
+	:global(.icon) { flex: 0 0 auto; }
+	.toggle[aria-expanded="true"] :global(.icon) { transform: rotate(90deg); }
+
+	p, textarea, .rich-content {
+		box-sizing: border-box;
+		width: 100%;
+		min-width: 0;
+		margin: 0;
+		color: inherit;
+		font: inherit;
+		font-size: 10px;
+		font-weight: 400;
+		line-height: 12px;
+		overflow-wrap: anywhere;
+	}
+
+	.rich-content :global(p) { margin: 0; }
+	.rich-content :global(p + p) { margin-top: 4px; }
+	.rich-content :global(a) { color: inherit; text-decoration: underline; }
+	.rich-content :global(.dnd-table) { margin: 4px 0; }
+
+	input, textarea {
+		padding: 0;
+		border: 0;
+		outline: 0;
+		background: transparent;
+		color: inherit;
+	}
+	.header input {
+		min-width: 0;
+		font-family: inherit;
+		font-size: 12px;
+		font-weight: 700;
+		line-height: 14px;
+	}
+	textarea {
+		field-sizing: content;
+		min-height: 24px;
+		resize: vertical;
+		font-family: inherit;
+		font-size: 10px;
+		font-weight: 400;
+		line-height: 12px;
+	}
+	input:focus-visible, textarea:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
+</style>

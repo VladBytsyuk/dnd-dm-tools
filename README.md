@@ -45,7 +45,7 @@ DnD DM Tools — плагин для [Obsidian](https://obsidian.md/) с рус�
 
 ## Установка из исходного кода
 
-Для сборки требуются Node.js 18 или 20, npm и хранилище Obsidian для тестирования.
+Для сборки требуются Node.js 20.19 или новее, npm и хранилище Obsidian для тестирования.
 
 ```bash
 git clone https://github.com/VladBytsyuk/dnd-dm-tools.git
