@@ -79,6 +79,14 @@ export type {
 	FullEquipmentSource,
 	FullEquipmentViewModel,
 } from "./FullEquipmentViewModel";
+export { default as FullFeat } from "./FullFeat.svelte";
+export type {
+	FullFeatEntityLink,
+	FullFeatHtmlContent,
+	FullFeatOrigin,
+	FullFeatSource,
+	FullFeatViewModel,
+} from "./FullFeatViewModel";
 export { default as FullArtifact } from "./FullArtifact.svelte";
 export type {
 	FullArtifactDetailType,
