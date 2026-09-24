@@ -8,6 +8,8 @@
 
 	type Props = {
 		title?: string;
+		titleSuffix?: string;
+		titleMeta?: string;
 		text?: string;
 		html?: string;
 		icon?: Icon;
@@ -22,6 +24,8 @@
 
 	let {
 		title = $bindable(""),
+		titleSuffix,
+		titleMeta,
 		text = $bindable(""),
 		html = $bindable<string | undefined>(),
 		icon: Icon,
@@ -102,12 +106,15 @@
 		{#if isCollapsible && !editable}
 			<button
 				type="button"
+				class:has-title-meta={Boolean(titleMeta)}
 				class="header toggle"
 				aria-expanded={isExpanded}
 				onclick={() => (isExpanded = !isExpanded)}
 			>
 				<Icon class="icon" size={14} strokeWidth={2} aria-hidden={true} />
 				<span>{title}</span>
+				{#if titleSuffix}<span class="title-suffix">{titleSuffix}</span>{/if}
+				{#if titleMeta}<span class="title-meta">{titleMeta}</span>{/if}
 			</button>
 		{:else}
 			<div class="header">
@@ -117,6 +124,8 @@
 				{:else}
 					<span>{title}</span>
 				{/if}
+				{#if titleSuffix}<span class="title-suffix">{titleSuffix}</span>{/if}
+				{#if titleMeta}<span class="title-meta">{titleMeta}</span>{/if}
 			</div>
 		{/if}
 	{/if}
@@ -162,6 +171,16 @@
 	}
 
 	.header > span { overflow-wrap: anywhere; }
+	.title-suffix, .title-meta {
+		font-size: 8px;
+		font-weight: 400;
+		line-height: 10px;
+		opacity: 0.7;
+	}
+	.title-meta {
+		margin-left: auto;
+		white-space: nowrap;
+	}
 	.toggle {
 		width: fit-content;
 		max-width: 100%;
@@ -175,6 +194,9 @@
 		text-align: left;
 		cursor: pointer;
 	}
+	.toggle.has-title-meta { width: 100%; }
+	.toggle .title-suffix, .toggle .title-meta { font-size: 8px; font-weight: 400; line-height: 10px; }
+	.toggle .title-meta { margin-left: auto; }
 	.toggle:hover { text-decoration: underline; }
 	.toggle:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
 	:global(.icon) { flex: 0 0 auto; }

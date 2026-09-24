@@ -110,6 +110,22 @@ export type {
 	FullRaceType,
 	FullRaceViewModel,
 } from "./FullRaceViewModel";
+export { default as FullClass } from "./FullClass.svelte";
+export type {
+	FullClassArchetype,
+	FullClassArchetypeType,
+	FullClassEntityLink,
+	FullClassFeature,
+	FullClassHtmlContent,
+	FullClassOrigin,
+	FullClassProficiencies,
+	FullClassProgression,
+	FullClassProgressionColumn,
+	FullClassProgressionLevel,
+	FullClassProgressionValue,
+	FullClassSource,
+	FullClassViewModel,
+} from "./FullClassViewModel";
 export { default as FullArtifact } from "./FullArtifact.svelte";
 export type {
 	FullArtifactDetailType,

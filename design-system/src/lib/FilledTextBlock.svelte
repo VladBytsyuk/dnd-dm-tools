@@ -6,6 +6,8 @@
 
 	type Props = {
 		title?: string;
+		titleSuffix?: string;
+		titleMeta?: string;
 		text?: string;
 		html?: string;
 		icon?: Icon;
@@ -21,6 +23,8 @@
 
 	let {
 		title = $bindable(""),
+		titleSuffix,
+		titleMeta,
 		text = $bindable(""),
 		html = $bindable<string | undefined>(),
 		icon: Icon,
@@ -37,9 +41,9 @@
 
 <section class="filled-text-block" data-theme={theme} style:background>
 	{#if editable}
-		<TextBlock bind:title bind:text bind:html icon={Icon} {expanded} {accentColor} {onSpellLinkClick} {onEntityLinkClick} {onHtmlChange} {editable} {theme} />
+		<TextBlock bind:title bind:text bind:html icon={Icon} {titleSuffix} {titleMeta} {expanded} {accentColor} {onSpellLinkClick} {onEntityLinkClick} {onHtmlChange} {editable} {theme} />
 	{:else}
-		<TextBlock {title} {text} {html} icon={Icon} {expanded} {accentColor} {onSpellLinkClick} {onEntityLinkClick} {onHtmlChange} {theme} />
+		<TextBlock {title} {titleSuffix} {titleMeta} {text} {html} icon={Icon} {expanded} {accentColor} {onSpellLinkClick} {onEntityLinkClick} {onHtmlChange} {theme} />
 	{/if}
 </section>
 
