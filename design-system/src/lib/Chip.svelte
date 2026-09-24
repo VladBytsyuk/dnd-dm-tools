@@ -1,6 +1,7 @@
 <script lang="ts">
 	import "@fontsource/golos-text/400.css";
 	import type Sword from "lucide-svelte/icons/sword";
+	import { sanitizeRichHtml } from "./sanitizeRichHtml";
 
 	type Icon = typeof Sword;
 
@@ -109,8 +110,8 @@
 		<input value={html} oninput={handleHtmlInput} aria-label="HTML чипа" />
 	{:else if editable}
 		<input value={text} oninput={handleTextInput} aria-label="Текст чипа" />
-	{:else if html !== undefined}
-		<span class="html" use:richHtmlLinkListener>{@html html}</span>
+		{:else if html !== undefined}
+		<span class="html" use:richHtmlLinkListener>{@html sanitizeRichHtml(html)}</span>
 	{:else if href && text}
 		<a class="text link" {href} onclick={handleLinkClick}>{text}</a>
 	{:else if text}

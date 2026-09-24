@@ -2,7 +2,6 @@
 	import ChevronLeft from "lucide-svelte/icons/chevron-left";
 	import ChevronRight from "lucide-svelte/icons/chevron-right";
 	import Plus from "lucide-svelte/icons/plus";
-	import Chip from "./Chip.svelte";
 
 	type Props = {
 		images?: string[];
@@ -11,6 +10,7 @@
 		fluid?: boolean;
 		initialIndex?: number;
 		onChange?: (index: number) => void;
+		onAddImage?: () => void;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -26,6 +26,7 @@
 		fluid = false,
 		initialIndex = 0,
 		onChange,
+		onAddImage,
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
@@ -44,7 +45,9 @@
 		{#each images as _, index}
 			<input bind:value={images[index]} aria-label={`Ссылка на изображение ${index + 1}`} />
 		{/each}
-		<Chip icon={Plus} {theme} />
+		<button class="add-image" type="button" aria-label="Добавить изображение" disabled={!onAddImage} onclick={onAddImage}>
+			<Plus size={10} strokeWidth={1.5} />
+		</button>
 	</div>
 {:else if currentImage}
 	<div class:fluid class="image-group" data-theme={theme} style={`--image-size: ${size}px`}>
@@ -104,6 +107,23 @@
 	.image-inputs :global(.chip) {
 		align-self: center;
 	}
+
+	.add-image {
+		display: inline-grid;
+		width: 16px;
+		height: 16px;
+		place-items: center;
+		align-self: center;
+		padding: 2px;
+		border: 0;
+		border-radius: 4px;
+		background: rgb(212 212 212 / 40%);
+		color: inherit;
+		cursor: pointer;
+	}
+
+	.add-image:focus-visible { outline: 1px solid currentcolor; outline-offset: 2px; }
+	.add-image:disabled { cursor: not-allowed; opacity: 0.45; }
 
 	.image-group.fluid {
 		width: min(var(--image-size), 100%);

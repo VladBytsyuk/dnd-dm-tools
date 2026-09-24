@@ -3,6 +3,7 @@
 	import "@fontsource/golos-text/700.css";
 	import "./table.css";
 	import type ChevronRight from "lucide-svelte/icons/chevron-right";
+	import { sanitizeRichHtml } from "./sanitizeRichHtml";
 
 	type Icon = typeof ChevronRight;
 
@@ -60,7 +61,7 @@
 	let isExpanded = $state(getInitialExpanded());
 	let isCollapsible = $derived(Boolean(Icon && title));
 	let isContentVisible = $derived(!isCollapsible || isExpanded || editable);
-	let decoratedHtml = $derived(decorateTables(html ?? ""));
+	let decoratedHtml = $derived(decorateTables(sanitizeRichHtml(html ?? "")));
 
 	function decorateTables(value: string): string {
 		return value.replace(
