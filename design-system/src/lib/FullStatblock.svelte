@@ -107,7 +107,7 @@
 	}
 
 	function colorForTheme(color: string): string {
-		return theme === "light" ? `color-mix(in srgb, ${color} 22%, white)` : color;
+		return theme === "light" ? color.replace(/var\((--ds-[\w-]+)\)/gu, "var($1-light)") : color;
 	}
 
 	function toActionBlocks(section: FullStatblockActionSection): ActionsBlockItem[] {
@@ -215,10 +215,10 @@
 		background:
 			linear-gradient(
 				180deg,
-				color-mix(in srgb, var(--statblock-gradient-start) 20%, transparent),
-				color-mix(in srgb, var(--statblock-gradient-end) 20%, transparent)
+				color-mix(in srgb, var(--statblock-gradient-start) var(--ds-gradient-strength, 20%), transparent),
+				color-mix(in srgb, var(--statblock-gradient-end) var(--ds-gradient-strength, 20%), transparent)
 			),
-			rgb(48 48 48 / 40%);
+			var(--ds-full-surface);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
 	}

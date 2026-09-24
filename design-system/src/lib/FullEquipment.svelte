@@ -30,7 +30,6 @@
 	let accentColor = $derived(colorForTheme("var(--ds-equipment-sub)"));
 	let gradientStart = $derived(colorForTheme("var(--ds-equipment)"));
 	let gradientEnd = $derived(colorForTheme("var(--ds-equipment-sub)"));
-	let surfaceColor = $derived(theme === "light" ? "rgb(255 255 255 / 78%)" : "rgb(48 48 48 / 40%)");
 	let categoryText = $derived(equipment.categories.join(", "));
 	let isHomebrew = $derived(Boolean(equipment.homebrew || equipment.source.homebrew));
 	let chips = $derived.by<ChipsListItem[]>(() => {
@@ -60,7 +59,7 @@
 	});
 
 	function colorForTheme(token: string): string {
-		return theme === "light" ? `color-mix(in srgb, ${token} 22%, white)` : token;
+		return theme === "light" ? token.replace(/var\((--ds-[\w-]+)\)/gu, "var($1-light)") : token;
 	}
 
 	function formatWeight(weight: number): string {
@@ -83,7 +82,7 @@
 <article
 	class="full-equipment"
 	data-theme={theme}
-	style={`--full-equipment-gradient-start: ${gradientStart}; --full-equipment-gradient-end: ${gradientEnd}; --full-equipment-accent: ${accentColor}; --full-equipment-surface: ${surfaceColor};`}
+	style={`--full-equipment-gradient-start: ${gradientStart}; --full-equipment-gradient-end: ${gradientEnd}; --full-equipment-accent: ${accentColor};`}
 >
 	<FullItemHeader
 		bind:russianName={equipment.russianName}
@@ -122,10 +121,10 @@
 		background:
 			linear-gradient(
 				180deg,
-				color-mix(in srgb, var(--full-equipment-gradient-start) 20%, transparent),
-				color-mix(in srgb, var(--full-equipment-gradient-end) 20%, transparent)
+				color-mix(in srgb, var(--full-equipment-gradient-start) var(--ds-gradient-strength, 20%), transparent),
+				color-mix(in srgb, var(--full-equipment-gradient-end) var(--ds-gradient-strength, 20%), transparent)
 			),
-			var(--full-equipment-surface);
+			var(--ds-full-surface);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
 	}

@@ -36,7 +36,7 @@
 	let footerText = $derived(formatFooter(spell));
 
 	function colorForTheme(token: string): string {
-		return theme === "light" ? `color-mix(in srgb, ${token} 22%, white)` : token;
+		return theme === "light" ? token.replace(/var\((--ds-[\w-]+)\)/gu, "var($1-light)") : token;
 	}
 
 	function getSchoolToken(school: string): string {
@@ -128,10 +128,10 @@
 		background:
 			linear-gradient(
 				180deg,
-				color-mix(in srgb, var(--full-spell-gradient-start) 20%, transparent),
-				color-mix(in srgb, var(--full-spell-gradient-end) 20%, transparent)
+				color-mix(in srgb, var(--full-spell-gradient-start) var(--ds-gradient-strength, 20%), transparent),
+				color-mix(in srgb, var(--full-spell-gradient-end) var(--ds-gradient-strength, 20%), transparent)
 			),
-			rgb(48 48 48 / 40%);
+			var(--ds-full-surface);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
 	}

@@ -84,7 +84,7 @@
 	]);
 
 	function colorForTheme(token: string): string {
-		return theme === "light" ? `color-mix(in srgb, ${token} 22%, white)` : token;
+		return theme === "light" ? token.replace(/var\((--ds-[\w-]+)\)/gu, "var($1-light)") : token;
 	}
 
 	function getWeaponTypeToken(type: string): string {
@@ -154,8 +154,8 @@
 		background:
 			linear-gradient(
 				180deg,
-				color-mix(in srgb, var(--full-weapon-gradient-start) 20%, transparent),
-				color-mix(in srgb, var(--full-weapon-gradient-end) 20%, transparent)
+				color-mix(in srgb, var(--full-weapon-gradient-start) var(--ds-gradient-strength, 20%), transparent),
+				color-mix(in srgb, var(--full-weapon-gradient-end) var(--ds-gradient-strength, 20%), transparent)
 			),
 			rgb(48 48 48 / 40%);
 		color: #fff;

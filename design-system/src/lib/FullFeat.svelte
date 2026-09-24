@@ -23,12 +23,11 @@
 	let accentColor = $derived(colorForTheme("var(--ds-feat-sub)"));
 	let gradientStart = $derived(colorForTheme("var(--ds-feat-sub)"));
 	let gradientEnd = $derived(colorForTheme("var(--ds-feat)"));
-	let surfaceColor = $derived(theme === "light" ? "rgb(255 255 255 / 78%)" : "rgb(48 48 48 / 40%)");
 	let headerInfo = $derived(editable || hasRequirements(feat.requirements) ? feat.requirements : undefined);
 	let isHomebrew = $derived(Boolean(feat.homebrew || feat.source.homebrew));
 
 	function colorForTheme(token: string): string {
-		return theme === "light" ? `color-mix(in srgb, ${token} 22%, white)` : token;
+		return theme === "light" ? token.replace(/var\((--ds-[\w-]+)\)/gu, "var($1-light)") : token;
 	}
 
 	function hasRequirements(requirements: string): boolean {
@@ -44,7 +43,7 @@
 <article
 	class="full-feat"
 	data-theme={theme}
-	style={`--full-feat-gradient-start: ${gradientStart}; --full-feat-gradient-end: ${gradientEnd}; --full-feat-accent: ${accentColor}; --full-feat-surface: ${surfaceColor};`}
+	style={`--full-feat-gradient-start: ${gradientStart}; --full-feat-gradient-end: ${gradientEnd}; --full-feat-accent: ${accentColor};`}
 >
 	<FullItemHeader
 		bind:russianName={feat.russianName}
@@ -86,10 +85,10 @@
 		background:
 			linear-gradient(
 				45deg,
-				color-mix(in srgb, var(--full-feat-gradient-start) 20%, transparent),
-				color-mix(in srgb, var(--full-feat-gradient-end) 20%, transparent)
+				color-mix(in srgb, var(--full-feat-gradient-start) var(--ds-gradient-strength, 20%), transparent),
+				color-mix(in srgb, var(--full-feat-gradient-end) var(--ds-gradient-strength, 20%), transparent)
 			),
-			var(--full-feat-surface);
+			var(--ds-full-surface);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
 	}

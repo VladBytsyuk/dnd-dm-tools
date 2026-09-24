@@ -32,7 +32,6 @@
 	let accentColor = $derived(colorForTheme("var(--ds-background-sub)"));
 	let gradientStart = $derived(colorForTheme("var(--ds-background-sub)"));
 	let gradientEnd = $derived(colorForTheme("var(--ds-background)"));
-	let surfaceColor = $derived(theme === "light" ? "rgb(255 255 255 / 78%)" : "rgb(48 48 48 / 40%)");
 	let equipmentHtml = $derived(createEquipmentHtml(background.equipments));
 	let hasAssociatedHtml = $derived(Boolean(background.associatedHtml?.html.trim()));
 	let hasPersonalization = $derived(
@@ -77,7 +76,7 @@
 	});
 
 	function colorForTheme(token: string): string {
-		return theme === "light" ? `color-mix(in srgb, ${token} 22%, white)` : token;
+		return theme === "light" ? token.replace(/var\((--ds-[\w-]+)\)/gu, "var($1-light)") : token;
 	}
 
 	function createEquipmentHtml(items: FullBackgroundViewModel["equipments"]): string {
@@ -124,7 +123,7 @@
 <article
 	class="full-background"
 	data-theme={theme}
-	style={`--full-background-gradient-start: ${gradientStart}; --full-background-gradient-end: ${gradientEnd}; --full-background-accent: ${accentColor}; --full-background-surface: ${surfaceColor};`}
+	style={`--full-background-gradient-start: ${gradientStart}; --full-background-gradient-end: ${gradientEnd}; --full-background-accent: ${accentColor};`}
 >
 	<FullItemHeader
 		bind:russianName={background.russianName}
@@ -204,10 +203,10 @@
 		background:
 			linear-gradient(
 				45deg,
-				color-mix(in srgb, var(--full-background-gradient-start) 20%, transparent),
-				color-mix(in srgb, var(--full-background-gradient-end) 20%, transparent)
+				color-mix(in srgb, var(--full-background-gradient-start) var(--ds-gradient-strength, 20%), transparent),
+				color-mix(in srgb, var(--full-background-gradient-end) var(--ds-gradient-strength, 20%), transparent)
 			),
-			var(--full-background-surface);
+			var(--ds-full-surface);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
 	}

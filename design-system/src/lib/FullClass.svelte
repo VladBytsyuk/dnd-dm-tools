@@ -41,7 +41,6 @@
 	let accentColor = $derived(colorForTheme("var(--ds-class-sub)"));
 	let gradientStart = $derived(colorForTheme(getClassToken(characterClass.entityLink)));
 	let gradientEnd = $derived(colorForTheme("var(--ds-class)"));
-	let surfaceColor = $derived(theme === "light" ? "rgb(255 255 255 / 78%)" : "rgb(48 48 48 / 40%)");
 	let hasImages = $derived(Boolean(characterClass.images?.length));
 	let archetypeChips = $derived.by<ChipsListItem[]>(() => createArchetypeChips(characterClass));
 	let hitPointChips = $derived.by<ChipsListItem[]>(() => createHitPointChips(characterClass.dice));
@@ -58,7 +57,7 @@
 	));
 
 	function colorForTheme(token: string): string {
-		return theme === "light" ? `color-mix(in srgb, ${token} 22%, white)` : token;
+		return theme === "light" ? token.replace(/var\((--ds-[\w-]+)\)/gu, "var($1-light)") : token;
 	}
 
 	function getClassToken(entityLink: string): string {
@@ -186,7 +185,7 @@
 <article
 	class="full-class"
 	data-theme={theme}
-	style={`--full-class-gradient-start: ${gradientStart}; --full-class-gradient-end: ${gradientEnd}; --full-class-accent: ${accentColor}; --full-class-surface: ${surfaceColor};`}
+	style={`--full-class-gradient-start: ${gradientStart}; --full-class-gradient-end: ${gradientEnd}; --full-class-accent: ${accentColor};`}
 >
 	<section class="class-header">
 		<div class="class-summary">
@@ -264,10 +263,10 @@
 		background:
 			linear-gradient(
 				45deg,
-				color-mix(in srgb, var(--full-class-gradient-start) 20%, transparent),
-				color-mix(in srgb, var(--full-class-gradient-end) 20%, transparent)
+				color-mix(in srgb, var(--full-class-gradient-start) var(--ds-gradient-strength, 20%), transparent),
+				color-mix(in srgb, var(--full-class-gradient-end) var(--ds-gradient-strength, 20%), transparent)
 			),
-			var(--full-class-surface);
+			var(--ds-full-surface);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
 	}

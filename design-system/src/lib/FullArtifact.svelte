@@ -28,7 +28,6 @@
 	let accentColor = $derived(colorForTheme("var(--ds-artifacts-sub)"));
 	let gradientStart = $derived(colorForTheme(getRarityToken(artifact.rarity.type)));
 	let gradientEnd = $derived(colorForTheme("var(--ds-artifacts)"));
-	let surfaceColor = $derived(theme === "light" ? "rgb(255 255 255 / 78%)" : "rgb(48 48 48 / 40%)");
 	let hasImages = $derived(Boolean(artifact.images?.length));
 	let isHomebrew = $derived(Boolean(artifact.homebrew || artifact.source.homebrew));
 	let chips = $derived.by<ChipsListItem[]>(() => {
@@ -66,7 +65,7 @@
 	});
 
 	function colorForTheme(token: string): string {
-		return theme === "light" ? `color-mix(in srgb, ${token} 22%, white)` : token;
+		return theme === "light" ? token.replace(/var\((--ds-[\w-]+)\)/gu, "var($1-light)") : token;
 	}
 
 	function getRarityToken(rarity: string): string {
@@ -91,7 +90,7 @@
 <article
 	class="full-artifact"
 	data-theme={theme}
-	style={`--full-artifact-gradient-start: ${gradientStart}; --full-artifact-gradient-end: ${gradientEnd}; --full-artifact-accent: ${accentColor}; --full-artifact-surface: ${surfaceColor};`}
+	style={`--full-artifact-gradient-start: ${gradientStart}; --full-artifact-gradient-end: ${gradientEnd}; --full-artifact-accent: ${accentColor};`}
 >
 	<div class="artifact-header">
 		<div class="artifact-summary">
@@ -143,10 +142,10 @@
 		background:
 			linear-gradient(
 				180deg,
-				color-mix(in srgb, var(--full-artifact-gradient-start) 20%, transparent),
-				color-mix(in srgb, var(--full-artifact-gradient-end) 20%, transparent)
+				color-mix(in srgb, var(--full-artifact-gradient-start) var(--ds-gradient-strength, 20%), transparent),
+				color-mix(in srgb, var(--full-artifact-gradient-end) var(--ds-gradient-strength, 20%), transparent)
 			),
-			var(--full-artifact-surface);
+			var(--ds-full-surface);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
 	}

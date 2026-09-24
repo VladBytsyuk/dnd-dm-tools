@@ -34,7 +34,6 @@
 	let accentColor = $derived(colorForTheme("var(--ds-armor-sub)"));
 	let gradientStart = $derived(colorForTheme(getArmorTypeToken(armor.armorType)));
 	let gradientEnd = $derived(colorForTheme("var(--ds-armor)"));
-	let surfaceColor = $derived(theme === "light" ? "rgb(255 255 255 / 78%)" : "rgb(48 48 48 / 40%)");
 	let chips = $derived.by<ChipsListItem[]>(() => {
 		const items: ChipsListItem[] = [
 			{
@@ -104,7 +103,7 @@
 	});
 
 	function colorForTheme(token: string): string {
-		return theme === "light" ? `color-mix(in srgb, ${token} 22%, white)` : token;
+		return theme === "light" ? token.replace(/var\((--ds-[\w-]+)\)/gu, "var($1-light)") : token;
 	}
 
 	function getArmorTypeToken(type: string): string {
@@ -122,7 +121,7 @@
 <article
 	class="full-armor"
 	data-theme={theme}
-	style={`--full-armor-gradient-start: ${gradientStart}; --full-armor-gradient-end: ${gradientEnd}; --full-armor-accent: ${accentColor}; --full-armor-surface: ${surfaceColor};`}
+	style={`--full-armor-gradient-start: ${gradientStart}; --full-armor-gradient-end: ${gradientEnd}; --full-armor-accent: ${accentColor};`}
 >
 	<FullItemHeader
 		bind:russianName={armor.russianName}
@@ -156,10 +155,10 @@
 		background:
 			linear-gradient(
 				180deg,
-				color-mix(in srgb, var(--full-armor-gradient-start) 20%, transparent),
-				color-mix(in srgb, var(--full-armor-gradient-end) 20%, transparent)
+				color-mix(in srgb, var(--full-armor-gradient-start) var(--ds-gradient-strength, 20%), transparent),
+				color-mix(in srgb, var(--full-armor-gradient-end) var(--ds-gradient-strength, 20%), transparent)
 			),
-			var(--full-armor-surface);
+			var(--ds-full-surface);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
 	}

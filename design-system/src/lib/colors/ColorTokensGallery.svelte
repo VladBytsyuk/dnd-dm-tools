@@ -28,9 +28,10 @@
 		<section>
 			<h2>{groupName}</h2>
 			{#each colors as [name, token]}
+				{@const displayedToken = theme === "light" ? `${token}-light` : token}
 				<div class="color-token">
-					<div class="swatch" style:background-color={`var(${token})`}></div>
-					<div><strong>{name}</strong><code>{token}</code></div>
+					<div class="swatch" style:background-color={`var(${displayedToken})`}></div>
+					<div><strong>{name}</strong><code>{displayedToken}</code></div>
 				</div>
 			{/each}
 		</section>

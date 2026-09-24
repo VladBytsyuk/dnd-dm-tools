@@ -39,7 +39,6 @@
 	let accentColor = $derived(colorForTheme("var(--ds-race-sub)"));
 	let gradientStart = $derived(colorForTheme("var(--ds-race-sub)"));
 	let gradientEnd = $derived(colorForTheme("var(--ds-race)"));
-	let surfaceColor = $derived(theme === "light" ? "rgb(255 255 255 / 78%)" : "rgb(48 48 48 / 40%)");
 	let headerInfo = $derived(formatHeaderInfo(race.type.name, race.group?.name));
 	let primaryChips = $derived.by<ChipsListItem[]>(() => createPrimaryChips(race));
 	let subraceChips = $derived.by<ChipsListItem[]>(() => createSubraceChips(race));
@@ -52,7 +51,7 @@
 	let hasDescription = $derived(Boolean(race.description.html.trim()));
 
 	function colorForTheme(token: string): string {
-		return theme === "light" ? `color-mix(in srgb, ${token} 22%, white)` : token;
+		return theme === "light" ? token.replace(/var\((--ds-[\w-]+)\)/gu, "var($1-light)") : token;
 	}
 
 	function formatHeaderInfo(type: string, group: string | undefined): string {
@@ -170,7 +169,7 @@
 <article
 	class="full-race"
 	data-theme={theme}
-	style={`--full-race-gradient-start: ${gradientStart}; --full-race-gradient-end: ${gradientEnd}; --full-race-accent: ${accentColor}; --full-race-surface: ${surfaceColor};`}
+	style={`--full-race-gradient-start: ${gradientStart}; --full-race-gradient-end: ${gradientEnd}; --full-race-accent: ${accentColor};`}
 >
 	<MaxItemHeader
 		accentColor={accentColor}
@@ -244,10 +243,10 @@
 		background:
 			linear-gradient(
 				45deg,
-				color-mix(in srgb, var(--full-race-gradient-start) 20%, transparent),
-				color-mix(in srgb, var(--full-race-gradient-end) 20%, transparent)
+				color-mix(in srgb, var(--full-race-gradient-start) var(--ds-gradient-strength, 20%), transparent),
+				color-mix(in srgb, var(--full-race-gradient-end) var(--ds-gradient-strength, 20%), transparent)
 			),
-			var(--full-race-surface);
+			var(--ds-full-surface);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
 	}
