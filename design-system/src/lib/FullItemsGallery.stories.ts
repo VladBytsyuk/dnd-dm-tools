@@ -21,5 +21,3 @@ export const Light: Story = {
 	globals: { backgrounds: { value: "light" } },
 	args: { theme: "light" },
 };
-
-export const All: Story = { args: { theme: "dark" } };

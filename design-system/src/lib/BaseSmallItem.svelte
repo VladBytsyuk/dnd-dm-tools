@@ -39,6 +39,16 @@
 		theme = "dark",
 		...articleProps
 	}: Props = $props();
+
+	function resolveThemeColor(color: string | undefined): string | undefined {
+		return theme === "light"
+			? color?.replace(/var\((--ds-[\w-]+)\)/gu, "var($1-light)")
+			: color;
+	}
+
+	let resolvedAccentColor = $derived(resolveThemeColor(accentColor));
+	let resolvedPrimaryColor = $derived(resolveThemeColor(primaryColor));
+	let resolvedSecondaryColor = $derived(resolveThemeColor(secondaryColor));
 </script>
 
 <article
@@ -49,7 +59,7 @@
 	data-has-accent={Boolean(accentColor)}
 	data-has-value={value !== undefined}
 	data-has-meta={Boolean(source || secondarySource || Icon)}
-	style={`--accent-color: ${accentColor}; --primary-color: ${primaryColor}; --secondary-color: ${secondaryColor}; --item-height: ${height}px`}
+	style={`--accent-color: ${resolvedAccentColor}; --primary-color: ${resolvedPrimaryColor}; --secondary-color: ${resolvedSecondaryColor}; --item-height: ${height}px`}
 >
 	{#if accentColor}
 		<div class="accent" aria-hidden="true"></div>
