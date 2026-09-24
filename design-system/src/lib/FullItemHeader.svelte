@@ -95,7 +95,7 @@
 		{/if}
 	</div>
 
-	{#if badge !== undefined || info || source}
+	{#if badge !== undefined || (editable && info !== undefined) || info || source}
 		<div class="details">
 			{#if badge !== undefined}
 				{#if editable}
@@ -104,7 +104,7 @@
 					<span class="badge">{badge}</span>
 				{/if}
 			{/if}
-			{#if info}
+			{#if (editable && info !== undefined) || info}
 				{#if editable}
 					<input class="info" bind:value={info} oninput={handleInfoInput} aria-label="Описание" />
 				{:else}

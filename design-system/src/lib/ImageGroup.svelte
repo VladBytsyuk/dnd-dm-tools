@@ -33,6 +33,11 @@
 	let currentIndex = $state(getInitialIndex());
 	let currentImage = $derived(images[currentIndex]);
 	let hasControls = $derived(images.length > 1);
+	$effect.pre(() => {
+		if (currentIndex >= images.length) {
+			currentIndex = Math.max(images.length - 1, 0);
+		}
+	});
 
 	function showImage(index: number) {
 		currentIndex = (index + images.length) % images.length;

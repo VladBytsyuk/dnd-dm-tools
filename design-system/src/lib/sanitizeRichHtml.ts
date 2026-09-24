@@ -18,7 +18,7 @@ export function sanitizeRichHtml(html: string): string {
 		allowedTags,
 		allowedAttributes: {
 			...sanitizeHtml.defaults.allowedAttributes,
-			"*": ["class"],
+			"*": ["class", "id"],
 			a: ["href", "name", "target"],
 			img: ["src", "alt", "width", "height"],
 			td: ["colspan", "rowspan"],
