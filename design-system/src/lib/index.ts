@@ -79,6 +79,18 @@ export type {
 	FullEquipmentSource,
 	FullEquipmentViewModel,
 } from "./FullEquipmentViewModel";
+export { default as FullArtifact } from "./FullArtifact.svelte";
+export type {
+	FullArtifactDetailType,
+	FullArtifactEntityLink,
+	FullArtifactHtmlContent,
+	FullArtifactOrigin,
+	FullArtifactPrice,
+	FullArtifactRarity,
+	FullArtifactSource,
+	FullArtifactType,
+	FullArtifactViewModel,
+} from "./FullArtifactViewModel";
 export { default as ImageGroup } from "./ImageGroup.svelte";
 export { default as Chip } from "./Chip.svelte";
 export { default as ChipsList } from "./ChipsList.svelte";
