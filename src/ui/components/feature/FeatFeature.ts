@@ -9,6 +9,8 @@ import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import type DndStatblockPlugin from "src/main";
 import type { BaseSidePanel } from "../sidepanel/BaseSidePanel";
 import { FeatsSidePanel } from "../sidepanel/FeatsSidePanel";
+import type { BaseMdCodeBlockProcessor } from "../processor/BaseMdCodeBlockProcessor";
+import { FeatMdCodeBlockProcessor } from "../processor/FeatMdCodeBlockProcessor";
 
 export class FeatFeature extends BaseFeature<SmallFeat, FullFeat, FeatsFilters> {
 
@@ -18,5 +20,9 @@ export class FeatFeature extends BaseFeature<SmallFeat, FullFeat, FeatsFilters> 
 
     createSidePanel(plugin: DndStatblockPlugin, repository: Repository<SmallFeat, FullFeat, FeatsFilters>, uiEventListener: IUiEventListener): BaseSidePanel<SmallFeat, FullFeat, FeatsFilters> {
         return new FeatsSidePanel(plugin, repository, uiEventListener);
+    }
+
+    createCodeBlockProcessor(): BaseMdCodeBlockProcessor<SmallFeat, FullFeat, FeatsFilters> {
+        return new FeatMdCodeBlockProcessor();
     }
 }

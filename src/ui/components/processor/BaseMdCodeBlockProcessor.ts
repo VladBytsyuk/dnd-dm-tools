@@ -5,6 +5,8 @@ import type { BaseItem } from "src/domain/models/common/BaseItem";
 import type { Repository } from "src/domain/repositories/Repository";
 import type DndStatblockPlugin from "src/main";
 import { mount, type Component } from "svelte";
+import RedesignedMarkdownCard from "src/ui/design-system/RedesignedMarkdownCard.svelte";
+import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
 
 /**
  * Base class for processing markdown code blocks in Obsidian.
@@ -39,7 +41,7 @@ export abstract class BaseMdCodeBlockProcessor<
     ) {
         plugin.registerMarkdownCodeBlockProcessor(
             this.getCodeBlockName(), 
-            (source, el) => this.mdCodeBlockProcessor(source, el, repository, uiEventListener),
+            (source, el) => this.mdCodeBlockProcessor(source, el, repository, uiEventListener, plugin),
         );
     }
 
@@ -52,6 +54,7 @@ export abstract class BaseMdCodeBlockProcessor<
         el: HTMLElement,
         repository: Repository<ST, FT, F>,
         uiEventListener: IUiEventListener,
+        plugin: DndStatblockPlugin,
     ) {
         try {
             const parameters = parseYaml(source);
@@ -73,15 +76,28 @@ export abstract class BaseMdCodeBlockProcessor<
                 item = parameters as FT;
             }
 
-            mount(this.getUi(), {
+            const panelKey = panelKeyForCodeBlock(this.getCodeBlockName());
+            const redesigned = plugin.getSettings().redesignEnabled && Boolean(panelKey);
+            const component = redesigned ? RedesignedMarkdownCard : this.getUi();
+            mount(component, {
                 target: el,
                 props: {
                     currentItem: item,
                     uiEventListener: uiEventListener,
+                    ...(redesigned ? { panelKey } : {}),
                 },
             });
         } catch (error) {
             console.error('Error processing markdown code block:', error);
         }
     }
+}
+
+function panelKeyForCodeBlock(name: string): PanelKey | undefined {
+    const keys: Record<string, PanelKey> = {
+        statblock: "bestiary", spell: "spellbook", weapon: "arsenal", armor: "armory",
+        equip: "equipment", artifact: "artifactory", background: "backgrounds", feat: "feats",
+        race: "races", "dnd-class": "classes",
+    };
+    return keys[name];
 }

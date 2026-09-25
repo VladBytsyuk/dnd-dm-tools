@@ -32,13 +32,15 @@
 		onCopyStatblock: (statblock: FullStatblockViewModel) => void | Promise<void>;
 		onCopySpellLink: (link: FullStatblockSpellLink) => void | Promise<void>;
 		theme?: "dark" | "light";
+		editable?: boolean;
 	};
 
 	let {
-		statblock,
+		statblock = $bindable<FullStatblockViewModel>(),
 		onCopyStatblock,
 		onCopySpellLink,
 		theme = "dark",
+		editable = false,
 	}: Props = $props();
 
 	const darkAccentColor = "var(--ds-bestiary-sub)";
@@ -129,6 +131,10 @@
 	function hasLair(lair: FullStatblockLair | undefined): lair is FullStatblockLair {
 		return Boolean(lair && (lair.descriptionHtml || lair.actionsHtml || lair.regionalEffectsHtml));
 	}
+
+	function setEnvironment(value: string): void {
+		statblock.environment = value.split(",").map((part) => part.trim()).filter(Boolean);
+	}
 </script>
 
 <article
@@ -138,17 +144,42 @@
 >
 	<MaxItemHeader
 		accentColor={accentColor}
-		russianName={statblock.russianName}
-		englishName={statblock.englishName}
-		entityLink={statblock.entityLink}
-		info={statblock.creatureType}
-		source={statblock.source}
+		bind:russianName={statblock.russianName}
+		bind:englishName={statblock.englishName}
+		bind:entityLink={statblock.entityLink}
+		bind:badge={statblock.challengeRating}
+		bind:info={statblock.creatureType}
+		bind:source={statblock.source}
 		chips={headerChips}
 		images={statblock.images}
 		alt={statblock.imageAlt ?? statblock.russianName}
 		onNameClick={() => onCopyStatblock(statblock)}
+		editable={editable}
 		{theme}
 	/>
+	{#if editable}
+		<div class="statblock-editor">
+			<label>Класс доспеха<input bind:value={statblock.armorClass} /></label>
+			<label>Хиты<input bind:value={statblock.hitPoints} /></label>
+			<label>Скорость<input bind:value={statblock.speed} /></label>
+			<label>Размер<input bind:value={statblock.size} /></label>
+			<label>Мировоззрение<input bind:value={statblock.alignment} /></label>
+			<label>Спасброски<input bind:value={statblock.savingThrows} /></label>
+			<label>Навыки<input bind:value={statblock.skills} /></label>
+			<label>Уязвимости<input bind:value={statblock.damageVulnerabilities} /></label>
+			<label>Сопротивления<input bind:value={statblock.damageResistances} /></label>
+			<label>Иммунитеты<input bind:value={statblock.damageImmunities} /></label>
+			<label>Иммунитеты к состояниям<input bind:value={statblock.conditionImmunities} /></label>
+			<label>Чувства<input bind:value={statblock.senses} /></label>
+			<label>Языки<input bind:value={statblock.languages} /></label>
+			<label>Опыт<input bind:value={statblock.experience} /></label>
+			<label>Бонус мастерства<input bind:value={statblock.proficiencyBonus} /></label>
+			<label>Среда обитания<input value={statblock.environment?.join(", ") ?? ""} oninput={(event) => setEnvironment(event.currentTarget.value)} /></label>
+			{#each statblock.abilities ?? [] as ability (ability.label)}
+				<label>{ability.label}<input type="number" bind:value={ability.score} /></label>
+			{/each}
+		</div>
+	{/if}
 
 	{#if (statblock.abilities?.length ?? 0) > 0}
 		<Table columns={statblock.abilities?.length} values={abilityValues} accentColor={accentColor} {theme} />
@@ -159,47 +190,48 @@
 	{/if}
 
 	{#each statblock.traits ?? [] as trait (trait.title)}
-		<TextBlock title={trait.title} html={trait.html} {accentColor} onSpellLinkClick={onCopySpellLink} {theme} />
+		<TextBlock bind:title={trait.title} bind:html={trait.html} {accentColor} onSpellLinkClick={onCopySpellLink} {editable} {theme} />
 	{/each}
 
-	{#if hasSection(statblock.actions)}
+	{#if statblock.actions && (hasSection(statblock.actions) || editable)}
 		<ActionsBlock
-			title={statblock.actions.title}
-			descriptionHtml={statblock.actions.descriptionHtml}
-			blocks={toActionBlocks(statblock.actions)}
+			bind:title={statblock.actions.title}
+			bind:descriptionHtml={statblock.actions.descriptionHtml}
+			bind:blocks={statblock.actions.items}
 			blocksExpanded={true}
 			{accentColor}
 			onSpellLinkClick={onCopySpellLink}
+			{editable}
 			{theme}
 		/>
 	{/if}
 
-	{#if hasSection(statblock.bonusActions)}
-		<ActionsBlock title={statblock.bonusActions.title} descriptionHtml={statblock.bonusActions.descriptionHtml} blocks={toActionBlocks(statblock.bonusActions)} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {theme} />
+	{#if statblock.bonusActions && (hasSection(statblock.bonusActions) || editable)}
+		<ActionsBlock bind:title={statblock.bonusActions.title} bind:descriptionHtml={statblock.bonusActions.descriptionHtml} bind:blocks={statblock.bonusActions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {editable} {theme} />
 	{/if}
 
-	{#if hasSection(statblock.reactions)}
-		<ActionsBlock title={statblock.reactions.title} descriptionHtml={statblock.reactions.descriptionHtml} blocks={toActionBlocks(statblock.reactions)} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {theme} />
+	{#if statblock.reactions && (hasSection(statblock.reactions) || editable)}
+		<ActionsBlock bind:title={statblock.reactions.title} bind:descriptionHtml={statblock.reactions.descriptionHtml} bind:blocks={statblock.reactions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {editable} {theme} />
 	{/if}
 
-	{#if hasSection(statblock.legendaryActions)}
-		<ActionsBlock title={statblock.legendaryActions.title} descriptionHtml={statblock.legendaryActions.descriptionHtml} blocks={toActionBlocks(statblock.legendaryActions)} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {theme} />
+	{#if statblock.legendaryActions && (hasSection(statblock.legendaryActions) || editable)}
+		<ActionsBlock bind:title={statblock.legendaryActions.title} bind:descriptionHtml={statblock.legendaryActions.descriptionHtml} bind:blocks={statblock.legendaryActions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {editable} {theme} />
 	{/if}
 
-	{#if hasSection(statblock.mythicActions)}
-		<ActionsBlock title={statblock.mythicActions.title} descriptionHtml={statblock.mythicActions.descriptionHtml} blocks={toActionBlocks(statblock.mythicActions)} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {theme} />
+	{#if statblock.mythicActions && (hasSection(statblock.mythicActions) || editable)}
+		<ActionsBlock bind:title={statblock.mythicActions.title} bind:descriptionHtml={statblock.mythicActions.descriptionHtml} bind:blocks={statblock.mythicActions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {editable} {theme} />
 	{/if}
 
 	{#if hasLair(statblock.lair)}
 		<ActionsBlock title="Логово" descriptionHtml={statblock.lair.descriptionHtml} blocks={lairBlocks} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {theme} />
 	{/if}
 
-	{#if statblock.descriptionHtml}
-		<FilledTextBlock title="Описание" html={statblock.descriptionHtml} icon={ChevronRight} expanded={false} background="color-mix(in srgb, var(--statblock-accent) 40%, transparent)" {accentColor} onSpellLinkClick={onCopySpellLink} {theme} />
+	{#if statblock.descriptionHtml || editable}
+		<FilledTextBlock title="Описание" bind:html={statblock.descriptionHtml} icon={ChevronRight} expanded={false} background="color-mix(in srgb, var(--statblock-accent) 40%, transparent)" {accentColor} onSpellLinkClick={onCopySpellLink} {editable} {theme} />
 	{/if}
 
 	{#each statblock.tags ?? [] as tag (tag.title)}
-		<FilledTextBlock title={tag.title} html={tag.html} icon={ChevronRight} expanded={false} background="color-mix(in srgb, var(--statblock-accent) 40%, transparent)" {accentColor} onSpellLinkClick={onCopySpellLink} {theme} />
+		<FilledTextBlock bind:title={tag.title} bind:html={tag.html} icon={ChevronRight} expanded={false} background="color-mix(in srgb, var(--statblock-accent) 40%, transparent)" {accentColor} onSpellLinkClick={onCopySpellLink} {editable} {theme} />
 	{/each}
 </article>
 
@@ -225,4 +257,20 @@
 
 	.full-statblock[data-theme="light"] { color: #1f2937; }
 	.full-statblock :global(.max-item-header) { margin-bottom: 4px; }
+	.statblock-editor { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+	.statblock-editor label { display: grid; gap: 3px; font-size: 11px; }
+	.statblock-editor input:not([type="checkbox"]) {
+		all: unset;
+		box-sizing: border-box;
+		display: block;
+		width: 100%;
+		min-width: 0;
+		padding: 4px 6px;
+		border: 1px solid rgb(255 255 255 / 24%);
+		border-radius: 4px;
+		background: rgb(0 0 0 / 16%);
+		color: inherit;
+		font: inherit;
+	}
+	.statblock-editor input:focus-visible { outline: 2px solid currentcolor; outline-offset: 1px; }
 </style>

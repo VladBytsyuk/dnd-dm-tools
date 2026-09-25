@@ -182,7 +182,11 @@
 		margin-left: auto;
 		white-space: nowrap;
 	}
-	.toggle {
+	.text-block button.toggle {
+		all: unset;
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
 		width: fit-content;
 		max-width: 100%;
 		padding: 0;
@@ -215,6 +219,20 @@
 		line-height: 12px;
 		overflow-wrap: anywhere;
 	}
+	textarea, input {
+		all: unset;
+		box-sizing: border-box;
+		display: block;
+		width: 100%;
+		min-width: 0;
+		padding: 4px 6px;
+		border: 1px solid rgb(255 255 255 / 20%);
+		border-radius: 4px;
+		background: rgb(0 0 0 / 16%);
+		color: inherit;
+		font: inherit;
+	}
+	textarea { resize: vertical; }
 
 	.rich-content :global(p) { margin: 0; }
 	.rich-content :global(p + p) { margin-top: 4px; }

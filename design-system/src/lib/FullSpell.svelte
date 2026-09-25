@@ -16,9 +16,10 @@
 		onCopySpell?: (spell: FullSpellViewModel) => void | Promise<void>;
 		onEntityLinkClick?: (link: FullSpellEntityLink) => void | Promise<void>;
 		theme?: "dark" | "light";
+		editable?: boolean;
 	};
 
-	let { spell, onCopySpell, onEntityLinkClick, theme = "dark" }: Props = $props();
+	let { spell = $bindable<FullSpellViewModel>(), onCopySpell, onEntityLinkClick, theme = "dark", editable = false }: Props = $props();
 
 	const accentBackground = "var(--full-spell-accent)";
 	let accentColor = $derived(colorForTheme("var(--ds-spell-sub)"));
@@ -34,6 +35,19 @@
 		{ text: duration, icon: Hourglass, iconTooltip: "Длительность", background: accentBackground },
 	]);
 	let footerText = $derived(formatFooter(spell));
+	let classesText = $derived((spell.classes ?? []).map((value) => value.name).join(", "));
+	let subclassesText = $derived((spell.subclasses ?? []).map((value) => value.name).join(", "));
+
+	$effect(() => {
+		if (editable && !spell.higherLevels) spell.higherLevels = { html: "" };
+	});
+
+	function updateClassLinks(text: string, current: FullSpellViewModel["classes"]): FullSpellViewModel["classes"] {
+		return text.split(",").map((part) => part.trim()).filter(Boolean).map((name) => {
+			const existing = current?.find((value) => value.name === name);
+			return existing ?? { name, url: `/classes/${name.toLocaleLowerCase("ru").replace(/\s+/gu, "-")}` };
+		});
+	}
 
 	function colorForTheme(token: string): string {
 		return theme === "light" ? token.replace(/var\((--ds-[\w-]+)\)/gu, "var($1-light)") : token;
@@ -72,15 +86,30 @@
 	style={`--full-spell-gradient-start: ${gradientStart}; --full-spell-gradient-end: ${gradientEnd}; --full-spell-accent: ${accentColor};`}
 >
 	<FullItemHeader
-		russianName={displayName}
-		englishName={spell.englishName}
-		entityLink={spell.entityLink}
-		badge={spell.level}
+		bind:russianName={spell.russianName}
+		bind:englishName={spell.englishName}
+		bind:entityLink={spell.entityLink}
+		bind:badge={spell.level}
 		info={headerInfo}
-		source={spell.source}
+		bind:source={spell.source}
 		onNameClick={onCopySpell ? () => onCopySpell(spell) : undefined}
+		{editable}
 		{theme}
 	/>
+	{#if editable}
+		<div class="spell-editor">
+			<label>Уровень<input type="number" min="0" max="9" bind:value={spell.level} /></label>
+			<label>Школа<input bind:value={spell.school} /></label>
+			<label>Дополнительный тип<input bind:value={spell.additionalType} /></label>
+			<label>Время накладывания<input bind:value={spell.time} /></label>
+			<label>Дистанция<input bind:value={spell.range} /></label>
+			<label>Длительность<input bind:value={spell.duration} /></label>
+			<label>Классы<input value={classesText} oninput={(event) => spell.classes = updateClassLinks(event.currentTarget.value, spell.classes)} /></label>
+			<label>Подклассы<input value={subclassesText} oninput={(event) => spell.subclasses = updateClassLinks(event.currentTarget.value, spell.subclasses)} /></label>
+			<label><input type="checkbox" bind:checked={spell.concentration} /> Концентрация</label>
+			<label><input type="checkbox" bind:checked={spell.ritual} /> Ритуал</label>
+		</div>
+	{/if}
 
 	<ChipsList chips={characteristicChips} {theme} />
 
@@ -89,22 +118,25 @@
 		verbal={spell.components.verbal}
 		material={spell.components.material}
 		background={accentBackground}
+		editable={editable}
 		{theme}
 	/>
 
 	<TextBlock
-		html={spell.description.html}
+		bind:html={spell.description.html}
 		accentColor={accentColor}
 		{onEntityLinkClick}
+		{editable}
 		{theme}
 	/>
 
-	{#if spell.higherLevels?.html}
+	{#if spell.higherLevels && (spell.higherLevels.html || editable)}
 		<FilledTextBlock
-			html={spell.higherLevels.html}
+			bind:html={spell.higherLevels.html}
 			background={filledBackground}
 			accentColor={accentColor}
 			{onEntityLinkClick}
+			{editable}
 			{theme}
 		/>
 	{/if}
@@ -143,4 +175,20 @@
 
 	.full-spell[data-theme="light"] { color: #1f2937; }
 	.full-spell :global(.full-item-header) { margin-bottom: 0; }
+	.spell-editor { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+	.spell-editor label { display: flex; align-items: center; gap: 5px; font-size: 11px; }
+	.spell-editor input:not([type="checkbox"]) {
+		all: unset;
+		box-sizing: border-box;
+		display: block;
+		min-width: 0;
+		width: 100%;
+		padding: 4px 6px;
+		border: 1px solid rgb(255 255 255 / 24%);
+		border-radius: 4px;
+		background: rgb(0 0 0 / 16%);
+		color: inherit;
+		font: inherit;
+	}
+	.spell-editor input:not([type="checkbox"]):focus-visible { outline: 2px solid currentcolor; outline-offset: 1px; }
 </style>

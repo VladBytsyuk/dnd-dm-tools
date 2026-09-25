@@ -3,6 +3,31 @@ import process from "process";
 import builtins from "builtin-modules";
 import esbuildSvelte from 'esbuild-svelte';
 import { sveltePreprocess } from 'svelte-preprocess';
+import { readFile, writeFile, rm } from 'node:fs/promises';
+
+const embeddedCssMarker = "/* DND_DM_TOOLS_BUNDLED_CSS */";
+
+const embedObsidianCss = {
+	name: "embed-obsidian-css",
+	setup(build) {
+		build.onEnd(async (result) => {
+			if (result.errors.length > 0) return;
+
+			let bundledCss;
+			try {
+				bundledCss = await readFile("main.css", "utf8");
+			} catch {
+				return;
+			}
+
+			const currentStyles = await readFile("styles.css", "utf8");
+			const markerIndex = currentStyles.indexOf(embeddedCssMarker);
+			const baseStyles = markerIndex >= 0 ? currentStyles.slice(0, markerIndex).trimEnd() : currentStyles.trimEnd();
+			await writeFile("styles.css", `${baseStyles}\n\n${embeddedCssMarker}\n${bundledCss.trim()}\n`);
+			await rm("main.css", { force: true });
+		});
+	},
+};
 
 const banner =
 `/*
@@ -25,6 +50,8 @@ const context = await esbuild.context({
 	loader: {
 		'.svg': 'text',
 		'.wasm': 'binary',
+		'.woff': 'dataurl',
+		'.woff2': 'dataurl',
 	},
 	external: [
 		"obsidian",
@@ -57,6 +84,7 @@ const context = await esbuild.context({
 			compilerOptions: { css: 'injected' },
 			preprocess: sveltePreprocess(),
 		}),
+		embedObsidianCss,
 	],
 });
 

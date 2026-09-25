@@ -82,6 +82,8 @@ export class PanelManager {
 		return this.getPersistedWorkspace();
 	}
 
+	isRedesignEnabled(): boolean { return this.plugin.getSettings().redesignEnabled; }
+
 	async openPanel(key: PanelKey): Promise<void> {
 		if (!this.panels.has(key)) return;
 		this.activateOrOpenPanelTab(key);
@@ -215,6 +217,7 @@ class AssistantItemView extends ItemView {
 			props: {
 				panels: this.manager.getPanelSummaries(),
 				initialWorkspace: structuredClone(this.manager.getWorkspace()),
+				redesignEnabled: this.manager.isRedesignEnabled(),
 				search: (query: string) => this.manager.search(query),
 				openResult: (result: PanelSearchResult) => this.manager.openSearchResult(result),
 				mountPanel: (key: PanelKey, element: Element) => this.manager.mountPanel(key, element),

@@ -55,6 +55,8 @@
 	}
 
 	.add-chip {
+		all: unset;
+		box-sizing: border-box;
 		display: inline-grid;
 		width: 16px;
 		height: 16px;

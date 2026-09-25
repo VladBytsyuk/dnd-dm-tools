@@ -99,7 +99,7 @@
 		{#if iconTooltip}
 			<button type="button" class="icon-wrapper" aria-label={iconTooltip}>
 				<Icon size={10} strokeWidth={1.5} aria-hidden={true} />
-				<span class="tooltip" role="tooltip">{iconTooltip}</span>
+				<span class="chip-tooltip" role="tooltip">{iconTooltip}</span>
 			</button>
 		{:else}
 			<span class="icon-wrapper"><Icon size={10} strokeWidth={1.5} /></span>
@@ -154,7 +154,8 @@
 	.chip[data-theme="light"]:hover { background: linear-gradient(rgb(15 23 42 / 12%), rgb(15 23 42 / 12%)), color-mix(in srgb, var(--chip-background) 40%, transparent); }
 	.chip[data-theme="light"]:active { background: linear-gradient(rgb(15 23 42 / 24%), rgb(15 23 42 / 24%)), color-mix(in srgb, var(--chip-background) 40%, transparent); }
 
-	.icon-wrapper { position: relative; align-self: flex-start; display: inline-flex; flex: 0 0 auto; padding: 0; border: 0; background: transparent; color: inherit; outline: none; }
+	.icon-wrapper { all: unset; box-sizing: border-box; position: relative; align-self: flex-start; display: inline-flex; flex: 0 0 auto; padding: 0; border: 0; background: transparent; color: inherit; outline: none; }
+	.chip button.icon-wrapper { appearance: none; min-height: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; padding: 0; }
 	.icon-wrapper:focus-visible { outline: 1px solid currentcolor; border-radius: 2px; }
 	.image { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 2px; object-fit: cover; }
 	.text { min-width: 0; overflow-wrap: anywhere; }
@@ -164,17 +165,16 @@
 	.link { color: inherit; text-decoration: underline; }
 	.suffix { flex: 0 1 auto; overflow-wrap: anywhere; }
 	input {
+		all: unset;
+		box-sizing: border-box;
+		display: block;
 		width: 100%;
 		min-width: 0;
-		padding: 0;
-		border: 0;
-		outline: 0;
-		background: transparent;
 		color: inherit;
 		font: inherit;
 		line-height: inherit;
 	}
-	.tooltip {
+	.chip-tooltip {
 		position: absolute;
 		bottom: calc(100% + 6px);
 		left: 50%;
@@ -188,10 +188,16 @@
 		color: #fff;
 		font-size: 10px;
 		line-height: 12px;
+		visibility: hidden;
 		opacity: 0;
 		pointer-events: none;
 		transform: translate(-50%, 2px);
-		transition: opacity 120ms ease, transform 120ms ease;
+		transition: opacity 120ms ease, transform 120ms ease, visibility 120ms ease;
 	}
-	.icon-wrapper:hover .tooltip, .icon-wrapper:focus-visible .tooltip { opacity: 1; transform: translate(-50%, 0); }
+	.chip button.icon-wrapper:hover .chip-tooltip,
+	.chip button.icon-wrapper:focus-visible .chip-tooltip {
+		visibility: visible;
+		opacity: 1;
+		transform: translate(-50%, 0);
+	}
 </style>

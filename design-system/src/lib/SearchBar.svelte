@@ -100,13 +100,13 @@
 	}
 
 	input {
+		all: unset;
+		box-sizing: border-box;
+		display: block;
 		width: 100%;
 		min-width: 0;
 		height: 100%;
 		padding: 0 16px;
-		border: 0;
-		outline: 0;
-		background: transparent;
 		color: inherit;
 		font: inherit;
 	}
@@ -133,7 +133,9 @@
 		text-overflow: ellipsis;
 	}
 
-	.icon-button {
+	.search-bar button.icon-button {
+		all: unset;
+		box-sizing: border-box;
 		display: grid;
 		flex: 0 0 48px;
 		width: 48px;

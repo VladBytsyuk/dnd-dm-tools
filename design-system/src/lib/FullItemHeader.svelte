@@ -149,23 +149,31 @@
 	.source-edit { display: inline-flex; align-items: baseline; min-width: 0; }
 	.source-edit input { min-width: 0; }
 	.name, .entity-link, .source {
+		all: unset;
+		box-sizing: border-box;
+		display: block;
 		max-width: 100%;
-		padding: 0;
-		border: 0;
-		background: transparent;
 		color: inherit;
 		font-family: inherit;
 		text-align: inherit;
 		cursor: pointer;
 	}
-	.full-item-header input {
-		box-sizing: border-box;
-		width: 100%;
-		padding: 0;
+	.full-item-header button.name,
+	.full-item-header button.entity-link,
+	.full-item-header button.source {
+		appearance: none;
 		border: 0;
 		border-radius: 0;
-		appearance: none;
+		box-shadow: none;
 		background: transparent;
+		padding: 0;
+	}
+	.full-item-header .names input,
+	.full-item-header .details input {
+		all: unset;
+		box-sizing: border-box;
+		display: block;
+		width: 100%;
 		color: inherit;
 		font-family: inherit;
 		text-align: inherit;

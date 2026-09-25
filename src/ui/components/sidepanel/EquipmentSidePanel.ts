@@ -24,6 +24,7 @@ export class EquipmentSidePanel extends BaseSidePanel<SmallItem, FullItem, Equip
             target: element,
             props: {
                 panelKey: this.getKey(),
+                redesignEnabled: this.plugin.getSettings().redesignEnabled,
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<EquipmentFilters>(['sources']),
                 repository: this.repository,

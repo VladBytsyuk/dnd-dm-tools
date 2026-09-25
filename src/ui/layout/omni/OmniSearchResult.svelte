@@ -13,12 +13,15 @@
 	import RaceSmallUi from "../race/RaceSmallUi.svelte";
 	import SpellSmallUi from "../spell/SpellSmallUi.svelte";
 	import WeaponSmallUi from "../weapon/WeaponSmallUi.svelte";
+	import RedesignedSmallItem from "src/ui/design-system/RedesignedSmallItem.svelte";
 
 	let {
 		result,
+		redesignEnabled = false,
 		onSelect,
 	}: {
 		result: PanelSearchResult;
+		redesignEnabled?: boolean;
 		onSelect: () => void;
 	} = $props();
 
@@ -26,6 +29,9 @@
 </script>
 
 <PanelTypeTint panelKey={result.panelKey}>
+	{#if redesignEnabled && result.panelKey !== "character-sheets" && result.panelKey !== "dm-screen"}
+		<RedesignedSmallItem panelKey={result.panelKey} smallItem={item} onItemClick={onSelect} />
+	{:else}
 	{#if result.panelKey === "bestiary"}
 		<MonsterSmallUi smallItem={item} onItemClick={onSelect} />
 	{:else if result.panelKey === "spellbook"}
@@ -55,5 +61,6 @@
 			source={item.source.shortName}
 			onclick={onSelect}
 		/>
+	{/if}
 	{/if}
 </PanelTypeTint>

@@ -30,7 +30,7 @@
 	let {
 		title = $bindable(""),
 		description = $bindable(""),
-		descriptionHtml,
+		descriptionHtml = $bindable<string | undefined>(),
 		blocks = $bindable<ActionsBlockItem[]>([]),
 		accentColor = "#d4d4d4",
 		blocksExpanded = true,
@@ -70,12 +70,9 @@
 
 	{#if isContentVisible && (description || descriptionHtml || editable)}
 		{#if editable}
-			<textarea
-				class="description-input"
-				bind:value={description}
-				aria-label="Описание блока действий"
-				rows="2"
-			></textarea>
+			{#if descriptionHtml !== undefined}
+				<textarea class="description-input" bind:value={descriptionHtml} aria-label="Описание блока действий" rows="2"></textarea>
+			{:else}<textarea class="description-input" bind:value={description} aria-label="Описание блока действий" rows="2"></textarea>{/if}
 		{:else if descriptionHtml !== undefined}
 			<TextBlock html={descriptionHtml} {accentColor} {onSpellLinkClick} {onEntityLinkClick} {theme} />
 		{:else}
@@ -159,11 +156,10 @@
 	.section-toggle,
 	.title-input,
 	.description-input {
+		all: unset;
 		box-sizing: border-box;
+		display: block;
 		width: 100%;
-		border: 0;
-		outline: 0;
-		background: transparent;
 		color: inherit;
 		font: inherit;
 		padding: 0;

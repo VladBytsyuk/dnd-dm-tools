@@ -32,6 +32,7 @@
 
 	let {
 		panels,
+		redesignEnabled = false,
 		initialWorkspace,
 		search,
 		openResult,
@@ -41,6 +42,7 @@
 		saveWorkspace,
 	}: {
 		panels: PanelSummary[];
+		redesignEnabled?: boolean;
 		initialWorkspace: AssistantWorkspaceState;
 		search: (query: string) => Promise<PanelSearchResult[]>;
 		openResult: (result: PanelSearchResult) => Promise<void>;
@@ -362,8 +364,9 @@
 		<div class="omni-search-results" aria-label="Результаты поиска">
 			{#each results as result (`${result.panelKey}:${result.url}`)}
 				<div class="omni-search-results__item">
-					<OmniSearchResult
-						{result}
+										<OmniSearchResult
+											{result}
+											{redesignEnabled}
 						onSelect={() => selectResult(result)}
 					/>
 				</div>

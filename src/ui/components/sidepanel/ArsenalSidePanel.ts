@@ -27,6 +27,7 @@ export class ArsenalSidePanel extends BaseSidePanel<SmallWeapon, FullWeapon, Ars
             target: element,
             props: {
                 panelKey: this.getKey(),
+                redesignEnabled: this.plugin.getSettings().redesignEnabled,
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<ArsenalFilters>(['types', 'sources', 'dices', 'damageTypes']),
                 repository: this.repository,

@@ -32,7 +32,7 @@
 		russianName = $bindable(""),
 		englishName = $bindable(""),
 		entityLink = $bindable(""),
-		badge,
+		badge = $bindable<string | number | undefined>(),
 		info = $bindable<string | undefined>(),
 		source = $bindable<FullItemSource | undefined>(),
 		sourceSuffix = "",
