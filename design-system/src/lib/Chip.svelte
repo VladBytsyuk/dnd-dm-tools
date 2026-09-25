@@ -125,7 +125,9 @@
 		{/if}
 	{/if}
 	{#if imageSrc}<img class="image" src={imageSrc} alt={imageAlt} />{/if}
-	{#if !toggle && editable && html !== undefined}
+	{#if !toggle && editable && onTextChange}
+		<input value={suffix ? `${text} (${suffix})` : text} oninput={handleTextInput} {placeholder} aria-label="Текст чипа" />
+	{:else if !toggle && editable && html !== undefined}
 		<input value={html} oninput={handleHtmlInput} placeholder="Текст или HTML" aria-label="HTML чипа" />
 	{:else if !toggle && editable}
 		<input value={suffix ? `${text} (${suffix})` : text} oninput={handleTextInput} {placeholder} aria-label="Текст чипа" />

@@ -30,6 +30,7 @@
 	let gradientEnd = $derived(colorForTheme("var(--ds-artifacts)"));
 	let hasImages = $derived(Boolean(artifact.images?.length));
 	let isHomebrew = $derived(Boolean(artifact.homebrew || artifact.source.homebrew));
+	let xgeCostHtml = $derived(artifact.cost?.xge ? formatXgeCostHtml(artifact.cost.xge) : undefined);
 	let chips = $derived.by<ChipsListItem[]>(() => {
 		const items: ChipsListItem[] = [];
 
@@ -54,6 +55,7 @@
 		if (artifact.cost?.xge) {
 			items.push({
 				text: `XGE: ${artifact.cost.xge}`,
+				html: xgeCostHtml,
 				icon: Coins,
 				iconTooltip: "Стоимость по Руководству Занатара обо всём",
 				background: accentBackground,
@@ -84,6 +86,33 @@
 		if (!artifact.cost) return;
 		const prefix = key.toUpperCase() + ": ";
 		artifact.cost[key] = value.startsWith(prefix) ? value.slice(prefix.length) : value;
+	}
+
+	function formatXgeCostHtml(value: string): string | undefined {
+		const formula = value.trim();
+		if (!/(?:\d+\s*)?[кd]\s*\d+/iu.test(formula)) return undefined;
+		const escapedFormula = escapeHtml(formula);
+		const dividedFormula = formula.match(/^\(\s*\(\s*(.*?)\s*\)\s*\*\s*(\d+(?:\.\d+)?)\s*\)\s*\/\s*(\d+(?:\.\d+)?)$/u);
+		if (dividedFormula) {
+			const baseFormula = escapeHtml(dividedFormula[1]);
+			const multiplier = Number(dividedFormula[2]) / Number(dividedFormula[3]);
+			return `XGE: <dice-roller label="Стоимость XGE" formula="${baseFormula}" multiplier="${multiplier}">${escapedFormula}</dice-roller>`;
+		}
+		const multipliedFormula = formula.match(/^\(\s*(.*?)\s*\)\s*\*\s*(\d+)$/u);
+		if (multipliedFormula) {
+			const baseFormula = escapeHtml(multipliedFormula[1]);
+			return `XGE: <dice-roller label="Стоимость XGE" formula="${baseFormula}" multiplier="${multipliedFormula[2]}">${escapedFormula}</dice-roller>`;
+		}
+		const plainMultipliedFormula = formula.match(/^\s*(.*?)\s*\*\s*(\d+(?:\.\d+)?)\s*$/u);
+		if (plainMultipliedFormula) {
+			const baseFormula = escapeHtml(plainMultipliedFormula[1]);
+			return `XGE: <dice-roller label="Стоимость XGE" formula="${baseFormula}" multiplier="${plainMultipliedFormula[2]}">${escapedFormula}</dice-roller>`;
+		}
+		return `XGE: <dice-roller label="Стоимость XGE" formula="${escapedFormula}">${escapedFormula}</dice-roller>`;
+	}
+
+	function escapeHtml(value: string): string {
+		return value.replace(/&/gu, "&amp;").replace(/</gu, "&lt;").replace(/>/gu, "&gt;").replace(/"/gu, "&quot;").replace(/'/gu, "&#39;");
 	}
 </script>
 

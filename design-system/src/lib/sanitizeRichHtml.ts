@@ -24,7 +24,7 @@ export function sanitizeRichHtml(html: string): string {
 			img: ["src", "alt", "width", "height"],
 			td: ["colspan", "rowspan"],
 			th: ["colspan", "rowspan", "scope"],
-			"dice-roller": ["label", "formula"],
+			"dice-roller": ["label", "formula", "multiplier"],
 		},
 		allowedSchemes: ["http", "https", "mailto", "tel"],
 		allowProtocolRelative: false,

@@ -34,6 +34,7 @@ export class DiceRollersManager {
                 target: element,
                 props: {
                     formula,
+                    multiplier: Number(element.getAttribute('multiplier')) || 1,
                     label: element.getAttribute('label'),
                     content: content,
                     onRoll: this.#onRoll,
