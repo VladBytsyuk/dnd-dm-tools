@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Check, ChevronLeft, Copy, Eraser, Pencil, Plus, SlidersHorizontal, X } from "lucide-svelte";
+	import { Check, ChevronLeft, Copy, Eraser, Pencil, Plus, SlidersHorizontal, Trash2, X } from "lucide-svelte";
 	import { Debouncer, DEFAULT_DEBOUNCER_DELAY } from "../../../debouncer";
 	import { onDestroy } from "svelte";
 	import { SearchBar, type SearchBarAction } from "@dnd-dm-tools/design-system";
@@ -15,18 +15,20 @@
 		onaddclick?: () => void;
 		oneditclick?: () => void;
 		oncopyclick?: () => void;
+		ondeleteclick?: () => void;
 		onsaveclick?: () => void;
 		oncancelclick?: () => void;
 		actionBusy?: boolean;
 		redesignEnabled?: boolean;
 	}
 
-	let { onbackclick, onvaluechange, isvaluechangable, onclearclick, onfiltersclick, isfiltersapplied, onaddclick, oneditclick, oncopyclick, onsaveclick, oncancelclick, actionBusy = false, redesignEnabled = false }: Props = $props();
+	let { onbackclick, onvaluechange, isvaluechangable, onclearclick, onfiltersclick, isfiltersapplied, onaddclick, oneditclick, oncopyclick, ondeleteclick, onsaveclick, oncancelclick, actionBusy = false, redesignEnabled = false }: Props = $props();
 
 	let searchValue = $state("");
 	const dsTheme = $derived($appTheme === Theme.Dark ? "dark" : "light");
 	const searchActions = $derived.by<SearchBarAction[]>(() => {
 		const result: SearchBarAction[] = oncopyclick ? [{ icon: Copy, label: "Копировать в буфер обмена", onclick: oncopyclick }] : [];
+		if (ondeleteclick) result.push({ icon: Trash2, label: "Удалить", onclick: ondeleteclick });
 		if (onsaveclick && oncancelclick) return [...result,
 			{ icon: X, label: "Отмена", disabled: actionBusy, onclick: oncancelclick },
 			{ icon: Check, label: "Сохранить", disabled: actionBusy, onclick: onsaveclick },

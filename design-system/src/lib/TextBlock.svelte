@@ -121,7 +121,7 @@
 			<div class="header">
 				{#if isCollapsible}<Icon class="icon" size={14} strokeWidth={2} aria-hidden={true} />{/if}
 				{#if editable}
-					<input bind:value={title} aria-label="Заголовок текстового блока" />
+					<input bind:value={title} placeholder="Заголовок" aria-label="Заголовок текстового блока" />
 				{:else}
 					<span>{title}</span>
 				{/if}
@@ -134,9 +134,9 @@
 	{#if isContentVisible}
 		{#if editable}
 			{#if html !== undefined}
-				<textarea value={html} oninput={handleHtmlInput} aria-label="HTML блока" rows={1}></textarea>
+				<textarea value={html} oninput={handleHtmlInput} placeholder="Текст или HTML" aria-label="HTML блока" rows={1}></textarea>
 			{:else}
-				<textarea bind:value={text} aria-label="Текст блока" rows={1}></textarea>
+				<textarea bind:value={text} placeholder="Текст блока" aria-label="Текст блока" rows={1}></textarea>
 			{/if}
 		{:else if html !== undefined}
 			<div class="rich-content" use:richTextLinkListener>

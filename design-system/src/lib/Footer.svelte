@@ -12,7 +12,7 @@
 
 <footer data-theme={theme}>
 	{#if editable}
-		<input bind:value={text} aria-label="Текст подвала" />
+		<input bind:value={text} placeholder="Дополнительная информация" aria-label="Текст подвала" />
 	{:else}
 		{text}
 	{/if}

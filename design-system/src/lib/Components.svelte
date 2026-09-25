@@ -92,7 +92,7 @@
 				<span class="component-tooltip" role="tooltip">Материальный</span>
 			</button>
 			{#if editable && materialIsActive}
-				<input class="material-text" bind:value={material} aria-label="Материальный компонент" />
+				<input class="material-text" bind:value={material} placeholder="Описание материального компонента" aria-label="Материальный компонент" />
 			{:else}
 				<span class="material-text">{material}</span>
 			{/if}

@@ -5,4 +5,4 @@
 	let { panelKey, currentItem, uiEventListener }: { panelKey: PanelKey; currentItem: any; uiEventListener: IUiEventListener } = $props();
 </script>
 
-<RedesignedFullItem {panelKey} {currentItem} {uiEventListener} isEditable={false} />
+<RedesignedFullItem {panelKey} {currentItem} {uiEventListener} />

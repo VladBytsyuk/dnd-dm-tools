@@ -108,9 +108,9 @@
 	{/if}
 	{#if imageSrc}<img class="image" src={imageSrc} alt={imageAlt} />{/if}
 	{#if editable && html !== undefined}
-		<input value={html} oninput={handleHtmlInput} aria-label="HTML чипа" />
+		<input value={html} oninput={handleHtmlInput} placeholder="Текст или HTML" aria-label="HTML чипа" />
 	{:else if editable}
-		<input value={text} oninput={handleTextInput} aria-label="Текст чипа" />
+		<input value={text} oninput={handleTextInput} placeholder="Текст чипа" aria-label="Текст чипа" />
 		{:else if html !== undefined}
 		<span class="html" use:richHtmlLinkListener>{@html sanitizeRichHtml(html)}</span>
 	{:else if href && text}
@@ -177,6 +177,7 @@
 		font: inherit;
 		line-height: inherit;
 	}
+	.chip input::placeholder { color: currentcolor; opacity: 0.65; }
 	.chip-tooltip {
 		position: absolute;
 		bottom: calc(100% + 6px);

@@ -60,7 +60,7 @@
 <section class="actions-block" data-theme={theme}>
 	{#if title || editable}
 		{#if editable}
-			<input class="title-input" bind:value={title} aria-label="Заголовок блока действий" />
+			<input class="title-input" bind:value={title} placeholder="Название действия" aria-label="Заголовок блока действий" />
 		{:else}
 			<button type="button" class="section-toggle" aria-expanded={isSectionExpanded} onclick={() => (isSectionExpanded = !isSectionExpanded)}>
 				{title}
@@ -71,8 +71,8 @@
 	{#if isContentVisible && (description || descriptionHtml || editable)}
 		{#if editable}
 			{#if descriptionHtml !== undefined}
-				<textarea class="description-input" bind:value={descriptionHtml} aria-label="Описание блока действий" rows="2"></textarea>
-			{:else}<textarea class="description-input" bind:value={description} aria-label="Описание блока действий" rows="2"></textarea>{/if}
+				<textarea class="description-input" bind:value={descriptionHtml} placeholder="Описание блока действий" aria-label="Описание блока действий" rows="2"></textarea>
+			{:else}<textarea class="description-input" bind:value={description} placeholder="Описание блока действий" aria-label="Описание блока действий" rows="2"></textarea>{/if}
 		{:else if descriptionHtml !== undefined}
 			<TextBlock html={descriptionHtml} {accentColor} {onSpellLinkClick} {onEntityLinkClick} {theme} />
 		{:else}

@@ -98,14 +98,14 @@
 	/>
 	{#if editable}
 		<div class="spell-editor">
-			<label>Уровень<input type="number" min="0" max="9" bind:value={spell.level} /></label>
-			<label>Школа<input bind:value={spell.school} /></label>
-			<label>Дополнительный тип<input bind:value={spell.additionalType} /></label>
-			<label>Время накладывания<input bind:value={spell.time} /></label>
-			<label>Дистанция<input bind:value={spell.range} /></label>
-			<label>Длительность<input bind:value={spell.duration} /></label>
-			<label>Классы<input value={classesText} oninput={(event) => spell.classes = updateClassLinks(event.currentTarget.value, spell.classes)} /></label>
-			<label>Подклассы<input value={subclassesText} oninput={(event) => spell.subclasses = updateClassLinks(event.currentTarget.value, spell.subclasses)} /></label>
+			<label>Уровень<input type="number" min="0" max="9" placeholder="0–9" bind:value={spell.level} /></label>
+			<label>Школа<input placeholder="Например, воплощение" bind:value={spell.school} /></label>
+			<label>Дополнительный тип<input placeholder="Например, механомагия" bind:value={spell.additionalType} /></label>
+			<label>Время накладывания<input placeholder="1 действие" bind:value={spell.time} /></label>
+			<label>Дистанция<input placeholder="Например, 60 футов" bind:value={spell.range} /></label>
+			<label>Длительность<input placeholder="Например, мгновенная" bind:value={spell.duration} /></label>
+			<label>Классы<input placeholder="Волшебник, Чародей" value={classesText} oninput={(event) => spell.classes = updateClassLinks(event.currentTarget.value, spell.classes)} /></label>
+			<label>Подклассы<input placeholder="Например, Домен Света" value={subclassesText} oninput={(event) => spell.subclasses = updateClassLinks(event.currentTarget.value, spell.subclasses)} /></label>
 			<label><input type="checkbox" bind:checked={spell.concentration} /> Концентрация</label>
 			<label><input type="checkbox" bind:checked={spell.ritual} /> Ритуал</label>
 		</div>

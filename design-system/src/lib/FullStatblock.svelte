@@ -194,25 +194,25 @@
 	/>
 	{#if editable}
 		<div class="statblock-editor">
-			<label>Класс доспеха<input bind:value={statblock.armorClass} /></label>
-			<label>Хиты<input bind:value={statblock.hitPoints} /></label>
-			<label>Формула хитов<input bind:value={statblock.hitPointsFormula} /></label>
-			<label>Скорость<input bind:value={statblock.speed} /></label>
-			<label>Размер<input bind:value={statblock.size} /></label>
-			<label>Мировоззрение<input bind:value={statblock.alignment} /></label>
-			<label>Спасброски<input bind:value={statblock.savingThrows} /></label>
-			<label>Навыки<input bind:value={statblock.skills} /></label>
-			<label>Уязвимости<input bind:value={statblock.damageVulnerabilities} /></label>
-			<label>Сопротивления<input bind:value={statblock.damageResistances} /></label>
-			<label>Иммунитеты<input bind:value={statblock.damageImmunities} /></label>
-			<label>Иммунитеты к состояниям<input bind:value={statblock.conditionImmunities} /></label>
-			<label>Чувства<input bind:value={statblock.senses} /></label>
-			<label>Языки<input bind:value={statblock.languages} /></label>
-			<label>Опыт<input bind:value={statblock.experience} /></label>
-			<label>Бонус мастерства<input bind:value={statblock.proficiencyBonus} /></label>
-			<label>Среда обитания<input value={statblock.environment?.join(", ") ?? ""} oninput={(event) => setEnvironment(event.currentTarget.value)} /></label>
+			<label>Класс доспеха<input placeholder="Например, 15" bind:value={statblock.armorClass} /></label>
+			<label>Хиты<input placeholder="Например, 18" bind:value={statblock.hitPoints} /></label>
+			<label>Формула хитов<input placeholder="4к8+2" bind:value={statblock.hitPointsFormula} /></label>
+			<label>Скорость<input placeholder="Ходьба 30 футов" bind:value={statblock.speed} /></label>
+			<label>Размер<input placeholder="Средний" bind:value={statblock.size} /></label>
+			<label>Мировоззрение<input placeholder="Нейтрально-злой" bind:value={statblock.alignment} /></label>
+			<label>Спасброски<input placeholder="Телосложение +5, Мудрость +3" bind:value={statblock.savingThrows} /></label>
+			<label>Навыки<input placeholder="Восприятие +5, Скрытность +2" bind:value={statblock.skills} /></label>
+			<label>Уязвимости<input placeholder="Огонь, холод" bind:value={statblock.damageVulnerabilities} /></label>
+			<label>Сопротивления<input placeholder="Огонь, холод" bind:value={statblock.damageResistances} /></label>
+			<label>Иммунитеты<input placeholder="Яд, некротическая энергия" bind:value={statblock.damageImmunities} /></label>
+			<label>Иммунитеты к состояниям<input placeholder="Испуг, отравление" bind:value={statblock.conditionImmunities} /></label>
+			<label>Чувства<input placeholder="Тёмное зрение 60 футов" bind:value={statblock.senses} /></label>
+			<label>Языки<input placeholder="Общий, Дварфийский" bind:value={statblock.languages} /></label>
+			<label>Опыт<input placeholder="Например, 450" bind:value={statblock.experience} /></label>
+			<label>Бонус мастерства<input placeholder="Например, +2" bind:value={statblock.proficiencyBonus} /></label>
+			<label>Среда обитания<input placeholder="Лес, горы" value={statblock.environment?.join(", ") ?? ""} oninput={(event) => setEnvironment(event.currentTarget.value)} /></label>
 			{#each statblock.abilities ?? [] as ability (ability.label)}
-				<label>{ability.label}<input type="number" bind:value={ability.score} /></label>
+				<label>{ability.label}<input type="number" placeholder="10" bind:value={ability.score} /></label>
 			{/each}
 		</div>
 	{/if}

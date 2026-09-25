@@ -38,11 +38,9 @@
 		panelKey: PanelKey; currentItem: any; uiEventListener: IUiEventListener;
 		actionRequest?: { id: number; command: "edit" | "save" | "cancel" | "copy" };
 		onEditorStateChange?: (state: { editing: boolean; saving: boolean }) => void;
-		isEditable?: boolean; onClose?: () => void;
 		onItemSave?: (item: any, context: ItemSaveContext) => ItemSaveResult | Promise<ItemSaveResult>;
-		onItemDelete?: (url: string) => Promise<boolean>;
 	};
-	let { panelKey, currentItem, uiEventListener, actionRequest = { id: 0, command: "edit" }, onEditorStateChange, isEditable = false, onClose = () => {}, onItemSave, onItemDelete }: Props = $props();
+	let { panelKey, currentItem, uiEventListener, actionRequest = { id: 0, command: "edit" }, onEditorStateChange, onItemSave }: Props = $props();
 	const theme = $derived($appTheme === Theme.Dark ? "dark" : "light");
 	let editing = $state(false);
 	let saving = $state(false);
@@ -104,11 +102,6 @@
 			onEditorStateChange?.({ editing, saving });
 		}
 	}
-	async function deleteItem() {
-		if (currentItem.origin !== "manual" || !onItemDelete) return;
-		if (await onItemDelete(currentItem.url)) onClose();
-		else validationError = "Не удалось удалить сущность.";
-	}
 	function copyFullItem() {
 		if (panelKey === "classes") return copyClassToClipboard(currentItem as FullClassDomain);
 		const item = applyFullViewModel(panelKey, currentItem, draft);
@@ -128,11 +121,6 @@
 </script>
 
 <div class="redesigned-full-item" bind:this={container}>
-	{#if isEditable && !isClass && !editing && currentItem.origin === "manual"}
-		<div class="actions">
-			<button type="button" onclick={deleteItem}>Удалить</button>
-		</div>
-	{/if}
 	{#if validationError}<p class="error" role="alert">{validationError}</p>{/if}
 	{#if panelKey === "bestiary"}
 		<FullStatblock bind:statblock={draft as FullStatblockViewModel} onCopyStatblock={copyFullItem} onCopySpellLink={entityLinkHandler} editable={editing} {theme} />
@@ -159,7 +147,7 @@
 
 <style>
 	.redesigned-full-item { display: grid; gap: 10px; padding: 8px; }
-	.actions { display: flex; justify-content: flex-end; gap: 6px; }
-	.actions button { cursor: pointer; }
+	.redesigned-full-item :global(input::placeholder),
+	.redesigned-full-item :global(textarea::placeholder) { color: currentcolor !important; opacity: 0.65 !important; }
 	.error { color: var(--text-error); margin: 0; }
 </style>

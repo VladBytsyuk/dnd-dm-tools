@@ -38,7 +38,7 @@
 				<th scope="col">
 					{#if values[columnIndex] !== undefined}
 						{#if editable}
-							<input bind:value={values[columnIndex]} aria-label={`Заголовок столбца ${columnIndex + 1}`} />
+							<input bind:value={values[columnIndex]} placeholder="Заголовок" aria-label={`Заголовок столбца ${columnIndex + 1}`} />
 						{:else}
 							{@const value = values[columnIndex]}
 							{#if typeof value === "object"}{@html sanitizeRichHtml(value.html)}{:else}{value}{/if}
@@ -56,7 +56,7 @@
 					<td>
 						{#if values[cellIndex] !== undefined}
 							{#if editable}
-								<input bind:value={values[cellIndex]} aria-label={`Ячейка ${cellIndex + 1}`} />
+								<input bind:value={values[cellIndex]} placeholder="Значение" aria-label={`Ячейка ${cellIndex + 1}`} />
 							{:else}
 								{@const value = values[cellIndex]}
 								{#if typeof value === "object"}{@html sanitizeRichHtml(value.html)}{:else}{value}{/if}

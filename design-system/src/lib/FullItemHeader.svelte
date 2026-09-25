@@ -79,9 +79,9 @@
 <header class="full-item-header" data-theme={theme} data-wrap-russian-name={wrapRussianName}>
 	<div class="names">
 		{#if editable}
-			<input class="name russian-name" bind:value={russianName} aria-label="Русское название" />
-			<input class="name english-name" bind:value={englishName} aria-label="Английское название" />
-			<input class="entity-link" bind:value={entityLink} aria-label="Ссылка на сущность" />
+			<input class="name russian-name" bind:value={russianName} placeholder="Русское название" aria-label="Русское название" />
+			<input class="name english-name" bind:value={englishName} placeholder="English name" aria-label="Английское название" />
+			<input class="entity-link" bind:value={entityLink} placeholder="/bestiary/slug" aria-label="Ссылка на сущность" />
 		{:else}
 			<button type="button" class="name russian-name" onclick={() => copyName(russianName)} aria-label={`Скопировать: ${russianName}`}>
 				{russianName}
@@ -99,14 +99,14 @@
 		<div class="details">
 			{#if badge !== undefined}
 				{#if editable}
-					<input class="badge" bind:value={badge} aria-label="Номер или уровень" />
+					<input class="badge" bind:value={badge} placeholder="Уровень" aria-label="Номер или уровень" />
 				{:else}
 					<span class="badge">{badge}</span>
 				{/if}
 			{/if}
 			{#if (editable && info !== undefined) || info}
 				{#if editable}
-					<input class="info" bind:value={info} oninput={handleInfoInput} aria-label="Описание" />
+					<input class="info" bind:value={info} oninput={handleInfoInput} placeholder="Тип или категория" aria-label="Описание" />
 				{:else}
 					<span class="info">{info}</span>
 				{/if}
@@ -114,7 +114,7 @@
 			{#if source}
 				{#if editable}
 					<span class="source-edit">
-						<input class="source" bind:value={source.shortName} aria-label="Краткое название источника" />
+						<input class="source" bind:value={source.shortName} placeholder="PHB" aria-label="Краткое название источника" />
 						{#if sourceSuffix}<span aria-hidden="true">{sourceSuffix}</span>{/if}
 					</span>
 				{:else}
@@ -179,6 +179,7 @@
 		text-align: inherit;
 		cursor: text;
 	}
+	.full-item-header input::placeholder { color: currentcolor; opacity: 0.65; }
 	.name, .entity-link { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
 	.full-item-header[data-wrap-russian-name="true"] .russian-name {
 		overflow: visible;

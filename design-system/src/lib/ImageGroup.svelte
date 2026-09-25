@@ -48,7 +48,7 @@
 {#if editable}
 	<div class="image-inputs" data-theme={theme}>
 		{#each images as _, index}
-			<input bind:value={images[index]} aria-label={`Ссылка на изображение ${index + 1}`} />
+			<input bind:value={images[index]} placeholder="https://…" aria-label={`Ссылка на изображение ${index + 1}`} />
 		{/each}
 		<button class="add-image" type="button" aria-label="Добавить изображение" disabled={!onAddImage} onclick={onAddImage}>
 			<Plus size={10} strokeWidth={1.5} />

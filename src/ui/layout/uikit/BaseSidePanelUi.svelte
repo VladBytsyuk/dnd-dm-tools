@@ -153,6 +153,11 @@
         return true;
     }
 
+    async function deleteCurrentManualItem() {
+        if (currentItem?.origin !== "manual") return;
+        await onItemDelete(currentItem.url);
+    }
+
     async function onItemSave(item: any, context: any) {
         const result = await repository.putItem(item, context);
         if (result.ok) {
@@ -263,6 +268,7 @@
         onaddclick={!currentItem && emptyFullItem ? () => { currentItem = emptyFullItem; itemsStack.push(emptyFullItem); } : undefined}
         oneditclick={redesignEnabled && currentItem && panelKey !== "classes" && !detailEditing ? () => requestToolbarAction("edit") : undefined}
         oncopyclick={redesignEnabled && currentItem ? () => requestToolbarAction("copy") : undefined}
+        ondeleteclick={redesignEnabled && !detailEditing && currentItem?.origin === "manual" ? deleteCurrentManualItem : undefined}
         onsaveclick={redesignEnabled && currentItem && detailEditing ? () => requestToolbarAction("save") : undefined}
         oncancelclick={redesignEnabled && currentItem && detailEditing ? () => requestToolbarAction("cancel") : undefined}
         actionBusy={detailSaving}
@@ -278,10 +284,7 @@
                     actionRequest={toolbarActionRequest}
                     onEditorStateChange={onRedesignedEditorStateChange}
                     {uiEventListener}
-                    isEditable={true}
-                    onClose={() => currentItem = undefined}
                     {onItemSave}
-                    {onItemDelete}
                 />
             {:else}<FullItemSlot
                 currentItem={currentItem}
