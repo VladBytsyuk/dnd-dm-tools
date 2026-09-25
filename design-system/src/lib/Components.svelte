@@ -30,26 +30,6 @@
 </script>
 
 <div class="components" data-theme={theme} aria-label="Компоненты заклинания">
-	{#if editable || somatic}
-		<span
-			class:inactive={!somatic}
-			class:editable
-			class="component-chip"
-			style:--component-background={background}
-		>
-			<button
-				type="button"
-				class="icon-button"
-				aria-label="Соматический"
-				aria-pressed={editable ? somatic : undefined}
-				onclick={editable ? () => (somatic = !somatic) : undefined}
-			>
-				<HandHelping size={12} strokeWidth={1.5} aria-hidden={true} />
-				<span class="tooltip" role="tooltip">Соматический</span>
-			</button>
-		</span>
-	{/if}
-
 	{#if editable || verbal}
 		<span
 			class:inactive={!verbal}
@@ -64,8 +44,28 @@
 				aria-pressed={editable ? verbal : undefined}
 				onclick={editable ? () => (verbal = !verbal) : undefined}
 			>
-				<Speech size={12} strokeWidth={1.5} aria-hidden={true} />
-				<span class="tooltip" role="tooltip">Вербальный</span>
+				<Speech size={18} strokeWidth={1.5} aria-hidden={true} />
+				<span class="component-tooltip" role="tooltip">Вербальный</span>
+			</button>
+		</span>
+	{/if}
+
+	{#if editable || somatic}
+		<span
+			class:inactive={!somatic}
+			class:editable
+			class="component-chip"
+			style:--component-background={background}
+		>
+			<button
+				type="button"
+				class="icon-button"
+				aria-label="Соматический"
+				aria-pressed={editable ? somatic : undefined}
+				onclick={editable ? () => (somatic = !somatic) : undefined}
+			>
+				<HandHelping size={18} strokeWidth={1.5} aria-hidden={true} />
+				<span class="component-tooltip" role="tooltip">Соматический</span>
 			</button>
 		</span>
 	{/if}
@@ -84,8 +84,8 @@
 				aria-pressed={editable ? materialIsActive : undefined}
 				onclick={editable ? toggleMaterial : undefined}
 			>
-				<PackageOpen size={12} strokeWidth={1.5} aria-hidden={true} />
-				<span class="tooltip" role="tooltip">Материальный</span>
+				<PackageOpen size={18} strokeWidth={1.5} aria-hidden={true} />
+				<span class="component-tooltip" role="tooltip">Материальный</span>
 			</button>
 			{#if editable && materialIsActive}
 				<input class="material-text" bind:value={material} aria-label="Материальный компонент" />
@@ -148,14 +148,15 @@
 	}
 
 	.icon-button {
+		all: unset;
+		box-sizing: border-box;
 		position: relative;
 		display: inline-flex;
-		flex: 0 0 12px;
+		flex: 0 0 22px;
+		width: 22px;
+		height: 22px;
 		align-items: center;
 		justify-content: center;
-		padding: 0;
-		border: 0;
-		background: transparent;
 		color: inherit;
 		cursor: default;
 	}
@@ -170,11 +171,12 @@
 		border-radius: 2px;
 	}
 
-	.tooltip {
+	.component-tooltip {
 		position: absolute;
 		bottom: calc(100% + 6px);
 		left: 50%;
-		z-index: 1;
+		z-index: 1000;
+		visibility: hidden;
 		width: max-content;
 		max-width: 200px;
 		padding: 6px 8px;
@@ -188,11 +190,12 @@
 		opacity: 0;
 		pointer-events: none;
 		transform: translate(-50%, 2px);
-		transition: opacity 120ms ease, transform 120ms ease;
+		transition: opacity 120ms ease, transform 120ms ease, visibility 120ms;
 	}
 
-	.icon-button:hover .tooltip,
-	.icon-button:focus-visible .tooltip {
+	.icon-button:hover .component-tooltip,
+	.icon-button:focus-visible .component-tooltip {
+		visibility: visible;
 		opacity: 1;
 		transform: translate(-50%, 0);
 	}

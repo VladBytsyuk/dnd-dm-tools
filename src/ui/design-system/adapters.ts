@@ -79,7 +79,7 @@ export function toFullViewModel(kind: PanelKey, item: Entity): FullViewModel {
 		} as FullStatblockViewModel;
 		case "spellbook": return {
 			...names, level: item.level ?? 0, school: item.school ?? "", additionalType: item.additionalType,
-			components: { verbal: item.components?.v, somatic: item.components?.s, material: item.components?.m },
+			components: mapSpellComponents(item.components),
 			source, concentration: item.concentration, ritual: item.ritual, range: item.range ?? "", duration: item.duration ?? "", time: item.time ?? "",
 			classes: classLinks(item.classes), subclasses: classLinks(item.subclasses), description: { html: item.description ?? "" },
 			higherLevels: { html: item.upper ?? "" },
@@ -140,6 +140,22 @@ export function applyFullViewModel(kind: PanelKey, original: Entity, view: FullV
 }
 
 function mapSource(source: Entity = {}) { return { shortName: source.shortName ?? "", name: source.name ?? "", group: { shortName: source.group?.shortName ?? "", name: source.group?.name ?? "" }, homebrew: source.homebrew }; }
+function mapSpellComponents(value: Entity = {}) {
+	const material = value.m ?? value.material;
+	return {
+		verbal: booleanValue(value.v ?? value.verbal),
+		somatic: booleanValue(value.s ?? value.somatic),
+		material: typeof material === "string" ? material : material?.description ?? material?.value ?? material?.name ?? undefined,
+	};
+}
+function booleanValue(value: unknown): boolean | undefined {
+	if (typeof value === "boolean") return value;
+	if (typeof value === "string") {
+		if (["true", "yes", "да", "v", "s"].includes(value.trim().toLocaleLowerCase("ru"))) return true;
+		if (["false", "no", "нет", ""].includes(value.trim().toLocaleLowerCase("ru"))) return false;
+	}
+	return undefined;
+}
 function typeName(type: any): string { return typeof type === "string" ? type : type?.name ?? type?.rus ?? ""; }
 function damageText(damage: any): string { return [damage?.dice, damage?.type].filter(Boolean).join(" "); }
 function weaponColor(type: string): string { return type.toLocaleLowerCase().includes("дальн") ? "var(--ds-weapon-matrial-ranged)" : "var(--ds-weapon-simple-melee)"; }

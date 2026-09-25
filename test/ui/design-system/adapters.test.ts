@@ -88,4 +88,16 @@ describe("design system adapters", () => {
 
 		expect((view as any).skillsHtml).toBe('<dice-roller label="Обман" formula="к20 +5">Обман +5</dice-roller>, <dice-roller label="Скрытность" formula="к20 -2">Скрытность −2</dice-roller>');
 	});
+
+	it("maps spell components from domain and API field names", () => {
+		const legacy = toFullViewModel("spellbook", {
+			name: { rus: "Тест", eng: "Test" }, components: { v: true, s: false, m: "перо" },
+		});
+		const api = toFullViewModel("spellbook", {
+			name: { rus: "Тест", eng: "Test" }, components: { verbal: "true", somatic: "true", material: { description: "соль" } },
+		});
+
+		expect((legacy as any).components).toEqual({ verbal: true, somatic: false, material: "перо" });
+		expect((api as any).components).toEqual({ verbal: true, somatic: true, material: "соль" });
+	});
 });
