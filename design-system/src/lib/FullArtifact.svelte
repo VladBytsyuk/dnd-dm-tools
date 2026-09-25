@@ -12,6 +12,7 @@
 		artifact: FullArtifactViewModel;
 		onCopyArtifact?: (artifact: FullArtifactViewModel) => void | Promise<void>;
 		onEntityLinkClick?: (link: FullArtifactEntityLink) => void | Promise<void>;
+		onImageRequested?: (image: string) => Promise<string>;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -20,6 +21,7 @@
 		artifact = $bindable<FullArtifactViewModel>(),
 		onCopyArtifact,
 		onEntityLinkClick,
+		onImageRequested,
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
@@ -141,7 +143,7 @@
 		</div>
 
 		{#if hasImages}
-			<ImageGroup bind:images={artifact.images} alt={artifact.russianName} size={128} {editable} {theme} />
+			<ImageGroup bind:images={artifact.images} alt={artifact.russianName} size={128} {onImageRequested} {editable} {theme} />
 		{/if}
 	</div>
 

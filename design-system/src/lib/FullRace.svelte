@@ -24,6 +24,7 @@
 		race: FullRaceViewModel;
 		onCopyRace?: (race: FullRaceViewModel) => void | Promise<void>;
 		onEntityLinkClick?: (link: FullRaceEntityLink) => void | Promise<void>;
+		onImageRequested?: (image: string) => Promise<string>;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -32,6 +33,7 @@
 		race = $bindable<FullRaceViewModel>(),
 		onCopyRace,
 		onEntityLinkClick,
+		onImageRequested,
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
@@ -183,6 +185,7 @@
 		chips={primaryChips}
 		secondaryChips={subraceChips}
 		images={race.image ? [race.image] : []}
+		{onImageRequested}
 		alt={race.russianName}
 		onInfoChange={updateHeaderInfo}
 		{editable}

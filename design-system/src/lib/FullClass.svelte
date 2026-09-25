@@ -26,6 +26,7 @@
 		characterClass: FullClassViewModel;
 		onCopyClass?: (characterClass: FullClassViewModel) => void | Promise<void>;
 		onEntityLinkClick?: (link: FullClassEntityLink) => void | Promise<void>;
+		onImageRequested?: (image: string) => Promise<string>;
 		theme?: "dark" | "light";
 	};
 
@@ -33,6 +34,7 @@
 		characterClass,
 		onCopyClass,
 		onEntityLinkClick,
+		onImageRequested,
 		theme = "dark",
 	}: Props = $props();
 
@@ -210,7 +212,7 @@
 		</div>
 
 		{#if hasImages}
-			<ImageGroup images={characterClass.images} alt={characterClass.russianName} size={128} {theme} />
+			<ImageGroup images={characterClass.images} alt={characterClass.russianName} size={128} {onImageRequested} {theme} />
 		{/if}
 	</section>
 

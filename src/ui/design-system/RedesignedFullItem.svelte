@@ -50,6 +50,7 @@
 	let handledActionRequest = 0;
 	const isClass = $derived(panelKey === "classes");
 	const entityLinkHandler = async (link: { href: string; label: string }) => { const result = resolveDndEntityLink(uiEventListener, link.href); if (result) await result; };
+	const imageResolver = (image: string) => uiEventListener.onImageRequested(image);
 	let container: HTMLDivElement;
 	onMount(() => {
 		const diceRollers = DiceRollersManager.create(uiEventListener, container);
@@ -124,7 +125,7 @@
 <div class="redesigned-full-item" bind:this={container}>
 	{#if validationError}<p class="error" role="alert">{validationError}</p>{/if}
 	{#if panelKey === "bestiary"}
-		<FullStatblock bind:statblock={draft as FullStatblockViewModel} onCopyStatblock={copyFullItem} onCopySpellLink={entityLinkHandler} editable={editing} {theme} />
+		<FullStatblock bind:statblock={draft as FullStatblockViewModel} onCopyStatblock={copyFullItem} onCopySpellLink={entityLinkHandler} onImageRequested={imageResolver} editable={editing} {theme} />
 	{:else if panelKey === "spellbook"}
 		<FullSpell bind:spell={draft as FullSpellViewModel} onCopySpell={copyFullItem} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
 	{:else if panelKey === "arsenal"}
@@ -134,15 +135,15 @@
 	{:else if panelKey === "equipment"}
 		<FullEquipment bind:equipment={draft as FullEquipmentViewModel} onCopyEquipment={copyFullItem} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
 	{:else if panelKey === "artifactory"}
-		<FullArtifact bind:artifact={draft as FullArtifactViewModel} onCopyArtifact={copyFullItem} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
+		<FullArtifact bind:artifact={draft as FullArtifactViewModel} onCopyArtifact={copyFullItem} onEntityLinkClick={entityLinkHandler} onImageRequested={imageResolver} editable={editing} {theme} />
 	{:else if panelKey === "feats"}
 		<FullFeat bind:feat={draft as FullFeatViewModel} onCopyFeat={copyFullItem} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
 	{:else if panelKey === "backgrounds"}
 		<FullBackground bind:background={draft as FullBackgroundViewModel} onCopyBackground={copyFullItem} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
 	{:else if panelKey === "races"}
-		<FullRace bind:race={draft as FullRaceViewModel} onCopyRace={copyFullItem} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
+		<FullRace bind:race={draft as FullRaceViewModel} onCopyRace={copyFullItem} onEntityLinkClick={entityLinkHandler} onImageRequested={imageResolver} editable={editing} {theme} />
 	{:else if panelKey === "classes"}
-		<FullClass characterClass={draft as FullClassViewModel} onCopyClass={copyFullItem} onEntityLinkClick={entityLinkHandler} {theme} />
+		<FullClass characterClass={draft as FullClassViewModel} onCopyClass={copyFullItem} onEntityLinkClick={entityLinkHandler} onImageRequested={imageResolver} {theme} />
 	{/if}
 </div>
 

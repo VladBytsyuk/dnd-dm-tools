@@ -22,6 +22,7 @@
 		size?: number;
 		initialIndex?: number;
 		onChange?: (index: number) => void;
+		onImageRequested?: (image: string) => Promise<string>;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -45,13 +46,14 @@
 		size,
 		initialIndex,
 		onChange,
+		onImageRequested,
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
 
 	let coloredChips = $derived(chips.map((chip) => ({ ...chip, background: chip.background ?? accentColor })));
 	let coloredSecondaryChips = $derived(secondaryChips.map((chip) => ({ ...chip, background: chip.background ?? accentColor })));
-	let hasImage = $derived(images.length > 0 || editable);
+	let hasImage = true;
 </script>
 
 <section class:hasImage class="max-item-header" data-theme={theme} style={`--image-size: ${size ?? 128}px`}>
@@ -78,7 +80,7 @@
 		{/if}
 	</div>
 
-		<ImageGroup bind:images {alt} {size} fluid {initialIndex} {onChange} {editable} {theme} />
+		<ImageGroup bind:images {alt} {size} fluid {initialIndex} {onChange} {onImageRequested} {editable} {theme} />
 </section>
 
 <style>

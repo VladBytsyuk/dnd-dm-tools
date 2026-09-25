@@ -2,6 +2,7 @@
 	import ChevronLeft from "lucide-svelte/icons/chevron-left";
 	import ChevronRight from "lucide-svelte/icons/chevron-right";
 	import Plus from "lucide-svelte/icons/plus";
+	import defaultToken from "./assets/default-token.svg";
 
 	type Props = {
 		images?: string[];
@@ -10,6 +11,7 @@
 		fluid?: boolean;
 		initialIndex?: number;
 		onChange?: (index: number) => void;
+		onImageRequested?: (image: string) => Promise<string>;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -25,11 +27,32 @@
 		fluid = false,
 		initialIndex = 0,
 		onChange,
+		onImageRequested,
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
 	let currentIndex = $state(getInitialIndex());
 	let currentImage = $derived(images[currentIndex]);
+	let resolvedImage = $state("");
+	let failedImage = $state("");
+	let defaultTokenUrl = `data:image/svg+xml,${encodeURIComponent(defaultToken)}`;
+	$effect(() => {
+		const source = currentImage;
+		if (editable || !source) {
+			resolvedImage = "";
+			return;
+		}
+
+		let active = true;
+		const resolve = onImageRequested ? onImageRequested(source) : Promise.resolve(source);
+		void resolve.then((url) => {
+			if (active) resolvedImage = url || source;
+		}).catch(() => {
+			if (active) resolvedImage = source;
+		});
+
+		return () => { active = false; };
+	});
 	let hasControls = $derived(images.length > 1);
 	$effect.pre(() => {
 		if (currentIndex >= images.length) {
@@ -56,9 +79,13 @@
 			<Plus size={10} strokeWidth={1.5} />
 		</button>
 	</div>
-{:else if currentImage}
+{:else}
 	<div class:fluid class="image-group" data-theme={theme} style={`--image-size: ${size}px`}>
-		<img src={currentImage} {alt} />
+		{#if resolvedImage && failedImage !== resolvedImage}
+			<img src={resolvedImage} {alt} onerror={() => (failedImage = resolvedImage)} />
+		{:else}
+			<img class="fallback" src={defaultTokenUrl} alt="" aria-label="Изображение недоступно" />
+		{/if}
 		{#if hasControls}
 			<div class="controls" aria-label="Переключение изображений">
 				<button type="button" onclick={() => showImage(currentIndex - 1)} aria-label="Предыдущее изображение">
@@ -144,6 +171,11 @@
 		height: 100%;
 		border-radius: 12px;
 		object-fit: cover;
+	}
+
+	img.fallback {
+		border-radius: 50%;
+		object-fit: contain;
 	}
 
 	.controls {

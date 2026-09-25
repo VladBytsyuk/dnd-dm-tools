@@ -33,6 +33,7 @@
 		statblock: FullStatblockViewModel;
 		onCopyStatblock: (statblock: FullStatblockViewModel) => void | Promise<void>;
 		onCopySpellLink: (link: FullStatblockSpellLink) => void | Promise<void>;
+		onImageRequested?: (image: string) => Promise<string>;
 		theme?: "dark" | "light";
 		editable?: boolean;
 	};
@@ -41,6 +42,7 @@
 		statblock = $bindable<FullStatblockViewModel>(),
 		onCopyStatblock,
 		onCopySpellLink,
+		onImageRequested,
 		theme = "dark",
 		editable = false,
 	}: Props = $props();
@@ -181,7 +183,12 @@
 	function updateAbilityScore(index: number, value: string): void {
 		const abilityIndex = index - (statblock.abilities?.length ?? 0);
 		if (abilityIndex < 0 || !statblock.abilities?.[abilityIndex]) return;
-		statblock.abilities[abilityIndex].score = value;
+		const ability = statblock.abilities[abilityIndex];
+		ability.score = value;
+		const numericScore = Number(value);
+		if (value.trim() && Number.isFinite(numericScore)) {
+			ability.modifier = Math.floor((numericScore - 10) / 2);
+		}
 	}
 
 	function escapeHtml(value: string): string {
@@ -208,6 +215,7 @@
 		bind:source={statblock.source}
 		chips={headerChips}
 		bind:images={statblock.images}
+		{onImageRequested}
 		alt={statblock.imageAlt ?? statblock.russianName}
 		editable={editable}
 		{theme}
