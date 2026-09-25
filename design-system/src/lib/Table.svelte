@@ -1,9 +1,10 @@
 <script module lang="ts">
-	export type TableValue = string | number;
+	export type TableValue = string | number | { text: string; html: string };
 </script>
 
 <script lang="ts">
 	import "./table.css";
+	import { sanitizeRichHtml } from "./sanitizeRichHtml";
 
 	type Props = {
 		columns?: number;
@@ -39,7 +40,8 @@
 						{#if editable}
 							<input bind:value={values[columnIndex]} aria-label={`Заголовок столбца ${columnIndex + 1}`} />
 						{:else}
-							{values[columnIndex]}
+							{@const value = values[columnIndex]}
+							{#if typeof value === "object"}{@html sanitizeRichHtml(value.html)}{:else}{value}{/if}
 						{/if}
 					{/if}
 				</th>
@@ -56,7 +58,8 @@
 							{#if editable}
 								<input bind:value={values[cellIndex]} aria-label={`Ячейка ${cellIndex + 1}`} />
 							{:else}
-								{values[cellIndex]}
+								{@const value = values[cellIndex]}
+								{#if typeof value === "object"}{@html sanitizeRichHtml(value.html)}{:else}{value}{/if}
 							{/if}
 						{/if}
 					</td>

@@ -16,6 +16,14 @@ export type FullViewModel = FullStatblockViewModel | FullSpellViewModel | FullWe
 
 type Entity = Record<string, any>;
 
+export function cloneDesignData<T>(value: T): T {
+	if (Array.isArray(value)) return value.map(cloneDesignData) as T;
+	if (value && typeof value === "object") {
+		return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, cloneDesignData(entry)])) as T;
+	}
+	return value;
+}
+
 export function toSmallCardProps(kind: PanelKey, item: Entity): Entity {
 	const name = item.name ?? {};
 	const common = { title: name.rus ?? "", subtitle: name.eng ?? "", source: item.source?.shortName ?? "" };
@@ -57,8 +65,8 @@ export function toFullViewModel(kind: PanelKey, item: Entity): FullViewModel {
 		case "bestiary": return {
 			...names, challengeRating: item.challengeRating ?? "—", creatureType: typeName(item.type), source,
 			images: item.images ?? [], size: item.size?.rus ?? typeName(item.size), alignment: item.alignment,
-			armorClass: item.armorClass, hitPoints: hitPoints(item.hits), speed: speedText(item.speed),
-			abilities: abilityEntries(item.ability), savingThrows: namedValues(item.savingThrows), skills: namedValues(item.skills),
+			armorClass: item.armorClass, hitPoints: item.hits?.average === undefined ? "" : String(item.hits.average), hitPointsFormula: hitPointsFormula(item.hits), speed: speedText(item.speed),
+			abilities: abilityEntries(item.ability), savingThrows: namedValues(item.savingThrows), skills: namedValues(item.skills), skillsHtml: namedValuesHtml(item.skills),
 			damageVulnerabilities: stringList(item.damageVulnerabilities), damageResistances: stringList(item.damageResistances),
 			damageImmunities: stringList(item.damageImmunities), conditionImmunities: stringList(item.conditionImmunities),
 			senses: sensesText(item.senses), languages: stringList(item.languages), experience: item.experience,
@@ -89,7 +97,7 @@ export function toFullViewModel(kind: PanelKey, item: Entity): FullViewModel {
 }
 
 export function applyFullViewModel(kind: PanelKey, original: Entity, view: FullViewModel): Entity {
-	const item = structuredClone(original);
+	const item = cloneDesignData(original);
 	item.name = { ...item.name, rus: view.russianName, eng: view.englishName };
 	item.url = view.entityLink;
 	if ("source" in view && view.source) item.source = { ...item.source, shortName: view.source.shortName, name: view.source.name, group: { ...item.source?.group, ...view.source.group }, homebrew: view.source.homebrew };
@@ -100,7 +108,7 @@ export function applyFullViewModel(kind: PanelKey, original: Entity, view: FullV
 			item.alignment = v.alignment ?? ""; item.experience = numberValue(v.experience, item.experience); item.proficiencyBonus = String(v.proficiencyBonus ?? "");
 			item.size = typeof item.size === "string" ? v.size ?? "" : { ...item.size, rus: v.size ?? "" };
 			item.description = v.descriptionHtml ?? ""; item.images = v.images ?? [];
-			item.hits = { ...item.hits, average: numberValue(v.hitPoints?.match(/\d+/)?.[0], item.hits?.average), formula: v.hitPoints ?? item.hits?.formula };
+			item.hits = { ...item.hits, average: numberValue(v.hitPoints, item.hits?.average), formula: v.hitPointsFormula ?? "", sign: "", bonus: 0 };
 			item.speed = parseSpeed(v.speed, item.speed); item.ability = applyAbilities(item.ability, v.abilities); item.feats = applyRichItems(item.feats, v.traits);
 			item.savingThrows = parseNamedValues(v.savingThrows, item.savingThrows, true);
 			item.skills = parseNamedValues(v.skills, item.skills);
@@ -141,11 +149,29 @@ function armorColor(type: string): string { return type.toLocaleLowerCase().incl
 function rarityColor(type: string): string { return ({ common: "var(--ds-artifact-regular)", regular: "var(--ds-artifact-regular)", uncommon: "var(--ds-artifact-uncommon)", rare: "var(--ds-artifact-rare)", very_rare: "var(--ds-artifact-very-rare)", legendary: "var(--ds-artifact-legendary)", artifact: "var(--ds-artifact-artifact)" } as Record<string, string>)[type] ?? "var(--ds-artifact-rare)"; }
 function stringList(value: any): string { return Array.isArray(value) ? value.join(", ") : value ?? ""; }
 function namedValues(value: any): string { return Array.isArray(value) ? value.map(v => v.name ? `${v.name} ${v.value ?? ""}`.trim() : v.value ?? "").join(", ") : ""; }
+function namedValuesHtml(value: any): string {
+	if (!Array.isArray(value)) return "";
+	return value.map((entry: Entity) => {
+		const name = String(entry.name ?? "");
+		const rawValue = String(entry.value ?? "").trim();
+		const modifier = Number(rawValue.replace("−", "-"));
+		if (!rawValue || !Number.isFinite(modifier)) return `${escapeHtml(name)}${rawValue ? ` ${escapeHtml(rawValue)}` : ""}`;
+		const signedModifier = modifier < 0 ? `-${Math.abs(modifier)}` : `+${modifier}`;
+		const visibleModifier = signedModifier.replace("-", "−");
+		return `<dice-roller label="${escapeHtmlAttribute(name)}" formula="к20 ${signedModifier}">${escapeHtml(name)} ${visibleModifier}</dice-roller>`;
+	}).join(", ");
+}
+function escapeHtml(value: string): string { return value.replace(/&/gu, "&amp;").replace(/</gu, "&lt;").replace(/>/gu, "&gt;"); }
+function escapeHtmlAttribute(value: string): string { return escapeHtml(value).replace(/"/gu, "&quot;"); }
 function richItems(value: any): { title: string; html: string }[] { return (value ?? []).map((v: Entity) => ({ title: v.name ?? v.title ?? "", html: v.description ?? v.html ?? v.value ?? v.text ?? "" })); }
 function actionSection(title: string, values: any[] = [], description?: string) { return { title, descriptionHtml: description ?? "", items: (values ?? []).map((v: Entity) => ({ title: v.name ?? v.title ?? "", html: v.description ?? v.html ?? v.value ?? v.text ?? "" })) }; }
 function classLinks(values: any[] = []) { return values.map(v => ({ name: v.name?.rus ?? v.name ?? "", url: v.url ?? "", parentClass: v.parentClass })); }
 function speedText(values: any[] = []): string { return values.map(v => `${v.name ?? ""} ${v.value ?? ""}${v.additional ? ` ${v.additional}` : ""}`.trim()).join(", "); }
-function hitPoints(value: any): string { return value ? [value.average, value.formula, value.sign, value.bonus, value.text].filter(v => v !== undefined && v !== "").join(" ") : ""; }
+function hitPointsFormula(value: any): string {
+	if (!value?.formula) return "";
+	const bonus = Number(value.bonus ?? 0);
+	return `${value.formula}${bonus !== 0 ? `${value.sign || (bonus < 0 ? "-" : "+")}${Math.abs(bonus)}` : ""}`;
+}
 function sensesText(value: any): string { return value ? [value.senses?.map((v: Entity) => `${v.name} ${v.value ?? ""}`).join(", "), value.passivePerception ? `Пассивное восприятие ${value.passivePerception}` : ""].filter(Boolean).join("; ") : ""; }
 function abilityEntries(value: any) { return [["str", "СИЛ"], ["dex", "ЛОВ"], ["con", "ТЕЛ"], ["int", "ИНТ"], ["wiz", "МДР"], ["cha", "ХАР"]].map(([key, label]) => { const score = Number(value?.[key] ?? 10); return { label, score, modifier: Math.floor((score - 10) / 2) }; }); }
 function numberValue(value: unknown, fallback: number): number { const parsed = Number(value); return Number.isFinite(parsed) ? parsed : fallback; }

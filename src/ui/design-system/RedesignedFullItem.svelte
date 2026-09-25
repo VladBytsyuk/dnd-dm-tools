@@ -29,8 +29,10 @@
 	import type { FullFeat as FullFeatDomain } from "src/domain/models/feat/FullFeat";
 	import type { FullRace as FullRaceDomain } from "src/domain/models/race/FullRace";
 	import type { FullClass as FullClassDomain } from "src/domain/models/class/FullClass";
-	import { applyFullViewModel, toFullViewModel, type FullViewModel } from "./adapters";
+	import { applyFullViewModel, cloneDesignData, toFullViewModel, type FullViewModel } from "./adapters";
 	import { theme as appTheme, Theme } from "src/ui/theme";
+	import { onMount } from "svelte";
+	import { DiceRollersManager } from "src/ui/layout/dice-roller/DiceRollersManager";
 
 	type Props = {
 		panelKey: PanelKey; currentItem: any; uiEventListener: IUiEventListener;
@@ -50,6 +52,17 @@
 	let handledActionRequest = 0;
 	const isClass = $derived(panelKey === "classes");
 	const entityLinkHandler = async (link: { href: string; label: string }) => { const result = resolveDndEntityLink(uiEventListener, link.href); if (result) await result; };
+	let container: HTMLDivElement;
+	onMount(() => {
+		const diceRollers = DiceRollersManager.create(uiEventListener, container);
+		diceRollers.onMount();
+		const observer = new MutationObserver(() => diceRollers.onMount());
+		observer.observe(container, { childList: true, subtree: true });
+		return () => {
+			observer.disconnect();
+			diceRollers.onDestroy();
+		};
+	});
 	$effect(() => {
 		if (actionRequest.id <= handledActionRequest) return;
 		handledActionRequest = actionRequest.id;
@@ -61,7 +74,7 @@
 
 	function beginEdit() {
 		if (editing || isClass) return;
-		draft = structuredClone(toFullViewModel(panelKey, currentItem));
+		draft = cloneDesignData(toFullViewModel(panelKey, currentItem));
 		if ((currentItem.origin ?? "remote") === "remote") draft.entityLink = "";
 		validationError = "";
 		editing = true;
@@ -71,7 +84,7 @@
 		if (saving) return;
 		editing = false;
 		validationError = "";
-		draft = structuredClone(toFullViewModel(panelKey, currentItem));
+		draft = cloneDesignData(toFullViewModel(panelKey, currentItem));
 		onEditorStateChange?.({ editing, saving });
 	}
 	async function save() {
@@ -114,7 +127,7 @@
 	}
 </script>
 
-<div class="redesigned-full-item">
+<div class="redesigned-full-item" bind:this={container}>
 	{#if isEditable && !isClass && !editing && currentItem.origin === "manual"}
 		<div class="actions">
 			<button type="button" onclick={deleteItem}>Удалить</button>

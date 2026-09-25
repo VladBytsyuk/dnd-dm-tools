@@ -51,4 +51,41 @@ describe("design system adapters", () => {
 		expect((monsterView as any).actions.items[0]).toEqual({ title: "Короткий меч", html: "Атака коротким мечом." });
 		expect((monsterView as any).reactions.items[0]).toEqual({ title: "Парирование", html: "Добавляет 2 к КД." });
 	});
+
+	it("copies reactive proxy data when preparing an item for copy", () => {
+		const source = new Proxy([{ name: "Вложенные данные" }], {});
+		const original = new Proxy({
+			name: { rus: "Монстр", eng: "Monster" },
+			url: "/bestiary/monster",
+			hidden: source,
+		}, {});
+		const view = toFullViewModel("bestiary", original);
+
+		expect(() => applyFullViewModel("bestiary", original, view)).not.toThrow();
+		expect(applyFullViewModel("bestiary", original, view).hidden).toEqual([{ name: "Вложенные данные" }]);
+	});
+
+	it("maps hit points as average and a formula with only a nonzero bonus", () => {
+		const view = toFullViewModel("bestiary", {
+			name: { rus: "Монстр", eng: "Monster" },
+			hits: { average: 18, formula: "4к8", sign: "+", bonus: 0 },
+		});
+		expect((view as any).hitPoints).toBe("18");
+		expect((view as any).hitPointsFormula).toBe("4к8");
+
+		const withBonus = toFullViewModel("bestiary", {
+			name: { rus: "Монстр", eng: "Monster" },
+			hits: { average: 18, formula: "4к8", sign: "+", bonus: 2 },
+		});
+		expect((withBonus as any).hitPointsFormula).toBe("4к8+2");
+	});
+
+	it("maps skill modifiers to signed, clickable dice formulas", () => {
+		const view = toFullViewModel("bestiary", {
+			name: { rus: "Монстр", eng: "Monster" },
+			skills: [{ name: "Обман", value: 5 }, { name: "Скрытность", value: -2 }],
+		});
+
+		expect((view as any).skillsHtml).toBe('<dice-roller label="Обман" formula="к20 +5">Обман +5</dice-roller>, <dice-roller label="Скрытность" formula="к20 -2">Скрытность −2</dice-roller>');
+	});
 });

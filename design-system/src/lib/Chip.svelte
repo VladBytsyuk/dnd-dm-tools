@@ -140,6 +140,8 @@
 		transition: background-color 120ms ease, box-shadow 120ms ease;
 	}
 
+	.chip :global(.dice-roller) { color: #fff; }
+
 	.chip:hover {
 		background: linear-gradient(rgb(48 48 48 / 20%), rgb(48 48 48 / 20%)), color-mix(in srgb, var(--chip-background) 40%, transparent);
 		box-shadow: 0 6px 6px rgb(0 0 0 / 25%);

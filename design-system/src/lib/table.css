@@ -18,6 +18,10 @@
 	table-layout: fixed;
 }
 
+.dnd-table:not([data-theme="light"]) .dice-roller {
+	color: #fff;
+}
+
 .dnd-table th,
 .dnd-table td {
 	box-sizing: border-box;

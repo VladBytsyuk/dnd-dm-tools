@@ -53,7 +53,13 @@
 		const chips: ChipsListItem[] = [];
 
 		if (statblock.armorClass !== undefined) chips.push({ text: String(statblock.armorClass), icon: Shield, iconTooltip: "Класс доспеха" });
-		if (statblock.hitPoints) chips.push({ text: statblock.hitPoints, icon: Heart, iconTooltip: "Хиты" });
+		if (statblock.hitPoints) chips.push({
+			...(statblock.hitPointsFormula && !editable
+				? { html: `${escapeHtml(statblock.hitPoints)} (<dice-roller label="Хиты" formula="${escapeHtmlAttribute(statblock.hitPointsFormula)}">${escapeHtml(statblock.hitPointsFormula)}</dice-roller>)` }
+				: { text: `${statblock.hitPoints}${statblock.hitPointsFormula ? ` (${statblock.hitPointsFormula})` : ""}` }),
+			icon: Heart,
+			iconTooltip: "Хиты",
+		});
 		if (statblock.speed) chips.push({ text: statblock.speed, icon: Route, iconTooltip: "Скорость" });
 		if (statblock.size) chips.push({ text: statblock.size, icon: SquareDashed, iconTooltip: "Размер" });
 		if (statblock.alignment) chips.push({ text: statblock.alignment, icon: Scale, iconTooltip: "Мировоззрение" });
@@ -69,7 +75,7 @@
 			: `${statblock.challengeRating} (${statblock.experience} опыта)`;
 		const details: ChipsListItem[] = [
 			...(statblock.savingThrows ? [{ text: statblock.savingThrows, icon: ShieldCheck, iconTooltip: "Спасброски" }] : []),
-			...(statblock.skills ? [{ text: statblock.skills, icon: BicepsFlexed, iconTooltip: "Навыки" }] : []),
+			...(statblock.skills ? [{ ...(statblock.skillsHtml && !editable ? { html: statblock.skillsHtml } : { text: statblock.skills }), icon: BicepsFlexed, iconTooltip: "Навыки" }] : []),
 			...(statblock.damageVulnerabilities ? [{ text: statblock.damageVulnerabilities, icon: ShieldMinus, iconTooltip: "Уязвимости" }] : []),
 			...(statblock.damageResistances ? [{ text: statblock.damageResistances, icon: ShieldHalf, iconTooltip: "Сопротивления" }] : []),
 			...(immunities ? [{ text: immunities, icon: ShieldX, iconTooltip: "Иммунитеты" }] : []),
@@ -84,7 +90,7 @@
 	});
 	let abilityValues = $derived.by(() => {
 		const abilities = statblock.abilities ?? [];
-		return [...abilities.map((ability) => ability.label), ...abilities.map(formatAbility)];
+		return [...abilities.map((ability) => ability.label), ...abilities.map(formatAbilityCell)];
 	});
 	let lairBlocks = $derived(toLairBlocks(statblock.lair));
 
@@ -93,6 +99,26 @@
 		const modifier = String(ability.modifier);
 		const signedModifier = /^[+−-]/.test(modifier) ? modifier.replace("-", "−") : `+${modifier}`;
 		return `${ability.score} (${signedModifier})`;
+	}
+
+	function formatAbilityCell(ability: NonNullable<FullStatblockViewModel["abilities"]>[number]): { text: string; html: string } {
+		if (ability.modifier === undefined || ability.modifier === "") {
+			const text = String(ability.score);
+			return { text, html: escapeHtml(text) };
+		}
+
+		const modifier = String(ability.modifier).replace("−", "-");
+		const numericModifier = Number(modifier);
+		if (!Number.isFinite(numericModifier)) {
+			const text = formatAbility(ability);
+			return { text, html: escapeHtml(text) };
+		}
+
+		const signedModifier = numericModifier < 0 ? `-${Math.abs(numericModifier)}` : `+${numericModifier}`;
+		const visibleModifier = signedModifier.replace("-", "−");
+		const text = `${ability.score} (${visibleModifier})`;
+		const html = `${escapeHtml(String(ability.score))} (<dice-roller label="${escapeHtmlAttribute(ability.label)}" formula="к20 ${signedModifier}">${escapeHtml(visibleModifier)}</dice-roller>)`;
+		return { text, html };
 	}
 
 	function getCreatureTypeToken(creatureType: string): string {
@@ -136,6 +162,14 @@
 	function setEnvironment(value: string): void {
 		statblock.environment = value.split(",").map((part) => part.trim()).filter(Boolean);
 	}
+
+	function escapeHtml(value: string): string {
+		return value.replace(/&/gu, "&amp;").replace(/</gu, "&lt;").replace(/>/gu, "&gt;");
+	}
+
+	function escapeHtmlAttribute(value: string): string {
+		return escapeHtml(value).replace(/"/gu, "&quot;");
+	}
 </script>
 
 <article
@@ -162,6 +196,7 @@
 		<div class="statblock-editor">
 			<label>Класс доспеха<input bind:value={statblock.armorClass} /></label>
 			<label>Хиты<input bind:value={statblock.hitPoints} /></label>
+			<label>Формула хитов<input bind:value={statblock.hitPointsFormula} /></label>
 			<label>Скорость<input bind:value={statblock.speed} /></label>
 			<label>Размер<input bind:value={statblock.size} /></label>
 			<label>Мировоззрение<input bind:value={statblock.alignment} /></label>
