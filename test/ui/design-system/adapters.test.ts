@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
-import { applyFullViewModel, createEmptyDomainItem, toFullViewModel, toSmallCardProps } from "src/ui/design-system/adapters";
+import { applyFullViewModel, createEmptyDomainItem, entityUrlPrefix, toFullViewModel, toSmallCardProps } from "src/ui/design-system/adapters";
 
 const panelKeys: PanelKey[] = [
 	"bestiary", "spellbook", "arsenal", "armory", "equipment", "artifactory",
@@ -8,6 +8,13 @@ const panelKeys: PanelKey[] = [
 ];
 
 describe("design system adapters", () => {
+	it("maps every editable section to its URL prefix", () => {
+		expect(panelKeys.map(entityUrlPrefix)).toEqual([
+			"/bestiary/", "/spells/", "/weapons/", "/armors/", "/items/",
+			"/items/magic/", "/backgrounds/", "/feats/", "/races/", "/classes/",
+		]);
+	});
+
 	it.each(panelKeys)("maps small and full models for %s", (panelKey) => {
 		const item = createEmptyDomainItem(panelKey) ?? {
 			name: { rus: "Тест", eng: "Test" }, url: "/classes/test", dice: "к8", source: { shortName: "PHB", name: "PHB", group: { shortName: "Basic", name: "Основные" } }, isArchetype: false,

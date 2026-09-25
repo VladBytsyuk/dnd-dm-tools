@@ -16,6 +16,22 @@ export type FullViewModel = FullStatblockViewModel | FullSpellViewModel | FullWe
 
 type Entity = Record<string, any>;
 
+export function entityUrlPrefix(kind: PanelKey): string {
+	switch (kind) {
+		case "bestiary": return "/bestiary/";
+		case "spellbook": return "/spells/";
+		case "arsenal": return "/weapons/";
+		case "armory": return "/armors/";
+		case "equipment": return "/items/";
+		case "artifactory": return "/items/magic/";
+		case "backgrounds": return "/backgrounds/";
+		case "feats": return "/feats/";
+		case "races": return "/races/";
+		case "classes": return "/classes/";
+		default: return "";
+	}
+}
+
 export function cloneDesignData<T>(value: T): T {
 	if (Array.isArray(value)) return value.map(cloneDesignData) as T;
 	if (value && typeof value === "object") {

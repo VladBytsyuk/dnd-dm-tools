@@ -29,7 +29,7 @@
 	import type { FullFeat as FullFeatDomain } from "src/domain/models/feat/FullFeat";
 	import type { FullRace as FullRaceDomain } from "src/domain/models/race/FullRace";
 	import type { FullClass as FullClassDomain } from "src/domain/models/class/FullClass";
-	import { applyFullViewModel, cloneDesignData, toFullViewModel, type FullViewModel } from "./adapters";
+	import { applyFullViewModel, cloneDesignData, entityUrlPrefix, toFullViewModel, type FullViewModel } from "./adapters";
 	import { theme as appTheme, Theme } from "src/ui/theme";
 	import { onMount } from "svelte";
 	import { DiceRollersManager } from "src/ui/layout/dice-roller/DiceRollersManager";
@@ -73,7 +73,8 @@
 	function beginEdit() {
 		if (editing || isClass) return;
 		draft = cloneDesignData(toFullViewModel(panelKey, currentItem));
-		if ((currentItem.origin ?? "remote") === "remote") draft.entityLink = "";
+		if (!currentItem.url) draft.entityLink = entityUrlPrefix(panelKey);
+		else if ((currentItem.origin ?? "remote") === "remote") draft.entityLink = `${currentItem.url}_`;
 		validationError = "";
 		editing = true;
 		onEditorStateChange?.({ editing, saving });
