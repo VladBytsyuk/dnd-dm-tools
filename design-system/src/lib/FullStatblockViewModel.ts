@@ -53,6 +53,7 @@ export type FullStatblockViewModel = {
 	speed?: string;
 	abilities?: FullStatblockAbility[];
 	savingThrows?: string;
+	savingThrowsHtml?: string;
 	skills?: string;
 	skillsHtml?: string;
 	damageVulnerabilities?: string;

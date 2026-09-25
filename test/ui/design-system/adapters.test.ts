@@ -87,12 +87,14 @@ describe("design system adapters", () => {
 		expect((withBonus as any).hitPointsFormula).toBe("4к8+2");
 	});
 
-	it("maps skill modifiers to signed, clickable dice formulas", () => {
+	it("maps monster save and skill modifiers to signed, clickable dice formulas", () => {
 		const view = toFullViewModel("bestiary", {
 			name: { rus: "Монстр", eng: "Monster" },
+			savingThrows: [{ name: "Сила", value: 19 }],
 			skills: [{ name: "Обман", value: 5 }, { name: "Скрытность", value: -2 }],
 		});
 
+		expect((view as any).savingThrowsHtml).toBe('<dice-roller label="Сила" formula="к20 +19">Сила +19</dice-roller>');
 		expect((view as any).skillsHtml).toBe('<dice-roller label="Обман" formula="к20 +5">Обман +5</dice-roller>, <dice-roller label="Скрытность" formula="к20 -2">Скрытность −2</dice-roller>');
 	});
 

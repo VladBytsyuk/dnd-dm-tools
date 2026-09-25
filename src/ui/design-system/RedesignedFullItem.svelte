@@ -125,7 +125,7 @@
 <div class="redesigned-full-item" bind:this={container}>
 	{#if validationError}<p class="error" role="alert">{validationError}</p>{/if}
 	{#if panelKey === "bestiary"}
-		<FullStatblock bind:statblock={draft as FullStatblockViewModel} onCopyStatblock={copyFullItem} onCopySpellLink={entityLinkHandler} onImageRequested={imageResolver} editable={editing} {theme} />
+		<FullStatblock bind:statblock={draft as FullStatblockViewModel} onCopyStatblock={copyFullItem} onCopySpellLink={entityLinkHandler} onEntityLinkClick={entityLinkHandler} onImageRequested={imageResolver} editable={editing} {theme} />
 	{:else if panelKey === "spellbook"}
 		<FullSpell bind:spell={draft as FullSpellViewModel} onCopySpell={copyFullItem} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
 	{:else if panelKey === "arsenal"}

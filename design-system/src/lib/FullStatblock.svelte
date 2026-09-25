@@ -33,6 +33,7 @@
 		statblock: FullStatblockViewModel;
 		onCopyStatblock: (statblock: FullStatblockViewModel) => void | Promise<void>;
 		onCopySpellLink: (link: FullStatblockSpellLink) => void | Promise<void>;
+		onEntityLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
 		onImageRequested?: (image: string) => Promise<string>;
 		theme?: "dark" | "light";
 		editable?: boolean;
@@ -42,6 +43,7 @@
 		statblock = $bindable<FullStatblockViewModel>(),
 		onCopyStatblock,
 		onCopySpellLink,
+		onEntityLinkClick,
 		onImageRequested,
 		theme = "dark",
 		editable = false,
@@ -83,7 +85,7 @@
 			? String(statblock.challengeRating)
 			: `${statblock.challengeRating} (${statblock.experience} опыта)`;
 		const details: ChipsListItem[] = [
-			...(statblock.savingThrows ? [{ text: statblock.savingThrows, placeholder: "Спасброски", onTextChange: (value: string) => statblock.savingThrows = value, icon: ShieldCheck, iconTooltip: "Спасброски" }] : []),
+			...(statblock.savingThrows ? [{ ...(statblock.savingThrowsHtml && !editable ? { html: statblock.savingThrowsHtml } : { text: statblock.savingThrows }), placeholder: "Спасброски", onTextChange: (value: string) => { statblock.savingThrows = value; statblock.savingThrowsHtml = undefined; }, icon: ShieldCheck, iconTooltip: "Спасброски" }] : []),
 			...(statblock.skills ? [{ ...(statblock.skillsHtml && !editable ? { html: statblock.skillsHtml } : { text: statblock.skills }), placeholder: "Навыки", onTextChange: (value: string) => { statblock.skills = value; statblock.skillsHtml = undefined; }, icon: BicepsFlexed, iconTooltip: "Навыки" }] : []),
 			...(statblock.damageVulnerabilities ? [{ text: statblock.damageVulnerabilities, placeholder: "Уязвимости", onTextChange: (value: string) => statblock.damageVulnerabilities = value, icon: ShieldMinus, iconTooltip: "Уязвимости" }] : []),
 			...(statblock.damageResistances ? [{ text: statblock.damageResistances, placeholder: "Сопротивления", onTextChange: (value: string) => statblock.damageResistances = value, icon: ShieldHalf, iconTooltip: "Сопротивления" }] : []),
@@ -229,7 +231,7 @@
 	{/if}
 
 	{#each statblock.traits ?? [] as trait, index (index)}
-		<TextBlock bind:title={trait.title} bind:html={trait.html} {accentColor} onSpellLinkClick={onCopySpellLink} {editable} {theme} />
+		<TextBlock bind:title={trait.title} bind:html={trait.html} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
 	{/each}
 	{#if editable}
 		<div class="add-block-chip"><button type="button" aria-label="Добавить текстовый блок" onclick={addTrait}><Plus size={15} strokeWidth={1.5} /></button></div>
@@ -243,37 +245,38 @@
 			blocksExpanded={true}
 			{accentColor}
 			onSpellLinkClick={onCopySpellLink}
+			{onEntityLinkClick}
 			{editable}
 			{theme}
 		/>
 	{/if}
 
 	{#if statblock.bonusActions && (hasSection(statblock.bonusActions) || editable)}
-		<ActionsBlock bind:title={statblock.bonusActions.title} bind:descriptionHtml={statblock.bonusActions.descriptionHtml} bind:blocks={statblock.bonusActions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {editable} {theme} />
+		<ActionsBlock bind:title={statblock.bonusActions.title} bind:descriptionHtml={statblock.bonusActions.descriptionHtml} bind:blocks={statblock.bonusActions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 
 	{#if statblock.reactions && (hasSection(statblock.reactions) || editable)}
-		<ActionsBlock bind:title={statblock.reactions.title} bind:descriptionHtml={statblock.reactions.descriptionHtml} bind:blocks={statblock.reactions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {editable} {theme} />
+		<ActionsBlock bind:title={statblock.reactions.title} bind:descriptionHtml={statblock.reactions.descriptionHtml} bind:blocks={statblock.reactions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 
 	{#if statblock.legendaryActions && (hasSection(statblock.legendaryActions) || editable)}
-		<ActionsBlock bind:title={statblock.legendaryActions.title} bind:descriptionHtml={statblock.legendaryActions.descriptionHtml} bind:blocks={statblock.legendaryActions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {editable} {theme} />
+		<ActionsBlock bind:title={statblock.legendaryActions.title} bind:descriptionHtml={statblock.legendaryActions.descriptionHtml} bind:blocks={statblock.legendaryActions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 
 	{#if statblock.mythicActions && (hasSection(statblock.mythicActions) || editable)}
-		<ActionsBlock bind:title={statblock.mythicActions.title} bind:descriptionHtml={statblock.mythicActions.descriptionHtml} bind:blocks={statblock.mythicActions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {editable} {theme} />
+		<ActionsBlock bind:title={statblock.mythicActions.title} bind:descriptionHtml={statblock.mythicActions.descriptionHtml} bind:blocks={statblock.mythicActions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 
 	{#if hasLair(statblock.lair)}
-		<ActionsBlock title="Логово" descriptionHtml={statblock.lair.descriptionHtml} blocks={lairBlocks} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {theme} />
+		<ActionsBlock title="Логово" descriptionHtml={statblock.lair.descriptionHtml} blocks={lairBlocks} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {theme} />
 	{/if}
 
 	{#if statblock.descriptionHtml || editable}
-		<FilledTextBlock title="Описание" bind:html={statblock.descriptionHtml} icon={ChevronRight} expanded={false} background="color-mix(in srgb, var(--statblock-accent) 40%, transparent)" {accentColor} onSpellLinkClick={onCopySpellLink} {editable} {theme} />
+		<FilledTextBlock title="Описание" bind:html={statblock.descriptionHtml} icon={ChevronRight} expanded={false} background="color-mix(in srgb, var(--statblock-accent) 40%, transparent)" {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 
 	{#each statblock.tags ?? [] as tag, index (index)}
-		<FilledTextBlock bind:title={tag.title} bind:html={tag.html} icon={ChevronRight} expanded={false} background="color-mix(in srgb, var(--statblock-accent) 40%, transparent)" {accentColor} onSpellLinkClick={onCopySpellLink} {editable} {theme} />
+		<FilledTextBlock bind:title={tag.title} bind:html={tag.html} icon={ChevronRight} expanded={false} background="color-mix(in srgb, var(--statblock-accent) 40%, transparent)" {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
 	{/each}
 	{#if editable}
 		<div class="add-block-chip"><button type="button" aria-label="Добавить текстовый блок" onclick={addTag}><Plus size={15} strokeWidth={1.5} /></button></div>

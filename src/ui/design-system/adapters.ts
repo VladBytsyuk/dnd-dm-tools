@@ -82,7 +82,7 @@ export function toFullViewModel(kind: PanelKey, item: Entity): FullViewModel {
 			...names, challengeRating: item.challengeRating ?? "—", creatureType: typeName(item.type), source,
 			images: item.images ?? [], size: item.size?.rus ?? typeName(item.size), alignment: item.alignment,
 			armorClass: item.armorClass, hitPoints: item.hits?.average === undefined ? "" : String(item.hits.average), hitPointsFormula: hitPointsFormula(item.hits), speed: speedText(item.speed),
-			abilities: abilityEntries(item.ability), savingThrows: namedValues(item.savingThrows), skills: namedValues(item.skills), skillsHtml: namedValuesHtml(item.skills),
+			abilities: abilityEntries(item.ability), savingThrows: namedValues(item.savingThrows), savingThrowsHtml: namedValuesHtml(item.savingThrows), skills: namedValues(item.skills), skillsHtml: namedValuesHtml(item.skills),
 			damageVulnerabilities: stringList(item.damageVulnerabilities), damageResistances: stringList(item.damageResistances),
 			damageImmunities: stringList(item.damageImmunities), conditionImmunities: stringList(item.conditionImmunities),
 			senses: sensesText(item.senses), languages: stringList(item.languages), experience: item.experience,

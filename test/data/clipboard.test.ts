@@ -281,6 +281,25 @@ ${yaml}
         expect(participant?.armorClass).toBe(mockMonster.armorClass);
     });
 
+    it('uses the last plugin copy if Obsidian clipboard reads fail and only reads once', async () => {
+        Object.defineProperty(navigator, 'clipboard', {
+            value: { writeText: vi.fn().mockResolvedValue(undefined) },
+            writable: true,
+        });
+        await copyMonsterToClipboard(mockMonster, true);
+        const readText = vi.fn().mockRejectedValue(new Error('Cannot call method readText on missing remote object'));
+        Object.defineProperty(navigator, 'clipboard', {
+            value: { readText },
+            writable: true,
+        });
+
+        const participant = await getEncounterParticipantFromClipboard(true);
+
+        expect(readText).toHaveBeenCalledTimes(1);
+        expect(participant?.name).toBe(mockMonster.name.rus);
+        expect(participant?.armorClass).toBe(mockMonster.armorClass);
+    });
+
     it('should get encounter from clipboard', async () => {
         // Arrange
         const encounterWithResources = {
