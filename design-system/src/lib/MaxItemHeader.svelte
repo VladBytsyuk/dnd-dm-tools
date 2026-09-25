@@ -14,7 +14,6 @@
 		sourceSuffix?: string;
 		wrapRussianName?: boolean;
 		onCopy?: (text: string) => void;
-		onNameClick?: (name: string) => void | Promise<void>;
 		onInfoChange?: (info: string) => void;
 		chips?: ChipsListItem[];
 		secondaryChips?: ChipsListItem[];
@@ -38,7 +37,6 @@
 		sourceSuffix = "",
 		wrapRussianName = false,
 		onCopy,
-		onNameClick,
 		onInfoChange,
 		chips = [],
 		secondaryChips = [],
@@ -68,7 +66,6 @@
 			{sourceSuffix}
 			{wrapRussianName}
 			{onCopy}
-			{onNameClick}
 			{onInfoChange}
 			{editable}
 			{theme}

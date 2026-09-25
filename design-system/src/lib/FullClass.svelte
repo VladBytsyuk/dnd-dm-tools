@@ -197,7 +197,6 @@
 				source={characterClass.source}
 				sourceSuffix={characterClass.source.homebrew ? "*" : ""}
 				wrapRussianName={true}
-				onNameClick={onCopyClass ? () => onCopyClass(characterClass) : undefined}
 				{theme}
 			/>
 

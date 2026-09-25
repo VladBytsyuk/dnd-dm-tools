@@ -92,7 +92,6 @@
 		bind:badge={spell.level}
 		info={headerInfo}
 		bind:source={spell.source}
-		onNameClick={onCopySpell ? () => onCopySpell(spell) : undefined}
 		{editable}
 		{theme}
 	/>

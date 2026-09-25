@@ -54,7 +54,6 @@
 		sourceSuffix={isHomebrew ? "*" : ""}
 		wrapRussianName={true}
 		onInfoChange={updateRequirements}
-		onNameClick={onCopyFeat ? () => onCopyFeat(feat) : undefined}
 		{editable}
 		{theme}
 	/>

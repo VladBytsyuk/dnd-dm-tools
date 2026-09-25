@@ -184,7 +184,6 @@
 		secondaryChips={subraceChips}
 		images={race.image ? [race.image] : []}
 		alt={race.russianName}
-		onNameClick={onCopyRace ? () => onCopyRace(race) : undefined}
 		onInfoChange={updateHeaderInfo}
 		{editable}
 		{theme}

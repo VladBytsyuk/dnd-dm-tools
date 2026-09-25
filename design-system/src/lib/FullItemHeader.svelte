@@ -22,7 +22,6 @@
 		sourceSuffix?: string;
 		wrapRussianName?: boolean;
 		onCopy?: (text: string) => void;
-		onNameClick?: (name: string) => void | Promise<void>;
 		onInfoChange?: (info: string) => void;
 		editable?: boolean;
 		theme?: "dark" | "light";
@@ -38,7 +37,6 @@
 		sourceSuffix = "",
 		wrapRussianName = false,
 		onCopy,
-		onNameClick,
 		onInfoChange,
 		editable = false,
 		theme = "dark",
@@ -67,12 +65,16 @@
 	}
 
 	async function copyName(name: string) {
-		if (onNameClick) {
-			await onNameClick(name);
-			return;
-		}
-
 		await copy(name);
+	}
+
+	function copyEntityLink() {
+		const pluginLink = entityLink.startsWith("dnd:") ? entityLink : `dnd:${entityLink}`;
+		void copy(`[${escapeMarkdownLinkLabel(russianName)}](${pluginLink})`);
+	}
+
+	function escapeMarkdownLinkLabel(value: string): string {
+		return value.replace(/\\/g, "\\\\").replace(/\[/g, "\\[").replace(/\]/g, "\\]");
 	}
 </script>
 
@@ -89,7 +91,7 @@
 			<button type="button" class="name english-name" onclick={() => copyName(englishName)} aria-label={`Скопировать: ${englishName}`}>
 				{englishName}
 			</button>
-			<button type="button" class="entity-link" onclick={() => copy(entityLink)} aria-label={`Скопировать ссылку: ${entityLink}`}>
+			<button type="button" class="entity-link" onclick={copyEntityLink} aria-label={`Скопировать ссылку: dnd:${entityLink}`}>
 				{entityLink}
 			</button>
 		{/if}

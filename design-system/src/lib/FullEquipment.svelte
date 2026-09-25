@@ -93,7 +93,6 @@
 		sourceSuffix={isHomebrew ? "*" : ""}
 		wrapRussianName={true}
 		onInfoChange={updateCategories}
-		onNameClick={onCopyEquipment ? () => onCopyEquipment(equipment) : undefined}
 		{editable}
 		{theme}
 	/>

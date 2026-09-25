@@ -102,7 +102,6 @@
 				bind:source={artifact.source}
 				sourceSuffix={isHomebrew ? "*" : ""}
 				wrapRussianName={true}
-				onNameClick={onCopyArtifact ? () => onCopyArtifact(artifact) : undefined}
 				{editable}
 				{theme}
 			/>

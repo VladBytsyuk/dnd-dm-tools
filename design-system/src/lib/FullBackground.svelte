@@ -132,7 +132,6 @@
 		bind:source={background.source}
 		sourceSuffix={background.homebrew || background.source.homebrew ? "*" : ""}
 		wrapRussianName={true}
-		onNameClick={onCopyBackground ? () => onCopyBackground(background) : undefined}
 		{editable}
 		{theme}
 	/>

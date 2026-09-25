@@ -117,7 +117,6 @@
 		bind:entityLink={weapon.entityLink}
 		bind:info={weapon.weaponType}
 		bind:source={weapon.source}
-		onNameClick={onCopyWeapon ? () => onCopyWeapon(weapon) : undefined}
 		{editable}
 		{theme}
 	/>

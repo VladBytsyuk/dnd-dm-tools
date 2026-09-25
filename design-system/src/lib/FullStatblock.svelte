@@ -188,7 +188,6 @@
 		chips={headerChips}
 		images={statblock.images}
 		alt={statblock.imageAlt ?? statblock.russianName}
-		onNameClick={() => onCopyStatblock(statblock)}
 		editable={editable}
 		{theme}
 	/>

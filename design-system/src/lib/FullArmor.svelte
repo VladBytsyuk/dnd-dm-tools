@@ -129,7 +129,6 @@
 		bind:entityLink={armor.entityLink}
 		bind:info={armor.armorType}
 		bind:source={armor.source}
-		onNameClick={onCopyArmor ? () => onCopyArmor(armor) : undefined}
 		{editable}
 		{theme}
 	/>
