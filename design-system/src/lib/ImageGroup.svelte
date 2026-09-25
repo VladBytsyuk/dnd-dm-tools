@@ -10,7 +10,6 @@
 		fluid?: boolean;
 		initialIndex?: number;
 		onChange?: (index: number) => void;
-		onAddImage?: () => void;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -26,7 +25,6 @@
 		fluid = false,
 		initialIndex = 0,
 		onChange,
-		onAddImage,
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
@@ -43,6 +41,10 @@
 		currentIndex = (index + images.length) % images.length;
 		onChange?.(currentIndex);
 	}
+
+	function addImage() {
+		images = [...images, ""];
+	}
 </script>
 
 {#if editable}
@@ -50,7 +52,7 @@
 		{#each images as _, index}
 			<input bind:value={images[index]} placeholder="https://…" aria-label={`Ссылка на изображение ${index + 1}`} />
 		{/each}
-		<button class="add-image" type="button" aria-label="Добавить изображение" disabled={!onAddImage} onclick={onAddImage}>
+		<button class="add-image" type="button" aria-label="Добавить изображение" onclick={addImage}>
 			<Plus size={10} strokeWidth={1.5} />
 		</button>
 	</div>

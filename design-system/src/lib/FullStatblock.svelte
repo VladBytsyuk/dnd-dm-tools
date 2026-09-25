@@ -208,7 +208,6 @@
 		bind:source={statblock.source}
 		chips={headerChips}
 		bind:images={statblock.images}
-		onAddImage={() => statblock.images = [...(statblock.images ?? []), ""]}
 		alt={statblock.imageAlt ?? statblock.russianName}
 		editable={editable}
 		{theme}
