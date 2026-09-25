@@ -110,7 +110,7 @@
 	{#if editable && html !== undefined}
 		<input value={html} oninput={handleHtmlInput} placeholder="Текст или HTML" aria-label="HTML чипа" />
 	{:else if editable}
-		<input value={text} oninput={handleTextInput} placeholder="Текст чипа" aria-label="Текст чипа" />
+		<input value={suffix ? `${text} (${suffix})` : text} oninput={handleTextInput} placeholder="Текст чипа" aria-label="Текст чипа" />
 		{:else if html !== undefined}
 		<span class="html" use:richHtmlLinkListener>{@html sanitizeRichHtml(html)}</span>
 	{:else if href && text}
@@ -118,7 +118,7 @@
 	{:else if text}
 		<span class="text">{text}</span>
 	{/if}
-	{#if suffix}<span class="suffix">{suffix}</span>{/if}
+	{#if !editable && suffix}<span class="suffix">({suffix})</span>{/if}
 </span>
 
 <style>

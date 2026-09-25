@@ -69,15 +69,17 @@
 		},
 		...weapon.properties.map((property, index) => ({
 			text: property.name,
-			suffix: property.distance ? `(${property.distance})` : undefined,
+			suffix: property.distance,
 			href: property.url,
 			background: accentBackground,
 			onLinkClick: property.url && isEntityPath(property.url) && onEntityLinkClick
 				? (link: FullWeaponEntityLink) => onEntityLinkClick(link)
 				: undefined,
-			onTextChange: (name: string) => {
+			onTextChange: (value: string) => {
+				const match = value.match(/^(.*?)\s*\(([^()]*)\)$/);
+				const name = match ? match[1] : value;
 				weapon.properties = weapon.properties.map((item, itemIndex) =>
-					itemIndex === index ? { ...item, name } : item,
+					itemIndex === index ? { ...item, name, distance: match?.[2] } : item,
 				);
 			},
 		})),
