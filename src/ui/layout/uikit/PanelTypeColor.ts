@@ -21,3 +21,23 @@ export function getPanelTypeColor(panelKey: PanelKey): string {
 		"#DC2626"
 	);
 }
+
+const PANEL_TYPE_DESIGN_TOKENS = {
+	bestiary: "--ds-bestiary",
+	spellbook: "--ds-spell",
+	"dm-screen": "--ds-armor",
+	arsenal: "--ds-weapon",
+	armory: "--ds-armor",
+	equipment: "--ds-equipment",
+	artifactory: "--ds-artifacts",
+	backgrounds: "--ds-background",
+	feats: "--ds-feat",
+	races: "--ds-race",
+	classes: "--ds-class",
+	"character-sheets": "--ds-paladin",
+} satisfies Partial<Record<PanelKey, string>>;
+
+export function getRedesignPanelTypeColor(panelKey: PanelKey): string {
+	const token = PANEL_TYPE_DESIGN_TOKENS[panelKey as keyof typeof PANEL_TYPE_DESIGN_TOKENS];
+	return token ? `var(${token})` : getPanelTypeColor(panelKey);
+}

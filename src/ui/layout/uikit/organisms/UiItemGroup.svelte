@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { BaseItem } from "src/domain/models/common/BaseItem";
 	import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
-	import { getPanelTypeColor } from "../PanelTypeColor";
+	import { getPanelTypeColor, getRedesignPanelTypeColor } from "../PanelTypeColor";
 	import PanelTypeTint from "../PanelTypeTint.svelte";
 	import RedesignedSmallItem from "src/ui/design-system/RedesignedSmallItem.svelte";
 
@@ -15,7 +15,7 @@
 	}
 
 	let { panelKey, groupTitle, items, onItemClick, SmallItemSlot, redesignEnabled = false }: Props = $props();
-	const groupColor = $derived(getPanelTypeColor(panelKey));
+	const groupColor = $derived(redesignEnabled ? getRedesignPanelTypeColor(panelKey) : getPanelTypeColor(panelKey));
 </script>
 
 <div

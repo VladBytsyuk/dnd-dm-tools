@@ -8,7 +8,7 @@
 	} from "src/domain/models/assistant/AssistantWorkspace";
 	import { setIcon, type IconName } from "obsidian";
 	import type { PanelSearchResult } from "src/ui/components/sidepanel/PanelHost";
-	import { getPanelTypeColor } from "../uikit/PanelTypeColor";
+	import { getPanelTypeColor, getRedesignPanelTypeColor } from "../uikit/PanelTypeColor";
 	import OmniPanelContent from "./OmniPanelContent.svelte";
 	import OmniSearchResult from "./OmniSearchResult.svelte";
 	import {
@@ -322,7 +322,7 @@
 				<div
 					class="omni-toolbar__icon"
 					class:active={isPanelOpen(panel.key)}
-					style={`--panel-type-color: ${getPanelTypeColor(panel.key)}`}
+					style={`--panel-type-color: ${redesignEnabled ? getRedesignPanelTypeColor(panel.key) : getPanelTypeColor(panel.key)}`}
 					style:color={isPanelOpen(panel.key)
 						? "var(--panel-type-color)"
 						: "var(--dnd-ui-text-secondary)"}
@@ -454,7 +454,7 @@
 									tabIndex === tile.tabs.length - 1
 								}
 								class="tab"
-								style={`--panel-type-color: ${getPanelTypeColor(key)}`}
+				style={`--panel-type-color: ${redesignEnabled ? getRedesignPanelTypeColor(key) : getPanelTypeColor(key)}`}
 								role="group"
 								aria-label={panelByKey.get(key)?.title ?? key}
 								draggable="true"
