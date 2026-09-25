@@ -363,7 +363,7 @@
 	{#if results.length}
 		<div class="omni-search-results" aria-label="Результаты поиска">
 			{#each results as result (`${result.panelKey}:${result.url}`)}
-				<div class="omni-search-results__item">
+				<div class="omni-search-results__item" class:is-redesigned={redesignEnabled && result.panelKey !== "character-sheets" && result.panelKey !== "dm-screen"}>
 										<OmniSearchResult
 											{result}
 											{redesignEnabled}
@@ -599,6 +599,13 @@
 	}
 	.omni-search-results__item :global(> *) {
 		height: 100%;
+	}
+	.omni-search-results__item.is-redesigned {
+		align-self: start;
+		height: auto;
+	}
+	.omni-search-results__item.is-redesigned :global(> *) {
+		height: auto;
 	}
 	.body-panel {
 		display: none;

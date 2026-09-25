@@ -28,10 +28,10 @@
 	const item = $derived(result.item as any);
 </script>
 
-<PanelTypeTint panelKey={result.panelKey}>
 	{#if redesignEnabled && result.panelKey !== "character-sheets" && result.panelKey !== "dm-screen"}
 		<RedesignedSmallItem panelKey={result.panelKey} smallItem={item} onItemClick={onSelect} />
 	{:else}
+	<PanelTypeTint panelKey={result.panelKey}>
 	{#if result.panelKey === "bestiary"}
 		<MonsterSmallUi smallItem={item} onItemClick={onSelect} />
 	{:else if result.panelKey === "spellbook"}
@@ -62,5 +62,5 @@
 			onclick={onSelect}
 		/>
 	{/if}
+	</PanelTypeTint>
 	{/if}
-</PanelTypeTint>
