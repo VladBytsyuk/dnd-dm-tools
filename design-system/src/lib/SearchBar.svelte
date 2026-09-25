@@ -151,8 +151,6 @@
 	.icon-button:hover:not(:disabled) { background: rgb(255 255 255 / 8%); }
 	.icon-button:focus-visible { outline: 2px solid currentcolor; outline-offset: -2px; }
 	.icon-button:disabled { cursor: not-allowed; opacity: 0.45; }
-	.leading-action :global(svg) { transform: rotate(180deg); }
-
 	.search-bar[data-theme="light"] {
 		background: rgb(15 23 42 / 12%);
 		color: #1f2937;

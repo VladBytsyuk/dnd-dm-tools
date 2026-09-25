@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ArrowLeft, Check, Copy, Eraser, Pencil, Plus, SlidersHorizontal, X } from "lucide-svelte";
+	import { Check, ChevronLeft, Copy, Eraser, Pencil, Plus, SlidersHorizontal, X } from "lucide-svelte";
 	import { Debouncer, DEFAULT_DEBOUNCER_DELAY } from "../../../debouncer";
 	import { onDestroy } from "svelte";
 	import { SearchBar, type SearchBarAction } from "@dnd-dm-tools/design-system";
@@ -59,12 +59,12 @@
 		aria-label="Поиск в справочнике"
 		disabled={isvaluechangable && !isvaluechangable()}
 		oninput={() => debouncer.debounce(searchValue)}
-		leadingAction={onbackclick ? { icon: ArrowLeft, label: "Назад", onclick: onbackclick } : undefined}
+		leadingAction={onbackclick ? { icon: ChevronLeft, label: "Назад", onclick: onbackclick } : undefined}
 		actions={searchActions}
 		theme={dsTheme}
 	/>
 {:else}<div class="search-toolbar">
-	{#if onbackclick}<button type="button" onclick={onbackclick}><ArrowLeft /></button>{/if}
+	{#if onbackclick}<button type="button" onclick={onbackclick}><ChevronLeft /></button>{/if}
 	<input
 		bind:value={searchValue}
 		oninput={() => debouncer.debounce(searchValue)}
