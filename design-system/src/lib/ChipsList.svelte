@@ -7,7 +7,11 @@
 
 	export type ChipsListItem = {
 		text?: string;
+		placeholder?: string;
 		suffix?: string;
+		toggle?: boolean;
+		active?: boolean;
+		onToggle?: () => void;
 		icon?: Icon;
 		iconTooltip?: string;
 		imageSrc?: string;

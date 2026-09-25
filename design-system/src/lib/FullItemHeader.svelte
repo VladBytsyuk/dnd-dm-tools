@@ -17,6 +17,7 @@
 		englishName: string;
 		entityLink: string;
 		badge?: string | number;
+		badgeInputType?: "text" | "number";
 		info?: string;
 		source?: FullItemSource;
 		sourceSuffix?: string;
@@ -32,6 +33,7 @@
 		englishName = $bindable(""),
 		entityLink = $bindable(""),
 		badge = $bindable(),
+		badgeInputType = "text",
 		info = $bindable(),
 		source = $bindable(),
 		sourceSuffix = "",
@@ -101,7 +103,7 @@
 		<div class="details">
 			{#if badge !== undefined}
 				{#if editable}
-					<input class="badge" bind:value={badge} placeholder="Уровень" aria-label="Номер или уровень" />
+					<input class="badge" type={badgeInputType} min={badgeInputType === "number" ? 0 : undefined} max={badgeInputType === "number" ? 9 : undefined} bind:value={badge} placeholder="Уровень" aria-label="Номер или уровень" />
 				{:else}
 					<span class="badge">{badge}</span>
 				{/if}

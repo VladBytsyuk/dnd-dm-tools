@@ -8,8 +8,12 @@
 
 	type Props = {
 		text?: string;
+		placeholder?: string;
 		html?: string;
 		suffix?: string;
+		toggle?: boolean;
+		active?: boolean;
+		onToggle?: () => void;
 		icon?: Icon;
 		iconTooltip?: string;
 		imageSrc?: string;
@@ -26,8 +30,12 @@
 
 	let {
 		text = $bindable(""),
+		placeholder = "Текст чипа",
 		html = $bindable<string | undefined>(),
 		suffix,
+		toggle = false,
+		active = false,
+		onToggle,
 		icon: Icon,
 		iconTooltip,
 		imageSrc,
@@ -95,9 +103,19 @@
 	}
 </script>
 
-<span class="chip" data-editable={editable} data-theme={theme} style:--chip-background={background}>
+<span class="chip" class:inactive={toggle && !active} data-editable={editable} data-theme={theme} data-toggle={toggle} data-active={active} style:--chip-background={background}>
 	{#if Icon}
-		{#if iconTooltip}
+		{#if toggle && editable}
+			<button type="button" class="icon-wrapper" aria-label={iconTooltip} aria-pressed={active} onclick={onToggle} use:keepTooltipInBounds>
+				<Icon size={15} strokeWidth={1.5} aria-hidden={true} />
+				<span class="chip-tooltip" role="tooltip">{iconTooltip}</span>
+			</button>
+		{:else if toggle}
+			<span class="icon-wrapper" use:keepTooltipInBounds>
+				<Icon size={15} strokeWidth={1.5} aria-hidden={true} />
+				<span class="chip-tooltip" role="tooltip">{iconTooltip}</span>
+			</span>
+		{:else if iconTooltip}
 			<button type="button" class="icon-wrapper" aria-label={iconTooltip} use:keepTooltipInBounds>
 				<Icon size={15} strokeWidth={1.5} aria-hidden={true} />
 				<span class="chip-tooltip" role="tooltip">{iconTooltip}</span>
@@ -107,10 +125,10 @@
 		{/if}
 	{/if}
 	{#if imageSrc}<img class="image" src={imageSrc} alt={imageAlt} />{/if}
-	{#if editable && html !== undefined}
+	{#if !toggle && editable && html !== undefined}
 		<input value={html} oninput={handleHtmlInput} placeholder="Текст или HTML" aria-label="HTML чипа" />
-	{:else if editable}
-		<input value={suffix ? `${text} (${suffix})` : text} oninput={handleTextInput} placeholder="Текст чипа" aria-label="Текст чипа" />
+	{:else if !toggle && editable}
+		<input value={suffix ? `${text} (${suffix})` : text} oninput={handleTextInput} {placeholder} aria-label="Текст чипа" />
 		{:else if html !== undefined}
 		<span class="html" use:richHtmlLinkListener>{@html sanitizeRichHtml(html)}</span>
 	{:else if href && text}
@@ -154,11 +172,13 @@
 	}
 
 	.chip[data-theme="light"] { color: #1f2937; }
+	.chip.inactive { opacity: 0.4; }
 	.chip[data-theme="light"]:hover { background: linear-gradient(rgb(15 23 42 / 12%), rgb(15 23 42 / 12%)), color-mix(in srgb, var(--chip-background) 40%, transparent); }
 	.chip[data-theme="light"]:active { background: linear-gradient(rgb(15 23 42 / 24%), rgb(15 23 42 / 24%)), color-mix(in srgb, var(--chip-background) 40%, transparent); }
 
 	.icon-wrapper { all: unset; box-sizing: border-box; position: relative; align-self: flex-start; display: inline-flex; flex: 0 0 auto; padding: 0; border: 0; background: transparent; color: inherit; outline: none; }
 	.chip button.icon-wrapper { appearance: none; min-height: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; padding: 0; }
+	.chip button.icon-wrapper { cursor: pointer; }
 	.icon-wrapper:focus-visible { outline: 1px solid currentcolor; border-radius: 2px; }
 	.image { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 2px; object-fit: cover; }
 	.text { min-width: 0; overflow-wrap: anywhere; }
