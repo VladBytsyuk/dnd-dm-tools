@@ -5,4 +5,4 @@
 	let { classColor, title, subtitle, description, source, state, theme = "dark" }: Props = $props();
 </script>
 
-<BaseSmallItem accentColor={classColor} primaryColor="var(--ds-class)" secondaryColor="var(--ds-class-sub)" height={56} {title} {subtitle} {description} {source} {state} {theme} />
+<BaseSmallItem accentColor={classColor} primaryColor="var(--ds-class)" secondaryColor="var(--ds-class-sub)" height={84} {title} {subtitle} {description} {source} {state} {theme} />

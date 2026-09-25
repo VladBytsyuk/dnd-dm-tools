@@ -19,7 +19,7 @@
 	accentColor={creatureTypeColor}
 	primaryColor="var(--ds-bestiary)"
 	secondaryColor="var(--ds-bestiary-sub)"
-	height={64}
+	height={96}
 	value={challengeRating}
 	{title}
 	{subtitle}

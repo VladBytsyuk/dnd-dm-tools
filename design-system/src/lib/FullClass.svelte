@@ -327,9 +327,9 @@
 	.full-class :global(.rich-content h5),
 	.full-class :global(.rich-content h6) {
 		margin: 12px 0 4px;
-		font-size: 12px;
+		font-size: 18px;
 		font-weight: 700;
-		line-height: 14px;
+		line-height: 21px;
 	}
 
 	.full-class :global(.rich-content h1:first-child),

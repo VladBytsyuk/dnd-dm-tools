@@ -5,4 +5,4 @@
 	let { weaponTypeColor, title, subtitle, damage, range, source, state, theme = "dark" }: Props = $props();
 </script>
 
-<BaseSmallItem accentColor={weaponTypeColor} primaryColor="var(--ds-weapon)" secondaryColor="var(--ds-weapon-sub)" height={56} {title} {subtitle} description={damage} {source} secondarySource={range} {state} {theme} />
+<BaseSmallItem accentColor={weaponTypeColor} primaryColor="var(--ds-weapon)" secondaryColor="var(--ds-weapon-sub)" height={84} {title} {subtitle} description={damage} {source} secondarySource={range} {state} {theme} />

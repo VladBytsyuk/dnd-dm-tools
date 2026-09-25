@@ -121,13 +121,13 @@
 	.small-item[data-theme="light"]:hover::after, .small-item[data-theme="light"][data-state="hovered"]::after { background: rgb(15 23 42 / 12%); }
 	.small-item[data-theme="light"]:active::after, .small-item[data-theme="light"][data-state="clicked"]::after { background: rgb(15 23 42 / 24%); }
 	.accent { background: var(--accent-color); }
-	.value { display: grid; place-items: center; padding: 8px; font-size: 24px; font-weight: 700; line-height: 1; }
+	.value { display: grid; place-items: center; padding: 8px; font-size: 36px; font-weight: 700; line-height: 1; }
 	.content, .meta { display: flex; flex-direction: column; justify-content: space-between; }
 	.content { min-width: 0; padding: 8px; }
 	.titles { display: grid; gap: 2px; }
 	.content strong, .content span, .content p, .meta span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-	.content strong { font-size: 12px; font-weight: 700; line-height: 14px; }
-	.content span, .content p, .meta span { font-size: 8px; font-weight: 400; line-height: 10px; }
+	.content strong { font-size: 18px; font-weight: 700; line-height: 21px; }
+	.content span, .content p, .meta span { font-size: 12px; font-weight: 400; line-height: 15px; }
 	.content p { margin: 0; }
 	.meta { align-items: end; min-width: 0; padding: 8px; color: rgb(255 255 255 / 80%); }
 	.small-item[data-theme="light"] .meta { color: rgb(31 41 55 / 80%); }

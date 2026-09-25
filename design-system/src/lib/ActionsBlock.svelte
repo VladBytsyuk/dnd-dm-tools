@@ -143,6 +143,9 @@
 <style>
 	.actions-block {
 		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
 		width: 100%;
 		min-width: 0;
 		color: #fff;
@@ -167,9 +170,9 @@
 
 	.section-toggle,
 	.title-input {
-		font-size: 16px;
+		font-size: 24px;
 		font-weight: 700;
-		line-height: 19px;
+		line-height: 28.5px;
 	}
 
 	.section-toggle {
@@ -189,22 +192,22 @@
 		min-height: 24px;
 		margin-top: 4px;
 		resize: vertical;
-		font-size: 10px;
+		font-size: 15px;
 		font-weight: 400;
-		line-height: 12px;
+		line-height: 18px;
 	}
 
 	.description {
 		margin-top: 4px;
-		font-size: 10px;
+		font-size: 15px;
 		font-weight: 400;
-		line-height: 12px;
+		line-height: 18px;
 	}
 
 	.blocks {
 		display: flex;
 		gap: 8px;
-		margin-top: 12px;
+		margin-top: 4px;
 	}
 
 	.column {

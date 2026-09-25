@@ -6,4 +6,4 @@
 	let { title, subtitle, rarity, rarityColor, source, state, theme = "dark" }: Props = $props();
 </script>
 
-<BaseSmallItem accentColor={rarityColor} primaryColor="var(--ds-artifacts)" secondaryColor="var(--ds-artifacts-sub)" height={56} {title} {subtitle} description={rarity} {source} icon={UserCog} {state} {theme} />
+<BaseSmallItem accentColor={rarityColor} primaryColor="var(--ds-artifacts)" secondaryColor="var(--ds-artifacts-sub)" height={84} {title} {subtitle} description={rarity} {source} icon={UserCog} {state} {theme} />

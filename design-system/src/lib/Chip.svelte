@@ -98,11 +98,11 @@
 	{#if Icon}
 		{#if iconTooltip}
 			<button type="button" class="icon-wrapper" aria-label={iconTooltip}>
-				<Icon size={10} strokeWidth={1.5} aria-hidden={true} />
+				<Icon size={15} strokeWidth={1.5} aria-hidden={true} />
 				<span class="chip-tooltip" role="tooltip">{iconTooltip}</span>
 			</button>
 		{:else}
-			<span class="icon-wrapper"><Icon size={10} strokeWidth={1.5} /></span>
+			<span class="icon-wrapper"><Icon size={15} strokeWidth={1.5} /></span>
 		{/if}
 	{/if}
 	{#if imageSrc}<img class="image" src={imageSrc} alt={imageAlt} />{/if}
@@ -134,9 +134,9 @@
 		box-shadow: 0 2px 2px rgb(0 0 0 / 25%);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
-		font-size: 8px;
+		font-size: 12px;
 		font-weight: 400;
-		line-height: 10px;
+		line-height: 15px;
 		transition: background-color 120ms ease, box-shadow 120ms ease;
 	}
 
@@ -186,8 +186,8 @@
 		background: #18181b;
 		box-shadow: 0 2px 6px rgb(0 0 0 / 25%);
 		color: #fff;
-		font-size: 10px;
-		line-height: 12px;
+		font-size: 15px;
+		line-height: 18px;
 		visibility: hidden;
 		opacity: 0;
 		pointer-events: none;

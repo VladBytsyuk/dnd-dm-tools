@@ -141,8 +141,8 @@ function armorColor(type: string): string { return type.toLocaleLowerCase().incl
 function rarityColor(type: string): string { return ({ common: "var(--ds-artifact-regular)", regular: "var(--ds-artifact-regular)", uncommon: "var(--ds-artifact-uncommon)", rare: "var(--ds-artifact-rare)", very_rare: "var(--ds-artifact-very-rare)", legendary: "var(--ds-artifact-legendary)", artifact: "var(--ds-artifact-artifact)" } as Record<string, string>)[type] ?? "var(--ds-artifact-rare)"; }
 function stringList(value: any): string { return Array.isArray(value) ? value.join(", ") : value ?? ""; }
 function namedValues(value: any): string { return Array.isArray(value) ? value.map(v => v.name ? `${v.name} ${v.value ?? ""}`.trim() : v.value ?? "").join(", ") : ""; }
-function richItems(value: any): { title: string; html: string }[] { return (value ?? []).map((v: Entity) => ({ title: v.name ?? v.title ?? "", html: v.description ?? v.html ?? "" })); }
-function actionSection(title: string, values: any[] = [], description?: string) { return { title, descriptionHtml: description ?? "", items: (values ?? []).map((v: Entity) => ({ title: v.name ?? "", html: v.description ?? "" })) }; }
+function richItems(value: any): { title: string; html: string }[] { return (value ?? []).map((v: Entity) => ({ title: v.name ?? v.title ?? "", html: v.description ?? v.html ?? v.value ?? v.text ?? "" })); }
+function actionSection(title: string, values: any[] = [], description?: string) { return { title, descriptionHtml: description ?? "", items: (values ?? []).map((v: Entity) => ({ title: v.name ?? v.title ?? "", html: v.description ?? v.html ?? v.value ?? v.text ?? "" })) }; }
 function classLinks(values: any[] = []) { return values.map(v => ({ name: v.name?.rus ?? v.name ?? "", url: v.url ?? "", parentClass: v.parentClass })); }
 function speedText(values: any[] = []): string { return values.map(v => `${v.name ?? ""} ${v.value ?? ""}${v.additional ? ` ${v.additional}` : ""}`.trim()).join(", "); }
 function hitPoints(value: any): string { return value ? [value.average, value.formula, value.sign, value.bonus, value.text].filter(v => v !== undefined && v !== "").join(" ") : ""; }

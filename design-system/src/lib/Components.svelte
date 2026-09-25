@@ -183,8 +183,8 @@
 		box-shadow: 0 2px 6px rgb(0 0 0 / 25%);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
-		font-size: 10px;
-		line-height: 12px;
+		font-size: 15px;
+		line-height: 18px;
 		opacity: 0;
 		pointer-events: none;
 		transform: translate(-50%, 2px);
@@ -201,9 +201,9 @@
 		min-width: 0;
 		color: rgb(255 255 255 / 75%);
 		font-family: "Golos Text", sans-serif;
-		font-size: 8px;
+		font-size: 12px;
 		font-weight: 400;
-		line-height: 12px;
+		line-height: 18px;
 		overflow-wrap: anywhere;
 	}
 

@@ -85,7 +85,7 @@
 		background: rgb(0 0 0 / 20%);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
-		font-size: 12px;
+		font-size: 18px;
 		font-weight: 400;
 		line-height: 1;
 	}

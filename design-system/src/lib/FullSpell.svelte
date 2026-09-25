@@ -176,7 +176,7 @@
 	.full-spell[data-theme="light"] { color: #1f2937; }
 	.full-spell :global(.full-item-header) { margin-bottom: 0; }
 	.spell-editor { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-	.spell-editor label { display: flex; align-items: center; gap: 5px; font-size: 11px; }
+	.spell-editor label { display: flex; align-items: center; gap: 5px; font-size: 16.5px; }
 	.spell-editor input:not([type="checkbox"]) {
 		all: unset;
 		box-sizing: border-box;

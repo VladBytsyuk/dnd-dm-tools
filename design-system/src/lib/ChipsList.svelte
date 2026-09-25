@@ -39,7 +39,7 @@
 	{/each}
 	{#if editable && showAddButton}
 		<button class="add-chip" type="button" aria-label="Добавить чип" disabled={!onAddChip} onclick={onAddChip}>
-			<Plus size={10} strokeWidth={1.5} />
+			<Plus size={15} strokeWidth={1.5} />
 		</button>
 	{/if}
 </div>

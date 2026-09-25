@@ -166,16 +166,16 @@
 		gap: 4px;
 		min-width: 0;
 		color: inherit;
-		font-size: 12px;
+		font-size: 18px;
 		font-weight: 700;
-		line-height: 14px;
+		line-height: 21px;
 	}
 
 	.header > span { overflow-wrap: anywhere; }
 	.title-suffix, .title-meta {
-		font-size: 8px;
+		font-size: 12px;
 		font-weight: 400;
-		line-height: 10px;
+		line-height: 15px;
 		opacity: 0.7;
 	}
 	.title-meta {
@@ -193,14 +193,14 @@
 		border: 0;
 		background: transparent;
 		font-family: inherit;
-		font-size: 12px;
+		font-size: 18px;
 		font-weight: 700;
-		line-height: 14px;
+		line-height: 21px;
 		text-align: left;
 		cursor: pointer;
 	}
 	.toggle.has-title-meta { width: 100%; }
-	.toggle .title-suffix, .toggle .title-meta { font-size: 8px; font-weight: 400; line-height: 10px; }
+	.toggle .title-suffix, .toggle .title-meta { font-size: 12px; font-weight: 400; line-height: 15px; }
 	.toggle .title-meta { margin-left: auto; }
 	.toggle:hover { text-decoration: underline; }
 	.toggle:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
@@ -214,9 +214,9 @@
 		margin: 0;
 		color: inherit;
 		font: inherit;
-		font-size: 10px;
+		font-size: 15px;
 		font-weight: 400;
-		line-height: 12px;
+		line-height: 18px;
 		overflow-wrap: anywhere;
 	}
 	textarea, input {
@@ -249,18 +249,18 @@
 	.header input {
 		min-width: 0;
 		font-family: inherit;
-		font-size: 12px;
+		font-size: 18px;
 		font-weight: 700;
-		line-height: 14px;
+		line-height: 21px;
 	}
 	textarea {
 		field-sizing: content;
 		min-height: 24px;
 		resize: vertical;
 		font-family: inherit;
-		font-size: 10px;
+		font-size: 15px;
 		font-weight: 400;
-		line-height: 12px;
+		line-height: 18px;
 	}
 	input:focus-visible, textarea:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
 </style>

@@ -38,4 +38,17 @@ describe("design system adapters", () => {
 		const monsterView = toFullViewModel("bestiary", { name: { rus: "Монстр", eng: "Monster" }, ability: undefined });
 		expect((monsterView as any).abilities).toHaveLength(6);
 	});
+
+	it("maps monster action and trait text stored in named-value fields", () => {
+		const monsterView = toFullViewModel("bestiary", {
+			name: { rus: "Монстр", eng: "Monster" },
+			feats: [{ name: "Особенность", value: "Описание особенности" }],
+			actions: [{ name: "Короткий меч", value: "Атака коротким мечом." }],
+			reactions: [{ name: "Парирование", value: "Добавляет 2 к КД." }],
+		});
+
+		expect((monsterView as any).traits[0].html).toBe("Описание особенности");
+		expect((monsterView as any).actions.items[0]).toEqual({ title: "Короткий меч", html: "Атака коротким мечом." });
+		expect((monsterView as any).reactions.items[0]).toEqual({ title: "Парирование", html: "Добавляет 2 к КД." });
+	});
 });

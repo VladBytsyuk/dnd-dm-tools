@@ -24,9 +24,9 @@
 		min-width: 0;
 		color: rgb(255 255 255 / 70%);
 		font-family: "Golos Text", sans-serif;
-		font-size: 8px;
+		font-size: 12px;
 		font-weight: 400;
-		line-height: 10px;
+		line-height: 15px;
 		overflow-wrap: anywhere;
 	}
 

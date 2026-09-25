@@ -185,12 +185,12 @@
 		text-overflow: clip;
 		white-space: normal;
 	}
-	.russian-name { font-size: 16px; font-weight: 700; line-height: 19px; }
-	.english-name, .info { font-size: 10px; font-weight: 400; line-height: 12px; }
-	.entity-link, .source { color: rgb(255 255 255 / 70%); font-size: 8px; font-weight: 400; line-height: 10px; }
+	.russian-name { font-size: 24px; font-weight: 700; line-height: 28.5px; }
+	.english-name, .info { font-size: 15px; font-weight: 400; line-height: 18px; }
+	.entity-link, .source { color: rgb(255 255 255 / 70%); font-size: 12px; font-weight: 400; line-height: 15px; }
 	.full-item-header[data-theme="light"] { color: #1f2937; }
 	.full-item-header[data-theme="light"] .entity-link, .full-item-header[data-theme="light"] .source { color: rgb(31 41 55 / 70%); }
-	.badge { font-size: 16px; font-weight: 700; line-height: 19px; }
+	.badge { font-size: 24px; font-weight: 700; line-height: 28.5px; }
 	button.name:hover, button.entity-link:hover, .source:hover { text-decoration: underline; }
 	button.name:focus-visible, button.entity-link:focus-visible, .source:focus-visible, input.name:focus-visible, input.entity-link:focus-visible, input.badge:focus-visible, input.info:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
 	.source-wrapper { position: relative; display: inline-flex; }
@@ -208,8 +208,8 @@
 		background: #18181b;
 		box-shadow: 0 2px 6px rgb(0 0 0 / 25%);
 		color: #fff;
-		font-size: 10px;
-		line-height: 12px;
+		font-size: 15px;
+		line-height: 18px;
 		text-align: left;
 		opacity: 0;
 		pointer-events: none;

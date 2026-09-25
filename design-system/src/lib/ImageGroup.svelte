@@ -98,8 +98,8 @@
 		background: rgb(212 212 212 / 40%);
 		color: #fff;
 		font: inherit;
-		font-size: 10px;
-		line-height: 12px;
+		font-size: 15px;
+		line-height: 18px;
 	}
 
 	.image-inputs input:focus-visible {
