@@ -2,6 +2,7 @@
 	import "./colors.css";
 	import ChevronRight from "lucide-svelte/icons/chevron-right";
 	import BadgePlus from "lucide-svelte/icons/badge-plus";
+	import BicepsFlexed from "lucide-svelte/icons/biceps-flexed";
 	import Eye from "lucide-svelte/icons/eye";
 	import Globe from "lucide-svelte/icons/globe";
 	import Heart from "lucide-svelte/icons/heart";
@@ -68,7 +69,7 @@
 			: `${statblock.challengeRating} (${statblock.experience} опыта)`;
 		const details: ChipsListItem[] = [
 			...(statblock.savingThrows ? [{ text: statblock.savingThrows, icon: ShieldCheck, iconTooltip: "Спасброски" }] : []),
-			...(statblock.skills ? [{ text: `Навыки: ${statblock.skills}` }] : []),
+			...(statblock.skills ? [{ text: statblock.skills, icon: BicepsFlexed, iconTooltip: "Навыки" }] : []),
 			...(statblock.damageVulnerabilities ? [{ text: statblock.damageVulnerabilities, icon: ShieldMinus, iconTooltip: "Уязвимости" }] : []),
 			...(statblock.damageResistances ? [{ text: statblock.damageResistances, icon: ShieldHalf, iconTooltip: "Сопротивления" }] : []),
 			...(immunities ? [{ text: immunities, icon: ShieldX, iconTooltip: "Иммунитеты" }] : []),
