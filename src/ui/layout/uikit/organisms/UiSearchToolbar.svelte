@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ArrowLeft, Check, Eraser, Pencil, Plus, SlidersHorizontal, X } from "lucide-svelte";
+	import { ArrowLeft, Check, Copy, Eraser, Pencil, Plus, SlidersHorizontal, X } from "lucide-svelte";
 	import { Debouncer, DEFAULT_DEBOUNCER_DELAY } from "../../../debouncer";
 	import { onDestroy } from "svelte";
 	import { SearchBar, type SearchBarAction } from "@dnd-dm-tools/design-system";
@@ -14,23 +14,25 @@
 		isfiltersapplied?: () => boolean;
 		onaddclick?: () => void;
 		oneditclick?: () => void;
+		oncopyclick?: () => void;
 		onsaveclick?: () => void;
 		oncancelclick?: () => void;
 		actionBusy?: boolean;
 		redesignEnabled?: boolean;
 	}
 
-	let { onbackclick, onvaluechange, isvaluechangable, onclearclick, onfiltersclick, isfiltersapplied, onaddclick, oneditclick, onsaveclick, oncancelclick, actionBusy = false, redesignEnabled = false }: Props = $props();
+	let { onbackclick, onvaluechange, isvaluechangable, onclearclick, onfiltersclick, isfiltersapplied, onaddclick, oneditclick, oncopyclick, onsaveclick, oncancelclick, actionBusy = false, redesignEnabled = false }: Props = $props();
 
 	let searchValue = $state("");
 	const dsTheme = $derived($appTheme === Theme.Dark ? "dark" : "light");
 	const searchActions = $derived.by<SearchBarAction[]>(() => {
-		if (onsaveclick && oncancelclick) return [
+		const result: SearchBarAction[] = oncopyclick ? [{ icon: Copy, label: "Копировать в буфер обмена", onclick: oncopyclick }] : [];
+		if (onsaveclick && oncancelclick) return [...result,
 			{ icon: X, label: "Отмена", disabled: actionBusy, onclick: oncancelclick },
 			{ icon: Check, label: "Сохранить", disabled: actionBusy, onclick: onsaveclick },
 		];
-		if (oneditclick) return [{ icon: Pencil, label: "Редактировать", onclick: oneditclick }];
-		const result: SearchBarAction[] = [{ icon: Eraser, label: "Очистить поиск", disabled: Boolean(isvaluechangable && !isvaluechangable()), onclick: onClearClick }];
+		if (oneditclick) return [...result, { icon: Pencil, label: "Редактировать", onclick: oneditclick }];
+		if (!oncopyclick) result.push({ icon: Eraser, label: "Очистить поиск", disabled: Boolean(isvaluechangable && !isvaluechangable()), onclick: onClearClick });
 		if (onfiltersclick) result.push({ icon: SlidersHorizontal, label: "Фильтры", onclick: onfiltersclick });
 		if (onaddclick) result.push({ icon: Plus, label: "Добавить", onclick: onaddclick });
 		return result;

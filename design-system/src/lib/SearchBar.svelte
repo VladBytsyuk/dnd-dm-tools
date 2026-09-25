@@ -42,7 +42,7 @@
 			disabled={leadingAction.disabled}
 			onclick={leadingAction.onclick}
 		>
-			<Icon size={32} strokeWidth={2} />
+			<Icon size={24} strokeWidth={2} />
 		</button>
 	{/if}
 
@@ -51,7 +51,7 @@
 		{#if !value}
 			<span class="placeholder" aria-hidden="true">
 				{#if SearchIcon}
-					<SearchIcon size={32} strokeWidth={2} />
+					<SearchIcon size={24} strokeWidth={2} />
 				{/if}
 				<span>{placeholder}</span>
 			</span>
@@ -67,7 +67,7 @@
 			disabled={action.disabled}
 			onclick={action.onclick}
 		>
-			<Icon size={32} strokeWidth={2} />
+			<Icon size={24} strokeWidth={2} />
 		</button>
 	{/each}
 </div>

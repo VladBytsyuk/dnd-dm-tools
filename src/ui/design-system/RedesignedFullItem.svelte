@@ -34,7 +34,7 @@
 
 	type Props = {
 		panelKey: PanelKey; currentItem: any; uiEventListener: IUiEventListener;
-		actionRequest?: { id: number; command: "edit" | "save" | "cancel" };
+		actionRequest?: { id: number; command: "edit" | "save" | "cancel" | "copy" };
 		onEditorStateChange?: (state: { editing: boolean; saving: boolean }) => void;
 		isEditable?: boolean; onClose?: () => void;
 		onItemSave?: (item: any, context: ItemSaveContext) => ItemSaveResult | Promise<ItemSaveResult>;
@@ -55,7 +55,8 @@
 		handledActionRequest = actionRequest.id;
 		if (actionRequest.command === "edit") beginEdit();
 		else if (actionRequest.command === "cancel") cancelEdit();
-		else void save();
+		else if (actionRequest.command === "save") void save();
+		else void copyFullItem();
 	});
 
 	function beginEdit() {
