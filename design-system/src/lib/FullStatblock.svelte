@@ -15,6 +15,7 @@
 	import ShieldX from "lucide-svelte/icons/shield-x";
 	import Skull from "lucide-svelte/icons/skull";
 	import SquareDashed from "lucide-svelte/icons/square-dashed";
+	import Plus from "lucide-svelte/icons/plus";
 	import ActionsBlock, { type ActionsBlockItem } from "./ActionsBlock.svelte";
 	import ChipsList, { type ChipsListItem } from "./ChipsList.svelte";
 	import FilledTextBlock from "./FilledTextBlock.svelte";
@@ -52,17 +53,23 @@
 	let headerChips = $derived.by<ChipsListItem[]>(() => {
 		const chips: ChipsListItem[] = [];
 
-		if (statblock.armorClass !== undefined) chips.push({ text: String(statblock.armorClass), icon: Shield, iconTooltip: "Класс доспеха" });
+		if (statblock.armorClass !== undefined) chips.push({ text: String(statblock.armorClass), placeholder: "Класс доспеха", onTextChange: (value) => statblock.armorClass = value, icon: Shield, iconTooltip: "Класс доспеха" });
 		if (statblock.hitPoints) chips.push({
 			...(statblock.hitPointsFormula && !editable
 				? { html: `${escapeHtml(statblock.hitPoints)} (<dice-roller label="Хиты" formula="${escapeHtmlAttribute(statblock.hitPointsFormula)}">${escapeHtml(statblock.hitPointsFormula)}</dice-roller>)` }
 				: { text: `${statblock.hitPoints}${statblock.hitPointsFormula ? ` (${statblock.hitPointsFormula})` : ""}` }),
+			placeholder: "Например, 18 (4к8+2)",
+			onTextChange: (value) => {
+				const match = value.match(/^\s*(.*?)\s*\((.*?)\)\s*$/u);
+				statblock.hitPoints = match ? match[1] : value;
+				statblock.hitPointsFormula = match?.[2] || undefined;
+			},
 			icon: Heart,
 			iconTooltip: "Хиты",
 		});
-		if (statblock.speed) chips.push({ text: statblock.speed, icon: Route, iconTooltip: "Скорость" });
-		if (statblock.size) chips.push({ text: statblock.size, icon: SquareDashed, iconTooltip: "Размер" });
-		if (statblock.alignment) chips.push({ text: statblock.alignment, icon: Scale, iconTooltip: "Мировоззрение" });
+		if (statblock.speed) chips.push({ text: statblock.speed, placeholder: "Скорость", onTextChange: (value) => statblock.speed = value, icon: Route, iconTooltip: "Скорость" });
+		if (statblock.size) chips.push({ text: statblock.size, placeholder: "Размер", onTextChange: (value) => statblock.size = value, icon: SquareDashed, iconTooltip: "Размер" });
+		if (statblock.alignment) chips.push({ text: statblock.alignment, placeholder: "Мировоззрение", onTextChange: (value) => statblock.alignment = value, icon: Scale, iconTooltip: "Мировоззрение" });
 
 		return chips.map((chip) => ({ ...chip, background: accentColor }));
 	});
@@ -74,23 +81,23 @@
 			? String(statblock.challengeRating)
 			: `${statblock.challengeRating} (${statblock.experience} опыта)`;
 		const details: ChipsListItem[] = [
-			...(statblock.savingThrows ? [{ text: statblock.savingThrows, icon: ShieldCheck, iconTooltip: "Спасброски" }] : []),
-			...(statblock.skills ? [{ ...(statblock.skillsHtml && !editable ? { html: statblock.skillsHtml } : { text: statblock.skills }), icon: BicepsFlexed, iconTooltip: "Навыки" }] : []),
-			...(statblock.damageVulnerabilities ? [{ text: statblock.damageVulnerabilities, icon: ShieldMinus, iconTooltip: "Уязвимости" }] : []),
-			...(statblock.damageResistances ? [{ text: statblock.damageResistances, icon: ShieldHalf, iconTooltip: "Сопротивления" }] : []),
-			...(immunities ? [{ text: immunities, icon: ShieldX, iconTooltip: "Иммунитеты" }] : []),
-			...(statblock.senses ? [{ text: statblock.senses, icon: Eye, iconTooltip: "Чувства" }] : []),
-			...(statblock.languages ? [{ text: statblock.languages, icon: Globe, iconTooltip: "Языки" }] : []),
-			...(statblock.environment?.length ? [{ text: `Среда: ${statblock.environment.join(", ")}` }] : []),
-			...(statblock.proficiencyBonus !== undefined ? [{ text: String(statblock.proficiencyBonus), icon: BadgePlus, iconTooltip: "Бонус мастерства" }] : []),
-			{ text: challenge, icon: Skull, iconTooltip: "Опасность и опыт" },
+			...(statblock.savingThrows ? [{ text: statblock.savingThrows, placeholder: "Спасброски", onTextChange: (value: string) => statblock.savingThrows = value, icon: ShieldCheck, iconTooltip: "Спасброски" }] : []),
+			...(statblock.skills ? [{ ...(statblock.skillsHtml && !editable ? { html: statblock.skillsHtml } : { text: statblock.skills }), placeholder: "Навыки", onTextChange: (value: string) => { statblock.skills = value; statblock.skillsHtml = undefined; }, icon: BicepsFlexed, iconTooltip: "Навыки" }] : []),
+			...(statblock.damageVulnerabilities ? [{ text: statblock.damageVulnerabilities, placeholder: "Уязвимости", onTextChange: (value: string) => statblock.damageVulnerabilities = value, icon: ShieldMinus, iconTooltip: "Уязвимости" }] : []),
+			...(statblock.damageResistances ? [{ text: statblock.damageResistances, placeholder: "Сопротивления", onTextChange: (value: string) => statblock.damageResistances = value, icon: ShieldHalf, iconTooltip: "Сопротивления" }] : []),
+			...(immunities ? [{ text: immunities, placeholder: "Иммунитеты; иммунитеты к состояниям", onTextChange: (value: string) => { const [damage, ...conditions] = value.split(";").map((part) => part.trim()); statblock.damageImmunities = damage || undefined; statblock.conditionImmunities = conditions.join("; ") || undefined; }, icon: ShieldX, iconTooltip: "Иммунитеты" }] : []),
+			...(statblock.senses ? [{ text: statblock.senses, placeholder: "Чувства", onTextChange: (value: string) => statblock.senses = value, icon: Eye, iconTooltip: "Чувства" }] : []),
+			...(statblock.languages ? [{ text: statblock.languages, placeholder: "Языки", onTextChange: (value: string) => statblock.languages = value, icon: Globe, iconTooltip: "Языки" }] : []),
+			...(statblock.environment?.length ? [{ text: `Среда: ${statblock.environment.join(", ")}`, placeholder: "Среда обитания", onTextChange: (value: string) => setEnvironment(value.replace(/^Среда:\s*/iu, "")) }] : []),
+			...(statblock.proficiencyBonus !== undefined ? [{ text: String(statblock.proficiencyBonus), placeholder: "Бонус мастерства", onTextChange: (value: string) => statblock.proficiencyBonus = value, icon: BadgePlus, iconTooltip: "Бонус мастерства" }] : []),
+			{ text: challenge, placeholder: "Опасность (опыт)", onTextChange: (value: string) => { const match = value.match(/^\s*(.*?)\s*\((\d+)\s*опыта\)\s*$/iu); statblock.challengeRating = match?.[1] ?? value; statblock.experience = match?.[2]; }, icon: Skull, iconTooltip: "Опасность и опыт" },
 		];
 
 		return details.map((chip) => ({ ...chip, background: accentColor }));
 	});
 	let abilityValues = $derived.by(() => {
 		const abilities = statblock.abilities ?? [];
-		return [...abilities.map((ability) => ability.label), ...abilities.map(formatAbilityCell)];
+		return [...abilities.map((ability) => ability.label), ...abilities.map((ability) => editable ? String(ability.score) : formatAbilityCell(ability))];
 	});
 	let lairBlocks = $derived(toLairBlocks(statblock.lair));
 
@@ -163,6 +170,20 @@
 		statblock.environment = value.split(",").map((part) => part.trim()).filter(Boolean);
 	}
 
+	function addTrait(): void {
+		statblock.traits = [...(statblock.traits ?? []), { title: "", html: "" }];
+	}
+
+	function addTag(): void {
+		statblock.tags = [...(statblock.tags ?? []), { title: "", html: "" }];
+	}
+
+	function updateAbilityScore(index: number, value: string): void {
+		const abilityIndex = index - (statblock.abilities?.length ?? 0);
+		if (abilityIndex < 0 || !statblock.abilities?.[abilityIndex]) return;
+		statblock.abilities[abilityIndex].score = value;
+	}
+
 	function escapeHtml(value: string): string {
 		return value.replace(/&/gu, "&amp;").replace(/</gu, "&lt;").replace(/>/gu, "&gt;");
 	}
@@ -186,47 +207,26 @@
 		bind:info={statblock.creatureType}
 		bind:source={statblock.source}
 		chips={headerChips}
-		images={statblock.images}
+		bind:images={statblock.images}
+		onAddImage={() => statblock.images = [...(statblock.images ?? []), ""]}
 		alt={statblock.imageAlt ?? statblock.russianName}
 		editable={editable}
 		{theme}
 	/>
-	{#if editable}
-		<div class="statblock-editor">
-			<label>Класс доспеха<input placeholder="Например, 15" bind:value={statblock.armorClass} /></label>
-			<label>Хиты<input placeholder="Например, 18" bind:value={statblock.hitPoints} /></label>
-			<label>Формула хитов<input placeholder="4к8+2" bind:value={statblock.hitPointsFormula} /></label>
-			<label>Скорость<input placeholder="Ходьба 30 футов" bind:value={statblock.speed} /></label>
-			<label>Размер<input placeholder="Средний" bind:value={statblock.size} /></label>
-			<label>Мировоззрение<input placeholder="Нейтрально-злой" bind:value={statblock.alignment} /></label>
-			<label>Спасброски<input placeholder="Телосложение +5, Мудрость +3" bind:value={statblock.savingThrows} /></label>
-			<label>Навыки<input placeholder="Восприятие +5, Скрытность +2" bind:value={statblock.skills} /></label>
-			<label>Уязвимости<input placeholder="Огонь, холод" bind:value={statblock.damageVulnerabilities} /></label>
-			<label>Сопротивления<input placeholder="Огонь, холод" bind:value={statblock.damageResistances} /></label>
-			<label>Иммунитеты<input placeholder="Яд, некротическая энергия" bind:value={statblock.damageImmunities} /></label>
-			<label>Иммунитеты к состояниям<input placeholder="Испуг, отравление" bind:value={statblock.conditionImmunities} /></label>
-			<label>Чувства<input placeholder="Тёмное зрение 60 футов" bind:value={statblock.senses} /></label>
-			<label>Языки<input placeholder="Общий, Дварфийский" bind:value={statblock.languages} /></label>
-			<label>Опыт<input placeholder="Например, 450" bind:value={statblock.experience} /></label>
-			<label>Бонус мастерства<input placeholder="Например, +2" bind:value={statblock.proficiencyBonus} /></label>
-			<label>Среда обитания<input placeholder="Лес, горы" value={statblock.environment?.join(", ") ?? ""} oninput={(event) => setEnvironment(event.currentTarget.value)} /></label>
-			{#each statblock.abilities ?? [] as ability (ability.label)}
-				<label>{ability.label}<input type="number" placeholder="10" bind:value={ability.score} /></label>
-			{/each}
-		</div>
-	{/if}
-
 	{#if (statblock.abilities?.length ?? 0) > 0}
-		<Table columns={statblock.abilities?.length} values={abilityValues} accentColor={accentColor} {theme} />
+		<Table columns={statblock.abilities?.length} values={abilityValues} accentColor={accentColor} editable={editable} editableValuesOnly={true} onValueChange={updateAbilityScore} {theme} />
 	{/if}
 
 	{#if detailChips.length}
-		<ChipsList chips={detailChips} {theme} />
+		<ChipsList chips={detailChips} editable={editable} {theme} />
 	{/if}
 
-	{#each statblock.traits ?? [] as trait (trait.title)}
+	{#each statblock.traits ?? [] as trait, index (index)}
 		<TextBlock bind:title={trait.title} bind:html={trait.html} {accentColor} onSpellLinkClick={onCopySpellLink} {editable} {theme} />
 	{/each}
+	{#if editable}
+		<div class="add-block-chip"><button type="button" aria-label="Добавить текстовый блок" onclick={addTrait}><Plus size={15} strokeWidth={1.5} /></button></div>
+	{/if}
 
 	{#if statblock.actions && (hasSection(statblock.actions) || editable)}
 		<ActionsBlock
@@ -265,9 +265,12 @@
 		<FilledTextBlock title="Описание" bind:html={statblock.descriptionHtml} icon={ChevronRight} expanded={false} background="color-mix(in srgb, var(--statblock-accent) 40%, transparent)" {accentColor} onSpellLinkClick={onCopySpellLink} {editable} {theme} />
 	{/if}
 
-	{#each statblock.tags ?? [] as tag (tag.title)}
+	{#each statblock.tags ?? [] as tag, index (index)}
 		<FilledTextBlock bind:title={tag.title} bind:html={tag.html} icon={ChevronRight} expanded={false} background="color-mix(in srgb, var(--statblock-accent) 40%, transparent)" {accentColor} onSpellLinkClick={onCopySpellLink} {editable} {theme} />
 	{/each}
+	{#if editable}
+		<div class="add-block-chip"><button type="button" aria-label="Добавить текстовый блок" onclick={addTag}><Plus size={15} strokeWidth={1.5} /></button></div>
+	{/if}
 </article>
 
 <style>
@@ -292,20 +295,8 @@
 
 	.full-statblock[data-theme="light"] { color: #1f2937; }
 	.full-statblock :global(.max-item-header) { margin-bottom: 4px; }
-	.statblock-editor { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-	.statblock-editor label { display: grid; gap: 3px; font-size: 16.5px; }
-	.statblock-editor input:not([type="checkbox"]) {
-		all: unset;
-		box-sizing: border-box;
-		display: block;
-		width: 100%;
-		min-width: 0;
-		padding: 4px 6px;
-		border: 1px solid rgb(255 255 255 / 24%);
-		border-radius: 4px;
-		background: rgb(0 0 0 / 16%);
-		color: inherit;
-		font: inherit;
-	}
-	.statblock-editor input:focus-visible { outline: 2px solid currentcolor; outline-offset: 1px; }
+	.add-block-chip { width: 100%; }
+	.add-block-chip button { all: unset; box-sizing: border-box; display: grid; width: 100%; min-height: 20px; place-items: center; border-radius: 4px; background: color-mix(in srgb, var(--statblock-accent) 40%, transparent); color: inherit; cursor: pointer; }
+	.add-block-chip button:hover { background: color-mix(in srgb, var(--statblock-accent) 55%, transparent); }
+	.add-block-chip button:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
 </style>

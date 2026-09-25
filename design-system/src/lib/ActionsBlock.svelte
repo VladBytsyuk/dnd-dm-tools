@@ -45,6 +45,10 @@
 		return sectionExpanded;
 	}
 
+	function addBlock() {
+		blocks = [...blocks, { title: "", html: "" }];
+	}
+
 	let isSectionExpanded = $state(getInitialSectionExpanded());
 	let blockBackground = $derived(`color-mix(in srgb, ${accentColor} 40%, transparent)`);
 	let isContentVisible = $derived(!title || isSectionExpanded || editable);
@@ -135,7 +139,9 @@
 
 	{#if editable}
 		<div class="add-block-chip">
-			<Chip icon={Plus} background={accentColor} {theme} />
+			<button type="button" aria-label="Добавить текстовый блок" onclick={addBlock}>
+				<Chip icon={Plus} background={accentColor} {theme} />
+			</button>
 		</div>
 	{/if}
 </section>
@@ -227,6 +233,8 @@
 		width: 100%;
 		justify-content: center;
 	}
+	.add-block-chip button { all: unset; display: block; width: 100%; cursor: pointer; }
+	.add-block-chip button:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
 
 	@media (max-width: 280px) {
 		.blocks { flex-direction: column; }

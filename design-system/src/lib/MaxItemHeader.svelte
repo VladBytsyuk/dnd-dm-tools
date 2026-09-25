@@ -15,6 +15,7 @@
 		wrapRussianName?: boolean;
 		onCopy?: (text: string) => void;
 		onInfoChange?: (info: string) => void;
+		onAddImage?: () => void;
 		chips?: ChipsListItem[];
 		secondaryChips?: ChipsListItem[];
 		images?: string[];
@@ -38,9 +39,10 @@
 		wrapRussianName = false,
 		onCopy,
 		onInfoChange,
+		onAddImage,
 		chips = [],
 		secondaryChips = [],
-		images = [],
+		images = $bindable<string[]>([]),
 		alt,
 		size,
 		initialIndex,
@@ -78,7 +80,7 @@
 		{/if}
 	</div>
 
-	<ImageGroup {images} {alt} {size} fluid {initialIndex} {onChange} {editable} {theme} />
+		<ImageGroup bind:images {alt} {size} fluid {initialIndex} {onChange} {onAddImage} {editable} {theme} />
 </section>
 
 <style>
