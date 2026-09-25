@@ -2,6 +2,7 @@
 	import "@fontsource/golos-text/400.css";
 	import type Sword from "lucide-svelte/icons/sword";
 	import { sanitizeRichHtml } from "./sanitizeRichHtml";
+	import { keepTooltipInBounds } from "./keepTooltipInBounds";
 
 	type Icon = typeof Sword;
 
@@ -97,7 +98,7 @@
 <span class="chip" data-editable={editable} data-theme={theme} style:--chip-background={background}>
 	{#if Icon}
 		{#if iconTooltip}
-			<button type="button" class="icon-wrapper" aria-label={iconTooltip}>
+			<button type="button" class="icon-wrapper" aria-label={iconTooltip} use:keepTooltipInBounds>
 				<Icon size={15} strokeWidth={1.5} aria-hidden={true} />
 				<span class="chip-tooltip" role="tooltip">{iconTooltip}</span>
 			</button>
@@ -193,13 +194,13 @@
 		visibility: hidden;
 		opacity: 0;
 		pointer-events: none;
-		transform: translate(-50%, 2px);
+		transform: translate(calc(-50% + var(--tooltip-shift-x, 0px)), 2px);
 		transition: opacity 120ms ease, transform 120ms ease, visibility 120ms ease;
 	}
 	.chip button.icon-wrapper:hover .chip-tooltip,
 	.chip button.icon-wrapper:focus-visible .chip-tooltip {
 		visibility: visible;
 		opacity: 1;
-		transform: translate(-50%, 0);
+		transform: translate(calc(-50% + var(--tooltip-shift-x, 0px)), 0);
 	}
 </style>

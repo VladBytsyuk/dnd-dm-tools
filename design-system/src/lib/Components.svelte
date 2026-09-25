@@ -3,6 +3,7 @@
 	import HandHelping from "lucide-svelte/icons/hand-helping";
 	import PackageOpen from "lucide-svelte/icons/package-open";
 	import Speech from "lucide-svelte/icons/speech";
+	import { keepTooltipInBounds } from "./keepTooltipInBounds";
 
 	type Props = {
 		somatic?: boolean;
@@ -40,6 +41,7 @@
 			<button
 				type="button"
 				class="icon-button"
+				use:keepTooltipInBounds
 				aria-label="Вербальный"
 				aria-pressed={editable ? verbal : undefined}
 				onclick={editable ? () => (verbal = !verbal) : undefined}
@@ -60,6 +62,7 @@
 			<button
 				type="button"
 				class="icon-button"
+				use:keepTooltipInBounds
 				aria-label="Соматический"
 				aria-pressed={editable ? somatic : undefined}
 				onclick={editable ? () => (somatic = !somatic) : undefined}
@@ -80,6 +83,7 @@
 			<button
 				type="button"
 				class="icon-button"
+				use:keepTooltipInBounds
 				aria-label="Материальный"
 				aria-pressed={editable ? materialIsActive : undefined}
 				onclick={editable ? toggleMaterial : undefined}
@@ -189,7 +193,7 @@
 		line-height: 18px;
 		opacity: 0;
 		pointer-events: none;
-		transform: translate(-50%, 2px);
+		transform: translate(calc(-50% + var(--tooltip-shift-x, 0px)), 2px);
 		transition: opacity 120ms ease, transform 120ms ease, visibility 120ms;
 	}
 
@@ -197,7 +201,7 @@
 	.icon-button:focus-visible .component-tooltip {
 		visibility: visible;
 		opacity: 1;
-		transform: translate(-50%, 0);
+		transform: translate(calc(-50% + var(--tooltip-shift-x, 0px)), 0);
 	}
 
 	.material-text {
