@@ -20,6 +20,7 @@ export class DmScreenSidePanel extends BaseSidePanel<DmScreenItem, DmScreenItem,
             props: {
                 item: this.fullItem,
                 children: await dmScreenRepository.getAllRootItems(),
+                redesignEnabled: this.plugin.getSettings().redesignEnabled,
                 uiEventListener: this.uiEventListener,
                 getFilteredItems: async (name: string) => await dmScreenRepository.getFilteredItems(name),
                 getChildrenCount: async (item: DmScreenItem) => await dmScreenRepository.getChildrenCount(item),
