@@ -67,6 +67,14 @@
 		race.type.name = value;
 	}
 
+	function addSkillBlock() {
+		race.skills = [...race.skills, { name: "", html: "" }];
+	}
+
+	function addAdditionalSection() {
+		race.additionalSections = [...(race.additionalSections ?? []), { title: "", html: "" }];
+	}
+
 	function formatAbility(value: FullRaceViewModel["abilities"][number]): string {
 		return `${value.name} ${value.value >= 0 ? "+" : ""}${value.value}`;
 	}
@@ -198,6 +206,7 @@
 	{#if race.skills.length > 0 || editable}
 		<ActionsBlock
 			blocks={skillBlocks}
+			onAddBlock={addSkillBlock}
 			blocksExpanded={true}
 			sectionExpanded={true}
 			{accentColor}
@@ -211,7 +220,7 @@
 		<TextBlock bind:html={race.description.html} expanded={true} {accentColor} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 
-	{#each race.additionalSections ?? [] as section (section.title)}
+	{#each race.additionalSections ?? [] as section, index (index)}
 		{#if section.html.trim() || editable}
 			<FilledTextBlock
 				bind:title={section.title}
@@ -229,7 +238,9 @@
 
 	{#if editable}
 		<div class="add-section-chip">
-			<Chip icon={Plus} background={accentColor} {theme} />
+			<button type="button" aria-label="Добавить текстовый блок" onclick={addAdditionalSection}>
+				<Chip icon={Plus} background={accentColor} {theme} />
+			</button>
 		</div>
 	{/if}
 </article>
@@ -307,4 +318,6 @@
 		width: 100%;
 		justify-content: center;
 	}
+	.add-section-chip button { all: unset; display: block; width: 100%; cursor: pointer; }
+	.add-section-chip button:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
 </style>

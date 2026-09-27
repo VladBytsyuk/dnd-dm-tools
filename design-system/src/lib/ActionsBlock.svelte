@@ -18,6 +18,7 @@
 		description?: string;
 		descriptionHtml?: string;
 		blocks?: ActionsBlockItem[];
+		onAddBlock?: () => void;
 		accentColor?: string;
 		blocksExpanded?: boolean;
 		sectionExpanded?: boolean;
@@ -32,6 +33,7 @@
 		description = $bindable(""),
 		descriptionHtml = $bindable<string | undefined>(),
 		blocks = $bindable<ActionsBlockItem[]>([]),
+		onAddBlock,
 		accentColor = "#d4d4d4",
 		blocksExpanded = true,
 		sectionExpanded = true,
@@ -46,6 +48,10 @@
 	}
 
 	function addBlock() {
+		if (onAddBlock) {
+			onAddBlock();
+			return;
+		}
 		blocks = [...blocks, { title: "", html: "" }];
 	}
 

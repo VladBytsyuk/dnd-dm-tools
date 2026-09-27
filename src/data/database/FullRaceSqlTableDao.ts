@@ -22,6 +22,15 @@ export class FullRaceSqlTableDao extends Dao<FullRace, any> {
         return 'full_races';
     }
 
+    ensureAdditionalSectionsColumn(): void {
+        const result = this.database.exec(`PRAGMA table_info(${this.getTableName()});`);
+        if (!result?.length) return;
+        const columns = result[0].values;
+        if (!columns.some((column) => column[1] === 'additional_sections')) {
+            this.database.exec(`ALTER TABLE ${this.getTableName()} ADD COLUMN additional_sections TEXT NOT NULL DEFAULT '[]';`);
+        }
+    }
+
     // Table management
     async createTable(): Promise<void> {
         this.database.exec(`
@@ -45,9 +54,11 @@ export class FullRaceSqlTableDao extends Dao<FullRace, any> {
                 description TEXT NOT NULL,
                 size TEXT NOT NULL,
                 speed TEXT NOT NULL,
-                skills TEXT NOT NULL
+                skills TEXT NOT NULL,
+                additional_sections TEXT NOT NULL DEFAULT '[]'
             );
         `);
+
     }
 
     // CRUD operations
@@ -67,8 +78,8 @@ export class FullRaceSqlTableDao extends Dao<FullRace, any> {
                     group_name, group_short_name, homebrew,
                     image, race_group_name, race_group_order,
                     parent_url,
-                    description, size, speed, skills
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                    description, size, speed, skills, additional_sections
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
             `, [
                 item.name.rus,
                 item.name.eng,
@@ -89,6 +100,7 @@ export class FullRaceSqlTableDao extends Dao<FullRace, any> {
                 item.size,
                 JSON.stringify(item.speed),
                 JSON.stringify(item.skills),
+                JSON.stringify(item.additionalSections ?? []),
             ]);
         } catch (error) {
             console.error(`Error creating FullRace item ${item.name.rus}:`, error);
@@ -110,7 +122,7 @@ export class FullRaceSqlTableDao extends Dao<FullRace, any> {
                     source_short_name = ?, source_name = ?,
                     group_name = ?, group_short_name = ?, homebrew = ?,
                     image = ?, race_group_name = ?, race_group_order = ?,
-                    description = ?, size = ?, speed = ?, skills = ?
+                    description = ?, size = ?, speed = ?, skills = ?, additional_sections = ?
                 WHERE url = ?;
             `, [
                 item.name.rus,
@@ -130,6 +142,7 @@ export class FullRaceSqlTableDao extends Dao<FullRace, any> {
                 item.size,
                 JSON.stringify(item.speed),
                 JSON.stringify(item.skills),
+                JSON.stringify(item.additionalSections ?? []),
                 item.url,
             ]);
         } catch (error) {
@@ -177,6 +190,7 @@ export class FullRaceSqlTableDao extends Dao<FullRace, any> {
             const abilities: AbilityBonus[] = JSON.parse(values[4] as string);
             const speed: Speed[] = JSON.parse(values[18] as string);
             const skills: Tag[] = JSON.parse(values[19] as string);
+            const additionalSections = values[20] ? JSON.parse(values[20] as string) : [];
 
             const result: FullRace = {
                 name: {
@@ -203,6 +217,8 @@ export class FullRaceSqlTableDao extends Dao<FullRace, any> {
                 speed,
                 skills,
             };
+
+            if (additionalSections.length > 0) result.additionalSections = additionalSections;
 
             // Add optional fields if present
             if (values[12]) {

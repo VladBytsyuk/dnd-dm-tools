@@ -107,6 +107,7 @@ export default class DB implements Initializable {
                 await Promise.all(
                     sqlTableDaos.map(tableDao => tableDao.initialize())
                 );
+                this.fullRaceDao.ensureAdditionalSectionsColumn();
             });
 
             await this.createSeedOrchestrator().seedAll();

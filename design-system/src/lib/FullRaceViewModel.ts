@@ -66,6 +66,7 @@ export type FullRaceViewModel = {
 	speed: FullRaceSpeed[];
 	skills: FullRaceSkill[];
 	description: FullRaceHtmlContent;
+	additionalSections?: FullRaceAdditionalSection[];
 	origin?: FullRaceOrigin;
 	group?: FullRaceType;
 	darkvision?: FullRaceDarkvision;
