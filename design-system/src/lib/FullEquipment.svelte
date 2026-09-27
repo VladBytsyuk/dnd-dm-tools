@@ -79,6 +79,10 @@
 			.map((category) => category.trim())
 			.filter((category) => category.length > 0);
 	}
+
+	function updateDescription(html: string) {
+		equipment.description = { ...(equipment.description ?? {}), html };
+	}
 </script>
 
 <article
@@ -104,8 +108,8 @@
 		<ChipsList {chips} {editable} showAddButton={false} {theme} />
 	{/if}
 
-	{#if equipment.description?.html}
-		<TextBlock bind:html={equipment.description.html} accentColor={accentColor} {onEntityLinkClick} {editable} {theme} />
+	{#if editable || equipment.description?.html}
+		<TextBlock html={equipment.description?.html ?? ""} onHtmlChange={updateDescription} accentColor={accentColor} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 </article>
 

@@ -115,6 +115,10 @@ export const Simple: Story = {
 	args: { spell: simpleSpell, ...callbacks, theme: "dark" },
 };
 
+export const NewEdit: Story = {
+	args: { spell: { ...structuredClone(simpleSpell), higherLevels: undefined }, ...callbacks, editable: true, theme: "dark" },
+};
+
 export const Complex: Story = {
 	args: { spell: complexSpell, ...callbacks, theme: "dark" },
 };

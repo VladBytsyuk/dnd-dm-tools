@@ -33,6 +33,29 @@ describe("design system adapters", () => {
 		expect(updated.unmappedField).toBe("preserve me");
 	});
 
+	it("persists weapon damage and edited properties from the full view model", () => {
+		const weapon = {
+			name: { rus: "Копьё", eng: "Spear" },
+			url: "/weapons/spear",
+			type: { name: "Простое рукопашное" },
+			damage: { dice: "1к6", type: "колющий" },
+			price: "1 зм",
+			weight: 3,
+			properties: [{ name: "Метательное", url: "/screens/thrown", distance: "20/60", description: "Описание" }],
+		};
+		const view = toFullViewModel("arsenal", weapon) as any;
+		view.damage = "1к8 рубящий";
+		view.properties = [
+			{ name: "Двуручное", url: "/screens/two_handed", distance: undefined, description: { html: "" } },
+		];
+
+		const updated = applyFullViewModel("arsenal", weapon, view);
+		expect(updated.damage).toEqual({ dice: "1к8", type: "рубящий" });
+		expect(updated.properties).toEqual([
+			{ name: "Двуручное", url: "/screens/two_handed", distance: undefined, description: "" },
+		]);
+	});
+
 	it("preserves hidden nested race data and maps empty monster abilities", () => {
 		const race = {
 			name: { rus: "Раса", eng: "Race" }, url: "/races/example", abilities: [], type: { name: "Гуманоид" },

@@ -29,6 +29,8 @@
 	import type { FullFeat as FullFeatDomain } from "src/domain/models/feat/FullFeat";
 	import type { FullRace as FullRaceDomain } from "src/domain/models/race/FullRace";
 	import type { FullClass as FullClassDomain } from "src/domain/models/class/FullClass";
+	import { baseDmScreenItems } from "src/assets/data/dm_screen";
+	import type { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 	import { applyFullViewModel, cloneDesignData, entityUrlPrefix, toFullViewModel, type FullViewModel } from "./adapters";
 	import { theme as appTheme, Theme } from "src/ui/theme";
 	import { onMount } from "svelte";
@@ -50,6 +52,17 @@
 	let handledActionRequest = 0;
 	const isClass = $derived(panelKey === "classes");
 	const entityLinkHandler = async (link: { href: string; label: string }) => { const result = resolveDndEntityLink(uiEventListener, link.href); if (result) await result; };
+	function findWeaponPropertyUrl(name: string): string | undefined {
+		const find = (items: DmScreenItem[]): string | undefined => {
+			for (const item of items) {
+				if (item.group === "Свойства оружия" && (item.name.rus === name || item.name.eng === name)) return item.url;
+				const nested = item.children && find(item.children);
+				if (nested) return nested;
+			}
+			return undefined;
+		};
+		return find(baseDmScreenItems);
+	}
 	const imageResolver = (image: string) => uiEventListener.onImageRequested(image);
 	let container: HTMLDivElement;
 	onMount(() => {
@@ -132,7 +145,7 @@
 	{:else if panelKey === "spellbook"}
 		<FullSpell bind:spell={draft as FullSpellViewModel} onCopySpell={copyFullItem} onCopyText={showCopyNotice} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
 	{:else if panelKey === "arsenal"}
-		<FullWeapon bind:weapon={draft as FullWeaponViewModel} onCopyWeapon={copyFullItem} onCopyText={showCopyNotice} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
+		<FullWeapon bind:weapon={draft as FullWeaponViewModel} onCopyWeapon={copyFullItem} onCopyText={showCopyNotice} onEntityLinkClick={entityLinkHandler} resolvePropertyUrl={findWeaponPropertyUrl} editable={editing} {theme} />
 	{:else if panelKey === "armory"}
 		<FullArmor bind:armor={draft as FullArmorViewModel} onCopyArmor={copyFullItem} onCopyText={showCopyNotice} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
 	{:else if panelKey === "equipment"}

@@ -29,6 +29,10 @@ import UserCog from "lucide-svelte/icons/user-cog";
 	let gradientStart = $derived(colorForTheme(getSchoolToken(spell.school)));
 	let gradientEnd = $derived(colorForTheme("var(--ds-spell)"));
 	let filledBackground = $derived(`color-mix(in srgb, ${accentColor} 40%, transparent)`);
+
+	function updateHigherLevels(html: string) {
+		spell.higherLevels = { ...(spell.higherLevels ?? {}), html };
+	}
 	let characteristicChips = $derived.by<ChipsListItem[]>(() => [
 		...(editable || spell.concentration ? [{ toggle: true, active: Boolean(spell.concentration), icon: UserCog, iconTooltip: "Концентрация", background: accentBackground, onToggle: () => spell.concentration = !spell.concentration }] : []),
 		...(editable || spell.ritual ? [{ toggle: true, active: Boolean(spell.ritual), icon: Sparkles, iconTooltip: "Ритуал", background: accentBackground, onToggle: () => spell.ritual = !spell.ritual }] : []),
@@ -114,9 +118,10 @@ import UserCog from "lucide-svelte/icons/user-cog";
 		{theme}
 	/>
 
-	{#if spell.higherLevels && (spell.higherLevels.html || editable)}
+	{#if editable || spell.higherLevels?.html}
 		<FilledTextBlock
-			bind:html={spell.higherLevels.html}
+			html={spell.higherLevels?.html ?? ""}
+			onHtmlChange={updateHigherLevels}
 			background={filledBackground}
 			accentColor={accentColor}
 			{onEntityLinkClick}

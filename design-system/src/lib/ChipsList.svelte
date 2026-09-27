@@ -62,8 +62,8 @@
 		all: unset;
 		box-sizing: border-box;
 		display: inline-grid;
-		width: 16px;
-		height: 16px;
+		height: 19px;
+		width: 19px;
 		place-items: center;
 		padding: 2px;
 		border: 0;

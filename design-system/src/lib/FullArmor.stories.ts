@@ -101,6 +101,10 @@ export const Edit: Story = {
 	args: { armor: structuredClone(stonesteel), ...callbacks, editable: true, theme: "dark" },
 };
 
+export const NewEdit: Story = {
+	args: { armor: { ...structuredClone(simpleArmor), description: undefined }, ...callbacks, editable: true, theme: "dark" },
+};
+
 export const Complex: Story = {
 	args: { armor: complexArmor, ...callbacks, theme: "dark" },
 };

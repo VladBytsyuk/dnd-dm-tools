@@ -14,6 +14,7 @@
 		onCopyWeapon?: (weapon: FullWeaponViewModel) => void | Promise<void>;
 		onCopyText?: (text: string) => void;
 		onEntityLinkClick?: (link: FullWeaponEntityLink) => void | Promise<void>;
+		resolvePropertyUrl?: (name: string) => string | undefined;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -23,6 +24,7 @@
 		onCopyWeapon,
 		onCopyText,
 		onEntityLinkClick,
+		resolvePropertyUrl,
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
@@ -81,11 +83,25 @@
 				const match = value.match(/^(.*?)\s*\(([^()]*)\)$/);
 				const name = match ? match[1] : value;
 				weapon.properties = weapon.properties.map((item, itemIndex) =>
-					itemIndex === index ? { ...item, name, distance: match?.[2] } : item,
+					itemIndex === index
+						? { ...item, name, distance: match?.[2], url: resolvePropertyUrl?.(name) ?? item.url }
+						: item,
 				);
 			},
 		})),
 	]);
+
+	function addProperty() {
+		weapon.properties = [...weapon.properties, { name: "", url: "", description: { html: "" } }];
+	}
+
+	function updateDescription(html: string) {
+		weapon.description = { ...(weapon.description ?? {}), html };
+	}
+
+	function updateSpecial(html: string) {
+		weapon.special = { ...(weapon.special ?? {}), html };
+	}
 
 	function colorForTheme(token: string): string {
 		return theme === "light" ? token.replace(/var\((--ds-[\w-]+)\)/gu, "var($1-light)") : token;
@@ -126,15 +142,23 @@
 		{theme}
 	/>
 
-	<ChipsList {chips} {editable} {theme} />
+	<ChipsList {chips} {editable} onAddChip={addProperty} {theme} />
 
-	{#if weapon.description?.html}
-		<TextBlock bind:html={weapon.description.html} accentColor={accentColor} {onEntityLinkClick} {editable} {theme} />
+	{#if editable || weapon.description?.html}
+		<TextBlock
+			html={weapon.description?.html ?? ""}
+			onHtmlChange={updateDescription}
+			accentColor={accentColor}
+			{onEntityLinkClick}
+			{editable}
+			{theme}
+		/>
 	{/if}
 
-	{#if weapon.special?.html}
+	{#if editable || weapon.special?.html}
 		<FilledTextBlock
-			bind:html={weapon.special.html}
+			html={weapon.special?.html ?? ""}
+			onHtmlChange={updateSpecial}
 			background={filledBackground}
 			accentColor={accentColor}
 			{onEntityLinkClick}

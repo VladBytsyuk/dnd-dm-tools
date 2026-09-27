@@ -143,7 +143,7 @@ export function applyFullViewModel(kind: PanelKey, original: Entity, view: FullV
 			break;
 		}
 		case "spellbook": { const v = view as FullSpellViewModel; item.level = numberValue(v.level, item.level); item.school = v.school; item.additionalType = v.additionalType; item.range = v.range; item.duration = v.duration; item.time = v.time; item.concentration = v.concentration; item.ritual = v.ritual; item.description = v.description.html; item.upper = v.higherLevels?.html; item.components = { ...item.components, v: v.components.verbal, s: v.components.somatic, m: v.components.material }; break; }
-		case "arsenal": { const v = view as FullWeaponViewModel; item.type = { ...item.type, name: v.weaponType }; item.description = v.description?.html; item.special = v.special?.html; item.weight = numberValue(v.weight, item.weight); item.price = v.price; item.properties = v.properties.map(p => ({ ...p, description: p.description?.html })); break; }
+		case "arsenal": { const v = view as FullWeaponViewModel; item.type = { ...item.type, name: v.weaponType }; item.damage = parseWeaponDamage(v.damage, item.damage); item.description = v.description?.html; item.special = v.special?.html; item.weight = numberValue(v.weight, item.weight); item.price = v.price; item.properties = v.properties.map(p => ({ ...p, description: p.description?.html })); break; }
 		case "armory": { const v = view as FullArmorViewModel; item.type = { ...item.type, name: v.armorType }; item.armorClass = v.armorClass; item.price = v.price; item.weight = numberValue(v.weight, item.weight); item.disadvantage = v.stealthDisadvantage; item.requirement = v.strengthRequirement; item.duration = v.donningTime; item.description = v.description?.html ?? ""; break; }
 		case "equipment": { const v = view as FullEquipmentViewModel; item.categories = v.categories; item.price = v.price; item.weight = v.weight; item.description = v.description?.html ?? ""; item.homebrew = v.homebrew; break; }
 		case "artifactory": { const v = view as FullArtifactViewModel; item.type = { ...item.type, name: v.type.name }; item.price = v.price; item.rarity = { ...item.rarity, ...v.rarity }; item.customization = v.customization; item.description = v.description.html; item.detailType = v.detailType; item.cost = v.cost; item.images = v.images; item.detailCustomization = v.detailCustomization; item.homebrew = v.homebrew; break; }
@@ -174,6 +174,13 @@ function booleanValue(value: unknown): boolean | undefined {
 }
 function typeName(type: any): string { return typeof type === "string" ? type : type?.name ?? type?.rus ?? ""; }
 function damageText(damage: any): string { return [damage?.dice, damage?.type].filter(Boolean).join(" "); }
+function parseWeaponDamage(value: string, fallback: Entity = {}): Entity {
+	const text = value.trim();
+	if (!text) return { ...fallback, dice: undefined, type: "" };
+	const match = text.match(/^((?:\d+)?[кd]\d+(?:\s*[+-]\s*\d+)?|\d+)(?:\s+(.+))?$/iu);
+	if (!match) return { ...fallback, dice: undefined, type: text };
+	return { ...fallback, dice: match[1], type: match[2] ?? "" };
+}
 function weaponColor(type: string): string { return type.toLocaleLowerCase().includes("дальн") ? "var(--ds-weapon-matrial-ranged)" : "var(--ds-weapon-simple-melee)"; }
 function creatureColor(type: string): string { const value = type.toLocaleLowerCase("ru"); return value.includes("гуманоид") ? "var(--ds-bestiary-humanoid)" : value.includes("нежит") ? "var(--ds-bestiary-undead)" : value.includes("дракон") ? "var(--ds-bestiary-dragon)" : value.includes("небес") ? "var(--ds-bestiary-celestial)" : value.includes("исчади") ? "var(--ds-bestiary-infernal)" : value.includes("слиз") ? "var(--ds-bestiary-slime)" : value ? "var(--ds-bestiary-magical)" : "var(--ds-bestiary-regular)"; }
 function schoolColor(school: string): string { const value = school.toLocaleLowerCase("ru"); return value.includes("вызов") ? "var(--ds-conjuration)" : value.includes("преграж") ? "var(--ds-abjurer)" : value.includes("прориц") ? "var(--ds-divination)" : value.includes("очаров") ? "var(--ds-enchantment)" : value.includes("воплощ") ? "var(--ds-evocation)" : value.includes("иллюз") ? "var(--ds-illusion)" : value.includes("некром") ? "var(--ds-necromancy)" : value.includes("преобраз") ? "var(--ds-transmutation)" : "var(--ds-spell)"; }

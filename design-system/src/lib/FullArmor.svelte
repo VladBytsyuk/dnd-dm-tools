@@ -118,6 +118,10 @@
 
 		return "var(--ds-armor)";
 	}
+
+	function updateDescription(html: string) {
+		armor.description = { ...(armor.description ?? {}), html };
+	}
 </script>
 
 <article
@@ -138,8 +142,8 @@
 
 	<ChipsList {chips} {theme} />
 
-	{#if armor.description?.html}
-		<TextBlock bind:html={armor.description.html} {accentColor} {onEntityLinkClick} {editable} {theme} />
+	{#if editable || armor.description?.html}
+		<TextBlock html={armor.description?.html ?? ""} onHtmlChange={updateDescription} {accentColor} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 </article>
 

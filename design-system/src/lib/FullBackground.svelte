@@ -120,6 +120,10 @@
 		const document = new DOMParser().parseFromString(html, "text/html");
 		background.equipments = Array.from(document.querySelectorAll("li"), (item) => ({ html: item.innerHTML }));
 	}
+
+	function updatePersonalization(html: string) {
+		background.personalization = { ...(background.personalization ?? {}), html };
+	}
 </script>
 
 <article
@@ -178,10 +182,11 @@
 		/>
 	{/if}
 
-	{#if hasPersonalization}
+	{#if hasPersonalization || editable}
 		<TextBlock
 			title="Персонализация"
-			bind:html={background.personalization!.html}
+			html={background.personalization?.html ?? ""}
+			onHtmlChange={updatePersonalization}
 			expanded={true}
 			{accentColor}
 			{onEntityLinkClick}
