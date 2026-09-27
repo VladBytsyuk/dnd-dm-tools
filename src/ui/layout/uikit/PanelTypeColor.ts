@@ -25,7 +25,7 @@ export function getPanelTypeColor(panelKey: PanelKey): string {
 const PANEL_TYPE_DESIGN_TOKENS = {
 	bestiary: "--ds-bestiary",
 	spellbook: "--ds-spell",
-	"dm-screen": "--ds-armor",
+	"dm-screen": "--ds-dm-screen",
 	arsenal: "--ds-weapon",
 	armory: "--ds-armor",
 	equipment: "--ds-equipment",

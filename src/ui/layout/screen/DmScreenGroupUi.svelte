@@ -33,8 +33,8 @@
         subtitle={name.eng}
         source={source}
         height={imageSource(icon) ? 84 : 60}
-        primaryColor="var(--ds-armor)"
-        secondaryColor="var(--ds-armor-sub)"
+        primaryColor="var(--ds-dm-screen)"
+        secondaryColor="var(--ds-dm-screen-sub)"
         {theme}
     />
 {:else}

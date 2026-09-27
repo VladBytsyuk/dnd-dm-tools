@@ -135,7 +135,9 @@
         min-width: 0;
         padding: var(--dnd-ui-space-16);
 		border-radius: var(--dnd-ui-radius-lg);
-        background: linear-gradient(105deg, var(--ds-armor) 0%, var(--ds-armor-sub) 100%);
+        background:
+            linear-gradient(rgb(48 48 48 / 40%), rgb(48 48 48 / 40%)),
+            linear-gradient(105deg, var(--ds-dm-screen) 0%, var(--ds-dm-screen-sub) 100%);
         color: var(--dnd-ui-text-primary);
     }
 

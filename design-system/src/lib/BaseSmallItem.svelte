@@ -98,6 +98,7 @@
 <style>
 	.small-item {
 		display: grid;
+		grid-template-rows: minmax(0, 1fr);
 		grid-template-columns: 8px 48px minmax(0, 1fr) 32px;
 		width: 100%;
 		min-width: 0;
@@ -106,7 +107,9 @@
 		position: relative;
 		border: 0;
 		border-radius: 8px;
-		background: linear-gradient(105deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+		background:
+			linear-gradient(rgb(48 48 48 / 40%), rgb(48 48 48 / 40%)),
+			linear-gradient(105deg, var(--primary-color) 0%, var(--secondary-color) 100%);
 		box-shadow: 0 2px 2px rgb(0 0 0 / 25%);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
@@ -130,7 +133,7 @@
 	.small-item[data-theme="light"]:active::after, .small-item[data-theme="light"][data-state="clicked"]::after { background: rgb(15 23 42 / 24%); }
 	.accent { background: var(--accent-color); }
 	.value { display: grid; place-items: center; padding: 8px; font-size: 36px; font-weight: 700; line-height: 1; }
-	.image { display: block; width: 100%; height: 100%; min-width: 0; object-fit: contain; padding: 4px; box-sizing: border-box; }
+	.image { display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; max-width: var(--item-height); max-height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box; }
 	.content, .meta { display: flex; flex-direction: column; justify-content: space-between; }
 	.content { min-width: 0; padding: 8px; }
 	.titles { display: grid; gap: 2px; }

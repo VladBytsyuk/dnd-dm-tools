@@ -31,6 +31,8 @@
 	--ds-weapon-sub: color-mix(in srgb, #f2c14e var(--ds-color-strength), white);
 	--ds-armor: color-mix(in srgb, #64748b var(--ds-color-strength), white);
 	--ds-armor-sub: color-mix(in srgb, #b8c4d6 var(--ds-color-strength), white);
+	--ds-dm-screen: color-mix(in srgb, #075985 var(--ds-color-strength), white);
+	--ds-dm-screen-sub: color-mix(in srgb, #22d3ee var(--ds-color-strength), white);
 	--ds-equipment: color-mix(in srgb, #0f766e var(--ds-color-strength), white);
 	--ds-equipment-sub: color-mix(in srgb, #5eead4 var(--ds-color-strength), white);
 	--ds-artifacts: color-mix(in srgb, #7c3aed var(--ds-color-strength), white);
@@ -119,6 +121,8 @@
 	--ds-weapon-sub-light: color-mix(in srgb, #f2c14e 82%, white);
 	--ds-armor-light: color-mix(in srgb, #64748b 82%, white);
 	--ds-armor-sub-light: color-mix(in srgb, #b8c4d6 82%, white);
+	--ds-dm-screen-light: color-mix(in srgb, #075985 82%, white);
+	--ds-dm-screen-sub-light: color-mix(in srgb, #22d3ee 82%, white);
 	--ds-equipment-light: color-mix(in srgb, #0f766e 82%, white);
 	--ds-equipment-sub-light: color-mix(in srgb, #5eead4 82%, white);
 	--ds-artifacts-light: color-mix(in srgb, #7c3aed 82%, white);
