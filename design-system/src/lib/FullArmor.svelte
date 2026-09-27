@@ -66,14 +66,14 @@
 
 		if (armor.stealthDisadvantage) {
 			items.push({
-				text: "Скрытность",
+				text: "",
 				icon: stealthIcon,
 				iconTooltip: "Помеха на проверки Скрытности",
 				background: accentBackground,
 			});
 		}
 
-		if (armor.strengthRequirement !== undefined) {
+		if (armor.strengthRequirement !== undefined && armor.strengthRequirement > 0) {
 			items.push({
 				text: String(armor.strengthRequirement),
 				icon: strengthIcon,

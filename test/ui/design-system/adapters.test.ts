@@ -56,6 +56,22 @@ describe("design system adapters", () => {
 		]);
 	});
 
+	it("splits armor donning and doffing durations and joins them when saving", () => {
+		const armor = {
+			name: { rus: "Кожаный доспех", eng: "Leather Armor" },
+			url: "/armors/leather-armor",
+			type: { name: "Легкий доспех" },
+		duration: "5 минут/1 минута",
+		};
+
+		const view = toFullViewModel("armory", armor) as any;
+		expect(view.donningTime).toBe("5 минут");
+		expect(view.doffingTime).toBe("1 минута");
+
+		view.doffingTime = "2 минуты";
+		expect(applyFullViewModel("armory", armor, view).duration).toBe("5 минут/2 минуты");
+	});
+
 	it("preserves hidden nested race data and maps empty monster abilities", () => {
 		const race = {
 			name: { rus: "Раса", eng: "Race" }, url: "/races/example", abilities: [], type: { name: "Гуманоид" },
