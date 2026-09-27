@@ -5,15 +5,17 @@
 	import HtmlBlock from "../uikit/HtmlBlock.svelte";
 	import UiCopyableText from "../uikit/atoms/UiCopyableText.svelte";
 	import UiItemMetaRow from "../uikit/molecules/UiItemMetaRow.svelte";
+	import { theme as appTheme, Theme } from "src/ui/theme";
 
     // ---- props ----
-    let { currentItem, uiEventListener, redesigned = false, theme = "dark", sectionName } = $props<{
+    let { currentItem, uiEventListener, redesigned = false, theme: themeProp, sectionName } = $props<{
         currentItem: any;
         uiEventListener: any;
         redesigned?: boolean;
         theme?: "dark" | "light";
         sectionName?: string;
     }>();
+    const theme: "dark" | "light" = $derived(themeProp ?? ($appTheme === Theme.Dark ? "dark" : "light"));
 
     function imageSource(value?: string): string | undefined {
         if (!value) return undefined;
@@ -30,7 +32,7 @@
 </script>
 
 {#if redesigned}
-<article class="dm-screen-detail redesigned">
+<article class="dm-screen-detail redesigned" data-theme={theme}>
     <header class="detail-header">
         <FullItemHeader
             russianName={currentItem.name.rus}
@@ -139,6 +141,12 @@
             linear-gradient(rgb(48 48 48 / 40%), rgb(48 48 48 / 40%)),
             linear-gradient(105deg, var(--ds-dm-screen) 0%, var(--ds-dm-screen-sub) 100%);
         color: var(--dnd-ui-text-primary);
+    }
+
+    .dm-screen-detail.redesigned[data-theme="light"] {
+        background:
+            linear-gradient(rgb(48 48 48 / 40%), rgb(48 48 48 / 40%)),
+            linear-gradient(105deg, var(--ds-dm-screen-light) 0%, var(--ds-dm-screen-sub-light) 100%);
     }
 
 	.detail-header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(64px, 20%); align-items: stretch; gap: var(--dnd-ui-space-12); min-width: 0; min-height: 88px; }

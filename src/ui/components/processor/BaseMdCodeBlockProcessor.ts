@@ -31,6 +31,10 @@ export abstract class BaseMdCodeBlockProcessor<
         uiEventListener: IUiEventListener,
     }, any, any>
 
+    protected getRedesignedUi(): { component: Component<any, any, any>; props?: Record<string, unknown> } | undefined {
+        return undefined;
+    }
+
     /**
      * Registers this processor with the Obsidian plugin
      */
@@ -78,13 +82,14 @@ export abstract class BaseMdCodeBlockProcessor<
 
             const panelKey = panelKeyForCodeBlock(this.getCodeBlockName());
             const redesigned = plugin.getSettings().redesignEnabled && Boolean(panelKey);
-            const component = redesigned ? RedesignedMarkdownCard : this.getUi();
+            const customRedesignedUi = redesigned ? this.getRedesignedUi() : undefined;
+            const component = customRedesignedUi?.component ?? (redesigned ? RedesignedMarkdownCard : this.getUi());
             mount(component, {
                 target: el,
                 props: {
                     currentItem: item,
                     uiEventListener: uiEventListener,
-                    ...(redesigned ? { panelKey } : {}),
+                    ...(customRedesignedUi?.props ?? (redesigned ? { panelKey } : {})),
                 },
             });
         } catch (error) {
@@ -94,8 +99,8 @@ export abstract class BaseMdCodeBlockProcessor<
 }
 
 function panelKeyForCodeBlock(name: string): PanelKey | undefined {
-    const keys: Record<string, PanelKey> = {
-        statblock: "bestiary", spell: "spellbook", weapon: "arsenal", armor: "armory",
+	const keys: Record<string, PanelKey> = {
+		statblock: "bestiary", screen: "dm-screen", spell: "spellbook", weapon: "arsenal", armor: "armory",
         equip: "equipment", artifact: "artifactory", background: "backgrounds", feat: "feats",
         race: "races", "dnd-class": "classes",
     };

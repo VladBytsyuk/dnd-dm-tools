@@ -8,6 +8,7 @@
 	import HtmlBlock from "../uikit/HtmlBlock.svelte";
 	import { TextBlock } from "@dnd-dm-tools/design-system";
 	import { theme as appTheme, Theme } from "src/ui/theme";
+	import { copyDmScreenItem } from "src/data/clipboard";
 
     // ---- Props ----
     let { item, children, redesignEnabled = false, uiEventListener, getFilteredItems, getChildrenCount, getChildren, getFullItem } = $props();
@@ -28,6 +29,10 @@
     let searchBarValue: string = $state('');
     
     let filteredItems: DmScreenItem[] = $state([]);
+
+    function copyCurrentItem() {
+        if (currentItem) void copyDmScreenItem(currentItem);
+    }
 
     async function filterItems() {
         if (searchBarValue.length === 0) {
@@ -98,6 +103,7 @@
         onfiltersclick={undefined}
         isfiltersapplied={undefined}
         onaddclick={undefined}
+        oncopyclick={currentItem && currentChildren.length === 0 && currentItem.description ? copyCurrentItem : undefined}
         {redesignEnabled}
     />
     <div class="side-panel-spacer"></div>
