@@ -29,7 +29,7 @@
 	const dsTheme = $derived($appTheme === Theme.Dark ? "dark" : "light");
 	const searchActions = $derived.by<SearchBarAction[]>(() => {
 		const result: SearchBarAction[] = oncopyclick ? [{ icon: Copy, label: "Копировать в буфер обмена", onclick: oncopyclick }] : [];
-		if (onpasteclick) result.push({ icon: ClipboardPaste, label: "Вставить", text: "Вставить", disabled: actionBusy, onclick: onpasteclick });
+		if (onpasteclick) result.push({ icon: ClipboardPaste, label: "Вставить", disabled: actionBusy, onclick: onpasteclick });
 		if (ondeleteclick) result.push({ icon: Trash2, label: "Удалить", onclick: ondeleteclick });
 		if (onsaveclick && oncancelclick) return [...result,
 			{ icon: X, label: "Отмена", disabled: actionBusy, onclick: oncancelclick },

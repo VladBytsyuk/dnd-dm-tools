@@ -26,7 +26,7 @@ export const Dark: Story = {
 		leadingAction: { icon: ChevronRight, label: "Назад" },
 		actions: [
 			{ icon: Copy, label: "Копировать" },
-			{ icon: ClipboardPaste, label: "Вставить", text: "Вставить" },
+			{ icon: ClipboardPaste, label: "Вставить" },
 			{ icon: EditSquare, label: "Редактировать" },
 			{ icon: Trash, label: "Удалить" },
 			{ icon: Filters, label: "Фильтры" },
@@ -44,7 +44,7 @@ export const Light: Story = {
 		leadingAction: { icon: ChevronRight, label: "Назад" },
 		actions: [
 			{ icon: Copy, label: "Копировать" },
-			{ icon: ClipboardPaste, label: "Вставить", text: "Вставить" },
+			{ icon: ClipboardPaste, label: "Вставить" },
 			{ icon: EditSquare, label: "Редактировать" },
 			{ icon: Trash, label: "Удалить" },
 			{ icon: Filters, label: "Фильтры" },
