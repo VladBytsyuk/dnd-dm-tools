@@ -23,6 +23,7 @@
 	type Props = {
 		race: FullRaceViewModel;
 		onCopyRace?: (race: FullRaceViewModel) => void | Promise<void>;
+		onCopyText?: (text: string) => void;
 		onEntityLinkClick?: (link: FullRaceEntityLink) => void | Promise<void>;
 		onImageRequested?: (image: string) => Promise<string>;
 		editable?: boolean;
@@ -32,6 +33,7 @@
 	let {
 		race = $bindable<FullRaceViewModel>(),
 		onCopyRace,
+		onCopyText,
 		onEntityLinkClick,
 		onImageRequested,
 		editable = false,
@@ -180,6 +182,7 @@
 		bind:entityLink={race.entityLink}
 		info={headerInfo}
 		bind:source={race.source}
+		onCopy={onCopyText}
 		sourceSuffix={race.source.homebrew ? "*" : ""}
 		wrapRussianName={true}
 		chips={primaryChips}

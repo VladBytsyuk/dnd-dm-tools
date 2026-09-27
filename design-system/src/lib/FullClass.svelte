@@ -25,6 +25,7 @@
 	type Props = {
 		characterClass: FullClassViewModel;
 		onCopyClass?: (characterClass: FullClassViewModel) => void | Promise<void>;
+		onCopyText?: (text: string) => void;
 		onEntityLinkClick?: (link: FullClassEntityLink) => void | Promise<void>;
 		onImageRequested?: (image: string) => Promise<string>;
 		theme?: "dark" | "light";
@@ -33,6 +34,7 @@
 	let {
 		characterClass,
 		onCopyClass,
+		onCopyText,
 		onEntityLinkClick,
 		onImageRequested,
 		theme = "dark",
@@ -196,7 +198,8 @@
 				englishName={characterClass.englishName}
 				entityLink={characterClass.entityLink}
 				info={characterClass.archetypeType?.name}
-				source={characterClass.source}
+			source={characterClass.source}
+			onCopy={onCopyText}
 				sourceSuffix={characterClass.source.homebrew ? "*" : ""}
 				wrapRussianName={true}
 				{theme}

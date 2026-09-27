@@ -35,6 +35,5 @@
 	height={imageSource(icon) ? 84 : 60}
 	primaryColor="var(--ds-dm-screen)"
 	secondaryColor="var(--ds-dm-screen-sub)"
-	overlayOpacity={theme === "light" ? "8%" : "40%"}
 	{theme}
 />

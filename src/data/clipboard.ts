@@ -21,10 +21,15 @@ let lastWrittenClipboardText: string | undefined;
 export async function copyTextToClipboard(text: string, ignoreNotice: boolean = false): Promise<void> {
     try {
         await writeTextToClipboard(text);
-        if (!ignoreNotice) new Notice(`${text} - успешно скопировано.`);
+        if (!ignoreNotice) showClipboardNotice(text);
     } catch(e) {
         console.error(`Failed to save text into clipboard: ${e}`);
     }
+}
+
+export function showClipboardNotice(text: string): void {
+    const label = text.startsWith("[") && text.includes("](dnd:") ? "Ссылка" : text;
+    new Notice(`${label} - успешно скопировано.`);
 }
 
 export function formatEntityMarkdownLink(russianName: string, url: string): string {

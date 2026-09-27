@@ -162,6 +162,7 @@
 	}
 
 	.chip :global(.dice-roller) { color: #fff; }
+	.chip[data-theme="light"] :global(.dice-roller) { color: #1f2937; }
 
 	.chip:hover {
 		background: linear-gradient(rgb(48 48 48 / 20%), rgb(48 48 48 / 20%)), color-mix(in srgb, var(--chip-background) 40%, transparent);
@@ -188,6 +189,7 @@
 	.html :global(p) { display: inline; margin: 0; }
 	.html :global(a) { color: inherit; text-decoration: underline; }
 	.link { color: inherit; text-decoration: underline; }
+	.chip[data-theme="light"] .html :global(a), .chip[data-theme="light"] .link { color: #1f2937; }
 	.suffix { flex: 0 1 auto; overflow-wrap: anywhere; }
 	input {
 		all: unset;

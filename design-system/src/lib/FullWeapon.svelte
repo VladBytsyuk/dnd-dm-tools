@@ -12,6 +12,7 @@
 	type Props = {
 		weapon: FullWeaponViewModel;
 		onCopyWeapon?: (weapon: FullWeaponViewModel) => void | Promise<void>;
+		onCopyText?: (text: string) => void;
 		onEntityLinkClick?: (link: FullWeaponEntityLink) => void | Promise<void>;
 		editable?: boolean;
 		theme?: "dark" | "light";
@@ -20,6 +21,7 @@
 	let {
 		weapon = $bindable<FullWeaponViewModel>(),
 		onCopyWeapon,
+		onCopyText,
 		onEntityLinkClick,
 		editable = false,
 		theme = "dark",
@@ -119,6 +121,7 @@
 		bind:entityLink={weapon.entityLink}
 		bind:info={weapon.weaponType}
 		bind:source={weapon.source}
+		onCopy={onCopyText}
 		{editable}
 		{theme}
 	/>

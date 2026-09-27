@@ -16,12 +16,13 @@ import UserCog from "lucide-svelte/icons/user-cog";
 	type Props = {
 		spell: FullSpellViewModel;
 		onCopySpell?: (spell: FullSpellViewModel) => void | Promise<void>;
+		onCopyText?: (text: string) => void;
 		onEntityLinkClick?: (link: FullSpellEntityLink) => void | Promise<void>;
 		theme?: "dark" | "light";
 		editable?: boolean;
 	};
 
-	let { spell = $bindable<FullSpellViewModel>(), onCopySpell, onEntityLinkClick, theme = "dark", editable = false }: Props = $props();
+	let { spell = $bindable<FullSpellViewModel>(), onCopySpell, onCopyText, onEntityLinkClick, theme = "dark", editable = false }: Props = $props();
 
 	const accentBackground = "var(--full-spell-accent)";
 	let accentColor = $derived(colorForTheme("var(--ds-spell-sub)"));
@@ -90,6 +91,7 @@ import UserCog from "lucide-svelte/icons/user-cog";
 		badgeInputType="number"
 		bind:info={spell.school}
 		bind:source={spell.source}
+		onCopy={onCopyText}
 		{editable}
 		{theme}
 	/>

@@ -15,6 +15,7 @@
 	type Props = {
 		armor: FullArmorViewModel;
 		onCopyArmor?: (armor: FullArmorViewModel) => void | Promise<void>;
+		onCopyText?: (text: string) => void;
 		onEntityLinkClick?: (link: FullArmorEntityLink) => void | Promise<void>;
 		editable?: boolean;
 		theme?: "dark" | "light";
@@ -23,6 +24,7 @@
 	let {
 		armor = $bindable<FullArmorViewModel>(),
 		onCopyArmor,
+		onCopyText,
 		onEntityLinkClick,
 		editable = false,
 		theme = "dark",
@@ -129,6 +131,7 @@
 		bind:entityLink={armor.entityLink}
 		bind:info={armor.armorType}
 		bind:source={armor.source}
+		onCopy={onCopyText}
 		{editable}
 		{theme}
 	/>

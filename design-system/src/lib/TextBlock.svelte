@@ -238,6 +238,7 @@
 	.rich-content :global(p + p) { margin-top: 4px; }
 	.rich-content :global(hr) { margin: 1em 0; }
 	.rich-content :global(a) { color: inherit; text-decoration: underline; }
+	.text-block[data-theme="light"] .rich-content :global(a) { color: #1f2937; }
 	.rich-content :global(.dnd-table) { margin: 4px 0; }
 
 	input, textarea {

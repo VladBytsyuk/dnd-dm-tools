@@ -30,7 +30,7 @@
 		accentColor,
 		primaryColor = "#303030",
 		secondaryColor = "#303030",
-		overlayOpacity = "40%",
+		overlayOpacity,
 		height = 64,
 		value,
 		title,
@@ -55,6 +55,7 @@
 	let resolvedAccentColor = $derived(resolveThemeColor(accentColor));
 	let resolvedPrimaryColor = $derived(resolveThemeColor(primaryColor));
 	let resolvedSecondaryColor = $derived(resolveThemeColor(secondaryColor));
+	let resolvedOverlayOpacity = $derived(overlayOpacity ?? (theme === "light" ? "0%" : "40%"));
 </script>
 
 <article
@@ -67,7 +68,7 @@
 	data-has-meta={Boolean(source || secondarySource || Icon)}
 	data-has-image={Boolean(imageSrc)}
 	data-has-description={Boolean(description)}
-	style={`--accent-color: ${resolvedAccentColor}; --primary-color: ${resolvedPrimaryColor}; --secondary-color: ${resolvedSecondaryColor}; --overlay-opacity: ${overlayOpacity}; --item-height: ${height}px`}
+	style={`--accent-color: ${resolvedAccentColor}; --primary-color: ${resolvedPrimaryColor}; --secondary-color: ${resolvedSecondaryColor}; --overlay-opacity: ${resolvedOverlayOpacity}; --item-height: ${height}px`}
 >
 	{#if accentColor}
 		<div class="accent" aria-hidden="true"></div>

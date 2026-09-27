@@ -11,6 +11,7 @@
 	type Props = {
 		artifact: FullArtifactViewModel;
 		onCopyArtifact?: (artifact: FullArtifactViewModel) => void | Promise<void>;
+		onCopyText?: (text: string) => void;
 		onEntityLinkClick?: (link: FullArtifactEntityLink) => void | Promise<void>;
 		onImageRequested?: (image: string) => Promise<string>;
 		editable?: boolean;
@@ -20,6 +21,7 @@
 	let {
 		artifact = $bindable<FullArtifactViewModel>(),
 		onCopyArtifact,
+		onCopyText,
 		onEntityLinkClick,
 		onImageRequested,
 		editable = false,
@@ -131,6 +133,7 @@
 				bind:entityLink={artifact.entityLink}
 				bind:info={artifact.rarity.name}
 				bind:source={artifact.source}
+				onCopy={onCopyText}
 				sourceSuffix={isHomebrew ? "*" : ""}
 				wrapRussianName={true}
 				{editable}

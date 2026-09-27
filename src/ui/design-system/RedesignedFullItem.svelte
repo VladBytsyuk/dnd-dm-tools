@@ -18,7 +18,7 @@
 	import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 	import type { ItemSaveContext, ItemSaveResult } from "src/domain/models/common/EntityOrigin";
 	import { resolveDndEntityLink } from "src/domain/listeners/html_link_listener";
-	import { copyMonsterToClipboard, copySpellToClipboard, copyWeaponToClipboard, copyArmorToClipboard, copyEquipmentToClipboard, copyArtifactToClipboard, copyBackgroundToClipboard, copyFeatToClipboard, copyRaceToClipboard, copyClassToClipboard } from "src/data/clipboard";
+	import { copyMonsterToClipboard, copySpellToClipboard, copyWeaponToClipboard, copyArmorToClipboard, copyEquipmentToClipboard, copyArtifactToClipboard, copyBackgroundToClipboard, copyFeatToClipboard, copyRaceToClipboard, copyClassToClipboard, showClipboardNotice } from "src/data/clipboard";
 	import type { FullMonster } from "src/domain/models/monster/FullMonster";
 	import type { FullSpell as FullSpellDomain } from "src/domain/models/spell/FullSpell";
 	import type { FullWeapon as FullWeaponDomain } from "src/domain/models/weapon/FullWeapon";
@@ -80,6 +80,9 @@
 		editing = true;
 		onEditorStateChange?.({ editing, saving });
 	}
+	function showCopyNotice(text: string) {
+		showClipboardNotice(text);
+	}
 	function cancelEdit() {
 		if (saving) return;
 		editing = false;
@@ -125,25 +128,25 @@
 <div class="redesigned-full-item" bind:this={container}>
 	{#if validationError}<p class="error" role="alert">{validationError}</p>{/if}
 	{#if panelKey === "bestiary"}
-		<FullStatblock bind:statblock={draft as FullStatblockViewModel} onCopyStatblock={copyFullItem} onCopySpellLink={entityLinkHandler} onEntityLinkClick={entityLinkHandler} onImageRequested={imageResolver} editable={editing} {theme} />
+		<FullStatblock bind:statblock={draft as FullStatblockViewModel} onCopyStatblock={copyFullItem} onCopyText={showCopyNotice} onCopySpellLink={entityLinkHandler} onEntityLinkClick={entityLinkHandler} onImageRequested={imageResolver} editable={editing} {theme} />
 	{:else if panelKey === "spellbook"}
-		<FullSpell bind:spell={draft as FullSpellViewModel} onCopySpell={copyFullItem} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
+		<FullSpell bind:spell={draft as FullSpellViewModel} onCopySpell={copyFullItem} onCopyText={showCopyNotice} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
 	{:else if panelKey === "arsenal"}
-		<FullWeapon bind:weapon={draft as FullWeaponViewModel} onCopyWeapon={copyFullItem} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
+		<FullWeapon bind:weapon={draft as FullWeaponViewModel} onCopyWeapon={copyFullItem} onCopyText={showCopyNotice} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
 	{:else if panelKey === "armory"}
-		<FullArmor bind:armor={draft as FullArmorViewModel} onCopyArmor={copyFullItem} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
+		<FullArmor bind:armor={draft as FullArmorViewModel} onCopyArmor={copyFullItem} onCopyText={showCopyNotice} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
 	{:else if panelKey === "equipment"}
-		<FullEquipment bind:equipment={draft as FullEquipmentViewModel} onCopyEquipment={copyFullItem} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
+		<FullEquipment bind:equipment={draft as FullEquipmentViewModel} onCopyEquipment={copyFullItem} onCopyText={showCopyNotice} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
 	{:else if panelKey === "artifactory"}
-		<FullArtifact bind:artifact={draft as FullArtifactViewModel} onCopyArtifact={copyFullItem} onEntityLinkClick={entityLinkHandler} onImageRequested={imageResolver} editable={editing} {theme} />
+		<FullArtifact bind:artifact={draft as FullArtifactViewModel} onCopyArtifact={copyFullItem} onCopyText={showCopyNotice} onEntityLinkClick={entityLinkHandler} onImageRequested={imageResolver} editable={editing} {theme} />
 	{:else if panelKey === "feats"}
-		<FullFeat bind:feat={draft as FullFeatViewModel} onCopyFeat={copyFullItem} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
+		<FullFeat bind:feat={draft as FullFeatViewModel} onCopyFeat={copyFullItem} onCopyText={showCopyNotice} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
 	{:else if panelKey === "backgrounds"}
-		<FullBackground bind:background={draft as FullBackgroundViewModel} onCopyBackground={copyFullItem} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
+		<FullBackground bind:background={draft as FullBackgroundViewModel} onCopyBackground={copyFullItem} onCopyText={showCopyNotice} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
 	{:else if panelKey === "races"}
-		<FullRace bind:race={draft as FullRaceViewModel} onCopyRace={copyFullItem} onEntityLinkClick={entityLinkHandler} onImageRequested={imageResolver} editable={editing} {theme} />
+		<FullRace bind:race={draft as FullRaceViewModel} onCopyRace={copyFullItem} onCopyText={showCopyNotice} onEntityLinkClick={entityLinkHandler} onImageRequested={imageResolver} editable={editing} {theme} />
 	{:else if panelKey === "classes"}
-		<FullClass characterClass={draft as FullClassViewModel} onCopyClass={copyFullItem} onEntityLinkClick={entityLinkHandler} onImageRequested={imageResolver} {theme} />
+		<FullClass characterClass={draft as FullClassViewModel} onCopyClass={copyFullItem} onCopyText={showCopyNotice} onEntityLinkClick={entityLinkHandler} onImageRequested={imageResolver} {theme} />
 	{/if}
 </div>
 

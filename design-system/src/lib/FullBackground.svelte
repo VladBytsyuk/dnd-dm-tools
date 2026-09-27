@@ -15,6 +15,7 @@
 	type Props = {
 		background: FullBackgroundViewModel;
 		onCopyBackground?: (background: FullBackgroundViewModel) => void | Promise<void>;
+		onCopyText?: (text: string) => void;
 		onEntityLinkClick?: (link: FullBackgroundEntityLink) => void | Promise<void>;
 		editable?: boolean;
 		theme?: "dark" | "light";
@@ -23,6 +24,7 @@
 	let {
 		background = $bindable<FullBackgroundViewModel>(),
 		onCopyBackground,
+		onCopyText,
 		onEntityLinkClick,
 		editable = false,
 		theme = "dark",
@@ -130,6 +132,7 @@
 		bind:englishName={background.englishName}
 		bind:entityLink={background.entityLink}
 		bind:source={background.source}
+		onCopy={onCopyText}
 		sourceSuffix={background.homebrew || background.source.homebrew ? "*" : ""}
 		wrapRussianName={true}
 		{editable}

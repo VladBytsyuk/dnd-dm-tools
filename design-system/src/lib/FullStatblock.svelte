@@ -32,6 +32,7 @@
 	type Props = {
 		statblock: FullStatblockViewModel;
 		onCopyStatblock: (statblock: FullStatblockViewModel) => void | Promise<void>;
+		onCopyText?: (text: string) => void;
 		onCopySpellLink: (link: FullStatblockSpellLink) => void | Promise<void>;
 		onEntityLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
 		onImageRequested?: (image: string) => Promise<string>;
@@ -42,6 +43,7 @@
 	let {
 		statblock = $bindable<FullStatblockViewModel>(),
 		onCopyStatblock,
+		onCopyText,
 		onCopySpellLink,
 		onEntityLinkClick,
 		onImageRequested,
@@ -215,6 +217,7 @@
 		bind:badge={statblock.challengeRating}
 		bind:info={statblock.creatureType}
 		bind:source={statblock.source}
+		onCopy={onCopyText}
 		chips={headerChips}
 		bind:images={statblock.images}
 		{onImageRequested}

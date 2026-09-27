@@ -11,10 +11,11 @@
 		icon?: string;
 		html?: string;
 		onEntityLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
+		onCopyText?: (text: string) => void;
 		theme?: "dark" | "light";
 	};
 
-	let { russianName, englishName, entityLink, section, source, icon, html, onEntityLinkClick, theme = "dark" }: Props = $props();
+	let { russianName, englishName, entityLink, section, source, icon, html, onEntityLinkClick, onCopyText, theme = "dark" }: Props = $props();
 
 	function imageSource(value?: string): string | undefined {
 		if (!value) return undefined;
@@ -33,6 +34,7 @@
 			{entityLink}
 			info={section ? `Раздел: ${section}` : undefined}
 			{source}
+			onCopy={onCopyText}
 			{theme}
 		/>
 		{#if imageSource(icon)}

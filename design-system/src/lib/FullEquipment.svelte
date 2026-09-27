@@ -13,6 +13,7 @@
 	type Props = {
 		equipment: FullEquipmentViewModel;
 		onCopyEquipment?: (equipment: FullEquipmentViewModel) => void | Promise<void>;
+		onCopyText?: (text: string) => void;
 		onEntityLinkClick?: (link: FullEquipmentEntityLink) => void | Promise<void>;
 		editable?: boolean;
 		theme?: "dark" | "light";
@@ -21,6 +22,7 @@
 	let {
 		equipment = $bindable<FullEquipmentViewModel>(),
 		onCopyEquipment,
+		onCopyText,
 		onEntityLinkClick,
 		editable = false,
 		theme = "dark",
@@ -90,6 +92,7 @@
 		bind:entityLink={equipment.entityLink}
 		info={categoryText}
 		bind:source={equipment.source}
+		onCopy={onCopyText}
 		sourceSuffix={isHomebrew ? "*" : ""}
 		wrapRussianName={true}
 		onInfoChange={updateCategories}

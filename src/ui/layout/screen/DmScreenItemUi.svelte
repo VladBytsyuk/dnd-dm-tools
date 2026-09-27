@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { copyDmScreenItem } from "src/data/clipboard";
+	import { copyDmScreenItem, showClipboardNotice } from "src/data/clipboard";
 	import { FullDmScreen } from "@dnd-dm-tools/design-system";
 	import { resolveDndEntityLink } from "src/domain/listeners/html_link_listener";
 	import HtmlBlock from "../uikit/HtmlBlock.svelte";
@@ -21,6 +21,10 @@
         const result = resolveDndEntityLink(uiEventListener, link.href);
         if (result) return result;
     }
+
+	function showCopyNotice(text: string) {
+		showClipboardNotice(text);
+	}
 </script>
 
 {#if redesigned}
@@ -33,6 +37,7 @@
 	icon={currentItem.icon}
 	html={currentItem.description}
 	onEntityLinkClick={handleEntityLink}
+	onCopyText={showCopyNotice}
 	{theme}
 />
 {:else}
