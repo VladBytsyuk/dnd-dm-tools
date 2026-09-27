@@ -67,7 +67,7 @@
     let currentItem: BaseItem | undefined = $state(getInitialFullItem() || undefined);
     let detailEditing = $state(false);
     let detailSaving = $state(false);
-    let toolbarActionRequest = $state<{ id: number; command: "edit" | "save" | "cancel" | "copy" }>({ id: 0, command: "edit" });
+    let toolbarActionRequest = $state<{ id: number; command: "edit" | "save" | "cancel" | "copy" | "paste" }>({ id: 0, command: "edit" });
     let groups: Group<BaseItem>[] = $state([]);
     let emptyFullItem = createEmptyFullItem();
     let isFiltersOverlayOpen: boolean = $state(false);
@@ -97,7 +97,7 @@
         updateGroups();
     }                       
 
-    function requestToolbarAction(command: "edit" | "save" | "cancel" | "copy") {
+    function requestToolbarAction(command: "edit" | "save" | "cancel" | "copy" | "paste") {
         toolbarActionRequest = { id: toolbarActionRequest.id + 1, command };
     }
 
@@ -268,6 +268,7 @@
         onaddclick={!currentItem && emptyFullItem ? () => { currentItem = emptyFullItem; itemsStack.push(emptyFullItem); } : undefined}
         oneditclick={redesignEnabled && currentItem && panelKey !== "classes" && !detailEditing ? () => requestToolbarAction("edit") : undefined}
         oncopyclick={redesignEnabled && currentItem ? () => requestToolbarAction("copy") : undefined}
+        onpasteclick={redesignEnabled && currentItem && detailEditing ? () => requestToolbarAction("paste") : undefined}
         ondeleteclick={redesignEnabled && !detailEditing && currentItem?.origin === "manual" ? deleteCurrentManualItem : undefined}
         onsaveclick={redesignEnabled && currentItem && detailEditing ? () => requestToolbarAction("save") : undefined}
         oncancelclick={redesignEnabled && currentItem && detailEditing ? () => requestToolbarAction("cancel") : undefined}

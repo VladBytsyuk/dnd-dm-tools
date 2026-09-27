@@ -6,6 +6,7 @@
 	import UserCog from "lucide-svelte/icons/user-cog";
 
 	type Icon = typeof UserCog;
+	export type SmallItemMetaIcon = { icon: Icon; label: string };
 
 	type Props = SvelteHTMLElements["article"] & {
 		accentColor?: string;
@@ -21,6 +22,9 @@
 		imageAlt?: string;
 		source?: string;
 		secondarySource?: string;
+		centerIcons?: SmallItemMetaIcon[];
+		bottomIcons?: SmallItemMetaIcon[];
+		metaWidth?: number;
 		icon?: Icon;
 		state?: "default" | "hovered" | "clicked";
 		theme?: "dark" | "light";
@@ -40,6 +44,9 @@
 		imageAlt = "",
 		source,
 		secondarySource,
+		centerIcons = [],
+		bottomIcons = [],
+		metaWidth = 32,
 		icon: Icon,
 		state = "default",
 		theme = "dark",
@@ -65,10 +72,10 @@
 	data-theme={theme}
 	data-has-accent={Boolean(accentColor)}
 	data-has-value={value !== undefined && !imageSrc}
-	data-has-meta={Boolean(source || secondarySource || Icon)}
+	data-has-meta={Boolean(source || secondarySource || centerIcons.length || bottomIcons.length || Icon)}
 	data-has-image={Boolean(imageSrc)}
 	data-has-description={Boolean(description)}
-	style={`--accent-color: ${resolvedAccentColor}; --primary-color: ${resolvedPrimaryColor}; --secondary-color: ${resolvedSecondaryColor}; --overlay-opacity: ${resolvedOverlayOpacity}; --item-height: ${height}px`}
+	style={`--accent-color: ${resolvedAccentColor}; --primary-color: ${resolvedPrimaryColor}; --secondary-color: ${resolvedSecondaryColor}; --overlay-opacity: ${resolvedOverlayOpacity}; --item-height: ${height}px; --meta-width: ${metaWidth}px`}
 >
 	{#if accentColor}
 		<div class="accent" aria-hidden="true"></div>
@@ -93,7 +100,23 @@
 	{#if source || secondarySource || Icon}
 		<div class="meta">
 			{#if source}<span>{source}</span>{/if}
+			{#if centerIcons.length}
+				<div class="meta-icons meta-center">
+					{#each centerIcons as item}
+						{@const MetaIcon = item.icon}
+						<span role="img" aria-label={item.label} title={item.label}><MetaIcon size={14} strokeWidth={1.5} aria-hidden={true} /></span>
+					{/each}
+				</div>
+			{/if}
 			{#if secondarySource}<span>{secondarySource}</span>{/if}
+			{#if bottomIcons.length}
+				<div class="meta-icons meta-bottom">
+					{#each bottomIcons as item}
+						{@const MetaIcon = item.icon}
+						<span role="img" aria-label={item.label} title={item.label}><MetaIcon size={14} strokeWidth={1.5} aria-hidden={true} /></span>
+					{/each}
+				</div>
+			{/if}
 			{#if Icon}<Icon size={16} strokeWidth={1} />{/if}
 		</div>
 	{/if}
@@ -103,7 +126,7 @@
 	.small-item {
 		display: grid;
 		grid-template-rows: minmax(0, 1fr);
-		grid-template-columns: 8px 48px minmax(0, 1fr) 32px;
+		grid-template-columns: 8px 48px minmax(0, 1fr) var(--meta-width);
 		width: 100%;
 		min-width: 0;
 		height: var(--item-height);
@@ -147,12 +170,15 @@
 	.content span, .content p, .meta span { font-size: 12px; font-weight: 400; line-height: 15px; }
 	.content p { margin: 0; }
 	.meta { align-items: end; min-width: 0; padding: 8px; color: rgb(255 255 255 / 80%); }
+	.meta-icons { display: flex; align-items: center; justify-content: flex-end; gap: 2px; }
+	.meta-center { flex: 1 1 auto; align-self: stretch; }
+	.meta-icons span { display: inline-flex; flex: 0 0 auto; }
 	.small-item[data-theme="light"] .meta { color: rgb(31 41 55 / 80%); }
-	.small-item[data-has-accent="true"][data-has-value="false"] { grid-template-columns: 8px minmax(0, 1fr) 32px; }
+	.small-item[data-has-accent="true"][data-has-value="false"] { grid-template-columns: 8px minmax(0, 1fr) var(--meta-width); }
 	.small-item[data-has-accent="true"][data-has-meta="false"] { grid-template-columns: 8px 48px minmax(0, 1fr); }
 	.small-item[data-has-accent="true"][data-has-value="false"][data-has-meta="false"] { grid-template-columns: 8px minmax(0, 1fr); }
-	.small-item[data-has-accent="false"] { grid-template-columns: 48px minmax(0, 1fr) 32px; }
-	.small-item[data-has-accent="false"][data-has-value="false"] { grid-template-columns: minmax(0, 1fr) 32px; }
+	.small-item[data-has-accent="false"] { grid-template-columns: 48px minmax(0, 1fr) var(--meta-width); }
+	.small-item[data-has-accent="false"][data-has-value="false"] { grid-template-columns: minmax(0, 1fr) var(--meta-width); }
 	.small-item[data-has-accent="false"][data-has-meta="false"] { grid-template-columns: 48px minmax(0, 1fr); }
 	.small-item[data-has-accent="false"][data-has-value="false"][data-has-meta="false"] { grid-template-columns: minmax(0, 1fr); }
 	.small-item[data-has-image="true"][data-has-accent="false"] { grid-template-columns: minmax(64px, var(--item-height)) minmax(0, 1fr) auto; }

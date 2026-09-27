@@ -15,6 +15,23 @@ describe("design system adapters", () => {
 		]);
 	});
 
+	it("maps the small card details into their new base item slots", () => {
+		const statblock = toSmallCardProps("bestiary", { source: { shortName: "PHB", group: { shortName: "BCM" } } });
+		const spell = toSmallCardProps("spellbook", {
+			level: 3,
+			concentration: true,
+			ritual: true,
+			components: { v: true, s: true, m: "фосфор" },
+		});
+		const weapon = toSmallCardProps("arsenal", { price: "5 зм." });
+		const artifact = toSmallCardProps("artifactory", { customization: true });
+
+		expect(statblock).not.toHaveProperty("secondarySource");
+		expect(spell).toMatchObject({ concentration: true, ritual: true, components: { verbal: true, somatic: true, material: "фосфор" } });
+		expect(weapon.price).toBe("5 зм.");
+		expect(artifact.customization).toBe(true);
+	});
+
 	it.each(panelKeys)("maps small and full models for %s", (panelKey) => {
 		const item = createEmptyDomainItem(panelKey) ?? {
 			name: { rus: "Тест", eng: "Test" }, url: "/classes/test", dice: "к8", source: { shortName: "PHB", name: "PHB", group: { shortName: "Basic", name: "Основные" } }, isArchetype: false,

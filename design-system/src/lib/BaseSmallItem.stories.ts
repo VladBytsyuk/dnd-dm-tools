@@ -1,5 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/svelte-vite";
 import { UserCog } from "./index";
+import HandHelping from "lucide-svelte/icons/hand-helping";
+import PackageOpen from "lucide-svelte/icons/package-open";
+import Speech from "lucide-svelte/icons/speech";
+import Sparkles from "lucide-svelte/icons/sparkles";
 import BaseSmallItem from "./BaseSmallItem.svelte";
 
 const meta = {
@@ -70,6 +74,31 @@ export const ImageInsteadOfValue: Story = {
 		subtitle: "Moving",
 		source: "PHB",
 		height: 84,
+		theme: "dark",
+	},
+};
+
+export const SpellMetaIcons: Story = {
+	args: {
+		primaryColor: "var(--ds-spell)",
+		secondaryColor: "var(--ds-spell-sub)",
+		accentColor: "var(--ds-conjuration)",
+		value: 3,
+		title: "Круг телепортации",
+		subtitle: "Teleportation Circle",
+		description: "Вызов",
+		source: "PHB",
+		height: 96,
+		metaWidth: 64,
+		centerIcons: [
+			{ icon: UserCog, label: "Концентрация" },
+			{ icon: Sparkles, label: "Ритуал" },
+		],
+		bottomIcons: [
+			{ icon: Speech, label: "Вербальный" },
+			{ icon: HandHelping, label: "Соматический" },
+			{ icon: PackageOpen, label: "Материальный" },
+		],
 		theme: "dark",
 	},
 };

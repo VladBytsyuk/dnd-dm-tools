@@ -8,6 +8,7 @@
 	export type SearchBarAction = {
 		icon: Icon;
 		label: string;
+		text?: string;
 		disabled?: boolean;
 		onclick?: (event: MouseEvent) => void;
 	};
@@ -39,6 +40,7 @@
 			class="icon-button leading-action"
 			type="button"
 			aria-label={leadingAction.label}
+			title={leadingAction.label}
 			disabled={leadingAction.disabled}
 			onclick={leadingAction.onclick}
 		>
@@ -62,12 +64,15 @@
 		{@const Icon = action.icon}
 		<button
 			class="icon-button"
+			class:has-label={action.text}
 			type="button"
 			aria-label={action.label}
+			title={action.label}
 			disabled={action.disabled}
 			onclick={action.onclick}
 		>
 			<Icon size={24} strokeWidth={2} />
+			{#if action.text}<span>{action.text}</span>{/if}
 		</button>
 	{/each}
 </div>
@@ -146,6 +151,14 @@
 		background: transparent;
 		color: inherit;
 		cursor: pointer;
+	}
+	.search-bar button.icon-button.has-label {
+		display: flex;
+		flex: 0 0 auto;
+		width: auto;
+		gap: 8px;
+		padding: 0 12px;
+		font-size: 14px;
 	}
 
 	.icon-button:hover:not(:disabled) { background: rgb(255 255 255 / 8%); }

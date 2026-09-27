@@ -145,7 +145,13 @@ function parseClipboardBlock<T>(clipboard: string, blockName: string): T | undef
     const normalized = clipboard.replace(/\r\n?/g, "\n").trim();
     const lines = normalized.split("\n");
     if (lines[0]?.trim() !== `\`\`\`${blockName}` || lines.at(-1)?.trim() !== "\`\`\`") return undefined;
-    return parseYaml(lines.slice(1, -1).join("\n")) as T;
+    const body = lines.slice(1, -1);
+    if (blockName === "spell" && /^spell:\s*.+$/u.test(body[0]?.trim() ?? "")) body.shift();
+    return parseYaml(body.join("\n")) as T;
+}
+
+export async function getMarkdownCodeBlockFromClipboard<T>(blockName: string): Promise<T | undefined> {
+    return parseClipboardBlock<T>(await readTextFromClipboard(), blockName);
 }
 
 // ---- Get from clipboard ----

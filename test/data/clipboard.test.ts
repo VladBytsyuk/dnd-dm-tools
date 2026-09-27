@@ -1,4 +1,4 @@
-import { getEncounterFromClipboard, getEncounterParticipantFromClipboard, getMonsterFromClipboard, copyMonsterToClipboard, copyTextToClipboard, copyEncounterToClipboard, copySpellToClipboard, copyDmScreenItem, copyWeaponToClipboard, copyArmorToClipboard, copyEquipmentToClipboard, copyArtifactToClipboard, copyBackgroundToClipboard } from "src/data/clipboard";
+import { getEncounterFromClipboard, getEncounterParticipantFromClipboard, getMonsterFromClipboard, copyMonsterToClipboard, copyTextToClipboard, copyEncounterToClipboard, copySpellToClipboard, copyDmScreenItem, copyWeaponToClipboard, copyArmorToClipboard, copyEquipmentToClipboard, copyArtifactToClipboard, copyBackgroundToClipboard, getMarkdownCodeBlockFromClipboard } from "src/data/clipboard";
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mockMonster, mockEncounter, mockSpell, mockDmScreenItem, mockWeapon, mockArmor, mockEquipment, mockArtifact, mockBackground } from "../__mocks__/data";
 import * as obsidian from "obsidian";
@@ -243,6 +243,15 @@ ${yaml}
 
         // Assert
         expect(monster).toEqual(mockMonster);
+    });
+
+    it('reads an entity markdown block and skips the copied spell label', async () => {
+        const spell = { name: { rus: "Свет", eng: "Light" }, url: "/spells/light" };
+        const readText = vi.fn().mockResolvedValue(`\`\`\`spell\nspell: Свет\n${JSON.stringify(spell)}\n\`\`\``);
+        Object.defineProperty(navigator, 'clipboard', { value: { readText }, writable: true });
+
+        await expect(getMarkdownCodeBlockFromClipboard("spell")).resolves.toEqual(spell);
+        await expect(getMarkdownCodeBlockFromClipboard("weapon")).resolves.toBeUndefined();
     });
 
     it('should get monster from a statblock with surrounding whitespace and CRLF', async () => {

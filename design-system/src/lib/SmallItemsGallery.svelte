@@ -18,11 +18,11 @@
 </script>
 
 <div class="gallery" data-theme={theme}>
-	<SmallStatblock challengeRating={20} creatureTypeColor="var(--ds-bestiary-magical)" title="Огремох" subtitle="Ogremoch" description="Громадный элементаль" source="PHB" secondarySource="BCM" {theme} />
-	<SmallSpell level={3} title="Голод Хадара" subtitle="Hunger of Hadar" school="Вызов" schoolColor="var(--ds-conjuration)" source="PHB" secondarySource="BCM" {theme} />
-	<SmallWeapon weaponTypeColor="var(--ds-weapon-simple-melee)" title="Дубинка" subtitle="Club" damage="1к4 дробящий" range="2 см" source="PHB" {theme} />
+	<SmallStatblock challengeRating={20} creatureTypeColor="var(--ds-bestiary-magical)" title="Огремох" subtitle="Ogremoch" description="Громадный элементаль" source="PHB" {theme} />
+	<SmallSpell level={3} title="Круг телепортации" subtitle="Teleportation Circle" school="Вызов" schoolColor="var(--ds-conjuration)" concentration={true} ritual={true} components={{ verbal: true, somatic: true, material: "мелки и чернила" }} source="PHB" {theme} />
+	<SmallWeapon weaponTypeColor="var(--ds-weapon-simple-melee)" title="Дубинка" subtitle="Club" damage="1к4 дробящий" price="1 зм." source="PHB" {theme} />
 	<SmallArmor armorTypeColor="var(--ds-armor-light)" title="Стёганый доспех" subtitle="Padded Armor" armorClass="11 + модификатор Лов" weight="5 зм" source="PHB" {theme} />
-	<SmallArtifact title="Гроза свежевателей" subtitle="Flayer Slayer" rarity="Редкий" rarityColor="var(--ds-artifact-rare)" source="PHB" {theme} />
+	<SmallArtifact title="Гроза свежевателей" subtitle="Flayer Slayer" rarity="Редкий" rarityColor="var(--ds-artifact-rare)" customization={true} source="PHB" {theme} />
 	<SmallFeat title="Борец" subtitle="Grappler" description="Сила 13 или выше" source="PHB" {theme} />
 	<SmallRace title="Аасимар" subtitle="Aasimar" description="Харизма +2" source="VGM" {theme} />
 	<SmallClass classColor="var(--ds-paladin)" title="Паладин" subtitle="Paladin" description="1к10" source="PHB" {theme} />

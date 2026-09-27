@@ -18,7 +18,7 @@
 	import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 	import type { ItemSaveContext, ItemSaveResult } from "src/domain/models/common/EntityOrigin";
 	import { resolveDndEntityLink } from "src/domain/listeners/html_link_listener";
-	import { copyMonsterToClipboard, copySpellToClipboard, copyWeaponToClipboard, copyArmorToClipboard, copyEquipmentToClipboard, copyArtifactToClipboard, copyBackgroundToClipboard, copyFeatToClipboard, copyRaceToClipboard, copyClassToClipboard, showClipboardNotice } from "src/data/clipboard";
+	import { copyMonsterToClipboard, copySpellToClipboard, copyWeaponToClipboard, copyArmorToClipboard, copyEquipmentToClipboard, copyArtifactToClipboard, copyBackgroundToClipboard, copyFeatToClipboard, copyRaceToClipboard, copyClassToClipboard, getMarkdownCodeBlockFromClipboard, showClipboardNotice } from "src/data/clipboard";
 	import type { FullMonster } from "src/domain/models/monster/FullMonster";
 	import type { FullSpell as FullSpellDomain } from "src/domain/models/spell/FullSpell";
 	import type { FullWeapon as FullWeaponDomain } from "src/domain/models/weapon/FullWeapon";
@@ -38,7 +38,7 @@
 
 	type Props = {
 		panelKey: PanelKey; currentItem: any; uiEventListener: IUiEventListener;
-		actionRequest?: { id: number; command: "edit" | "save" | "cancel" | "copy" };
+		actionRequest?: { id: number; command: "edit" | "save" | "cancel" | "copy" | "paste" };
 		onEditorStateChange?: (state: { editing: boolean; saving: boolean }) => void;
 		onItemSave?: (item: any, context: ItemSaveContext) => ItemSaveResult | Promise<ItemSaveResult>;
 	};
@@ -81,6 +81,7 @@
 		if (actionRequest.command === "edit") beginEdit();
 		else if (actionRequest.command === "cancel") cancelEdit();
 		else if (actionRequest.command === "save") void save();
+		else if (actionRequest.command === "paste") void pasteFromClipboard();
 		else void copyFullItem();
 	});
 
@@ -95,6 +96,38 @@
 	}
 	function showCopyNotice(text: string) {
 		showClipboardNotice(text);
+	}
+	const clipboardBlockNames: Partial<Record<PanelKey, string>> = {
+		bestiary: "statblock", spellbook: "spell", arsenal: "weapon", armory: "armor",
+		equipment: "equip", artifactory: "artifact", backgrounds: "background",
+		feats: "feat", races: "race", classes: "dnd-class",
+	};
+	function isPasteableEntity(value: unknown): value is Record<string, any> {
+		if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+		const item = value as Record<string, any>;
+		return Boolean(item.name && typeof item.name === "object" && !Array.isArray(item.name)
+			&& typeof item.name.rus === "string" && typeof item.name.eng === "string"
+			&& typeof item.url === "string");
+	}
+	async function pasteFromClipboard() {
+		if (!editing) return;
+		const blockName = clipboardBlockNames[panelKey];
+		if (!blockName) return;
+		try {
+			const item = await getMarkdownCodeBlockFromClipboard<Record<string, any>>(blockName);
+			if (!isPasteableEntity(item)) {
+				new Notice("В буфере нет корректного Markdown-блока этой сущности.");
+				return;
+			}
+			const nextDraft = cloneDesignData(toFullViewModel(panelKey, item));
+			if (currentItem.url && item.url === currentItem.url) nextDraft.entityLink = draft.entityLink;
+			draft = nextDraft;
+			validationError = "";
+			new Notice("Данные вставлены из буфера обмена.");
+		} catch (error) {
+			console.error("Failed to paste entity from clipboard:", error);
+			new Notice("Не удалось прочитать корректный Markdown-блок из буфера обмена.");
+		}
 	}
 	function cancelEdit() {
 		if (saving) return;
