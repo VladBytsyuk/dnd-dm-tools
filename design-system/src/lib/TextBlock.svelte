@@ -236,6 +236,7 @@
 
 	.rich-content :global(p) { margin: 0; }
 	.rich-content :global(p + p) { margin-top: 4px; }
+	.rich-content :global(hr) { margin: 1em 0; }
 	.rich-content :global(a) { color: inherit; text-decoration: underline; }
 	.rich-content :global(.dnd-table) { margin: 4px 0; }
 

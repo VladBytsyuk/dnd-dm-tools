@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { copyDmScreenItem } from "src/data/clipboard";
-	import { FullItemHeader, TextBlock } from "@dnd-dm-tools/design-system";
+	import { FullDmScreen } from "@dnd-dm-tools/design-system";
 	import { resolveDndEntityLink } from "src/domain/listeners/html_link_listener";
 	import HtmlBlock from "../uikit/HtmlBlock.svelte";
 	import UiCopyableText from "../uikit/atoms/UiCopyableText.svelte";
@@ -17,14 +17,6 @@
     }>();
     const theme: "dark" | "light" = $derived(themeProp ?? ($appTheme === Theme.Dark ? "dark" : "light"));
 
-    function imageSource(value?: string): string | undefined {
-        if (!value) return undefined;
-        const trimmed = value.trim();
-        return trimmed.startsWith("<svg")
-            ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(trimmed)}`
-            : trimmed;
-    }
-
     function handleEntityLink(link: { href: string }) {
         const result = resolveDndEntityLink(uiEventListener, link.href);
         if (result) return result;
@@ -32,26 +24,17 @@
 </script>
 
 {#if redesigned}
-<article class="dm-screen-detail redesigned" data-theme={theme}>
-    <header class="detail-header">
-        <FullItemHeader
-            russianName={currentItem.name.rus}
-            englishName={currentItem.name.eng}
-            entityLink={currentItem.url}
-            info={sectionName || currentItem.group ? `Раздел: ${sectionName || currentItem.group}` : undefined}
-            source={currentItem.source}
-            {theme}
-        />
-        {#if imageSource(currentItem.icon)}
-            <img class="detail-icon" src={imageSource(currentItem.icon)} alt={currentItem.name.rus} />
-        {/if}
-    </header>
-    {#if currentItem.description}
-        <section class="detail-content">
-            <TextBlock html={currentItem.description} onEntityLinkClick={handleEntityLink} {theme} />
-        </section>
-    {/if}
-</article>
+<FullDmScreen
+	russianName={currentItem.name.rus}
+	englishName={currentItem.name.eng}
+	entityLink={currentItem.url}
+	section={sectionName || currentItem.group}
+	source={currentItem.source}
+	icon={currentItem.icon}
+	html={currentItem.description}
+	onEntityLinkClick={handleEntityLink}
+	{theme}
+/>
 {:else}
 <div class="item">
     {#if currentItem.name}
@@ -129,34 +112,4 @@
         margin-top: 1em;
     }
 
-    .dm-screen-detail.redesigned {
-        box-sizing: border-box;
-        display: grid;
-        gap: var(--dnd-ui-space-12);
-        width: 100%;
-        min-width: 0;
-        padding: var(--dnd-ui-space-16);
-		border-radius: var(--dnd-ui-radius-lg);
-        background:
-            linear-gradient(rgb(48 48 48 / 40%), rgb(48 48 48 / 40%)),
-            linear-gradient(105deg, var(--ds-dm-screen) 0%, var(--ds-dm-screen-sub) 100%);
-        color: var(--dnd-ui-text-primary);
-    }
-
-    .dm-screen-detail.redesigned[data-theme="light"] {
-        background:
-            linear-gradient(rgb(48 48 48 / 40%), rgb(48 48 48 / 40%)),
-            linear-gradient(105deg, var(--ds-dm-screen-light) 0%, var(--ds-dm-screen-sub-light) 100%);
-    }
-
-	.detail-header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(64px, 20%); align-items: stretch; gap: var(--dnd-ui-space-12); min-width: 0; min-height: 88px; }
-	.detail-icon {
-		display: block;
-		width: 100%;
-		height: 100%;
-		min-height: 88px;
-		object-fit: contain;
-	}
-	.detail-content { min-width: 0; color: var(--dnd-ui-text-primary); line-height: 1.5; }
-	@media (max-width: 420px) { .detail-header { grid-template-columns: minmax(0, 1fr) 64px; } }
 </style>

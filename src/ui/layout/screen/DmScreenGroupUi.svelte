@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onkeydown } from "src/domain/utils/utils";
-    import { BaseSmallItem } from "@dnd-dm-tools/design-system";
+    import { SmallDmScreen } from "@dnd-dm-tools/design-system";
 
     let { icon, name, source, onclick, redesigned = false, theme = "dark" } = $props<{
         icon?: string;
@@ -11,32 +11,10 @@
         theme?: "dark" | "light";
     }>();
 
-    function imageSource(value?: string): string | undefined {
-        if (!value) return undefined;
-        const trimmed = value.trim();
-        return trimmed.startsWith("<svg")
-            ? `data:image/svg+xml;charset=utf-8,${encodeURIComponent(trimmed)}`
-            : trimmed;
-    }
 </script>
 
 {#if redesigned}
-    <BaseSmallItem
-        role="button"
-        tabindex={0}
-        aria-label={`${name.rus}, ${name.eng}`}
-        onclick={onclick}
-        onkeydown={onkeydown(onclick)}
-        imageSrc={imageSource(icon)}
-        imageAlt={name.rus}
-        title={name.rus}
-        subtitle={name.eng}
-        source={source}
-        height={imageSource(icon) ? 84 : 60}
-        primaryColor="var(--ds-dm-screen)"
-        secondaryColor="var(--ds-dm-screen-sub)"
-        {theme}
-    />
+    <SmallDmScreen icon={icon} title={name.rus} subtitle={name.eng} {source} {onclick} {theme} />
 {:else}
     <div
         class="dm-screen-item"

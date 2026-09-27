@@ -11,6 +11,7 @@
 		accentColor?: string;
 		primaryColor?: string;
 		secondaryColor?: string;
+		overlayOpacity?: string;
 		height?: number;
 		value?: string | number;
 		title?: string;
@@ -29,6 +30,7 @@
 		accentColor,
 		primaryColor = "#303030",
 		secondaryColor = "#303030",
+		overlayOpacity = "40%",
 		height = 64,
 		value,
 		title,
@@ -64,7 +66,7 @@
 	data-has-value={value !== undefined}
 	data-has-meta={Boolean(source || secondarySource || Icon)}
 	data-has-image={Boolean(imageSrc)}
-	style={`--accent-color: ${resolvedAccentColor}; --primary-color: ${resolvedPrimaryColor}; --secondary-color: ${resolvedSecondaryColor}; --item-height: ${height}px`}
+	style={`--accent-color: ${resolvedAccentColor}; --primary-color: ${resolvedPrimaryColor}; --secondary-color: ${resolvedSecondaryColor}; --overlay-opacity: ${overlayOpacity}; --item-height: ${height}px`}
 >
 	{#if accentColor}
 		<div class="accent" aria-hidden="true"></div>
@@ -108,7 +110,7 @@
 		border: 0;
 		border-radius: 8px;
 		background:
-			linear-gradient(rgb(48 48 48 / 40%), rgb(48 48 48 / 40%)),
+			linear-gradient(rgb(48 48 48 / var(--overlay-opacity)), rgb(48 48 48 / var(--overlay-opacity))),
 			linear-gradient(105deg, var(--primary-color) 0%, var(--secondary-color) 100%);
 		box-shadow: 0 2px 2px rgb(0 0 0 / 25%);
 		color: #fff;

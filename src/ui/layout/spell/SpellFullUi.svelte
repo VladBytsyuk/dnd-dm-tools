@@ -3,7 +3,7 @@
     import { onDestroy, onMount } from 'svelte';
 	import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 	import { getCurrentTheme, theme, Theme } from 'src/ui/theme';
-	import { copySpellToClipboard } from 'src/data/clipboard';
+	import { copyTextToClipboard, formatEntityMarkdownLink } from 'src/data/clipboard';
 	import HtmlBlock from '../uikit/HtmlBlock.svelte';
 	import type { Class } from 'src/domain/models/common/Class';
 
@@ -76,10 +76,12 @@
                 class="layout-spell-card-name layout-spell-card-lined"
                 role="button"
                 tabindex="0"
-                onclick={() => copySpellToClipboard(currentItem)}
-                onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copySpellToClipboard(currentItem); } }}
+                onclick={() => copyTextToClipboard(currentItem.name.rus)}
+                onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyTextToClipboard(currentItem.name.rus); } }}
                 aria-label="Скопировать в буфер обмена"
             >{currentItem.name.rus}{currentItem.ritual ? " [Ритуал]" : ""} 📋</h3>
+            <div class="layout-spell-card-name-eng" role="button" tabindex="0" onclick={() => copyTextToClipboard(currentItem.name.eng)} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyTextToClipboard(currentItem.name.eng); } }} aria-label={`Скопировать: ${currentItem.name.eng}`}>{currentItem.name.eng}</div>
+            <div class="layout-spell-card-url" role="button" tabindex="0" onclick={() => copyTextToClipboard(formatEntityMarkdownLink(currentItem.name.rus, currentItem.url))} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyTextToClipboard(formatEntityMarkdownLink(currentItem.name.rus, currentItem.url)); } }} aria-label="Скопировать ссылку на заклинание">{currentItem.url}</div>
             
             <div class="layout-spell-card-table">
 

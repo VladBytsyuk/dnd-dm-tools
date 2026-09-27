@@ -27,6 +27,12 @@ export async function copyTextToClipboard(text: string, ignoreNotice: boolean = 
     }
 }
 
+export function formatEntityMarkdownLink(russianName: string, url: string): string {
+    const label = russianName.replace(/\\/g, "\\\\").replace(/\[/g, "\\[").replace(/\]/g, "\\]");
+    const pluginUrl = url.startsWith("dnd:") ? url : `dnd:${url}`;
+    return `[${label}](${pluginUrl})`;
+}
+
 export function copyMonsterToClipboard(monster: FullMonster, ignoreNotice: boolean = false): Promise<void> {
     return copyToClipboard(monster, monster.name.rus, "statblock", null, ignoreNotice);
 }

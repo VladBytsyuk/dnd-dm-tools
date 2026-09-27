@@ -10,7 +10,7 @@
 		LSS_CHARACTER_IFRAME_SANDBOX,
 		createLssCharacterIframeUrl,
 	} from "../../../data/services/LssCharacterSheetService";
-	import { copyCharacterSheetToClipboard } from "../../../data/clipboard";
+	import { copyCharacterSheetToClipboard, copyTextToClipboard } from "../../../data/clipboard";
 
 	interface Props {
 		currentItem: FullCharacterSheet;
@@ -24,7 +24,6 @@
 
 	const name = $derived(currentItem.name.rus || currentItem.name.eng || "Персонаж");
 	const iframeUrl = $derived(createLssCharacterIframeUrl(currentItem.url));
-	const dndUrl = $derived(`dnd:${currentItem.url}`);
 	const markdownLink = $derived(`[${escapeMarkdownLinkLabel(name)}](dnd:${currentItem.url})`);
 
 	function escapeMarkdownLinkLabel(value: string): string {
@@ -55,8 +54,11 @@
 <div class="character-sheet-full">
 	<div class="character-sheet-toolbar">
 		<div class="character-sheet-title">
-			<div class="character-sheet-name">{name}</div>
-			<a class="character-sheet-link" href={dndUrl}>{currentItem.url}</a>
+			<div class="character-sheet-name">
+				<button type="button" onclick={() => copyTextToClipboard(currentItem.name.rus)} aria-label={`Скопировать: ${currentItem.name.rus}`}>{currentItem.name.rus || name}</button>
+				{#if currentItem.name.eng}<button type="button" onclick={() => copyTextToClipboard(currentItem.name.eng)} aria-label={`Скопировать: ${currentItem.name.eng}`}>{currentItem.name.eng}</button>{/if}
+			</div>
+			<button type="button" class="character-sheet-link" onclick={copyNoteLink} aria-label="Скопировать ссылку на персонажа">{currentItem.url}</button>
 		</div>
 		<div class="character-sheet-actions">
 			<button type="button" onclick={copyNoteLink}>Скопировать ссылку</button>
@@ -118,10 +120,24 @@
 	}
 
 	.character-sheet-name {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
 		font-weight: 600;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+
+	.character-sheet-name button,
+	.character-sheet-link {
+		padding: 0;
+		border: 0;
+		background: none;
+		color: inherit;
+		font: inherit;
+		text-align: left;
+		cursor: pointer;
 	}
 
 	.character-sheet-link {

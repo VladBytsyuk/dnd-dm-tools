@@ -121,8 +121,8 @@
 	--ds-weapon-sub-light: color-mix(in srgb, #f2c14e 82%, white);
 	--ds-armor-light: color-mix(in srgb, #64748b 82%, white);
 	--ds-armor-sub-light: color-mix(in srgb, #b8c4d6 82%, white);
-	--ds-dm-screen-light: color-mix(in srgb, #075985 82%, white);
-	--ds-dm-screen-sub-light: color-mix(in srgb, #22d3ee 82%, white);
+	--ds-dm-screen-light: #dce8ee;
+	--ds-dm-screen-sub-light: #d3e8e4;
 	--ds-equipment-light: color-mix(in srgb, #0f766e 82%, white);
 	--ds-equipment-sub-light: color-mix(in srgb, #5eead4 82%, white);
 	--ds-artifacts-light: color-mix(in srgb, #7c3aed 82%, white);

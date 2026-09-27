@@ -5,6 +5,7 @@
 	import UiCopyableText from "../atoms/UiCopyableText.svelte";
 	import UiItemMetaRow from "../molecules/UiItemMetaRow.svelte";
 	import UiImageGallery from "../molecules/UiImageGallery.svelte";
+	import { copyTextToClipboard, formatEntityMarkdownLink } from "src/data/clipboard";
 
 	export interface UiDetailLink {
 		label: string;
@@ -20,9 +21,9 @@
 
 	interface Props {
 		name: Name;
+		entityLink?: string;
 		type?: string;
 		source?: Source;
-		onCopy: () => void;
 		images?: string[];
 		uiEventListener?: IUiEventListener;
 		links?: UiDetailLink[];
@@ -32,15 +33,19 @@
 
 	let {
 		name,
+		entityLink,
 		type,
 		source,
-		onCopy,
 		images,
 		uiEventListener,
 		links = [],
 		infoBlocks = [],
 		className = "",
 	}: Props = $props();
+
+	function copyEntityLink() {
+		if (entityLink) void copyTextToClipboard(formatEntityMarkdownLink(name.rus, entityLink));
+	}
 </script>
 
 <div class={`detail-header ${className}`.trim()}>
@@ -49,11 +54,18 @@
 			<div class="detail-header__name-rus">
 				<UiCopyableText
 					text={name.rus}
-					onClick={onCopy}
+					onClick={() => copyTextToClipboard(name.rus)}
 					className="detail-header__name-copy"
 				/>
 			</div>
-			<div class="detail-header__name-eng">{name.eng}</div>
+			<div class="detail-header__name-eng">
+				<UiCopyableText text={name.eng} onClick={() => copyTextToClipboard(name.eng)} showClipboard={false} />
+			</div>
+			{#if entityLink}
+				<div class="detail-header__link">
+					<UiCopyableText text={entityLink} onClick={copyEntityLink} ariaLabel="Скопировать ссылку на сущность" showClipboard={false} />
+				</div>
+			{/if}
 			{#each links as link}
 				<div class="detail-header__link">
 					<UiCopyableText

@@ -2,7 +2,7 @@
 	import type { Source } from './../../../domain/models/common/Source.ts';
 	import type { Name } from "../../../domain/models/common/Name";
 	import type { IUiEventListener } from '../../../domain/listeners/ui_event_listener.js';
-	import { copyTextToClipboard } from '../../../data/clipboard';
+	import { copyTextToClipboard, formatEntityMarkdownLink } from '../../../data/clipboard';
 	import { onMount } from 'svelte';
 
     interface SubraceLink {
@@ -15,7 +15,6 @@
         url?: string;
         type?: string;
         source?: Source;
-        onClick: () => void;
         images?: string[];
         uiEventListener?: IUiEventListener;
         abilities?: string;
@@ -25,7 +24,11 @@
         onSubraceClick?: (id: string) => void;
     }
 
-    let { name, url, type, source, onClick, images, uiEventListener, abilities, size, speed, subraces, onSubraceClick }: Props = $props();
+    let { name, url, type, source, images, uiEventListener, abilities, size, speed, subraces, onSubraceClick }: Props = $props();
+
+    function copyEntityLink() {
+        if (url) void copyTextToClipboard(formatEntityMarkdownLink(name.rus, url));
+    }
 
     let currentImageIndex = $state(0);
     let imagesLength = $derived(images?.length ?? 0);
@@ -66,19 +69,19 @@
                     class="name-rus"
                     role="button"
                     tabindex="0"
-                    onclick={onClick}
-                    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onClick(); } }}
-                    aria-label="Скопировать в буфер обмена"
+                    onclick={() => copyTextToClipboard(name.rus)}
+                    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyTextToClipboard(name.rus); } }}
+                    aria-label={`Скопировать: ${name.rus}`}
                 >
                     <span>{name.rus}</span> <span class="clipboard-icon">📋</span>
                 </div>
-                <div class="name-eng">{name.eng}</div>
+                <div class="name-eng" role="button" tabindex="0" onclick={() => copyTextToClipboard(name.eng)} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyTextToClipboard(name.eng); } }} aria-label={`Скопировать: ${name.eng}`}>{name.eng}</div>
                 {#if url}<div
                     class="name-url"
                     role="button"
                     tabindex="0"
-                    onclick={() => copyTextToClipboard(url)}
-                    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyTextToClipboard(url); } }}
+                    onclick={copyEntityLink}
+                    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyEntityLink(); } }}
                     aria-label="Скопировать ссылку в буфер обмена"
                 ><span>{url}</span> <span class="clipboard-icon">📋</span></div>{/if}
             </div>
@@ -150,19 +153,19 @@
                     class="name-rus"
                     role="button"
                     tabindex="0"
-                    onclick={onClick}
-                    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { onClick(); } }}
-                    aria-label="Скопировать в буфер обмена"
+                    onclick={() => copyTextToClipboard(name.rus)}
+                    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyTextToClipboard(name.rus); } }}
+                    aria-label={`Скопировать: ${name.rus}`}
                 >
                     <span>{name.rus}</span> <span class="clipboard-icon">📋</span>
                 </div>
-                <div class="name-eng">{name.eng}</div>
+                <div class="name-eng" role="button" tabindex="0" onclick={() => copyTextToClipboard(name.eng)} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyTextToClipboard(name.eng); } }} aria-label={`Скопировать: ${name.eng}`}>{name.eng}</div>
                 {#if url}<div
                     class="name-url"
                     role="button"
                     tabindex="0"
-                    onclick={() => copyTextToClipboard(url)}
-                    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyTextToClipboard(url); } }}
+                    onclick={copyEntityLink}
+                    onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyEntityLink(); } }}
                     aria-label="Скопировать ссылку в буфер обмена"
                 ><span>{url}</span> <span class="clipboard-icon">📋</span></div>{/if}
             </div>
