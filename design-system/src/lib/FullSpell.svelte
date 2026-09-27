@@ -138,6 +138,7 @@ import UserCog from "lucide-svelte/icons/user-cog";
 		gap: 12px;
 		width: 100%;
 		min-width: 0;
+		border-radius: var(--dnd-ui-radius-lg, 8px);
 		padding: 8px;
 		background:
 			linear-gradient(
