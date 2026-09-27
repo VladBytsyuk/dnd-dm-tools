@@ -3,6 +3,8 @@
 	import SmallArtifact from "./SmallArtifact.svelte";
 	import SmallBackground from "./SmallBackground.svelte";
 	import SmallClass from "./SmallClass.svelte";
+	import SmallDmScreen from "./SmallDmScreen.svelte";
+	import { WithImage as smallDmScreenWithImage } from "./SmallDmScreen.stories";
 	import SmallEquipment from "./SmallEquipment.svelte";
 	import SmallFeat from "./SmallFeat.svelte";
 	import SmallRace from "./SmallRace.svelte";
@@ -12,6 +14,7 @@
 
 	type Props = { theme?: "dark" | "light" };
 	let { theme = "dark" }: Props = $props();
+	const dmScreenProps = smallDmScreenWithImage.args!;
 </script>
 
 <div class="gallery" data-theme={theme}>
@@ -25,6 +28,7 @@
 	<SmallClass classColor="var(--ds-paladin)" title="Паладин" subtitle="Paladin" description="1к10" source="PHB" {theme} />
 	<SmallEquipment title="Арбалетные болты" subtitle="Crossbow Bolt" source="PHB" {theme} />
 	<SmallBackground title="Моряк" subtitle="Sailor" source="PHB" {theme} />
+	<SmallDmScreen {...dmScreenProps} {theme} />
 </div>
 
 <style>
