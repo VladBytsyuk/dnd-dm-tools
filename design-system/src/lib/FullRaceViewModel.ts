@@ -70,7 +70,6 @@ export type FullRaceViewModel = {
 	origin?: FullRaceOrigin;
 	group?: FullRaceType;
 	darkvision?: FullRaceDarkvision;
-	additionalSections?: FullRaceAdditionalSection[];
 	image?: string;
 	subraces?: FullRaceSubrace[];
 };
