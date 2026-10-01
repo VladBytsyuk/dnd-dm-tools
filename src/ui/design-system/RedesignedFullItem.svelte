@@ -48,6 +48,7 @@
 	let saving = $state(false);
 	function createDraft() { return toFullViewModel(panelKey, currentItem); }
 	let draft = $state<FullViewModel>(createDraft());
+	let pastedEntityBase: Record<string, any> | undefined = $state();
 	let validationError = $state("");
 	let handledActionRequest = 0;
 	const isClass = $derived(panelKey === "classes");
@@ -87,6 +88,7 @@
 
 	function beginEdit() {
 		if (editing || isClass) return;
+		pastedEntityBase = undefined;
 		draft = cloneDesignData(toFullViewModel(panelKey, currentItem));
 		if (!currentItem.url) draft.entityLink = entityUrlPrefix(panelKey);
 		else if ((currentItem.origin ?? "remote") === "remote") draft.entityLink = `${currentItem.url}_`;
@@ -122,6 +124,7 @@
 			const nextDraft = cloneDesignData(toFullViewModel(panelKey, item));
 			if (currentItem.url && item.url === currentItem.url) nextDraft.entityLink = draft.entityLink;
 			draft = nextDraft;
+			pastedEntityBase = cloneDesignData(item);
 			validationError = "";
 			new Notice("Данные вставлены из буфера обмена.");
 		} catch (error) {
@@ -132,6 +135,7 @@
 	function cancelEdit() {
 		if (saving) return;
 		editing = false;
+		pastedEntityBase = undefined;
 		validationError = "";
 		draft = cloneDesignData(toFullViewModel(panelKey, currentItem));
 		onEditorStateChange?.({ editing, saving });
@@ -143,9 +147,9 @@
 		saving = true;
 		onEditorStateChange?.({ editing, saving });
 		try {
-			const next = applyFullViewModel(panelKey, currentItem, draft);
+			const next = applyFullViewModel(panelKey, pastedEntityBase ?? currentItem, draft);
 			const result = await onItemSave?.(next, { originalUrl: currentItem.url || undefined, originalOrigin: currentItem.origin ?? "remote" });
-			if (!result || result.ok) { currentItem = next; editing = false; validationError = ""; }
+			if (!result || result.ok) { currentItem = next; editing = false; pastedEntityBase = undefined; validationError = ""; }
 			else validationError = result.message;
 		} catch (error) { validationError = error instanceof Error ? error.message : "Не удалось сохранить сущность."; }
 		finally {
@@ -155,7 +159,7 @@
 	}
 	function copyFullItem() {
 		if (panelKey === "classes") return copyClassToClipboard(currentItem as FullClassDomain);
-		const item = applyFullViewModel(panelKey, currentItem, draft);
+		const item = applyFullViewModel(panelKey, pastedEntityBase ?? currentItem, draft);
 		switch (panelKey) {
 			case "bestiary": return copyMonsterToClipboard(item as FullMonster);
 			case "spellbook": return copySpellToClipboard(item as FullSpellDomain);

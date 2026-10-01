@@ -27,7 +27,8 @@ import { FullClassSqlTableDao } from './FullClassSqlTableDao';
 import { CharacterSheetSqlTableDao } from './CharacterSheetSqlTableDao';
 import { EntityOriginDao } from './EntityOriginDao';
 import type { Initializable } from 'src/domain/Initializable';
-import { DatabaseSeedOrchestrator } from 'src/data/services';
+import type { EntityKind } from 'src/domain/models/common/EntityOrigin';
+import { DatabaseSeedOrchestrator, bundledEntityUrlsByKind } from 'src/data/services';
 import { DbTransactionalStore, SeedStore } from 'src/data/stores';
 
 export default class DB implements Initializable {
@@ -107,6 +108,7 @@ export default class DB implements Initializable {
                 await Promise.all(
                     sqlTableDaos.map(tableDao => tableDao.initialize())
                 );
+                this.smallArmorDao.ensureWeightColumn();
                 this.fullRaceDao.ensureAdditionalSectionsColumn();
             });
 
@@ -278,7 +280,7 @@ export default class DB implements Initializable {
     }
 
     private async backfillRemoteOrigins(): Promise<void> {
-        const tables: Array<[string, string]> = [
+        const tables: Array<[EntityKind, string]> = [
             ["bestiary", "small_bestiary"],
             ["spellbook", "small_spellbook"],
             ["dm-screen", "dm_screen_items"],
@@ -293,10 +295,14 @@ export default class DB implements Initializable {
         ];
         await this.transaction(async () => {
             for (const [kind, table] of tables) {
-                this.database!.exec(
-                    `INSERT OR IGNORE INTO entity_origins (entity_kind, url, origin) SELECT ?, url, 'remote' FROM ${table};`,
-                    [kind],
-                );
+                const result = this.database!.exec(`SELECT url FROM ${table};`);
+                const bundledUrls = bundledEntityUrlsByKind[kind] ?? new Set<string>();
+                for (const [urlValue] of result[0]?.values ?? []) {
+                    const url = String(urlValue);
+                    if (await this.entityOriginDao.exists(kind, url)) continue;
+                    if (bundledUrls.has(url)) await this.entityOriginDao.ensureRemote(kind, url);
+                    else await this.entityOriginDao.markManual(kind, url);
+                }
             }
         });
     }

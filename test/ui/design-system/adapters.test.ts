@@ -24,11 +24,14 @@ describe("design system adapters", () => {
 			components: { v: true, s: true, m: "фосфор" },
 		});
 		const weapon = toSmallCardProps("arsenal", { price: "5 зм." });
+		const armor = toSmallCardProps("armory", { price: "150 зм.", weight: 65 });
 		const artifact = toSmallCardProps("artifactory", { customization: true });
 
 		expect(statblock).not.toHaveProperty("secondarySource");
 		expect(spell).toMatchObject({ concentration: true, ritual: true, components: { verbal: true, somatic: true, material: "фосфор" } });
 		expect(weapon.price).toBe("5 зм.");
+		expect(armor.weight).toBe("65");
+		expect(toSmallCardProps("armory", { price: "150 зм." }).weight).toBe("");
 		expect(artifact.customization).toBe(true);
 	});
 
@@ -113,6 +116,23 @@ describe("design system adapters", () => {
 
 		const monsterView = toFullViewModel("bestiary", { name: { rus: "Монстр", eng: "Monster" }, ability: undefined });
 		expect((monsterView as any).abilities).toHaveLength(6);
+	});
+
+	it("preserves hidden fields from a pasted monster when applying editor changes", () => {
+		const pastedMonster = {
+			name: { rus: "Монстр", eng: "Monster" }, url: "/bestiary/monster",
+			armor: [{ name: "Кольчуга", value: 16 }],
+			hits: { average: 42, formula: "5к8+20", text: "42 (5к8+20)" },
+			legendary: { count: 3, list: [{ name: "Действие", value: "Текст" }] },
+		};
+		const view = toFullViewModel("bestiary", pastedMonster);
+		view.russianName = "Изменённый монстр";
+
+		const updated = applyFullViewModel("bestiary", pastedMonster, view);
+		expect(updated.name.rus).toBe("Изменённый монстр");
+		expect(updated.armor).toEqual(pastedMonster.armor);
+		expect(updated.hits.text).toBe("42 (5к8+20)");
+		expect(updated.legendary.count).toBe(3);
 	});
 
 	it("maps monster action and trait text stored in named-value fields", () => {

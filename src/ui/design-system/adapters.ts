@@ -47,7 +47,7 @@ export function toSmallCardProps(kind: PanelKey, item: Entity): Entity {
 		case "bestiary": return { ...common, challengeRating: item.challengeRating ?? "—", creatureTypeColor: creatureColor(typeName(item.type)), description: typeName(item.type) };
 		case "spellbook": return { ...common, level: item.level ?? 0, school: item.school ?? "", schoolColor: schoolColor(item.school ?? ""), concentration: item.concentration, ritual: item.ritual, components: { verbal: item.components?.v ?? item.components?.verbal, somatic: item.components?.s ?? item.components?.somatic, material: item.components?.m ?? item.components?.material } };
 		case "arsenal": return { ...common, weaponTypeColor: weaponColor(typeName(item.type)), damage: damageText(item.damage), range: item.type?.name ?? "", price: item.price ?? "" };
-		case "armory": return { ...common, armorTypeColor: armorColor(typeName(item.type)), armorClass: item.armorClass ?? "", weight: item.price ?? "" };
+		case "armory": return { ...common, armorTypeColor: armorColor(typeName(item.type)), armorClass: item.armorClass ?? "", weight: item.weight === undefined ? "" : String(item.weight) };
 		case "equipment": return common;
 		case "artifactory": return { ...common, rarity: item.rarity?.name ?? item.rarity?.type ?? "", rarityColor: rarityColor(item.rarity?.type), customization: Boolean(item.customization) };
 		case "backgrounds": return common;

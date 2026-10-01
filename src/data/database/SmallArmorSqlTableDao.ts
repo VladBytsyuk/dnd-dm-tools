@@ -36,9 +36,17 @@ export class SmallArmorSqlTableDao extends Dao<SmallArmor, ArmoryFilters> {
                 source_name TEXT NOT NULL,
                 group_name TEXT NOT NULL,
                 group_short_name TEXT NOT NULL,
-                homebrew INTEGER DEFAULT 0
+                homebrew INTEGER DEFAULT 0,
+                weight REAL
             );
         `);
+    }
+
+    ensureWeightColumn(): void {
+        const columns = this.database.exec(`PRAGMA table_info(${this.getTableName()});`)[0]?.values ?? [];
+        if (!columns.some((column) => column[1] === "weight")) {
+            this.database.exec(`ALTER TABLE ${this.getTableName()} ADD COLUMN weight REAL;`);
+        }
     }
 
     // CRUD operations
@@ -59,8 +67,9 @@ export class SmallArmorSqlTableDao extends Dao<SmallArmor, ArmoryFilters> {
                     source_name,
                     group_name,
                     group_short_name,
-                    homebrew
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    homebrew,
+                    weight
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `, [
                 item.name.rus,
                 item.name.eng,
@@ -74,6 +83,7 @@ export class SmallArmorSqlTableDao extends Dao<SmallArmor, ArmoryFilters> {
                 item.source.group.name,
                 item.source.group.shortName,
                 item.source.homebrew ? 1 : 0,
+                item.weight ?? null,
             ]);
         } catch (error) {
             console.error(`Error creating SmallArmor item ${item.name.rus}:`, error);
@@ -119,7 +129,8 @@ export class SmallArmorSqlTableDao extends Dao<SmallArmor, ArmoryFilters> {
                     source_name = ?,
                     group_name = ?,
                     group_short_name = ?,
-                    homebrew = ?
+                    homebrew = ?,
+                    weight = ?
                 WHERE url = ?;
             `, [
                 item.name.rus,
@@ -134,6 +145,7 @@ export class SmallArmorSqlTableDao extends Dao<SmallArmor, ArmoryFilters> {
                 item.source.group.name,
                 item.source.group.shortName,
                 item.source.homebrew ? 1 : 0,
+                item.weight ?? null,
                 item.url,
             ]);
         } catch (error) {
@@ -166,6 +178,7 @@ export class SmallArmorSqlTableDao extends Dao<SmallArmor, ArmoryFilters> {
                     },
                     homebrew: Boolean(sqlValues[12]),
                 },
+                weight: sqlValues[13] === null ? undefined : sqlValues[13] as number,
             }
         } catch (error) {
             console.error('Error mapping SQL values to SmallArmor:', error);

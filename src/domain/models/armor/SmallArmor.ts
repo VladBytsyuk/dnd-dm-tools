@@ -6,5 +6,6 @@ export interface SmallArmor extends BaseItem {
     type: Type;
     armorClass: string;
     price: string;
+    weight?: number;
     source: Source;
 }
