@@ -89,6 +89,7 @@
             currentItem = itemsStack.last() || undefined;
             detailEditing = false;
             detailSaving = false;
+            toolbarActionRequest = { id: toolbarActionRequest.id + 1, command: "cancel" };
         }
     }
 
@@ -99,6 +100,13 @@
 
     function requestToolbarAction(command: "edit" | "save" | "cancel" | "copy" | "paste") {
         toolbarActionRequest = { id: toolbarActionRequest.id + 1, command };
+    }
+
+    function onAddClick() {
+        if (!emptyFullItem) return;
+        currentItem = emptyFullItem;
+        itemsStack.push(emptyFullItem);
+        if (panelKey !== "classes") requestToolbarAction("edit");
     }
 
     function onRedesignedEditorStateChange(state: { editing: boolean; saving: boolean }) {
@@ -265,7 +273,7 @@
         onclearclick={undefined}
         onfiltersclick={currentItem ? undefined : onSearchBarFiltersClick}
         isfiltersapplied={() => !isFiltersEmpty(filters)}
-        onaddclick={!currentItem && emptyFullItem ? () => { currentItem = emptyFullItem; itemsStack.push(emptyFullItem); } : undefined}
+        onaddclick={!currentItem && emptyFullItem ? onAddClick : undefined}
         oneditclick={redesignEnabled && currentItem && panelKey !== "classes" && !detailEditing ? () => requestToolbarAction("edit") : undefined}
         oncopyclick={redesignEnabled && currentItem ? () => requestToolbarAction("copy") : undefined}
         onpasteclick={redesignEnabled && currentItem && detailEditing ? () => requestToolbarAction("paste") : undefined}
@@ -279,14 +287,16 @@
     {#if currentItem}
         <div class="content content-full">
             {#if redesignEnabled}
-                <RedesignedFullItem
-                    {panelKey}
-                    currentItem={currentItem}
-                    actionRequest={toolbarActionRequest}
-                    onEditorStateChange={onRedesignedEditorStateChange}
-                    {uiEventListener}
-                    {onItemSave}
-                />
+                {#key currentItem.url}
+                    <RedesignedFullItem
+                        {panelKey}
+                        currentItem={currentItem}
+                        actionRequest={toolbarActionRequest}
+                        onEditorStateChange={onRedesignedEditorStateChange}
+                        {uiEventListener}
+                        {onItemSave}
+                    />
+                {/key}
             {:else}<FullItemSlot
                 currentItem={currentItem}
                 repository={repository}

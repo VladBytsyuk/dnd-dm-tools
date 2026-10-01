@@ -35,7 +35,7 @@
 
 .dnd-table thead th {
 	height: 16px;
-	background: var(--dnd-table-accent) !important;
+	background: linear-gradient(rgb(48 48 48 / 40%), rgb(48 48 48 / 40%)), var(--dnd-table-accent) !important;
 	color: #fff;
 	font-weight: 700;
 }

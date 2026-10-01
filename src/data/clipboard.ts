@@ -98,7 +98,12 @@ async function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string
     const content = `\`\`\`${codeBlockName}\n${additionalContent ? `${additionalContent}\n`: ''}${yaml}\n\`\`\``
     try {
         await writeTextToClipboard(content);
-        if (!ignoreNotice) new Notice(`${objName} - успешно скопировано.`);
+        if (!ignoreNotice) {
+            const notice = codeBlockName === "encounter" || codeBlockName === "encounter-participant"
+                ? `${objName} - успешно скопировано.`
+                : `Блок: ${objName} - скопировано`;
+            new Notice(notice);
+        }
     } catch(e) {
         console.error(`Failed to save ${codeBlockName} into clipboard: ${e}`);
     }

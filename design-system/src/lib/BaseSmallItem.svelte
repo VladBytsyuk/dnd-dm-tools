@@ -14,6 +14,7 @@
 		secondaryColor?: string;
 		overlayOpacity?: string;
 		height?: number;
+		valueFontSize?: number;
 		value?: string | number;
 		title?: string;
 		subtitle?: string;
@@ -36,6 +37,7 @@
 		secondaryColor = "#303030",
 		overlayOpacity,
 		height = 64,
+		valueFontSize = 36,
 		value,
 		title,
 		subtitle,
@@ -75,7 +77,7 @@
 	data-has-meta={Boolean(source || secondarySource || centerIcons.length || bottomIcons.length || Icon)}
 	data-has-image={Boolean(imageSrc)}
 	data-has-description={Boolean(description)}
-	style={`--accent-color: ${resolvedAccentColor}; --primary-color: ${resolvedPrimaryColor}; --secondary-color: ${resolvedSecondaryColor}; --overlay-opacity: ${resolvedOverlayOpacity}; --item-height: ${height}px; --meta-width: ${metaWidth}px`}
+	style={`--accent-color: ${resolvedAccentColor}; --primary-color: ${resolvedPrimaryColor}; --secondary-color: ${resolvedSecondaryColor}; --overlay-opacity: ${resolvedOverlayOpacity}; --item-height: ${height}px; --meta-width: ${metaWidth}px; --value-font-size: ${valueFontSize}px`}
 >
 	{#if accentColor}
 		<div class="accent" aria-hidden="true"></div>
@@ -160,7 +162,7 @@
 	.small-item[data-theme="light"]:hover::after, .small-item[data-theme="light"][data-state="hovered"]::after { background: rgb(15 23 42 / 12%); }
 	.small-item[data-theme="light"]:active::after, .small-item[data-theme="light"][data-state="clicked"]::after { background: rgb(15 23 42 / 24%); }
 	.accent { background: var(--accent-color); }
-	.value { display: grid; place-items: center; padding: 8px; font-size: 36px; font-weight: 700; line-height: 1; }
+	.value { display: grid; place-items: center; padding: 8px; font-size: var(--value-font-size); font-weight: 700; line-height: 1; }
 	.image { display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; max-width: var(--item-height); max-height: 100%; object-fit: contain; padding: 4px; box-sizing: border-box; }
 	.content, .meta { display: flex; flex-direction: column; justify-content: space-between; }
 	.content { min-width: 0; padding: 8px; }

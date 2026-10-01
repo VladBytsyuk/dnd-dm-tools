@@ -50,6 +50,19 @@ describe("design system adapters", () => {
 		expect(updated.unmappedField).toBe("preserve me");
 	});
 
+	it("creates a blank artifact with editable image and cost fields", () => {
+		const item = createEmptyDomainItem("artifactory")!;
+		const view = toFullViewModel("artifactory", item) as any;
+
+		expect(view).toMatchObject({ cost: { dmg: "", xge: "" }, images: [], description: { html: "" } });
+	});
+
+	it("normalizes missing artifact images for the editable image group", () => {
+		const view = toFullViewModel("artifactory", { name: { rus: "Артефакт", eng: "Artifact" } }) as any;
+
+		expect(view.images).toEqual([]);
+	});
+
 	it("persists weapon damage and edited properties from the full view model", () => {
 		const weapon = {
 			name: { rus: "Копьё", eng: "Spear" },

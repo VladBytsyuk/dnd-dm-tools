@@ -19,6 +19,7 @@
 	primaryColor="var(--ds-bestiary)"
 	secondaryColor="var(--ds-bestiary-sub)"
 	height={96}
+	valueFontSize={28}
 	value={challengeRating}
 	{title}
 	{subtitle}

@@ -38,17 +38,20 @@
 	let chips = $derived.by<ChipsListItem[]>(() => {
 		const items: ChipsListItem[] = [];
 
-		if (artifact.customization) {
+		if (artifact.customization || editable) {
 			items.push({
 				icon: UserCog,
 				iconTooltip: "Требуется настройка",
+				toggle: true,
+				active: Boolean(artifact.customization),
+				onToggle: () => artifact.customization = !artifact.customization,
 				background: accentBackground,
 			});
 		}
 
-		if (artifact.cost?.dmg) {
+		if (artifact.cost?.dmg || editable) {
 			items.push({
-				text: `DMG: ${artifact.cost.dmg}`,
+				text: `DMG: ${artifact.cost?.dmg ?? ""}`,
 				icon: Coins,
 				iconTooltip: "Стоимость по Руководству мастера",
 				background: accentBackground,
@@ -56,9 +59,9 @@
 			});
 		}
 
-		if (artifact.cost?.xge) {
+		if (artifact.cost?.xge || editable) {
 			items.push({
-				text: `XGE: ${artifact.cost.xge}`,
+				text: `XGE: ${artifact.cost?.xge ?? ""}`,
 				html: xgeCostHtml,
 				icon: Coins,
 				iconTooltip: "Стоимость по Руководству Занатара обо всём",
@@ -87,7 +90,7 @@
 	}
 
 	function updateCost(key: keyof NonNullable<FullArtifactViewModel["cost"]>, value: string) {
-		if (!artifact.cost) return;
+		artifact.cost ??= { dmg: "", xge: "" };
 		const prefix = key.toUpperCase() + ": ";
 		artifact.cost[key] = value.startsWith(prefix) ? value.slice(prefix.length) : value;
 	}
@@ -145,7 +148,7 @@
 			{/if}
 		</div>
 
-		{#if hasImages}
+		{#if hasImages || editable}
 			<ImageGroup bind:images={artifact.images} alt={artifact.russianName} size={128} {onImageRequested} {editable} {theme} />
 		{/if}
 	</div>
