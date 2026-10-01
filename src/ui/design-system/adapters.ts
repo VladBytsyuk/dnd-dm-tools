@@ -210,8 +210,8 @@ function namedValuesHtml(value: any): string {
 }
 function escapeHtml(value: string): string { return value.replace(/&/gu, "&amp;").replace(/</gu, "&lt;").replace(/>/gu, "&gt;"); }
 function escapeHtmlAttribute(value: string): string { return escapeHtml(value).replace(/"/gu, "&quot;"); }
-function richItems(value: any): { title: string; html: string }[] { return (value ?? []).map((v: Entity) => ({ title: v.name ?? v.title ?? "", html: v.description ?? v.html ?? v.value ?? v.text ?? "" })); }
-function actionSection(title: string, values: any[] = [], description?: string) { return { title, descriptionHtml: description ?? "", items: (values ?? []).map((v: Entity) => ({ title: v.name ?? v.title ?? "", html: v.description ?? v.html ?? v.value ?? v.text ?? "" })) }; }
+function richItems(value: any): { title: string; html: string }[] { return (value ?? []).map((v: Entity) => ({ title: v.name ?? v.title ?? "", html: v.value ?? v.description ?? v.html ?? v.text ?? "" })); }
+function actionSection(title: string, values: any[] = [], description?: string) { return { title, descriptionHtml: description ?? "", items: (values ?? []).map((v: Entity) => ({ title: v.name ?? v.title ?? "", html: v.value ?? v.description ?? v.html ?? v.text ?? "" })) }; }
 function classLinks(values: any[] = []) { return values.map(v => ({ name: v.name?.rus ?? v.name ?? "", url: v.url ?? "", parentClass: v.parentClass })); }
 function speedText(values: any[] = []): string { return values.map(v => `${v.name ?? ""} ${v.value ?? ""}${v.additional ? ` ${v.additional}` : ""}`.trim()).join(", "); }
 function hitPointsFormula(value: any): string {
@@ -222,7 +222,15 @@ function hitPointsFormula(value: any): string {
 function sensesText(value: any): string { return value ? [value.senses?.map((v: Entity) => `${v.name} ${v.value ?? ""}`).join(", "), value.passivePerception ? `Пассивное восприятие ${value.passivePerception}` : ""].filter(Boolean).join("; ") : ""; }
 function abilityEntries(value: any) { return [["str", "СИЛ"], ["dex", "ЛОВ"], ["con", "ТЕЛ"], ["int", "ИНТ"], ["wiz", "МДР"], ["cha", "ХАР"]].map(([key, label]) => { const score = Number(value?.[key] ?? 10); return { label, score, modifier: Math.floor((score - 10) / 2) }; }); }
 function numberValue(value: unknown, fallback: number): number { const parsed = Number(value); return Number.isFinite(parsed) ? parsed : fallback; }
-function parseSpeed(text: string | undefined, fallback: any[] = []) { if (!text) return fallback; return text.split(",").map(part => { const m = part.trim().match(/^(.*?)\s*(\d+)?\s*(.*)$/); return { name: m?.[1]?.trim() ?? "", value: m?.[2] ? Number(m[2]) : undefined, additional: m?.[3]?.trim() ?? "" }; }); }
+function parseSpeed(text: string | undefined, fallback: any[] = []) {
+	if (!text) return fallback;
+	return text.split(",").map((part, index) => {
+		const value = part.trim();
+		const match = value.match(/^(.*?)\s*(\d+)(?:\s+(.*))?$/u);
+		if (!match) return fallback[index] ?? { name: value, value: undefined, additional: "" };
+		return { name: match[1].trim(), value: Number(match[2]), additional: match[3]?.trim() ?? "" };
+	});
+}
 function parseStringList(text: string | undefined): string[] { return text?.split(",").map(value => value.trim()).filter(Boolean) ?? []; }
 function parseSenses(text: string | undefined, fallback: Entity = {}) {
 	if (text === undefined) return fallback;
@@ -230,10 +238,13 @@ function parseSenses(text: string | undefined, fallback: Entity = {}) {
 	const passive = parts.find(value => /пассивное восприятие/i.test(value));
 	const passivePerception = passive?.match(/\d+/)?.[0] ?? "";
 	const senseText = parts.filter(value => value !== passive).join(", ");
-	const senses = senseText.split(",").map(part => {
-		const match = part.trim().match(/^(.*?)\s+(\d+)\s*футов?$/i);
-		return match ? { name: match[1].trim(), value: Number(match[2]) } : undefined;
-	}).filter((value): value is { name: string; value: number } => Boolean(value));
+	const senses = senseText ? senseText.split(",").map((part, index) => {
+		const value = part.trim();
+		const match = value.match(/^(.*?)\s+(\d+)(?:\s+фут(?:а|ов)?)?$/iu);
+		return match
+			? { name: match[1].trim(), value: Number(match[2]) }
+			: fallback.senses?.[index] ?? { name: value, value: 0 };
+	}) : [];
 	return { ...fallback, passivePerception, senses };
 }
 function parseNamedValues(text: string | undefined, fallback: any[] = [], savingThrows = false): any[] {
@@ -245,5 +256,5 @@ function parseNamedValues(text: string | undefined, fallback: any[] = [], saving
 	}).filter(value => value.name);
 }
 function applyAbilities(target: Entity = {}, values: FullStatblockViewModel["abilities"] = []) { const keys = ["str", "dex", "con", "int", "wiz", "cha"]; return Object.fromEntries(keys.map((key, i) => [key, numberValue(values?.[i]?.score, target[key] ?? 10)])); }
-function applyRichItems(target: any[] = [], values: FullStatblockViewModel["traits"] = []) { return values?.map((v, i) => ({ ...(target[i] ?? {}), name: v.title, description: v.html })) ?? []; }
-function applyActions(target: any[] = [], section?: FullStatblockViewModel["actions"]) { return section?.items.map((v, i) => ({ ...(target[i] ?? {}), name: v.title, description: v.html })) ?? []; }
+function applyRichItems(target: any[] = [], values: FullStatblockViewModel["traits"] = []) { return values?.map((v, i) => ({ ...(target[i] ?? {}), name: v.title, value: v.html })) ?? []; }
+function applyActions(target: any[] = [], section?: FullStatblockViewModel["actions"]) { return section?.items.map((v, i) => ({ ...(target[i] ?? {}), name: v.title, value: v.html })) ?? []; }
