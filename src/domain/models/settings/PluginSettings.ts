@@ -6,7 +6,8 @@ import {
 import type { OwlbearEncounterSnapshot } from "../owlbear/OwlbearSync";
 
 export interface PluginSettingsState {
-	schemaVersion: 3;
+	schemaVersion: 4;
+	redesignEnabled: boolean;
 	workspace: AssistantWorkspaceState;
 	owlbearSync: OwlbearSyncSettings;
 }
@@ -26,7 +27,8 @@ export interface PluginSettingsLoadResult {
 
 export function createDefaultPluginSettings(): PluginSettingsState {
 	return {
-		schemaVersion: 3,
+		schemaVersion: 4,
+		redesignEnabled: false,
 		workspace: createDefaultAssistantWorkspace(),
 		owlbearSync: { enabled: false, port: null, authToken: null },
 	};
@@ -40,12 +42,13 @@ export function loadPluginSettings(value: unknown): PluginSettingsLoadResult {
 
 	const stored = value as Record<string, any>;
 	const workspaceResult = loadAssistantWorkspace(
-		(stored.schemaVersion === 2 || stored.schemaVersion === 3) ? stored.workspace : stored,
+			(stored.schemaVersion === 2 || stored.schemaVersion === 3 || stored.schemaVersion === 4) ? stored.workspace : stored,
 	);
 
 	return {
 		settings: {
-			schemaVersion: 3,
+			schemaVersion: 4,
+			redesignEnabled: stored.redesignEnabled === true,
 			workspace: workspaceResult.workspace,
 			owlbearSync: loadOwlbearSyncSettings(stored.owlbearSync),
 		},

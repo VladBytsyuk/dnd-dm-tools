@@ -153,7 +153,7 @@ export default class DndStatblockPlugin extends Plugin {
 		this.settings = {
 			...this.settings,
 			...patch,
-			schemaVersion: 3,
+			schemaVersion: 4,
 		};
 		this.assistantWorkspace = this.settings.workspace;
 		await this.saveData(this.settings);

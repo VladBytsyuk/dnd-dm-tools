@@ -35,10 +35,12 @@ export { default as Wrench } from "lucide-svelte/icons/wrench";
 export { default as SearchBar } from "./SearchBar.svelte";
 export type { SearchBarAction } from "./SearchBar.svelte";
 export { default as BaseSmallItem } from "./BaseSmallItem.svelte";
+export type { SmallItemMetaIcon } from "./BaseSmallItem.svelte";
 export { default as FullItemHeader } from "./FullItemHeader.svelte";
 export type { FullItemSource } from "./FullItemHeader.svelte";
 export { default as MaxItemHeader } from "./MaxItemHeader.svelte";
 export { default as FullStatblock } from "./FullStatblock.svelte";
+export { default as FullDmScreen } from "./FullDmScreen.svelte";
 export type {
 	FullStatblockAbility,
 	FullStatblockActionSection,
@@ -160,6 +162,7 @@ export { default as SmallRace } from "./SmallRace.svelte";
 export { default as SmallClass } from "./SmallClass.svelte";
 export { default as SmallEquipment } from "./SmallEquipment.svelte";
 export { default as SmallBackground } from "./SmallBackground.svelte";
+export { default as SmallDmScreen } from "./SmallDmScreen.svelte";
 export { default as EyeDashed } from "./icons/EyeDashed.svelte";
 export { default as HandFist } from "./icons/HandFist.svelte";
 export { default as One } from "./icons/One.svelte";

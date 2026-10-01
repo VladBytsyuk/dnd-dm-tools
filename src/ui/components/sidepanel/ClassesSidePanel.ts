@@ -25,6 +25,7 @@ export class ClassesSidePanel extends BaseSidePanel<SmallClass, FullClass, Class
             target: element,
             props: {
                 panelKey: this.getKey(),
+                redesignEnabled: this.plugin.getSettings().redesignEnabled,
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<ClassesFilters>(['diceTypes', 'sources']),
                 repository: this.repository,

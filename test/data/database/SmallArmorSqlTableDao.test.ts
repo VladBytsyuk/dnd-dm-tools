@@ -32,6 +32,7 @@ runSqlDaoBaseTests<SmallArmor, ArmoryFilters>({
             smallArmorRingMail.source.group.name,
             smallArmorRingMail.source.group.shortName,
             smallArmorRingMail.source.homebrew,
+            40,
         ],
         assert: (armor) => {
             expect(armor.name.rus).toStrictEqual(smallArmorRingMail.name.rus);
@@ -40,6 +41,7 @@ runSqlDaoBaseTests<SmallArmor, ArmoryFilters>({
             expect(armor.type.order).toStrictEqual(smallArmorRingMail.type.order);
             expect(armor.armorClass).toStrictEqual(smallArmorRingMail.armorClass);
             expect(armor.price).toStrictEqual(smallArmorRingMail.price);
+            expect(armor.weight).toStrictEqual(40);
             expect(armor.source.shortName).toStrictEqual(smallArmorRingMail.source.shortName);
             expect(armor.source.name).toStrictEqual(smallArmorRingMail.source.name);
             expect(armor.source.group.name).toStrictEqual(smallArmorRingMail.source.group.name);

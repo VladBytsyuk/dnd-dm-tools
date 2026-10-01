@@ -8,6 +8,7 @@
 	export type SearchBarAction = {
 		icon: Icon;
 		label: string;
+		text?: string;
 		disabled?: boolean;
 		onclick?: (event: MouseEvent) => void;
 	};
@@ -39,10 +40,11 @@
 			class="icon-button leading-action"
 			type="button"
 			aria-label={leadingAction.label}
+			title={leadingAction.label}
 			disabled={leadingAction.disabled}
 			onclick={leadingAction.onclick}
 		>
-			<Icon size={32} strokeWidth={2} />
+			<Icon size={24} strokeWidth={2} />
 		</button>
 	{/if}
 
@@ -51,7 +53,7 @@
 		{#if !value}
 			<span class="placeholder" aria-hidden="true">
 				{#if SearchIcon}
-					<SearchIcon size={32} strokeWidth={2} />
+					<SearchIcon size={24} strokeWidth={2} />
 				{/if}
 				<span>{placeholder}</span>
 			</span>
@@ -62,12 +64,15 @@
 		{@const Icon = action.icon}
 		<button
 			class="icon-button"
+			class:has-label={action.text}
 			type="button"
 			aria-label={action.label}
+			title={action.label}
 			disabled={action.disabled}
 			onclick={action.onclick}
 		>
-			<Icon size={32} strokeWidth={2} />
+			<Icon size={24} strokeWidth={2} />
+			{#if action.text}<span>{action.text}</span>{/if}
 		</button>
 	{/each}
 </div>
@@ -85,7 +90,7 @@
 		background: rgb(0 0 0 / 20%);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
-		font-size: 12px;
+		font-size: 18px;
 		font-weight: 400;
 		line-height: 1;
 	}
@@ -100,13 +105,13 @@
 	}
 
 	input {
+		all: unset;
+		box-sizing: border-box;
+		display: block;
 		width: 100%;
 		min-width: 0;
 		height: 100%;
 		padding: 0 16px;
-		border: 0;
-		outline: 0;
-		background: transparent;
 		color: inherit;
 		font: inherit;
 	}
@@ -133,7 +138,9 @@
 		text-overflow: ellipsis;
 	}
 
-	.icon-button {
+	.search-bar button.icon-button {
+		all: unset;
+		box-sizing: border-box;
 		display: grid;
 		flex: 0 0 48px;
 		width: 48px;
@@ -145,12 +152,18 @@
 		color: inherit;
 		cursor: pointer;
 	}
+	.search-bar button.icon-button.has-label {
+		display: flex;
+		flex: 0 0 auto;
+		width: auto;
+		gap: 8px;
+		padding: 0 12px;
+		font-size: 14px;
+	}
 
 	.icon-button:hover:not(:disabled) { background: rgb(255 255 255 / 8%); }
 	.icon-button:focus-visible { outline: 2px solid currentcolor; outline-offset: -2px; }
 	.icon-button:disabled { cursor: not-allowed; opacity: 0.45; }
-	.leading-action :global(svg) { transform: rotate(180deg); }
-
 	.search-bar[data-theme="light"] {
 		background: rgb(15 23 42 / 12%);
 		color: #1f2937;

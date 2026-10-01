@@ -7,7 +7,11 @@
 
 	export type ChipsListItem = {
 		text?: string;
+		placeholder?: string;
 		suffix?: string;
+		toggle?: boolean;
+		active?: boolean;
+		onToggle?: () => void;
 		icon?: Icon;
 		iconTooltip?: string;
 		imageSrc?: string;
@@ -37,9 +41,9 @@
 	{#each chips as chip}
 		<Chip {...chip} {theme} editable={editable || chip.editable} />
 	{/each}
-	{#if editable && showAddButton}
-		<button class="add-chip" type="button" aria-label="Добавить чип" disabled={!onAddChip} onclick={onAddChip}>
-			<Plus size={10} strokeWidth={1.5} />
+	{#if editable && showAddButton && onAddChip}
+		<button class="add-chip" type="button" aria-label="Добавить чип" onclick={onAddChip}>
+			<Plus size={15} strokeWidth={1.5} />
 		</button>
 	{/if}
 </div>
@@ -55,9 +59,11 @@
 	}
 
 	.add-chip {
+		all: unset;
+		box-sizing: border-box;
 		display: inline-grid;
-		width: 16px;
-		height: 16px;
+		height: 19px;
+		width: 19px;
 		place-items: center;
 		padding: 2px;
 		border: 0;

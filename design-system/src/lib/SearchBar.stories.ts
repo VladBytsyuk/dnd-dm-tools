@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/svelte-vite";
 import { ChevronRight, Copy, EditSquare, Filters, Search, Trash } from "./index";
+import ClipboardPaste from "lucide-svelte/icons/clipboard-paste";
 import SearchBar from "./SearchBar.svelte";
 
 const meta = {
@@ -25,6 +26,7 @@ export const Dark: Story = {
 		leadingAction: { icon: ChevronRight, label: "Назад" },
 		actions: [
 			{ icon: Copy, label: "Копировать" },
+			{ icon: ClipboardPaste, label: "Вставить" },
 			{ icon: EditSquare, label: "Редактировать" },
 			{ icon: Trash, label: "Удалить" },
 			{ icon: Filters, label: "Фильтры" },
@@ -42,6 +44,7 @@ export const Light: Story = {
 		leadingAction: { icon: ChevronRight, label: "Назад" },
 		actions: [
 			{ icon: Copy, label: "Копировать" },
+			{ icon: ClipboardPaste, label: "Вставить" },
 			{ icon: EditSquare, label: "Редактировать" },
 			{ icon: Trash, label: "Удалить" },
 			{ icon: Filters, label: "Фильтры" },

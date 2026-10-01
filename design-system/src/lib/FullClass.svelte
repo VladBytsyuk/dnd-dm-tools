@@ -25,14 +25,18 @@
 	type Props = {
 		characterClass: FullClassViewModel;
 		onCopyClass?: (characterClass: FullClassViewModel) => void | Promise<void>;
+		onCopyText?: (text: string) => void;
 		onEntityLinkClick?: (link: FullClassEntityLink) => void | Promise<void>;
+		onImageRequested?: (image: string) => Promise<string>;
 		theme?: "dark" | "light";
 	};
 
 	let {
 		characterClass,
 		onCopyClass,
+		onCopyText,
 		onEntityLinkClick,
+		onImageRequested,
 		theme = "dark",
 	}: Props = $props();
 
@@ -194,10 +198,10 @@
 				englishName={characterClass.englishName}
 				entityLink={characterClass.entityLink}
 				info={characterClass.archetypeType?.name}
-				source={characterClass.source}
+			source={characterClass.source}
+			onCopy={onCopyText}
 				sourceSuffix={characterClass.source.homebrew ? "*" : ""}
 				wrapRussianName={true}
-				onNameClick={onCopyClass ? () => onCopyClass(characterClass) : undefined}
 				{theme}
 			/>
 
@@ -211,7 +215,7 @@
 		</div>
 
 		{#if hasImages}
-			<ImageGroup images={characterClass.images} alt={characterClass.russianName} size={128} {theme} />
+			<ImageGroup images={characterClass.images} alt={characterClass.russianName} size={128} {onImageRequested} {theme} />
 		{/if}
 	</section>
 
@@ -259,6 +263,7 @@
 		gap: 12px;
 		width: 100%;
 		min-width: 0;
+		border-radius: var(--dnd-ui-radius-lg, 8px);
 		padding: 8px;
 		background:
 			linear-gradient(
@@ -327,9 +332,9 @@
 	.full-class :global(.rich-content h5),
 	.full-class :global(.rich-content h6) {
 		margin: 12px 0 4px;
-		font-size: 12px;
+		font-size: 18px;
 		font-weight: 700;
-		line-height: 14px;
+		line-height: 21px;
 	}
 
 	.full-class :global(.rich-content h1:first-child),

@@ -15,6 +15,7 @@
 	type Props = {
 		background: FullBackgroundViewModel;
 		onCopyBackground?: (background: FullBackgroundViewModel) => void | Promise<void>;
+		onCopyText?: (text: string) => void;
 		onEntityLinkClick?: (link: FullBackgroundEntityLink) => void | Promise<void>;
 		editable?: boolean;
 		theme?: "dark" | "light";
@@ -23,6 +24,7 @@
 	let {
 		background = $bindable<FullBackgroundViewModel>(),
 		onCopyBackground,
+		onCopyText,
 		onEntityLinkClick,
 		editable = false,
 		theme = "dark",
@@ -118,6 +120,10 @@
 		const document = new DOMParser().parseFromString(html, "text/html");
 		background.equipments = Array.from(document.querySelectorAll("li"), (item) => ({ html: item.innerHTML }));
 	}
+
+	function updatePersonalization(html: string) {
+		background.personalization = { ...(background.personalization ?? {}), html };
+	}
 </script>
 
 <article
@@ -130,9 +136,9 @@
 		bind:englishName={background.englishName}
 		bind:entityLink={background.entityLink}
 		bind:source={background.source}
+		onCopy={onCopyText}
 		sourceSuffix={background.homebrew || background.source.homebrew ? "*" : ""}
 		wrapRussianName={true}
-		onNameClick={onCopyBackground ? () => onCopyBackground(background) : undefined}
 		{editable}
 		{theme}
 	/>
@@ -176,10 +182,11 @@
 		/>
 	{/if}
 
-	{#if hasPersonalization}
+	{#if hasPersonalization || editable}
 		<TextBlock
 			title="Персонализация"
-			bind:html={background.personalization!.html}
+			html={background.personalization?.html ?? ""}
+			onHtmlChange={updatePersonalization}
 			expanded={true}
 			{accentColor}
 			{onEntityLinkClick}
@@ -199,6 +206,7 @@
 		gap: 12px;
 		width: 100%;
 		min-width: 0;
+		border-radius: var(--dnd-ui-radius-lg, 8px);
 		padding: 8px;
 		background:
 			linear-gradient(
@@ -230,9 +238,9 @@
 	.full-background :global(.rich-content h5),
 	.full-background :global(.rich-content h6) {
 		margin: 12px 0 4px;
-		font-size: 12px;
+		font-size: 18px;
 		font-weight: 700;
-		line-height: 14px;
+		line-height: 21px;
 	}
 	.full-background :global(.rich-content h1:first-child),
 	.full-background :global(.rich-content h2:first-child),

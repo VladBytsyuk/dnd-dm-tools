@@ -58,7 +58,7 @@
 
 	span {
 		font-family: sans-serif;
-		font-size: 12px;
+		font-size: 18px;
 		text-align: center;
 	}
 </style>

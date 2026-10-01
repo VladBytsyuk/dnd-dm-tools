@@ -73,6 +73,7 @@ export class ArmorProjector implements SmallItemProjector<FullArmor, SmallArmor>
 			type: fullItem.type,
 			armorClass: fullItem.armorClass,
 			price: fullItem.price,
+			weight: fullItem.weight,
 			source: fullItem.source,
 		};
 	}

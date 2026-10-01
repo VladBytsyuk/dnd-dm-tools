@@ -83,6 +83,10 @@ export const Edit: Story = {
 	args: { equipment: structuredClone(woodcarversTools), ...callbacks, editable: true, theme: "dark" },
 };
 
+export const NewEdit: Story = {
+	args: { equipment: { ...structuredClone(simpleEquipment), description: undefined }, ...callbacks, editable: true, theme: "dark" },
+};
+
 export const Complex: Story = {
 	args: { equipment: complexEquipment, ...callbacks, theme: "dark" },
 };

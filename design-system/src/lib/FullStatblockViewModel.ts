@@ -49,10 +49,13 @@ export type FullStatblockViewModel = {
 	alignment?: string;
 	armorClass?: string | number;
 	hitPoints?: string;
+	hitPointsFormula?: string;
 	speed?: string;
 	abilities?: FullStatblockAbility[];
 	savingThrows?: string;
+	savingThrowsHtml?: string;
 	skills?: string;
+	skillsHtml?: string;
 	damageVulnerabilities?: string;
 	damageResistances?: string;
 	damageImmunities?: string;

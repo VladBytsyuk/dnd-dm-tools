@@ -121,7 +121,7 @@
 			<div class="header">
 				{#if isCollapsible}<Icon class="icon" size={14} strokeWidth={2} aria-hidden={true} />{/if}
 				{#if editable}
-					<input bind:value={title} aria-label="Заголовок текстового блока" />
+					<input bind:value={title} placeholder="Заголовок" aria-label="Заголовок текстового блока" />
 				{:else}
 					<span>{title}</span>
 				{/if}
@@ -134,9 +134,9 @@
 	{#if isContentVisible}
 		{#if editable}
 			{#if html !== undefined}
-				<textarea value={html} oninput={handleHtmlInput} aria-label="HTML блока" rows={1}></textarea>
+				<textarea value={html} oninput={handleHtmlInput} placeholder="Текст или HTML" aria-label="HTML блока" rows={1}></textarea>
 			{:else}
-				<textarea bind:value={text} aria-label="Текст блока" rows={1}></textarea>
+				<textarea bind:value={text} placeholder="Текст блока" aria-label="Текст блока" rows={1}></textarea>
 			{/if}
 		{:else if html !== undefined}
 			<div class="rich-content" use:richTextLinkListener>
@@ -166,37 +166,41 @@
 		gap: 4px;
 		min-width: 0;
 		color: inherit;
-		font-size: 12px;
+		font-size: 18px;
 		font-weight: 700;
-		line-height: 14px;
+		line-height: 21px;
 	}
 
 	.header > span { overflow-wrap: anywhere; }
 	.title-suffix, .title-meta {
-		font-size: 8px;
+		font-size: 12px;
 		font-weight: 400;
-		line-height: 10px;
+		line-height: 15px;
 		opacity: 0.7;
 	}
 	.title-meta {
 		margin-left: auto;
 		white-space: nowrap;
 	}
-	.toggle {
+	.text-block button.toggle {
+		all: unset;
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
 		width: fit-content;
 		max-width: 100%;
 		padding: 0;
 		border: 0;
 		background: transparent;
 		font-family: inherit;
-		font-size: 12px;
+		font-size: 18px;
 		font-weight: 700;
-		line-height: 14px;
+		line-height: 21px;
 		text-align: left;
 		cursor: pointer;
 	}
 	.toggle.has-title-meta { width: 100%; }
-	.toggle .title-suffix, .toggle .title-meta { font-size: 8px; font-weight: 400; line-height: 10px; }
+	.toggle .title-suffix, .toggle .title-meta { font-size: 12px; font-weight: 400; line-height: 15px; }
 	.toggle .title-meta { margin-left: auto; }
 	.toggle:hover { text-decoration: underline; }
 	.toggle:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
@@ -210,15 +214,31 @@
 		margin: 0;
 		color: inherit;
 		font: inherit;
-		font-size: 10px;
+		font-size: 15px;
 		font-weight: 400;
-		line-height: 12px;
+		line-height: 18px;
 		overflow-wrap: anywhere;
 	}
+	textarea, input {
+		all: unset;
+		box-sizing: border-box;
+		display: block;
+		width: 100%;
+		min-width: 0;
+		padding: 4px 6px;
+		border: 1px solid rgb(255 255 255 / 20%);
+		border-radius: 4px;
+		background: rgb(0 0 0 / 16%);
+		color: inherit;
+		font: inherit;
+	}
+	textarea { resize: vertical; }
 
 	.rich-content :global(p) { margin: 0; }
 	.rich-content :global(p + p) { margin-top: 4px; }
+	.rich-content :global(hr) { margin: 1em 0; }
 	.rich-content :global(a) { color: inherit; text-decoration: underline; }
+	.text-block[data-theme="light"] .rich-content :global(a) { color: #1f2937; }
 	.rich-content :global(.dnd-table) { margin: 4px 0; }
 
 	input, textarea {
@@ -231,18 +251,18 @@
 	.header input {
 		min-width: 0;
 		font-family: inherit;
-		font-size: 12px;
+		font-size: 18px;
 		font-weight: 700;
-		line-height: 14px;
+		line-height: 21px;
 	}
 	textarea {
 		field-sizing: content;
 		min-height: 24px;
 		resize: vertical;
 		font-family: inherit;
-		font-size: 10px;
+		font-size: 15px;
 		font-weight: 400;
-		line-height: 12px;
+		line-height: 18px;
 	}
 	input:focus-visible, textarea:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
 </style>

@@ -74,6 +74,7 @@ export class RaceSidePanel extends BaseSidePanel<SmallRace, FullRace, RaceFilter
             target: element,
             props: {
                 panelKey: this.getKey(),
+                redesignEnabled: this.plugin.getSettings().redesignEnabled,
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<RaceFilters>(['abilities', 'types', 'sources']),
                 repository: this.repository,

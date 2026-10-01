@@ -23,7 +23,9 @@
 	type Props = {
 		race: FullRaceViewModel;
 		onCopyRace?: (race: FullRaceViewModel) => void | Promise<void>;
+		onCopyText?: (text: string) => void;
 		onEntityLinkClick?: (link: FullRaceEntityLink) => void | Promise<void>;
+		onImageRequested?: (image: string) => Promise<string>;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -31,7 +33,9 @@
 	let {
 		race = $bindable<FullRaceViewModel>(),
 		onCopyRace,
+		onCopyText,
 		onEntityLinkClick,
+		onImageRequested,
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
@@ -61,6 +65,14 @@
 
 	function updateHeaderInfo(value: string) {
 		race.type.name = value;
+	}
+
+	function addSkillBlock() {
+		race.skills = [...race.skills, { name: "", html: "" }];
+	}
+
+	function addAdditionalSection() {
+		race.additionalSections = [...(race.additionalSections ?? []), { title: "", html: "" }];
 	}
 
 	function formatAbility(value: FullRaceViewModel["abilities"][number]): string {
@@ -178,13 +190,14 @@
 		bind:entityLink={race.entityLink}
 		info={headerInfo}
 		bind:source={race.source}
+		onCopy={onCopyText}
 		sourceSuffix={race.source.homebrew ? "*" : ""}
 		wrapRussianName={true}
 		chips={primaryChips}
 		secondaryChips={subraceChips}
 		images={race.image ? [race.image] : []}
+		{onImageRequested}
 		alt={race.russianName}
-		onNameClick={onCopyRace ? () => onCopyRace(race) : undefined}
 		onInfoChange={updateHeaderInfo}
 		{editable}
 		{theme}
@@ -193,6 +206,7 @@
 	{#if race.skills.length > 0 || editable}
 		<ActionsBlock
 			blocks={skillBlocks}
+			onAddBlock={addSkillBlock}
 			blocksExpanded={true}
 			sectionExpanded={true}
 			{accentColor}
@@ -206,7 +220,7 @@
 		<TextBlock bind:html={race.description.html} expanded={true} {accentColor} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 
-	{#each race.additionalSections ?? [] as section (section.title)}
+	{#each race.additionalSections ?? [] as section, index (index)}
 		{#if section.html.trim() || editable}
 			<FilledTextBlock
 				bind:title={section.title}
@@ -224,7 +238,9 @@
 
 	{#if editable}
 		<div class="add-section-chip">
-			<Chip icon={Plus} background={accentColor} {theme} />
+			<button type="button" aria-label="Добавить текстовый блок" onclick={addAdditionalSection}>
+				<Chip icon={Plus} background={accentColor} {theme} />
+			</button>
 		</div>
 	{/if}
 </article>
@@ -239,6 +255,7 @@
 		gap: 12px;
 		width: 100%;
 		min-width: 0;
+		border-radius: var(--dnd-ui-radius-lg, 8px);
 		padding: 8px;
 		background:
 			linear-gradient(
@@ -273,9 +290,9 @@
 	.full-race :global(.rich-content h5),
 	.full-race :global(.rich-content h6) {
 		margin: 12px 0 4px;
-		font-size: 12px;
+		font-size: 18px;
 		font-weight: 700;
-		line-height: 14px;
+		line-height: 21px;
 	}
 
 	.full-race :global(.rich-content h1:first-child),
@@ -301,4 +318,6 @@
 		width: 100%;
 		justify-content: center;
 	}
+	.add-section-chip button { all: unset; display: block; width: 100%; cursor: pointer; }
+	.add-section-chip button:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
 </style>

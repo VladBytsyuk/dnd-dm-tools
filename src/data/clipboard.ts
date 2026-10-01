@@ -15,14 +15,27 @@ import type { FullRace } from "../domain/models/race/FullRace";
 import type { FullClass } from "../domain/models/class/FullClass";
 import type { FullCharacterSheet } from "src/domain/models/character";
 
+let lastWrittenClipboardText: string | undefined;
+
 // ---- Copy to clipboard ----
 export async function copyTextToClipboard(text: string, ignoreNotice: boolean = false): Promise<void> {
     try {
         await writeTextToClipboard(text);
-        if (!ignoreNotice) new Notice(`${text} - успешно скопировано.`);
+        if (!ignoreNotice) showClipboardNotice(text);
     } catch(e) {
         console.error(`Failed to save text into clipboard: ${e}`);
     }
+}
+
+export function showClipboardNotice(text: string): void {
+    const label = text.startsWith("[") && text.includes("](dnd:") ? "Ссылка" : text;
+    new Notice(`${label} - успешно скопировано.`);
+}
+
+export function formatEntityMarkdownLink(russianName: string, url: string): string {
+    const label = russianName.replace(/\\/g, "\\\\").replace(/\[/g, "\\[").replace(/\]/g, "\\]");
+    const pluginUrl = url.startsWith("dnd:") ? url : `dnd:${url}`;
+    return `[${label}](${pluginUrl})`;
 }
 
 export function copyMonsterToClipboard(monster: FullMonster, ignoreNotice: boolean = false): Promise<void> {
@@ -85,7 +98,12 @@ async function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string
     const content = `\`\`\`${codeBlockName}\n${additionalContent ? `${additionalContent}\n`: ''}${yaml}\n\`\`\``
     try {
         await writeTextToClipboard(content);
-        if (!ignoreNotice) new Notice(`${objName} - успешно скопировано.`);
+        if (!ignoreNotice) {
+            const notice = codeBlockName === "encounter" || codeBlockName === "encounter-participant"
+                ? `${objName} - успешно скопировано.`
+                : `Блок: ${objName} - скопировано`;
+            new Notice(notice);
+        }
     } catch(e) {
         console.error(`Failed to save ${codeBlockName} into clipboard: ${e}`);
     }
@@ -94,10 +112,12 @@ async function copyToClipboard<T>(obj: T, objName: string, codeBlockName: string
 export async function writeTextToClipboard(text: string): Promise<void> {
     try {
         await navigator.clipboard.writeText(text);
+        lastWrittenClipboardText = text;
         return;
     } catch (clipboardError) {
         try {
             copyTextWithDom(text);
+            lastWrittenClipboardText = text;
         } catch {
             throw clipboardError;
         }
@@ -118,7 +138,25 @@ function copyTextWithDom(text: string): void {
 }
 
 async function readTextFromClipboard(): Promise<string> {
-    return navigator.clipboard.readText();
+    try {
+        return await navigator.clipboard.readText();
+    } catch (clipboardError) {
+        if (lastWrittenClipboardText !== undefined) return lastWrittenClipboardText;
+        throw clipboardError;
+    }
+}
+
+function parseClipboardBlock<T>(clipboard: string, blockName: string): T | undefined {
+    const normalized = clipboard.replace(/\r\n?/g, "\n").trim();
+    const lines = normalized.split("\n");
+    if (lines[0]?.trim() !== `\`\`\`${blockName}` || lines.at(-1)?.trim() !== "\`\`\`") return undefined;
+    const body = lines.slice(1, -1);
+    if (blockName === "spell" && /^spell:\s*.+$/u.test(body[0]?.trim() ?? "")) body.shift();
+    return parseYaml(body.join("\n")) as T;
+}
+
+export async function getMarkdownCodeBlockFromClipboard<T>(blockName: string): Promise<T | undefined> {
+    return parseClipboardBlock<T>(await readTextFromClipboard(), blockName);
 }
 
 // ---- Get from clipboard ----
@@ -133,16 +171,20 @@ export async function getMonsterFromClipboard(ignoreNotice: boolean = false): Pr
 }
 
 export async function getEncounterParticipantFromClipboard(ignoreNotice: boolean = false): Promise<EncounterParticipant | undefined> {
-    const characterParticipant = await getFromClipboard<EncounterParticipant>("encounter-participant", true);
-    if (characterParticipant) return characterParticipant;
+    try {
+        const clipboard = await readTextFromClipboard();
+        const characterParticipant = parseClipboardBlock<EncounterParticipant>(clipboard, "encounter-participant");
+        if (characterParticipant) return characterParticipant;
 
-    const monster = await getFromClipboard<FullMonster>("statblock");
-    if (monster) {
-        return mapMonsterToEncounterParticipant(monster);
-    } else {
-        if (!ignoreNotice) new Notice(`Не удалось прочитать статблок из буфера обмена`);   
-        return undefined;
+        const monster = parseClipboardBlock<FullMonster>(clipboard, "statblock");
+        if (monster) return mapMonsterToEncounterParticipant(monster);
+
+        if (!ignoreNotice) new Notice(`Не удалось прочитать статблок из буфера обмена`);
+    } catch (error) {
+        console.error(`Failed to read encounter participant from clipboard: ${error}`);
+        if (!ignoreNotice) new Notice(`Не удалось прочитать данные из буфера обмена`);
     }
+    return undefined;
 }
 
 export async function getEncounterFromClipboard(): Promise<Encounter | undefined> {
@@ -158,16 +200,12 @@ export async function getClassFromClipboard(ignoreNotice: boolean = false): Prom
 
 export async function getFromClipboard<T>(blockName: string, ignoreNotice: boolean = false): Promise<T | undefined> {
     try {
-        const clipboard = (await readTextFromClipboard())
-            .replace(/\r\n?/g, "\n")
-            .trim();
-        const lines = clipboard.split("\n");
-        if (lines[0]?.trim() !== `\`\`\`${blockName}` || lines.at(-1)?.trim() !== "```") {
+        const clipboard = await readTextFromClipboard();
+        const value = parseClipboardBlock<T>(clipboard, blockName);
+        if (value === undefined) {
             throw new Error(`Clipboard content does not start with \`\`\`${blockName}`);   
         }
-        const yaml = lines.slice(1, -1).join("\n");
-        const obj = parseYaml(yaml) as T;   
-        return obj;
+        return value;
     } catch(e) {
         console.error(`Failed to read text from clipboard: ${e}`);
         if (!ignoreNotice) new Notice(`Не удалось прочитать данные из буфера обмена`);

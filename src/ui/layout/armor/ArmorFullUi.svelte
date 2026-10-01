@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { IUiEventListener } from 'src/domain/listeners/ui_event_listener.js';
-	import { copyArmorToClipboard } from 'src/data/clipboard';
 	import HtmlBlock from '../uikit/HtmlBlock.svelte';
 	import type { FullArmor } from 'src/domain/models/armor/FullArmor';
 	import UiDetailCard from '../uikit/organisms/UiDetailCard.svelte';
@@ -30,9 +29,9 @@
 <UiDetailCard>
     <UiDetailHeader 
         name={currentItem.name}
+        entityLink={currentItem.url}
         type={currentItem.type.name}
         source={currentItem.source}
-        onCopy={() => copyArmorToClipboard(currentItem)}
     />
     <UiPropertyGrid items={properties} {uiEventListener} />
     {#if currentItem.description}

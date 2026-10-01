@@ -24,6 +24,7 @@ export class FeatsSidePanel extends BaseSidePanel<SmallFeat, FullFeat, FeatsFilt
             target: element,
             props: {
                 panelKey: this.getKey(),
+                redesignEnabled: this.plugin.getSettings().redesignEnabled,
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<FeatsFilters>(['sources']),
                 repository: this.repository,

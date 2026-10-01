@@ -3,6 +3,8 @@
 	import Hourglass from "lucide-svelte/icons/hourglass";
 	import Route from "lucide-svelte/icons/route";
 	import Sword from "lucide-svelte/icons/sword";
+import Sparkles from "lucide-svelte/icons/sparkles";
+import UserCog from "lucide-svelte/icons/user-cog";
 	import ChipsList, { type ChipsListItem } from "./ChipsList.svelte";
 	import Components from "./Components.svelte";
 	import FilledTextBlock from "./FilledTextBlock.svelte";
@@ -14,26 +16,46 @@
 	type Props = {
 		spell: FullSpellViewModel;
 		onCopySpell?: (spell: FullSpellViewModel) => void | Promise<void>;
+		onCopyText?: (text: string) => void;
 		onEntityLinkClick?: (link: FullSpellEntityLink) => void | Promise<void>;
 		theme?: "dark" | "light";
+		editable?: boolean;
 	};
 
-	let { spell, onCopySpell, onEntityLinkClick, theme = "dark" }: Props = $props();
+	let { spell = $bindable<FullSpellViewModel>(), onCopySpell, onCopyText, onEntityLinkClick, theme = "dark", editable = false }: Props = $props();
 
 	const accentBackground = "var(--full-spell-accent)";
 	let accentColor = $derived(colorForTheme("var(--ds-spell-sub)"));
 	let gradientStart = $derived(colorForTheme(getSchoolToken(spell.school)));
 	let gradientEnd = $derived(colorForTheme("var(--ds-spell)"));
 	let filledBackground = $derived(`color-mix(in srgb, ${accentColor} 40%, transparent)`);
-	let displayName = $derived(spell.ritual ? `${spell.russianName} [Ритуал]` : spell.russianName);
-	let headerInfo = $derived(spell.additionalType ? `${spell.school} · ${spell.additionalType}` : spell.school);
-	let duration = $derived(spell.concentration ? `Концентрация, ${spell.duration}` : spell.duration);
+
+	function updateHigherLevels(html: string) {
+		spell.higherLevels = { ...(spell.higherLevels ?? {}), html };
+	}
 	let characteristicChips = $derived.by<ChipsListItem[]>(() => [
-		{ text: spell.time, icon: Sword, iconTooltip: "Время накладывания", background: accentBackground },
-		{ text: spell.range, icon: Route, iconTooltip: "Дистанция", background: accentBackground },
-		{ text: duration, icon: Hourglass, iconTooltip: "Длительность", background: accentBackground },
+		...(editable || spell.concentration ? [{ toggle: true, active: Boolean(spell.concentration), icon: UserCog, iconTooltip: "Концентрация", background: accentBackground, onToggle: () => spell.concentration = !spell.concentration }] : []),
+		...(editable || spell.ritual ? [{ toggle: true, active: Boolean(spell.ritual), icon: Sparkles, iconTooltip: "Ритуал", background: accentBackground, onToggle: () => spell.ritual = !spell.ritual }] : []),
+		{ text: spell.time, placeholder: "1 действие", icon: Sword, iconTooltip: "Время накладывания", background: accentBackground, onTextChange: (value) => spell.time = value },
+		{ text: spell.range, placeholder: "60 футов", icon: Route, iconTooltip: "Дистанция", background: accentBackground, onTextChange: (value) => spell.range = value },
+		{ text: spell.duration, placeholder: "Мгновенная", icon: Hourglass, iconTooltip: "Длительность", background: accentBackground, onTextChange: (value) => spell.duration = value },
 	]);
 	let footerText = $derived(formatFooter(spell));
+	let classesText = $derived((spell.classes ?? []).map((value) => value.name).join(", "));
+	let footerFields = $derived([
+		{ label: "Классы", value: classesText, placeholder: "Волшебник, Чародей", onChange: (value: string) => spell.classes = updateClassLinks(value, spell.classes) },
+	]);
+
+	$effect(() => {
+		if (editable && !spell.higherLevels) spell.higherLevels = { html: "" };
+	});
+
+	function updateClassLinks(text: string, current: FullSpellViewModel["classes"]): FullSpellViewModel["classes"] {
+		return text.split(",").map((part) => part.trim()).filter(Boolean).map((name) => {
+			const existing = current?.find((value) => value.name === name);
+			return existing ?? { name, url: `/classes/${name.toLocaleLowerCase("ru").replace(/\s+/gu, "-")}` };
+		});
+	}
 
 	function colorForTheme(token: string): string {
 		return theme === "light" ? token.replace(/var\((--ds-[\w-]+)\)/gu, "var($1-light)") : token;
@@ -56,13 +78,7 @@
 
 	function formatFooter(value: FullSpellViewModel): string {
 		const classes = value.classes?.map((item) => item.name).filter(Boolean) ?? [];
-		const subclasses = value.subclasses?.map((item) => item.parentClass ? `${item.name} (${item.parentClass})` : item.name).filter(Boolean) ?? [];
-		const parts: string[] = [];
-
-		if (classes.length) parts.push(`Классы: ${classes.join(", ")}`);
-		if (subclasses.length) parts.push(`Подклассы: ${subclasses.join(", ")}`);
-
-		return parts.join(" · ");
+		return classes.length ? `Классы: ${classes.join(", ")}` : "";
 	}
 </script>
 
@@ -72,45 +88,50 @@
 	style={`--full-spell-gradient-start: ${gradientStart}; --full-spell-gradient-end: ${gradientEnd}; --full-spell-accent: ${accentColor};`}
 >
 	<FullItemHeader
-		russianName={displayName}
-		englishName={spell.englishName}
-		entityLink={spell.entityLink}
-		badge={spell.level}
-		info={headerInfo}
-		source={spell.source}
-		onNameClick={onCopySpell ? () => onCopySpell(spell) : undefined}
+		bind:russianName={spell.russianName}
+		bind:englishName={spell.englishName}
+		bind:entityLink={spell.entityLink}
+		bind:badge={spell.level}
+		badgeInputType="number"
+		bind:info={spell.school}
+		bind:source={spell.source}
+		onCopy={onCopyText}
+		{editable}
 		{theme}
 	/>
-
-	<ChipsList chips={characteristicChips} {theme} />
+	<ChipsList chips={characteristicChips} showAddButton={false} {editable} {theme} />
 
 	<Components
-		somatic={spell.components.somatic}
-		verbal={spell.components.verbal}
-		material={spell.components.material}
+		bind:somatic={spell.components.somatic}
+		bind:verbal={spell.components.verbal}
+		bind:material={spell.components.material}
 		background={accentBackground}
+		editable={editable}
 		{theme}
 	/>
 
 	<TextBlock
-		html={spell.description.html}
+		bind:html={spell.description.html}
 		accentColor={accentColor}
 		{onEntityLinkClick}
+		{editable}
 		{theme}
 	/>
 
-	{#if spell.higherLevels?.html}
+	{#if editable || spell.higherLevels?.html}
 		<FilledTextBlock
-			html={spell.higherLevels.html}
+			html={spell.higherLevels?.html ?? ""}
+			onHtmlChange={updateHigherLevels}
 			background={filledBackground}
 			accentColor={accentColor}
 			{onEntityLinkClick}
+			{editable}
 			{theme}
 		/>
 	{/if}
 
-	{#if footerText}
-		<Footer text={footerText} {theme} />
+	{#if footerText || editable}
+		<Footer text={footerText} fields={footerFields} {editable} {theme} />
 	{/if}
 </article>
 
@@ -124,6 +145,7 @@
 		gap: 12px;
 		width: 100%;
 		min-width: 0;
+		border-radius: var(--dnd-ui-radius-lg, 8px);
 		padding: 8px;
 		background:
 			linear-gradient(

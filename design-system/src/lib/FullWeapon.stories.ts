@@ -99,6 +99,16 @@ export const Edit: Story = {
 	args: { weapon: structuredClone(bargePole), ...callbacks, editable: true, theme: "dark" },
 };
 
+export const NewWeaponEdit: Story = {
+	args: {
+		weapon: { ...structuredClone(simpleWeapon), description: undefined, special: undefined },
+		...callbacks,
+		resolvePropertyUrl: (name: string) => name === "Фехтовальное" ? "/screens/finesse" : undefined,
+		editable: true,
+		theme: "dark",
+	},
+};
+
 export const Complex: Story = {
 	args: { weapon: complexWeapon, ...callbacks, theme: "dark" },
 };

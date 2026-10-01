@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { IUiEventListener } from 'src/domain/listeners/ui_event_listener.js';
 	import type { FullItem } from 'src/domain/models/items/FullItem';
-	import { copyEquipmentToClipboard } from 'src/data/clipboard';
 	import HtmlBlock from '../uikit/HtmlBlock.svelte';
 	import { separate } from 'src/domain/utils/utils';
 	import UiDetailCard from '../uikit/organisms/UiDetailCard.svelte';
@@ -27,9 +26,9 @@
 <UiDetailCard>
     <UiDetailHeader
         name={currentItem.name}
+        entityLink={currentItem.url}
         type={separate(currentItem.categories)}
         source={currentItem.source}
-        onCopy={() => copyEquipmentToClipboard(currentItem)}
     />
     <UiPropertyGrid items={properties} {uiEventListener} />
     {#if currentItem.description}

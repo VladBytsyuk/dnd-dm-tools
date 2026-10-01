@@ -8,7 +8,7 @@
 	} from "src/domain/models/assistant/AssistantWorkspace";
 	import { setIcon, type IconName } from "obsidian";
 	import type { PanelSearchResult } from "src/ui/components/sidepanel/PanelHost";
-	import { getPanelTypeColor } from "../uikit/PanelTypeColor";
+	import { getPanelTypeColor, getRedesignPanelTypeColor } from "../uikit/PanelTypeColor";
 	import OmniPanelContent from "./OmniPanelContent.svelte";
 	import OmniSearchResult from "./OmniSearchResult.svelte";
 	import {
@@ -32,6 +32,7 @@
 
 	let {
 		panels,
+		redesignEnabled = false,
 		initialWorkspace,
 		search,
 		openResult,
@@ -41,6 +42,7 @@
 		saveWorkspace,
 	}: {
 		panels: PanelSummary[];
+		redesignEnabled?: boolean;
 		initialWorkspace: AssistantWorkspaceState;
 		search: (query: string) => Promise<PanelSearchResult[]>;
 		openResult: (result: PanelSearchResult) => Promise<void>;
@@ -320,7 +322,7 @@
 				<div
 					class="omni-toolbar__icon"
 					class:active={isPanelOpen(panel.key)}
-					style={`--panel-type-color: ${getPanelTypeColor(panel.key)}`}
+					style={`--panel-type-color: ${redesignEnabled ? getRedesignPanelTypeColor(panel.key) : getPanelTypeColor(panel.key)}`}
 					style:color={isPanelOpen(panel.key)
 						? "var(--panel-type-color)"
 						: "var(--dnd-ui-text-secondary)"}
@@ -359,11 +361,12 @@
 	</div>
 
 	{#if results.length}
-		<div class="omni-search-results" aria-label="Результаты поиска">
+		<div class="omni-search-results" class:is-redesigned={redesignEnabled} aria-label="Результаты поиска">
 			{#each results as result (`${result.panelKey}:${result.url}`)}
-				<div class="omni-search-results__item">
-					<OmniSearchResult
-						{result}
+				<div class="omni-search-results__item" class:is-redesigned={redesignEnabled && result.panelKey !== "character-sheets" && result.panelKey !== "dm-screen"}>
+										<OmniSearchResult
+											{result}
+											{redesignEnabled}
 						onSelect={() => selectResult(result)}
 					/>
 				</div>
@@ -451,7 +454,7 @@
 									tabIndex === tile.tabs.length - 1
 								}
 								class="tab"
-								style={`--panel-type-color: ${getPanelTypeColor(key)}`}
+				style={`--panel-type-color: ${redesignEnabled ? getRedesignPanelTypeColor(key) : getPanelTypeColor(key)}`}
 								role="group"
 								aria-label={panelByKey.get(key)?.title ?? key}
 								draggable="true"
@@ -591,11 +594,22 @@
 		background: var(--background-primary);
 		border: 1px solid var(--background-modifier-border);
 	}
+	.omni-search-results.is-redesigned {
+		align-content: start;
+		grid-auto-rows: max-content;
+	}
 	.omni-search-results__item {
 		min-width: 0;
 	}
 	.omni-search-results__item :global(> *) {
 		height: 100%;
+	}
+	.omni-search-results__item.is-redesigned {
+		align-self: start;
+		height: auto;
+	}
+	.omni-search-results__item.is-redesigned :global(> *) {
+		height: auto;
 	}
 	.body-panel {
 		display: none;

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { BaseItem } from "src/domain/models/common/BaseItem";
 	import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
-	import { getPanelTypeColor } from "../PanelTypeColor";
+	import { getPanelTypeColor, getRedesignPanelTypeColor } from "../PanelTypeColor";
 	import PanelTypeTint from "../PanelTypeTint.svelte";
+	import RedesignedSmallItem from "src/ui/design-system/RedesignedSmallItem.svelte";
 
 	interface Props {
 		panelKey: PanelKey;
@@ -10,10 +11,11 @@
 		items: BaseItem[];
 		onItemClick: (item: BaseItem) => void;
 		SmallItemSlot: any;
+		redesignEnabled?: boolean;
 	}
 
-	let { panelKey, groupTitle, items, onItemClick, SmallItemSlot }: Props = $props();
-	const groupColor = $derived(getPanelTypeColor(panelKey));
+	let { panelKey, groupTitle, items, onItemClick, SmallItemSlot, redesignEnabled = false }: Props = $props();
+	const groupColor = $derived(redesignEnabled ? getRedesignPanelTypeColor(panelKey) : getPanelTypeColor(panelKey));
 </script>
 
 <div
@@ -25,9 +27,11 @@
 		<div class="item-group__grid">
 		{#each items as item (item.url)}
 				<div class:manual-item={item.origin === "manual"}>
-					<PanelTypeTint {panelKey}>
-					<SmallItemSlot smallItem={item} onItemClick={() => onItemClick(item)} />
-					</PanelTypeTint>
+					{#if redesignEnabled}
+						<RedesignedSmallItem {panelKey} smallItem={item} onItemClick={() => onItemClick(item)} />
+					{:else}
+						<PanelTypeTint {panelKey}><SmallItemSlot smallItem={item} onItemClick={() => onItemClick(item)} /></PanelTypeTint>
+					{/if}
 				</div>
 			{/each}
 		</div>

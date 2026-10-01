@@ -7,25 +7,24 @@
 		subtitle: string;
 		description: string;
 		source: string;
-		secondarySource: string;
 		state?: "default" | "hovered" | "clicked";
 		theme?: "dark" | "light";
 	};
 
-	let { challengeRating, creatureTypeColor, title, subtitle, description, source, secondarySource, state, theme = "dark" }: Props = $props();
+	let { challengeRating, creatureTypeColor, title, subtitle, description, source, state, theme = "dark" }: Props = $props();
 </script>
 
 <BaseSmallItem
 	accentColor={creatureTypeColor}
 	primaryColor="var(--ds-bestiary)"
 	secondaryColor="var(--ds-bestiary-sub)"
-	height={64}
+	height={96}
+	valueFontSize={28}
 	value={challengeRating}
 	{title}
 	{subtitle}
 	{description}
 	{source}
-	{secondarySource}
 	{state}
 	{theme}
 />

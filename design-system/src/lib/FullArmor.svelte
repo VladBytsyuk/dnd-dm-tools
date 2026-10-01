@@ -15,6 +15,7 @@
 	type Props = {
 		armor: FullArmorViewModel;
 		onCopyArmor?: (armor: FullArmorViewModel) => void | Promise<void>;
+		onCopyText?: (text: string) => void;
 		onEntityLinkClick?: (link: FullArmorEntityLink) => void | Promise<void>;
 		editable?: boolean;
 		theme?: "dark" | "light";
@@ -23,6 +24,7 @@
 	let {
 		armor = $bindable<FullArmorViewModel>(),
 		onCopyArmor,
+		onCopyText,
 		onEntityLinkClick,
 		editable = false,
 		theme = "dark",
@@ -64,14 +66,14 @@
 
 		if (armor.stealthDisadvantage) {
 			items.push({
-				text: "Скрытность",
+				text: "",
 				icon: stealthIcon,
 				iconTooltip: "Помеха на проверки Скрытности",
 				background: accentBackground,
 			});
 		}
 
-		if (armor.strengthRequirement !== undefined) {
+		if (armor.strengthRequirement !== undefined && armor.strengthRequirement > 0) {
 			items.push({
 				text: String(armor.strengthRequirement),
 				icon: strengthIcon,
@@ -116,6 +118,10 @@
 
 		return "var(--ds-armor)";
 	}
+
+	function updateDescription(html: string) {
+		armor.description = { ...(armor.description ?? {}), html };
+	}
 </script>
 
 <article
@@ -129,15 +135,15 @@
 		bind:entityLink={armor.entityLink}
 		bind:info={armor.armorType}
 		bind:source={armor.source}
-		onNameClick={onCopyArmor ? () => onCopyArmor(armor) : undefined}
+		onCopy={onCopyText}
 		{editable}
 		{theme}
 	/>
 
 	<ChipsList {chips} {theme} />
 
-	{#if armor.description?.html}
-		<TextBlock bind:html={armor.description.html} {accentColor} {onEntityLinkClick} {editable} {theme} />
+	{#if editable || armor.description?.html}
+		<TextBlock html={armor.description?.html ?? ""} onHtmlChange={updateDescription} {accentColor} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 </article>
 
@@ -151,6 +157,7 @@
 		gap: 12px;
 		width: 100%;
 		min-width: 0;
+		border-radius: var(--dnd-ui-radius-lg, 8px);
 		padding: 8px;
 		background:
 			linear-gradient(

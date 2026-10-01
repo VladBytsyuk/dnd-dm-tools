@@ -7,6 +7,8 @@
 	import { Light as fullBackgroundLight } from "./FullBackground.stories";
 	import FullClass from "./FullClass.svelte";
 	import { Light as fullClassLight } from "./FullClass.stories";
+	import FullDmScreen from "./FullDmScreen.svelte";
+	import { Default as fullDmScreenDefault } from "./FullDmScreen.stories";
 	import FullEquipment from "./FullEquipment.svelte";
 	import { Light as fullEquipmentLight } from "./FullEquipment.stories";
 	import FullFeat from "./FullFeat.svelte";
@@ -27,6 +29,7 @@
 	const artifactProps = fullArtifactLight.args!;
 	const backgroundProps = fullBackgroundLight.args!;
 	const classProps = fullClassLight.args!;
+	const dmScreenProps = fullDmScreenDefault.args!;
 	const equipmentProps = fullEquipmentLight.args!;
 	const featProps = fullFeatLight.args!;
 	const raceProps = fullRaceLight.args!;
@@ -46,6 +49,7 @@
 	<FullClass {...classProps} {theme} />
 	<FullEquipment {...equipmentProps} {theme} />
 	<FullBackground {...backgroundProps} {theme} />
+	<FullDmScreen {...dmScreenProps} {theme} />
 </div>
 
 <style>

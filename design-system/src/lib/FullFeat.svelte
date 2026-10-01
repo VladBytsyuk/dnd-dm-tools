@@ -7,6 +7,7 @@
 	type Props = {
 		feat: FullFeatViewModel;
 		onCopyFeat?: (feat: FullFeatViewModel) => void | Promise<void>;
+		onCopyText?: (text: string) => void;
 		onEntityLinkClick?: (link: FullFeatEntityLink) => void | Promise<void>;
 		editable?: boolean;
 		theme?: "dark" | "light";
@@ -15,6 +16,7 @@
 	let {
 		feat = $bindable<FullFeatViewModel>(),
 		onCopyFeat,
+		onCopyText,
 		onEntityLinkClick,
 		editable = false,
 		theme = "dark",
@@ -51,10 +53,10 @@
 		bind:entityLink={feat.entityLink}
 		info={headerInfo}
 		bind:source={feat.source}
+		onCopy={onCopyText}
 		sourceSuffix={isHomebrew ? "*" : ""}
 		wrapRussianName={true}
 		onInfoChange={updateRequirements}
-		onNameClick={onCopyFeat ? () => onCopyFeat(feat) : undefined}
 		{editable}
 		{theme}
 	/>
@@ -81,6 +83,7 @@
 		gap: 12px;
 		width: 100%;
 		min-width: 0;
+		border-radius: var(--dnd-ui-radius-lg, 8px);
 		padding: 8px;
 		background:
 			linear-gradient(

@@ -41,10 +41,10 @@
 <style>
 	.gallery { display: grid; gap: 24px; padding: 16px; }
 	section { display: grid; gap: 8px; }
-	h2 { margin: 0; font: 600 18px/1.4 sans-serif; }
+	h2 { margin: 0; font: 600 27px/1.4 sans-serif; }
 	.color-token { display: grid; grid-template-columns: 32px minmax(180px, 1fr); align-items: center; gap: 12px; padding: 10px; border: 1px solid #d9d9d9; border-radius: 8px; }
 	.swatch { width: 32px; height: 32px; border-radius: 6px; }
-	strong, code { display: block; font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+	strong, code { display: block; font: 19.5px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
 	strong { color: #1f2937; }
 	code { color: #6b7280; }
 	.gallery[data-theme="dark"] { background: #1f1f1f; }

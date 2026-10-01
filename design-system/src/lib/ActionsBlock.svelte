@@ -18,6 +18,7 @@
 		description?: string;
 		descriptionHtml?: string;
 		blocks?: ActionsBlockItem[];
+		onAddBlock?: () => void;
 		accentColor?: string;
 		blocksExpanded?: boolean;
 		sectionExpanded?: boolean;
@@ -30,8 +31,9 @@
 	let {
 		title = $bindable(""),
 		description = $bindable(""),
-		descriptionHtml,
+		descriptionHtml = $bindable<string | undefined>(),
 		blocks = $bindable<ActionsBlockItem[]>([]),
+		onAddBlock,
 		accentColor = "#d4d4d4",
 		blocksExpanded = true,
 		sectionExpanded = true,
@@ -43,6 +45,14 @@
 
 	function getInitialSectionExpanded() {
 		return sectionExpanded;
+	}
+
+	function addBlock() {
+		if (onAddBlock) {
+			onAddBlock();
+			return;
+		}
+		blocks = [...blocks, { title: "", html: "" }];
 	}
 
 	let isSectionExpanded = $state(getInitialSectionExpanded());
@@ -60,7 +70,7 @@
 <section class="actions-block" data-theme={theme}>
 	{#if title || editable}
 		{#if editable}
-			<input class="title-input" bind:value={title} aria-label="Заголовок блока действий" />
+			<input class="title-input" bind:value={title} placeholder="Название действия" aria-label="Заголовок блока действий" />
 		{:else}
 			<button type="button" class="section-toggle" aria-expanded={isSectionExpanded} onclick={() => (isSectionExpanded = !isSectionExpanded)}>
 				{title}
@@ -70,12 +80,9 @@
 
 	{#if isContentVisible && (description || descriptionHtml || editable)}
 		{#if editable}
-			<textarea
-				class="description-input"
-				bind:value={description}
-				aria-label="Описание блока действий"
-				rows="2"
-			></textarea>
+			{#if descriptionHtml !== undefined}
+				<textarea class="description-input" bind:value={descriptionHtml} placeholder="Описание блока действий" aria-label="Описание блока действий" rows="2"></textarea>
+			{:else}<textarea class="description-input" bind:value={description} placeholder="Описание блока действий" aria-label="Описание блока действий" rows="2"></textarea>{/if}
 		{:else if descriptionHtml !== undefined}
 			<TextBlock html={descriptionHtml} {accentColor} {onSpellLinkClick} {onEntityLinkClick} {theme} />
 		{:else}
@@ -138,7 +145,9 @@
 
 	{#if editable}
 		<div class="add-block-chip">
-			<Chip icon={Plus} background={accentColor} {theme} />
+			<button type="button" aria-label="Добавить текстовый блок" onclick={addBlock}>
+				<Chip icon={Plus} background={accentColor} {theme} />
+			</button>
 		</div>
 	{/if}
 </section>
@@ -146,6 +155,9 @@
 <style>
 	.actions-block {
 		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
 		width: 100%;
 		min-width: 0;
 		color: #fff;
@@ -159,11 +171,10 @@
 	.section-toggle,
 	.title-input,
 	.description-input {
+		all: unset;
 		box-sizing: border-box;
+		display: block;
 		width: 100%;
-		border: 0;
-		outline: 0;
-		background: transparent;
 		color: inherit;
 		font: inherit;
 		padding: 0;
@@ -171,9 +182,9 @@
 
 	.section-toggle,
 	.title-input {
-		font-size: 16px;
+		font-size: 24px;
 		font-weight: 700;
-		line-height: 19px;
+		line-height: 28.5px;
 	}
 
 	.section-toggle {
@@ -193,22 +204,22 @@
 		min-height: 24px;
 		margin-top: 4px;
 		resize: vertical;
-		font-size: 10px;
+		font-size: 15px;
 		font-weight: 400;
-		line-height: 12px;
+		line-height: 18px;
 	}
 
 	.description {
 		margin-top: 4px;
-		font-size: 10px;
+		font-size: 15px;
 		font-weight: 400;
-		line-height: 12px;
+		line-height: 18px;
 	}
 
 	.blocks {
 		display: flex;
 		gap: 8px;
-		margin-top: 12px;
+		margin-top: 4px;
 	}
 
 	.column {
@@ -228,6 +239,8 @@
 		width: 100%;
 		justify-content: center;
 	}
+	.add-block-chip button { all: unset; display: block; width: 100%; cursor: pointer; }
+	.add-block-chip button:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
 
 	@media (max-width: 280px) {
 		.blocks { flex-direction: column; }

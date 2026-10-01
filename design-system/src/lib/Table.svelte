@@ -1,9 +1,10 @@
 <script module lang="ts">
-	export type TableValue = string | number;
+	export type TableValue = string | number | { text: string; html: string };
 </script>
 
 <script lang="ts">
 	import "./table.css";
+	import { sanitizeRichHtml } from "./sanitizeRichHtml";
 
 	type Props = {
 		columns?: number;
@@ -11,6 +12,8 @@
 		accentColor?: string;
 		theme?: "dark" | "light";
 		editable?: boolean;
+		editableValuesOnly?: boolean;
+		onValueChange?: (index: number, value: string) => void;
 	};
 
 	let {
@@ -19,6 +22,8 @@
 		accentColor = "#d4d4d4",
 		theme = "dark",
 		editable = false,
+		editableValuesOnly = false,
+		onValueChange,
 	}: Props = $props();
 
 	let columnCount = $derived(Math.max(1, Math.floor(columns)));
@@ -36,10 +41,11 @@
 			{#each Array(columnCount) as _, columnIndex}
 				<th scope="col">
 					{#if values[columnIndex] !== undefined}
-						{#if editable}
-							<input bind:value={values[columnIndex]} aria-label={`Заголовок столбца ${columnIndex + 1}`} />
+						{#if editable && !editableValuesOnly}
+							<input value={values[columnIndex]} oninput={(event) => onValueChange?.(columnIndex, event.currentTarget.value)} placeholder="Заголовок" aria-label={`Заголовок столбца ${columnIndex + 1}`} />
 						{:else}
-							{values[columnIndex]}
+							{@const value = values[columnIndex]}
+							{#if typeof value === "object"}{@html sanitizeRichHtml(value.html)}{:else}{value}{/if}
 						{/if}
 					{/if}
 				</th>
@@ -54,9 +60,10 @@
 					<td>
 						{#if values[cellIndex] !== undefined}
 							{#if editable}
-								<input bind:value={values[cellIndex]} aria-label={`Ячейка ${cellIndex + 1}`} />
+								<input value={typeof values[cellIndex] === "object" ? values[cellIndex].text : values[cellIndex]} oninput={(event) => onValueChange?.(cellIndex, event.currentTarget.value)} placeholder="Значение" aria-label={`Ячейка ${cellIndex + 1}`} />
 							{:else}
-								{values[cellIndex]}
+								{@const value = values[cellIndex]}
+								{#if typeof value === "object"}{@html sanitizeRichHtml(value.html)}{:else}{value}{/if}
 							{/if}
 						{/if}
 					</td>

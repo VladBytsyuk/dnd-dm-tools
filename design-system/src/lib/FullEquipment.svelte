@@ -13,6 +13,7 @@
 	type Props = {
 		equipment: FullEquipmentViewModel;
 		onCopyEquipment?: (equipment: FullEquipmentViewModel) => void | Promise<void>;
+		onCopyText?: (text: string) => void;
 		onEntityLinkClick?: (link: FullEquipmentEntityLink) => void | Promise<void>;
 		editable?: boolean;
 		theme?: "dark" | "light";
@@ -21,6 +22,7 @@
 	let {
 		equipment = $bindable<FullEquipmentViewModel>(),
 		onCopyEquipment,
+		onCopyText,
 		onEntityLinkClick,
 		editable = false,
 		theme = "dark",
@@ -77,6 +79,10 @@
 			.map((category) => category.trim())
 			.filter((category) => category.length > 0);
 	}
+
+	function updateDescription(html: string) {
+		equipment.description = { ...(equipment.description ?? {}), html };
+	}
 </script>
 
 <article
@@ -90,10 +96,10 @@
 		bind:entityLink={equipment.entityLink}
 		info={categoryText}
 		bind:source={equipment.source}
+		onCopy={onCopyText}
 		sourceSuffix={isHomebrew ? "*" : ""}
 		wrapRussianName={true}
 		onInfoChange={updateCategories}
-		onNameClick={onCopyEquipment ? () => onCopyEquipment(equipment) : undefined}
 		{editable}
 		{theme}
 	/>
@@ -102,8 +108,8 @@
 		<ChipsList {chips} {editable} showAddButton={false} {theme} />
 	{/if}
 
-	{#if equipment.description?.html}
-		<TextBlock bind:html={equipment.description.html} accentColor={accentColor} {onEntityLinkClick} {editable} {theme} />
+	{#if editable || equipment.description?.html}
+		<TextBlock html={equipment.description?.html ?? ""} onHtmlChange={updateDescription} accentColor={accentColor} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 </article>
 
@@ -117,6 +123,7 @@
 		gap: 12px;
 		width: 100%;
 		min-width: 0;
+		border-radius: var(--dnd-ui-radius-lg, 8px);
 		padding: 8px;
 		background:
 			linear-gradient(

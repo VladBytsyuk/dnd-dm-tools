@@ -109,6 +109,10 @@ export const Edit: Story = {
 	args: { background: structuredClone(sailor), ...callbacks, editable: true, theme: "dark" },
 };
 
+export const NewEdit: Story = {
+	args: { background: { ...structuredClone(simpleBackground), personalization: undefined }, ...callbacks, editable: true, theme: "dark" },
+};
+
 export const Complex: Story = {
 	args: { background: complexBackground, ...callbacks, theme: "dark" },
 };

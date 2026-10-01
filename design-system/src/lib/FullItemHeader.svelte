@@ -17,12 +17,12 @@
 		englishName: string;
 		entityLink: string;
 		badge?: string | number;
+		badgeInputType?: "text" | "number";
 		info?: string;
 		source?: FullItemSource;
 		sourceSuffix?: string;
 		wrapRussianName?: boolean;
 		onCopy?: (text: string) => void;
-		onNameClick?: (name: string) => void | Promise<void>;
 		onInfoChange?: (info: string) => void;
 		editable?: boolean;
 		theme?: "dark" | "light";
@@ -33,12 +33,12 @@
 		englishName = $bindable(""),
 		entityLink = $bindable(""),
 		badge = $bindable(),
+		badgeInputType = "text",
 		info = $bindable(),
 		source = $bindable(),
 		sourceSuffix = "",
 		wrapRussianName = false,
 		onCopy,
-		onNameClick,
 		onInfoChange,
 		editable = false,
 		theme = "dark",
@@ -67,21 +67,25 @@
 	}
 
 	async function copyName(name: string) {
-		if (onNameClick) {
-			await onNameClick(name);
-			return;
-		}
-
 		await copy(name);
+	}
+
+	function copyEntityLink() {
+		const pluginLink = entityLink.startsWith("dnd:") ? entityLink : `dnd:${entityLink}`;
+		void copy(`[${escapeMarkdownLinkLabel(russianName)}](${pluginLink})`);
+	}
+
+	function escapeMarkdownLinkLabel(value: string): string {
+		return value.replace(/\\/g, "\\\\").replace(/\[/g, "\\[").replace(/\]/g, "\\]");
 	}
 </script>
 
 <header class="full-item-header" data-theme={theme} data-wrap-russian-name={wrapRussianName}>
 	<div class="names">
 		{#if editable}
-			<input class="name russian-name" bind:value={russianName} aria-label="Русское название" />
-			<input class="name english-name" bind:value={englishName} aria-label="Английское название" />
-			<input class="entity-link" bind:value={entityLink} aria-label="Ссылка на сущность" />
+			<input class="name russian-name" bind:value={russianName} placeholder="Русское название" aria-label="Русское название" />
+			<input class="name english-name" bind:value={englishName} placeholder="English name" aria-label="Английское название" />
+			<input class="entity-link" bind:value={entityLink} placeholder="/bestiary/slug" aria-label="Ссылка на сущность" />
 		{:else}
 			<button type="button" class="name russian-name" onclick={() => copyName(russianName)} aria-label={`Скопировать: ${russianName}`}>
 				{russianName}
@@ -89,7 +93,7 @@
 			<button type="button" class="name english-name" onclick={() => copyName(englishName)} aria-label={`Скопировать: ${englishName}`}>
 				{englishName}
 			</button>
-			<button type="button" class="entity-link" onclick={() => copy(entityLink)} aria-label={`Скопировать ссылку: ${entityLink}`}>
+			<button type="button" class="entity-link" onclick={copyEntityLink} aria-label={`Скопировать ссылку: dnd:${entityLink}`}>
 				{entityLink}
 			</button>
 		{/if}
@@ -99,14 +103,14 @@
 		<div class="details">
 			{#if badge !== undefined}
 				{#if editable}
-					<input class="badge" bind:value={badge} aria-label="Номер или уровень" />
+					<input class="badge" type={badgeInputType} min={badgeInputType === "number" ? 0 : undefined} max={badgeInputType === "number" ? 9 : undefined} bind:value={badge} placeholder="Уровень" aria-label="Номер или уровень" />
 				{:else}
 					<span class="badge">{badge}</span>
 				{/if}
 			{/if}
 			{#if (editable && info !== undefined) || info}
 				{#if editable}
-					<input class="info" bind:value={info} oninput={handleInfoInput} aria-label="Описание" />
+					<input class="info" bind:value={info} oninput={handleInfoInput} placeholder="Тип или категория" aria-label="Описание" />
 				{:else}
 					<span class="info">{info}</span>
 				{/if}
@@ -114,7 +118,7 @@
 			{#if source}
 				{#if editable}
 					<span class="source-edit">
-						<input class="source" bind:value={source.shortName} aria-label="Краткое название источника" />
+						<input class="source" bind:value={source.shortName} placeholder="PHB" aria-label="Краткое название источника" />
 						{#if sourceSuffix}<span aria-hidden="true">{sourceSuffix}</span>{/if}
 					</span>
 				{:else}
@@ -149,40 +153,49 @@
 	.source-edit { display: inline-flex; align-items: baseline; min-width: 0; }
 	.source-edit input { min-width: 0; }
 	.name, .entity-link, .source {
+		all: unset;
+		box-sizing: border-box;
+		display: block;
 		max-width: 100%;
-		padding: 0;
-		border: 0;
-		background: transparent;
 		color: inherit;
 		font-family: inherit;
 		text-align: inherit;
 		cursor: pointer;
 	}
-	.full-item-header input {
-		box-sizing: border-box;
-		width: 100%;
-		padding: 0;
+	.full-item-header button.name,
+	.full-item-header button.entity-link,
+	.full-item-header button.source {
+		appearance: none;
 		border: 0;
 		border-radius: 0;
-		appearance: none;
+		box-shadow: none;
 		background: transparent;
+		padding: 0;
+	}
+	.full-item-header .names input,
+	.full-item-header .details input {
+		all: unset;
+		box-sizing: border-box;
+		display: block;
+		width: 100%;
 		color: inherit;
 		font-family: inherit;
 		text-align: inherit;
 		cursor: text;
 	}
+	.full-item-header input::placeholder { color: currentcolor; opacity: 0.65; }
 	.name, .entity-link { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
 	.full-item-header[data-wrap-russian-name="true"] .russian-name {
 		overflow: visible;
 		text-overflow: clip;
 		white-space: normal;
 	}
-	.russian-name { font-size: 16px; font-weight: 700; line-height: 19px; }
-	.english-name, .info { font-size: 10px; font-weight: 400; line-height: 12px; }
-	.entity-link, .source { color: rgb(255 255 255 / 70%); font-size: 8px; font-weight: 400; line-height: 10px; }
+	.russian-name { font-size: 24px; font-weight: 700; line-height: 28.5px; }
+	.english-name, .info { font-size: 15px; font-weight: 400; line-height: 18px; }
+	.entity-link, .source { color: rgb(255 255 255 / 70%); font-size: 12px; font-weight: 400; line-height: 15px; }
 	.full-item-header[data-theme="light"] { color: #1f2937; }
 	.full-item-header[data-theme="light"] .entity-link, .full-item-header[data-theme="light"] .source { color: rgb(31 41 55 / 70%); }
-	.badge { font-size: 16px; font-weight: 700; line-height: 19px; }
+	.badge { font-size: 24px; font-weight: 700; line-height: 28.5px; }
 	button.name:hover, button.entity-link:hover, .source:hover { text-decoration: underline; }
 	button.name:focus-visible, button.entity-link:focus-visible, .source:focus-visible, input.name:focus-visible, input.entity-link:focus-visible, input.badge:focus-visible, input.info:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
 	.source-wrapper { position: relative; display: inline-flex; }
@@ -200,8 +213,8 @@
 		background: #18181b;
 		box-shadow: 0 2px 6px rgb(0 0 0 / 25%);
 		color: #fff;
-		font-size: 10px;
-		line-height: 12px;
+		font-size: 15px;
+		line-height: 18px;
 		text-align: left;
 		opacity: 0;
 		pointer-events: none;

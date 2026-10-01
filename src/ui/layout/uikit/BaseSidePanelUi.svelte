@@ -10,10 +10,13 @@
 	import UiSearchToolbar from "./organisms/UiSearchToolbar.svelte";
 	import UiItemGroup from "./organisms/UiItemGroup.svelte";
 	import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
+	import RedesignedFullItem from "src/ui/design-system/RedesignedFullItem.svelte";
+	import { createEmptyDomainItem } from "src/ui/design-system/adapters";
 
     // ---- Props ----
     interface Props<Small extends BaseItem, Full extends Small, F extends Filters> {
         panelKey: PanelKey;
+        redesignEnabled?: boolean;
         initialFullItem?: Full;
         initialFilters: F;
         uiEventListener: IUiEventListener;
@@ -30,6 +33,7 @@
 
     let {
         panelKey,
+        redesignEnabled = false,
         initialFullItem,
         initialFilters,
         uiEventListener,
@@ -54,13 +58,16 @@
     }
 
     function createEmptyFullItem() {
-        return repository.createEmptyFullItem();
+        return repository.createEmptyFullItem() ?? (redesignEnabled ? createEmptyDomainItem(panelKey) : undefined);
     }
 
     let searchBarValue: string = $state('');
     let filters: any = $state(getInitialFilters());
     let itemsStack: BaseItem[] = $state(getInitialFullItem() ? [getInitialFullItem()] : []);
     let currentItem: BaseItem | undefined = $state(getInitialFullItem() || undefined);
+    let detailEditing = $state(false);
+    let detailSaving = $state(false);
+    let toolbarActionRequest = $state<{ id: number; command: "edit" | "save" | "cancel" | "copy" | "paste" }>({ id: 0, command: "edit" });
     let groups: Group<BaseItem>[] = $state([]);
     let emptyFullItem = createEmptyFullItem();
     let isFiltersOverlayOpen: boolean = $state(false);
@@ -80,6 +87,9 @@
         if (itemsStack.length >= 1) {
             itemsStack.pop();
             currentItem = itemsStack.last() || undefined;
+            detailEditing = false;
+            detailSaving = false;
+            toolbarActionRequest = { id: toolbarActionRequest.id + 1, command: "cancel" };
         }
     }
 
@@ -87,6 +97,22 @@
         searchBarValue = value;
         updateGroups();
     }                       
+
+    function requestToolbarAction(command: "edit" | "save" | "cancel" | "copy" | "paste") {
+        toolbarActionRequest = { id: toolbarActionRequest.id + 1, command };
+    }
+
+    function onAddClick() {
+        if (!emptyFullItem) return;
+        currentItem = emptyFullItem;
+        itemsStack.push(emptyFullItem);
+        if (panelKey !== "classes") requestToolbarAction("edit");
+    }
+
+    function onRedesignedEditorStateChange(state: { editing: boolean; saving: boolean }) {
+        detailEditing = state.editing;
+        detailSaving = state.saving;
+    }
 
     async function onSearchBarFiltersClick() {
         const rawFilters = await repository.getAllFilters();
@@ -135,9 +161,18 @@
         return true;
     }
 
+    async function deleteCurrentManualItem() {
+        if (currentItem?.origin !== "manual") return;
+        await onItemDelete(currentItem.url);
+    }
+
     async function onItemSave(item: any, context: any) {
         const result = await repository.putItem(item, context);
-        if (result.ok) await updateGroups();
+        if (result.ok) {
+            currentItem = item;
+            itemsStack = itemsStack.map((entry) => entry.url === context.originalUrl ? item : entry);
+            await updateGroups();
+        }
         return result;
     }
 
@@ -238,12 +273,31 @@
         onclearclick={undefined}
         onfiltersclick={currentItem ? undefined : onSearchBarFiltersClick}
         isfiltersapplied={() => !isFiltersEmpty(filters)}
-        onaddclick={emptyFullItem ? () => { currentItem = emptyFullItem; itemsStack.push(emptyFullItem); } : undefined}
+        onaddclick={!currentItem && emptyFullItem ? onAddClick : undefined}
+        oneditclick={redesignEnabled && currentItem && panelKey !== "classes" && !detailEditing ? () => requestToolbarAction("edit") : undefined}
+        oncopyclick={redesignEnabled && currentItem ? () => requestToolbarAction("copy") : undefined}
+        onpasteclick={redesignEnabled && currentItem && detailEditing ? () => requestToolbarAction("paste") : undefined}
+        ondeleteclick={redesignEnabled && !detailEditing && currentItem?.origin === "manual" ? deleteCurrentManualItem : undefined}
+        onsaveclick={redesignEnabled && currentItem && detailEditing ? () => requestToolbarAction("save") : undefined}
+        oncancelclick={redesignEnabled && currentItem && detailEditing ? () => requestToolbarAction("cancel") : undefined}
+        actionBusy={detailSaving}
+        {redesignEnabled}
     />
     <div class="side-panel-spacer"></div>
     {#if currentItem}
         <div class="content content-full">
-            <FullItemSlot
+            {#if redesignEnabled}
+                {#key currentItem.url}
+                    <RedesignedFullItem
+                        {panelKey}
+                        currentItem={currentItem}
+                        actionRequest={toolbarActionRequest}
+                        onEditorStateChange={onRedesignedEditorStateChange}
+                        {uiEventListener}
+                        {onItemSave}
+                    />
+                {/key}
+            {:else}<FullItemSlot
                 currentItem={currentItem}
                 repository={repository}
                 uiEventListener={uiEventListener}
@@ -251,7 +305,7 @@
                 onClose={() => currentItem = undefined}
                 {onItemSave}
                 {onItemDelete}
-            />
+            />{/if}
         </div>
     {:else if searchBarValue.length > 0 && groups.length === 0 && !isLoading && !loadError}
         <div class="content content-empty">
@@ -265,7 +319,8 @@
                     groupTitle={groupTitleBuilder(group)}
                     items={group.smallItems}
                     onItemClick={onSmallItemClick}
-                    SmallItemSlot={SmallItemSlot}
+	                    {SmallItemSlot}
+	                    {redesignEnabled}
                 />
             {/each}
             {#if loadError}
