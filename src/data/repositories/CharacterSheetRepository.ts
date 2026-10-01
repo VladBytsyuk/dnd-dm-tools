@@ -9,6 +9,7 @@ import type {
 } from "src/domain/models/character";
 import { EmptyFullCharacterSheet } from "src/domain/models/character/FullCharacterSheet";
 import type { Group, Repository } from "src/domain/repositories/Repository";
+import type { ItemSaveContext, ItemSaveResult } from "src/domain/models/common/EntityOrigin";
 
 type CharacterSheetRepositoryDatabase = {
 	transaction(callback: (...args: any[]) => Promise<void>): Promise<void> | void;
@@ -145,20 +146,20 @@ export class CharacterSheetRepository
 		return await this.getFullItemByUrl(smallItem.url);
 	}
 
-	async putItem(fullItem: FullCharacterSheet): Promise<boolean> {
+	async putItem(fullItem: FullCharacterSheet, _context?: ItemSaveContext): Promise<ItemSaveResult> {
 		if (!fullItem.url) {
 			console.warn("Cannot put character sheet without URL");
-			return false;
+			return { ok: false, code: "url-required", message: "URL не должен быть пустым." };
 		}
 
 		try {
 			smallItemProjectors.characterSheet.project(fullItem);
 			await this.#store.saveSheet(fullItem);
 			await this.reloadCaches();
-			return true;
+			return { ok: true };
 		} catch (error) {
 			console.error("Failed to save character sheet:", error);
-			return false;
+			return { ok: false, code: "save-failed", message: "Не удалось сохранить лист персонажа." };
 		}
 	}
 

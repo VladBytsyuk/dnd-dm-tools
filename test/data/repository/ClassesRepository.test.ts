@@ -215,6 +215,16 @@ describe('ClassesRepository - Full Item Fetch Characterization', () => {
         expect(service.calls).toEqual([]);
     });
 
+    it('should return a manual class without associated HTML without fetching its custom URL', async () => {
+        const manualClass = { ...fullClassBard, associatedHtml: undefined, origin: "manual" as const };
+        const mockDb = mockDatabase([smallClassBard], [manualClass]);
+        const service = new FullItemReadServiceDouble<any>();
+        const repo = new ClassesRepository(mockDb, service);
+
+        await expect(repo.getFullItemByUrl(manualClass.url)).resolves.toEqual(manualClass);
+        expect(service.calls).toEqual([]);
+    });
+
     it('should refresh cached full class when associated HTML is empty', async () => {
         const staleClass = {
             ...fullClassBard,

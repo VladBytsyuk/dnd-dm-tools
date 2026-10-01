@@ -4,12 +4,14 @@ import { TtgService, type TtgJsonObject } from "src/data/services";
 import { DbTransactionalStore, DmScreenStore } from "src/data/stores";
 import { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import type { DmScreen } from "src/domain/repositories/DmScreen";
+import type { ItemSaveContext, ItemSaveResult } from "src/domain/models/common/EntityOrigin";
 
 type DmScreenRepositoryDatabase = {
 	transaction(callback: (...args: any[]) => Promise<void>): Promise<void> | void;
 	dmScreenGroupDao: {
 		readAllItems(name: string | null, filter: any | null): Promise<DmScreenItem[]>;
 		readAllItemsNames(): Promise<string[]>;
+		createItem(item: DmScreenItem): Promise<void>;
 		readChildren(parentUrl?: string): Promise<DmScreenItem[]>;
 		readChildrenCount(parentUrl: string): Promise<number>;
 		readItemByName(name: string): Promise<DmScreenItem | null>;
@@ -123,7 +125,7 @@ export class DmScreenRepository implements DmScreen {
 
 	async getFullItemByName(name: string): Promise<DmScreenItem | null> {
 		const cachedFullItem = await this.#store.readItemByName(name) || null;
-		if (cachedFullItem && cachedFullItem.description) {
+		if (cachedFullItem && (cachedFullItem.description || cachedFullItem.origin === "manual")) {
 			console.log(`Loaded ${cachedFullItem.name.rus} from local storage.`);
 			return cachedFullItem;
 		}
@@ -138,7 +140,7 @@ export class DmScreenRepository implements DmScreen {
 
 	async getFullItemByUrl(url: string): Promise<DmScreenItem | null> {
 		const cachedFullItem = await this.#store.readItemByUrl(url) || null;
-		if (cachedFullItem && cachedFullItem.description) {
+		if (cachedFullItem && (cachedFullItem.description || cachedFullItem.origin === "manual")) {
 			console.log(`Loaded ${cachedFullItem.name.rus} from local storage.`);
 			return cachedFullItem;
 		}
@@ -166,8 +168,28 @@ export class DmScreenRepository implements DmScreen {
 		}
 	}
 
-	async putItem(_fullItem: DmScreenItem): Promise<boolean> {
-		return false;
+	async putItem(fullItem: DmScreenItem, context: ItemSaveContext = {}): Promise<ItemSaveResult> {
+		if (!fullItem.url) return { ok: false, code: "url-required", message: "URL не должен быть пустым." };
+		const originalUrl = context.originalUrl?.trim();
+		const originalOrigin = context.originalOrigin ?? "remote";
+		if (originalUrl && originalOrigin === "remote" && fullItem.url === originalUrl) {
+			return { ok: false, code: "url-unchanged", message: "Для ручной копии укажите новый URL." };
+		}
+		if (originalUrl && originalOrigin === "manual" && fullItem.url !== originalUrl) {
+			return { ok: false, code: "manual-url-immutable", message: "URL ручной сущности нельзя изменить после создания." };
+		}
+		try {
+			const existing = await this.#store.readItemByUrl(fullItem.url);
+			const updatesSameManualItem = originalOrigin === "manual" && originalUrl === fullItem.url;
+			if (existing && !updatesSameManualItem) {
+				return { ok: false, code: "url-occupied", message: "Этот URL уже занят в данном справочнике." };
+			}
+			await this.#store.saveManualItem(fullItem);
+			this.#rootItems = await this.#store.readRootItems();
+			return { ok: true };
+		} catch {
+			return { ok: false, code: "save-failed", message: "Не удалось сохранить сущность." };
+		}
 	}
 
 	async deleteItem(_url: string): Promise<boolean> {

@@ -3,7 +3,6 @@
     import FeatDescription from './kit/FeatDescription.svelte';
 	import type { FullFeat } from '../../../domain/models/feat/FullFeat';
 	import type { IUiEventListener } from '../../../domain/listeners/ui_event_listener';
-	import { copyFeatToClipboard } from '../../../data/clipboard';
 	import HtmlBlock from '../uikit/HtmlBlock.svelte';
 	import UiDetailCard from '../uikit/organisms/UiDetailCard.svelte';
 	import UiDetailHeader from '../uikit/organisms/UiDetailHeader.svelte';
@@ -21,8 +20,8 @@
 <UiDetailCard className="full-item">
     <UiDetailHeader
         name={currentItem.name}
+        entityLink={currentItem.url}
         source={currentItem.source}
-        onCopy={() => copyFeatToClipboard(currentItem)}
     />
 
     <FeatRequirements {currentItem} isInEditMode={false} />

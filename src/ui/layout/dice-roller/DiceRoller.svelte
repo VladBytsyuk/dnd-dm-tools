@@ -1,32 +1,45 @@
 <script lang="ts">
 	import { rollRawTrace } from "src/domain/dice";
 
-    let { formula, label, content, onRoll } = $props()
+    let { formula, label, content, multiplier = 1, onRoll } = $props()
 
     const roll = () => {
-        const rollValue = rollRawTrace(formula);
+        const baseRoll = rollRawTrace(formula);
+        const rollValue = multiplier === 1
+            ? baseRoll
+            : {
+                ...baseRoll,
+                total: baseRoll.total * multiplier,
+                resolvedFormula: `(${baseRoll.resolvedFormula.trim()}) × ${multiplier}`,
+            };
         onRoll(label, rollValue);
     }
 
-    const handleEnterPress = (e: any) => {
-        if (e.key === "Enter") roll()
-    }
 </script>
   
-<a class="dice-roller"
-    onclick={roll} 
-    onkeypress={handleEnterPress}
-    href={label}
-    title={label}
->
+<button class="dice-roller" type="button" onclick={roll}>
     {#if content} {@html content}
     {:else if formula} {formula}
     {:else} {label}
     {/if}
-</a>
+</button>
   
 <style>
     .dice-roller {
+        all: unset;
         cursor: pointer;
+        display: inline;
+        box-sizing: border-box;
+        color: inherit;
+        font: inherit;
+        line-height: inherit;
+        text-decoration: underline;
+        text-align: inherit;
+        vertical-align: baseline;
+    }
+
+    .dice-roller:focus-visible {
+        outline: 1px solid currentcolor;
+        outline-offset: 1px;
     }
 </style>

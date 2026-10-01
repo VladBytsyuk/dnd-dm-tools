@@ -92,6 +92,14 @@ describe("DmScreenRepository characterization", () => {
 		expect(result).toEqual(remoteItem);
 	});
 
+	it("returns a manual item without a description without fetching its custom URL", async () => {
+		const cachedItem = createDmScreenItem({ description: undefined, origin: "manual" });
+		const { repository, service } = createDmScreenRepository(cachedItem);
+
+		await expect(repository.getFullItemByUrl(cachedItem.url)).resolves.toEqual(cachedItem);
+		expect(service.calls).toEqual([]);
+	});
+
 	it("updates the canonical cached URL when the requested URL casing differs", async () => {
 		const cachedItem = createDmScreenItem({
 			name: { rus: "Досягаемость", eng: "Reach" },
@@ -161,5 +169,27 @@ describe("DmScreenRepository characterization", () => {
 
 		expect(dmScreenGroupDao.readAllItems).toHaveBeenCalledWith(null, null);
 		expect(result).toEqual([childItem]);
+	});
+
+	it("refreshes cached roots after saving a manual root item", async () => {
+		const root = createDmScreenItem({ url: "/screens/manual-root", origin: "manual" });
+		const dmScreenGroupDao = {
+			readChildren: vi.fn().mockResolvedValueOnce([]).mockResolvedValueOnce([root]),
+			readAllItems: vi.fn().mockResolvedValue([]),
+			readAllItemsNames: vi.fn().mockResolvedValue([]),
+			readItemByName: vi.fn().mockResolvedValue(null),
+			readItemByUrl: vi.fn().mockResolvedValue(null),
+			readChildrenCount: vi.fn().mockResolvedValue(0),
+			updateItem: vi.fn(),
+			createItem: vi.fn(),
+		};
+		const repository = new DmScreenRepository({
+			dmScreenGroupDao,
+			transaction: vi.fn(async (callback: () => Promise<void>) => await callback()),
+		} as any);
+
+		await repository.initialize();
+		await expect(repository.putItem(root)).resolves.toEqual({ ok: true });
+		await expect(repository.getAllRootItems()).resolves.toEqual([root]);
 	});
 });

@@ -61,6 +61,7 @@ import type { FullWeapon } from "src/domain/models/weapon/FullWeapon";
 import type { SmallWeapon } from "src/domain/models/weapon/SmallWeapon";
 import type { ArsenalFilters } from "src/domain/models/weapon/ArsenalFilters";
 import type { BaseItem } from "src/domain/models/common/BaseItem";
+import type { EntityKind } from "src/domain/models/common/EntityOrigin";
 
 type BackgroundWithHtmlResponse = TtgItemWithHtml<Record<string, unknown>>;
 
@@ -137,8 +138,9 @@ function createSimpleDependencies<TSmall extends BaseItem, TFull extends TSmall,
 	mapper: FullItemMapper<TResponse, TFull>,
 	projector: SimpleRepositoryDependencies<TSmall, TFull, TFilter, TResponse>["projector"],
 	service?: FullItemReadService<TResponse>,
+	entityKind?: EntityKind,
 ): SimpleRepositoryDependencies<TSmall, TFull, TFilter, TResponse> {
-	return createSimpleRepositoryDependencies(database, smallDao, fullDao, mapper, projector, service);
+	return createSimpleRepositoryDependencies(database, smallDao, fullDao, mapper, projector, service, entityKind, database.entityOriginDao);
 }
 
 export function createBestiaryRepository(database: DB, options: RepositoryFactoryServices = {}): BestiaryRepository {
@@ -149,6 +151,7 @@ export function createBestiaryRepository(database: DB, options: RepositoryFactor
 		monsterMapper,
 		smallItemProjectors.monster,
 		serviceFrom(options),
+		"bestiary",
 	));
 }
 
@@ -160,6 +163,7 @@ export function createSpellbookRepository(database: DB, options: RepositoryFacto
 		spellMapper,
 		smallItemProjectors.spell,
 		serviceFrom(options),
+		"spellbook",
 	));
 }
 
@@ -171,6 +175,7 @@ export function createArsenalRepository(database: DB, options: RepositoryFactory
 		weaponMapper,
 		smallItemProjectors.weapon,
 		serviceFrom(options),
+		"arsenal",
 	));
 }
 
@@ -182,6 +187,7 @@ export function createArmoryRepository(database: DB, options: RepositoryFactoryS
 		armorMapper,
 		smallItemProjectors.armor,
 		serviceFrom(options),
+		"armory",
 	));
 }
 
@@ -193,6 +199,7 @@ export function createEquipmentRepository(database: DB, options: RepositoryFacto
 		itemMapper,
 		smallItemProjectors.item,
 		serviceFrom(options),
+		"equipment",
 	));
 }
 
@@ -204,6 +211,7 @@ export function createArtifactoryRepository(database: DB, options: RepositoryFac
 		artifactMapper,
 		smallItemProjectors.artifact,
 		serviceFrom(options),
+		"artifactory",
 	));
 }
 
@@ -220,6 +228,7 @@ export function createBackgroundRepository(database: DB, options: RepositoryFact
 		new BackgroundWithHtmlMapper(),
 		smallItemProjectors.background,
 		new BackgroundWithHtmlService(serviceFrom(options)),
+		"backgrounds",
 	));
 }
 
@@ -231,6 +240,7 @@ export function createFeatsRepository(database: DB, options: RepositoryFactorySe
 		featMapper,
 		smallItemProjectors.feat,
 		serviceFrom(options),
+		"feats",
 	));
 }
 
@@ -246,8 +256,9 @@ export function createClassesRepository(database: DB, options: RepositoryFactory
 			mapper,
 			smallItemProjectors.class,
 			service,
+			"classes",
 		),
-		classStore: new ClassStore(database.smallClassDao, database.fullClassDao, transactions),
+		classStore: new ClassStore(database.smallClassDao, database.fullClassDao, transactions, "classes", database.entityOriginDao),
 		service,
 		mapper,
 	};
@@ -266,8 +277,9 @@ export function createRacesRepository(database: DB, options: RepositoryFactorySe
 			mapper,
 			smallItemProjectors.race,
 			service,
+			"races",
 		),
-		raceStore: new RaceStore(database.smallRaceDao, database.fullRaceDao, transactions),
+		raceStore: new RaceStore(database.smallRaceDao, database.fullRaceDao, transactions, "races", database.entityOriginDao),
 		service,
 		mapper,
 	};
@@ -277,7 +289,7 @@ export function createRacesRepository(database: DB, options: RepositoryFactorySe
 export function createDmScreenRepository(database: DB, options: RepositoryFactoryServices = {}): DmScreenRepository {
 	const dependencies: DmScreenRepositoryDependencies = {
 		dao: database.dmScreenGroupDao,
-		store: new DmScreenStore(database.dmScreenGroupDao, new DbTransactionalStore(database)),
+		store: new DmScreenStore(database.dmScreenGroupDao, new DbTransactionalStore(database), "dm-screen", database.entityOriginDao),
 		service: new DmScreenDescriptionService(serviceFrom(options)),
 		mapper: new DmScreenDescriptionMapper(),
 	};

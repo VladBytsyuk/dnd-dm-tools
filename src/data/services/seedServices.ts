@@ -22,6 +22,28 @@ import type { SmallRace } from "src/domain/models/race/SmallRace";
 import type { SmallSpell } from "src/domain/models/spell/SmallSpell";
 import type { SmallWeapon } from "src/domain/models/weapon/SmallWeapon";
 
+function collectNestedUrls<T extends { url: string; children?: T[] }>(items: T[]): string[] {
+	return items.flatMap((item) => [item.url, ...collectNestedUrls(item.children ?? [])]);
+}
+
+function collectRaceUrls(items: SmallRace[]): string[] {
+	return items.flatMap((item) => [item.url, ...collectRaceUrls(item.subraces ?? [])]);
+}
+
+export const bundledEntityUrlsByKind: Record<string, Set<string>> = {
+	"bestiary": new Set(baseBestiary.map(({ url }) => url)),
+	"spellbook": new Set(baseSpellbook.map(({ url }) => url)),
+	"dm-screen": new Set(collectNestedUrls(baseDmScreenItems)),
+	"arsenal": new Set(baseArsenal.map(({ url }) => url)),
+	"armory": new Set(baseArmory.map(({ url }) => url)),
+	"equipment": new Set(baseEquipment.map(({ url }) => url)),
+	"artifactory": new Set(baseArtifacts.map(({ url }) => url)),
+	"backgrounds": new Set(baseBackgrounds.map(({ url }) => url)),
+	"feats": new Set(baseFeats.map(({ url }) => url)),
+	"races": new Set(collectRaceUrls(baseRaces)),
+	"classes": new Set(baseClasses.flatMap(({ url, archetypes }) => [url, ...archetypes.map(({ url: archetypeUrl }) => archetypeUrl)])),
+};
+
 class StaticSeedReadService<TSeed> implements SeedReadService<TSeed> {
 	constructor(private readonly seeds: TSeed[]) {}
 

@@ -3,7 +3,6 @@
     import type { IUiEventListener } from '../../../domain/listeners/ui_event_listener';
     import UiDetailHeader from '../uikit/organisms/UiDetailHeader.svelte';
     import HtmlBlock from '../uikit/HtmlBlock.svelte';
-    import { copyClassToClipboard } from '../../../data/clipboard';
     import { onMount, onDestroy } from 'svelte';
     import { DiceRollersManager } from '../dice-roller/DiceRollersManager';
 
@@ -38,8 +37,8 @@
 <div class="full-item">
     <UiDetailHeader
         name={currentItem.name}
+        entityLink={currentItem.url}
         source={currentItem.source}
-        onCopy={() => copyClassToClipboard(currentItem)}
     />
 
     {#if currentItem.isArchetype && currentItem.parentClassUrl}

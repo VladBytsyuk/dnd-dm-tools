@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { IUiEventListener } from 'src/domain/listeners/ui_event_listener.js';
 	import type { FullWeapon } from "src/domain/models/weapon/FullWeapon";
-	import { copyWeaponToClipboard } from 'src/data/clipboard';
 	import { joinProperties } from 'src/domain/utils/utils';
 	import HtmlBlock from '../uikit/HtmlBlock.svelte';
 	import UiDetailCard from '../uikit/organisms/UiDetailCard.svelte';
@@ -29,9 +28,9 @@
 <UiDetailCard>
     <UiDetailHeader
         name={currentItem.name}
+        entityLink={currentItem.url}
         type={currentItem.type.name}
         source={currentItem.source}
-        onCopy={() => copyWeaponToClipboard(currentItem)}
     />
     <UiPropertyGrid items={properties} {uiEventListener} />
     {#if currentItem.description}

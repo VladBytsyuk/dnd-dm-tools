@@ -26,6 +26,7 @@ export class SpellBookSidePanel extends BaseSidePanel<SmallSpell, FullSpell, Spe
             target: element,
             props: {
                 panelKey: this.getKey(),
+                redesignEnabled: this.plugin.getSettings().redesignEnabled,
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<SpellbookFilters>(['schools', 'levels', 'classes', 'sources']),
                 repository: this.repository,

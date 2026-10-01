@@ -26,6 +26,7 @@ export class ArtifactorySidePanel extends BaseSidePanel<SmallArtifact, FullArtif
             target: element,
             props: {
                 panelKey: this.getKey(),
+                redesignEnabled: this.plugin.getSettings().redesignEnabled,
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<ArtifactoryFilters>(['types', 'sources', 'rarities']),
                 repository: this.repository,

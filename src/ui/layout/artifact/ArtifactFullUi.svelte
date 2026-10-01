@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { IUiEventListener } from 'src/domain/listeners/ui_event_listener.js';
 	import type { FullArtifact } from 'src/domain/models/artifact/FullArtifact';
-	import { copyArtifactToClipboard } from 'src/data/clipboard';
 	import HtmlBlock from '../uikit/HtmlBlock.svelte';
 	import UiDetailCard from '../uikit/organisms/UiDetailCard.svelte';
 	import UiDetailHeader from '../uikit/organisms/UiDetailHeader.svelte';
@@ -28,9 +27,9 @@
     <UiDetailHeader
         images={currentItem.images}
         name={currentItem.name}
+        entityLink={currentItem.url}
         type={currentItem.type.name}
         source={currentItem.source}
-        onCopy={() => copyArtifactToClipboard(currentItem)}
         uiEventListener={uiEventListener}
     />
     <UiPropertyGrid items={properties} {uiEventListener} />

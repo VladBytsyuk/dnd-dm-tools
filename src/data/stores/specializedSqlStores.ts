@@ -17,6 +17,9 @@ import type { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import type { FullRace } from "src/domain/models/race/FullRace";
 import type { RaceFilters } from "src/domain/models/race/RaceFilters";
 import type { SmallRace } from "src/domain/models/race/SmallRace";
+import type { EntityKind } from "src/domain/models/common/EntityOrigin";
+import type { EntityOriginDao } from "src/data/database/EntityOriginDao";
+import { smallItemProjectors } from "src/data/projectors/smallItemProjectors";
 
 type RaceWithParent<T> = {
 	race: T;
@@ -27,19 +30,28 @@ export class RaceStore {
 	constructor(
 		private readonly smallRaceDao: Pick<
 			SmallRaceSqlTableDao,
-			"readAllItemsWithParentUrl" | "readTopLevelRaces" | "readSubracesByParentUrl"
+			"createItemWithParent" | "readAllItemsWithParentUrl" | "readItemByUrl" | "readTopLevelRaces" | "readSubracesByParentUrl" | "updateItem"
 		>,
 		private readonly fullRaceDao: Pick<
 			FullRaceSqlTableDao,
-			"createItem" | "createItemWithParent" | "readItemByUrl" | "readSubracesByParentUrl"
+			"createItem" | "createItemWithParent" | "readItemByUrl" | "readParentUrl" | "readSubracesByParentUrl" | "updateItem"
 		>,
 		private readonly transactions: TransactionalStore,
+		private readonly entityKind?: EntityKind,
+		private readonly origins?: EntityOriginDao,
 	) {}
 
 	async saveRaceTree(race: FullRace): Promise<void> {
 		await this.transactions.transaction(async () => {
 			await this.fullRaceDao.createItem(race);
+			if (this.entityKind && this.origins) await this.origins.ensureRemote(this.entityKind, race.url);
 			await this.saveSubraces(race.subraces ?? [], race.url);
+		});
+	}
+
+	async saveManualRaceTree(race: FullRace, parentUrl: string | null = null): Promise<void> {
+		await this.transactions.transaction(async () => {
+			await this.saveManualRaceAndSubraces(race, parentUrl);
 		});
 	}
 
@@ -51,7 +63,7 @@ export class RaceStore {
 			race.subraces = await this.readFullSubraces(url);
 		}
 
-		return race;
+		return this.withOrigin(race);
 	}
 
 	async readFullSubraces(parentUrl: string): Promise<FullRace[]> {
@@ -63,7 +75,7 @@ export class RaceStore {
 			}
 		}
 
-		return subraces;
+		return Promise.all(subraces.map((race) => this.withOrigin(race)));
 	}
 
 	async readRacesWithSubraces(
@@ -71,25 +83,47 @@ export class RaceStore {
 		filters: RaceFilters | null = null,
 	): Promise<SmallRace[]> {
 		const flatRaces = await this.smallRaceDao.readAllItemsWithParentUrl(name, filters);
-		return this.reconstructHierarchy(flatRaces);
+		return this.reconstructHierarchy(await Promise.all(flatRaces.map(async ({ race, parentUrl }) => ({ race: await this.withOrigin(race), parentUrl }))));
 	}
 
 	async readTopLevelRaces(
 		name: string | null,
 		filters: RaceFilters | null,
 	): Promise<SmallRace[]> {
-		return this.smallRaceDao.readTopLevelRaces(name, filters);
+		return Promise.all((await this.smallRaceDao.readTopLevelRaces(name, filters)).map((race) => this.withOrigin(race)));
 	}
 
 	async readSubraces(parentUrl: string): Promise<SmallRace[]> {
-		return this.smallRaceDao.readSubracesByParentUrl(parentUrl);
+		return Promise.all((await this.smallRaceDao.readSubracesByParentUrl(parentUrl)).map((race) => this.withOrigin(race)));
+	}
+
+	async readSmallRaceByUrl(url: string): Promise<SmallRace | null> {
+		const race = await this.smallRaceDao.readItemByUrl(url);
+		return race ? this.withOrigin(race) : null;
+	}
+
+	async readParentUrl(url: string): Promise<string | null> {
+		return this.fullRaceDao.readParentUrl(url);
 	}
 
 	private async saveSubraces(subraces: FullRace[], parentUrl: string): Promise<void> {
 		for (const subrace of subraces) {
 			await this.fullRaceDao.createItemWithParent(subrace, parentUrl);
+			if (this.entityKind && this.origins) await this.origins.ensureRemote(this.entityKind, subrace.url);
 			await this.saveSubraces(subrace.subraces ?? [], subrace.url);
 		}
+	}
+
+	private async saveManualRaceAndSubraces(race: FullRace, parentUrl: string | null): Promise<void> {
+		const smallRace = smallItemProjectors.race.project(race);
+		if (await this.smallRaceDao.readItemByUrl(race.url)) await this.smallRaceDao.updateItem(smallRace);
+		else await this.smallRaceDao.createItemWithParent(smallRace, parentUrl);
+
+		if (await this.fullRaceDao.readItemByUrl(race.url)) await this.fullRaceDao.updateItem(race);
+		else await this.fullRaceDao.createItemWithParent(race, parentUrl);
+
+		if (this.entityKind && this.origins) await this.origins.markManual(this.entityKind, race.url);
+		for (const subrace of race.subraces ?? []) await this.saveManualRaceAndSubraces(subrace, race.url);
 	}
 
 	private reconstructHierarchy(flatRaces: RaceWithParent<SmallRace>[]): SmallRace[] {
@@ -114,6 +148,11 @@ export class RaceStore {
 
 		return topLevel;
 	}
+
+	private async withOrigin<T extends SmallRace | FullRace>(item: T): Promise<T> {
+		if (!this.entityKind || !this.origins) return item;
+		return { ...item, origin: await this.origins.get(this.entityKind, item.url) };
+	}
 }
 
 export class ClassStore {
@@ -127,6 +166,8 @@ export class ClassStore {
 			"createItem" | "readItemByName" | "readItemByUrl" | "updateItem"
 		>,
 		private readonly transactions: TransactionalStore,
+		private readonly entityKind?: EntityKind,
+		private readonly origins?: EntityOriginDao,
 	) {}
 
 	async readBaseClasses(
@@ -136,31 +177,34 @@ export class ClassStore {
 		let classes = await this.smallClassDao.readAllItems(null, filters);
 		classes = classes.filter((item) => !item.isArchetype);
 
-		if (!name) return classes;
+		if (!name) return Promise.all(classes.map((item) => this.withOrigin(item)));
 
 		const searchLower = name.toLocaleLowerCase("ru-RU");
-		return classes.filter((item) => {
+		return Promise.all(classes.filter((item) => {
 			const rusNameLower = item.name.rus.toLocaleLowerCase("ru-RU");
 			const engNameLower = item.name.eng.toLocaleLowerCase("ru-RU");
 
 			return rusNameLower.includes(searchLower) || engNameLower.includes(searchLower);
-		});
+		}).map((item) => this.withOrigin(item)));
 	}
 
 	async readArchetypesForClass(parentClassUrl: string): Promise<SmallClass[]> {
-		return this.smallClassDao.readArchetypesByParentUrl(parentClassUrl);
+		return Promise.all((await this.smallClassDao.readArchetypesByParentUrl(parentClassUrl)).map((item) => this.withOrigin(item)));
 	}
 
 	async readSmallClassByName(name: string): Promise<SmallClass | null> {
-		return this.smallClassDao.readItemByName(name);
+		const item = await this.smallClassDao.readItemByName(name);
+		return item ? this.withOrigin(item) : null;
 	}
 
 	async readFullClassByName(name: string): Promise<FullClass | null> {
-		return this.fullClassDao.readItemByName(name);
+		const item = await this.fullClassDao.readItemByName(name);
+		return item ? this.withOrigin(item) : null;
 	}
 
 	async readFullClassByUrl(url: string): Promise<FullClass | null> {
-		return this.fullClassDao.readItemByUrl(url);
+		const item = await this.fullClassDao.readItemByUrl(url);
+		return item ? this.withOrigin(item) : null;
 	}
 
 	async saveFullClass(fullClass: FullClass): Promise<void> {
@@ -171,7 +215,13 @@ export class ClassStore {
 			} else {
 				await this.fullClassDao.createItem(fullClass);
 			}
+			if (this.entityKind && this.origins) await this.origins.ensureRemote(this.entityKind, fullClass.url);
 		});
+	}
+
+	private async withOrigin<T extends SmallClass | FullClass>(item: T): Promise<T> {
+		if (!this.entityKind || !this.origins) return item;
+		return { ...item, origin: await this.origins.get(this.entityKind, item.url) };
 	}
 }
 
@@ -179,6 +229,7 @@ export class DmScreenStore {
 	constructor(
 		private readonly dmScreenDao: Pick<
 			DmScreenGroupSqlTableDao,
+			| "createItem"
 			| "readAllItemsNames"
 			| "readChildren"
 			| "readChildrenCount"
@@ -187,14 +238,16 @@ export class DmScreenStore {
 			| "updateItem"
 		>,
 		private readonly transactions: TransactionalStore,
+		private readonly entityKind?: EntityKind,
+		private readonly origins?: EntityOriginDao,
 	) {}
 
 	async readRootItems(): Promise<DmScreenItem[]> {
-		return this.dmScreenDao.readChildren();
+		return this.withOrigins(await this.dmScreenDao.readChildren());
 	}
 
 	async readChildren(parentUrl: string): Promise<DmScreenItem[]> {
-		return this.dmScreenDao.readChildren(parentUrl);
+		return this.withOrigins(await this.dmScreenDao.readChildren(parentUrl));
 	}
 
 	async readChildrenCount(parentUrl: string): Promise<number> {
@@ -206,17 +259,38 @@ export class DmScreenStore {
 	}
 
 	async readItemByName(name: string): Promise<DmScreenItem | null> {
-		return this.dmScreenDao.readItemByName(name);
+		const item = await this.dmScreenDao.readItemByName(name);
+		return item ? this.withOrigin(item) : null;
 	}
 
 	async readItemByUrl(url: string): Promise<DmScreenItem | null> {
-		return this.dmScreenDao.readItemByUrl(url);
+		const item = await this.dmScreenDao.readItemByUrl(url);
+		return item ? this.withOrigin(item) : null;
 	}
 
 	async updateItemDescription(item: DmScreenItem): Promise<void> {
 		await this.transactions.transaction(async () => {
 			await this.dmScreenDao.updateItem(item);
+			if (this.entityKind && this.origins) await this.origins.ensureRemote(this.entityKind, item.url);
 		});
+	}
+
+	async saveManualItem(item: DmScreenItem): Promise<void> {
+		await this.transactions.transaction(async () => {
+			const existing = await this.dmScreenDao.readItemByUrl(item.url);
+			if (existing) await this.dmScreenDao.updateItem(item);
+			else await this.dmScreenDao.createItem(item);
+			if (this.entityKind && this.origins) await this.origins.markManual(this.entityKind, item.url);
+		});
+	}
+
+	private async withOrigins(items: DmScreenItem[]): Promise<DmScreenItem[]> {
+		return Promise.all(items.map((item) => this.withOrigin(item)));
+	}
+
+	private async withOrigin(item: DmScreenItem): Promise<DmScreenItem> {
+		if (!this.entityKind || !this.origins) return item;
+		return { ...item, origin: await this.origins.get(this.entityKind, item.url) };
 	}
 }
 

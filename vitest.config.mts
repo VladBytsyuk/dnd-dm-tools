@@ -15,6 +15,7 @@ export default defineConfig({
       reporter: ['text', 'html', 'lcov'],
       exclude: [
         'node_modules/**',
+        'design-system/**',
         'dist/**',
         '.pages/**',
         'coverage/**',

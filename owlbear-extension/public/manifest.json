@@ -4,11 +4,11 @@
 	"manifest_version": 1,
 	"author": "VladBytsyuk",
 	"description": "Sync DnD DM Tools initiative encounters into Owlbear Rodeo scenes.",
-	"icon": "/dnd-dm-tools/owlbear-extension/icon-v2.svg",
+	"icon": "/dnd-dm-tools/owlbear-extension/dnd-dm-tools-colored-outlined.svg",
 	"background_url": "/dnd-dm-tools/owlbear-extension/background.html",
 	"action": {
 		"title": "DnD DM Tools",
-		"icon": "/dnd-dm-tools/owlbear-extension/icon-v2.svg",
+		"icon": "/dnd-dm-tools/owlbear-extension/dnd-dm-tools-transparent.svg",
 		"popover": "/dnd-dm-tools/owlbear-extension/index.html",
 		"height": 520,
 		"width": 360

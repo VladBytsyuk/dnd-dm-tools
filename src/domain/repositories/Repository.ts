@@ -1,5 +1,6 @@
 import type { Initializable } from "../Initializable";
 import type { BaseItem } from "../models/common/BaseItem";
+import type { ItemSaveContext, ItemSaveResult } from "../models/common/EntityOrigin";
 
 export interface Repository<SmallItem extends BaseItem, FullItem extends SmallItem, Filter> extends Initializable {
 
@@ -23,7 +24,7 @@ export interface Repository<SmallItem extends BaseItem, FullItem extends SmallIt
 
     groupItems(smallItems: SmallItem[]): Promise<Group<SmallItem>[]>;
 
-    putItem(fullItem: FullItem): Promise<boolean>;
+    putItem(fullItem: FullItem, context?: ItemSaveContext): Promise<ItemSaveResult>;
     deleteItem(url: string): Promise<boolean>;
 
     createEmptyFullItem(): FullItem | undefined

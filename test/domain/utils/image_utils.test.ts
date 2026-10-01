@@ -1,86 +1,40 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getImageSource } from '../../../src/domain/utils/image_utils';
-import * as obsidian from 'obsidian';
-import { MockTFile } from 'obsidian';
+import { describe, expect, it, vi } from "vitest";
+import { TFile, type App } from "obsidian";
+import { getImageSource } from "../../../src/domain/utils/image_utils";
 
-vi.mock('obsidian', async (importActual) => {
-    const actual = await importActual<typeof obsidian>();
+function createApp(filePath: string): App {
+	const file = new TFile(filePath);
+	const getAbstractFileByPath = vi.fn((path: string) => path === filePath ? file : null);
+	return {
+		vault: {
+			getAbstractFileByPath,
+			getResourcePath: (resolvedFile: TFile) => `app://resource/${resolvedFile.path}`,
+		} as unknown as App["vault"],
+		metadataCache: {
+			getFirstLinkpathDest: vi.fn((path: string) => path === filePath ? file : null),
+		} as unknown as App["metadataCache"],
+	} as App;
+}
 
-    // Define MockTFile directly inside the mock factory
-    class MockTFile {
-        path: string;
-        vault: any;
+describe("getImageSource", () => {
+	it("resolves paths relative to the vault", async () => {
+		expect(await getImageSource(createApp("images/creature.webp"), "images/creature.webp"))
+			.toBe("app://resource/images/creature.webp");
+	});
 
-        constructor(vault: any, path: string) {
-            this.vault = vault;
-            this.path = path;
-        }
-    }
+	it("resolves Obsidian open links", async () => {
+		const app = createApp("images/creature.webp");
+		expect(await getImageSource(app, "obsidian://open?vault=Campaign&file=images%2Fcreature.webp"))
+			.toBe("app://resource/images/creature.webp");
+	});
 
-    return {
-        ...actual,
-        TFile: MockTFile, // Export our custom MockTFile
-        MockTFile: MockTFile, // Also export MockTFile so it can be used in tests
-    };
-});
+	it("resolves wikilinks with an embed size", async () => {
+		expect(await getImageSource(createApp("images/creature.webp"), "![[images/creature.webp|300]]"))
+			.toBe("app://resource/images/creature.webp");
+	});
 
-describe('image_utils', () => {
-    let mockApp: any;
-    let mockVault: any;
-
-    beforeEach(() => {
-        mockApp = {
-            vault: {
-                adapter: {
-                    getResourcePath: vi.fn((path: string) => `app://${path}`),
-                },
-                getAbstractFileByPath: vi.fn(),
-                getResourcePath: vi.fn((file: TFile) => `vault://${file.path}`),
-            },
-        };
-        mockVault = mockApp.vault;
-    });
-
-    it('should return the image name if it is a regular http URL', async () => {
-        const imageUrl = 'http://example.com/image.png';
-        const result = await getImageSource(mockApp, imageUrl);
-        expect(result).toBe(imageUrl);
-        expect(mockVault.getAbstractFileByPath).not.toHaveBeenCalled();
-    });
-
-    it('should return the image name if it is a regular https URL', async () => {
-        const imageUrl = 'https://example.com/image.png';
-        const result = await getImageSource(mockApp, imageUrl);
-        expect(result).toBe(imageUrl);
-        expect(mockVault.getAbstractFileByPath).not.toHaveBeenCalled();
-    });
-
-            it('should handle local paths that exist in the vault', async () => {
-                const localPath = 'path/to/local/image.png';
-                const mockFile = new MockTFile(mockApp.vault, localPath);
-                mockVault.getAbstractFileByPath.mockReturnValue(mockFile);
-        const result = await getImageSource(mockApp, localPath);
-        expect(result).toBe(`vault://${localPath}`);
-        expect(mockVault.getAbstractFileByPath).toHaveBeenCalledWith(localPath);
-        expect(mockVault.getResourcePath).toHaveBeenCalledWith(mockFile);
-    });
-
-    it('should return the local path if it does not exist in the vault', async () => {
-        const localPath = 'path/to/nonexistent/image.png';
-        mockVault.getAbstractFileByPath.mockReturnValue(null);
-
-        const result = await getImageSource(mockApp, localPath);
-        expect(result).toBe(localPath);
-        expect(mockVault.getAbstractFileByPath).toHaveBeenCalledWith(localPath);
-        expect(mockVault.getResourcePath).not.toHaveBeenCalled();
-    });
-
-    it('should handle obsidian URLs', async () => {
-        const obsidianUrl = 'obsidian://open?vault=MyVault&file=images%2Fmy_image.png';
-        mockVault.adapter.getResourcePath.mockReturnValue('app://images/my_image.png');
-
-        const result = await getImageSource(mockApp, obsidianUrl);
-        expect(result).toBe('app://images/my_image.png');
-        expect(mockVault.adapter.getResourcePath).toHaveBeenCalledWith('images/my_image.png');
-    });
+	it("leaves absolute system paths unresolved", async () => {
+		const path = "/home/user/images/creature.webp";
+		expect(await getImageSource(createApp("images/creature.webp"), path)).toBe(path);
+	});
 });

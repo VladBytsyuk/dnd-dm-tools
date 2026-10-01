@@ -69,6 +69,7 @@ describe("small item projectors", () => {
 			type: fullArmorRingMail.type,
 			armorClass: fullArmorRingMail.armorClass,
 			price: fullArmorRingMail.price,
+			weight: fullArmorRingMail.weight,
 			source: fullArmorRingMail.source,
 		});
 	});

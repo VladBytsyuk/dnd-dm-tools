@@ -1,13 +1,19 @@
 {
 	"name": "dnd-dm-tools",
-	"version": "1.1.2",
+	"version": "1.2.0",
 	"description": "A plugin for Obsidian.md with DnD 5e DM tools in russian.",
 	"main": "main.js",
 	"workspaces": [
+		"design-system",
 		"owlbear-extension"
 	],
+	"engines": {
+		"node": ">=20.19.0"
+	},
 	"scripts": {
+		"predev": "npm run design-system:build",
 		"dev": "npm run copy:assets && node esbuild.config.mjs",
+		"prebuild": "npm run design-system:build",
 		"build": "npm run copy:assets && tsc -noEmit -skipLibCheck && node esbuild.config.mjs production && npm run owlbear:build",
 		"pages:build": "npm run owlbear:build && shx rm -rf .pages && mkdir -p .pages/owlbear-extension && shx cp -r owlbear-extension/dist/* .pages/owlbear-extension",
 		"release": "npm run build && mkdir -p .release/dnd-dm-tools && cp main.js manifest.json sql-wasm.wasm styles.css .release/dnd-dm-tools && shx rm -rf .release/dnd-dm-tools/owlbear-extension && mkdir -p .release/dnd-dm-tools/owlbear-extension && shx cp -r owlbear-extension/dist/* .release/dnd-dm-tools/owlbear-extension",
@@ -15,6 +21,11 @@
 		"owlbear:dev": "npm --prefix owlbear-extension run dev",
 		"owlbear:build": "npm --prefix owlbear-extension run build",
 		"owlbear:check": "npm --prefix owlbear-extension run check",
+		"design-system:storybook": "npm run storybook --workspace @dnd-dm-tools/design-system",
+		"design-system:check": "npm run check --workspace @dnd-dm-tools/design-system",
+		"design-system:build": "npm run build --workspace @dnd-dm-tools/design-system",
+		"design-system:storybook:build": "npm run storybook:build --workspace @dnd-dm-tools/design-system",
+		"design-system:validate": "npm run validate --workspace @dnd-dm-tools/design-system",
 		"generate:ttg-openapi": "node scripts/generate-ttg-openapi.mjs",
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"svelte-check": "svelte-check --tsconfig tsconfig.json",
@@ -49,6 +60,7 @@
 		"@vitest/coverage-istanbul": "^1.6.1"
 	},
 	"dependencies": {
+		"@dnd-dm-tools/design-system": "workspace:*",
 		"lucide-svelte": "^0.477.0",
 		"sql.js": "^1.13.0",
 		"tar": "^7.5.22",

@@ -13,7 +13,8 @@ describe("PluginSettings", () => {
 			],
 		});
 
-		expect(result.settings.schemaVersion).toBe(3);
+		expect(result.settings.schemaVersion).toBe(4);
+		expect(result.settings.redesignEnabled).toBe(false);
 		expect(result.settings.workspace.layout).toBe("vertical-split");
 		expect(result.settings.workspace.tiles[0].tabs).toEqual(["bestiary"]);
 		expect(result.settings.workspace.tiles[1].tabs).toEqual(["spellbook"]);

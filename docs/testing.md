@@ -14,6 +14,7 @@ npm run test          # Run all tests (watch mode by default)
 npm run test:watch    # Explicit watch mode
 npm run test:cov      # Run tests with Istanbul coverage report
 npm run svelte-check  # Run Svelte diagnostics
+npm run design-system:validate # Check and build the design system and Storybook
 ```
 
 ## Svelte Diagnostics
@@ -74,7 +75,7 @@ describe('someFunction', () => {
 
 Coverage reports are generated in `coverage/` with text, HTML, and lcov formats. The following are excluded from coverage:
 
-- `node_modules/`, `dist/`, `coverage/`
+- `node_modules/`, `design-system/`, `dist/`, `coverage/`
 - Type definitions (`*.d.ts`)
 - Mocks (`__mocks__/`)
 - Svelte components (`src/**/*.svelte`)
@@ -84,10 +85,11 @@ TypeScript helpers and controllers under `src/ui/` remain eligible for coverage;
 
 ## CI Integration
 
-Tests run in GitHub Actions on push/PR to main, on Node.js 18.x and 20.x. The pipeline:
+Tests run in GitHub Actions on push/PR to main, on Node.js 20.x. The pipeline:
 
 1. `npm ci`
-2. `npm run svelte-check`
-3. `npm test`
-4. `npm run test:cov`
-5. Upload coverage to Codecov
+2. `npm run design-system:validate`
+3. `npm run svelte-check`
+4. `npm test`
+5. `npm run test:cov`
+6. Upload coverage to Codecov

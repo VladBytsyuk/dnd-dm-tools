@@ -19,20 +19,21 @@
 	import { getFromClipboard, getMonsterFromClipboard } from '../../../data/clipboard';
 	import type { FullWeapon } from "src/domain/models/weapon/FullWeapon";
 	import { createMonsterWeaponAction } from "src/domain/models/monster/monsterWeaponAction";
+	import type { ItemSaveContext, ItemSaveResult } from "src/domain/models/common/EntityOrigin";
 
     let { 
 		currentItem, 
 		uiEventListener,
         isEditable = false,
         onClose = () => {},
-        onItemSave = (_currentItem: FullMonster) => true,
+        onItemSave = (_currentItem: FullMonster, _context: ItemSaveContext) => ({ ok: true } as ItemSaveResult),
         onItemDelete = (_url: string) => true
 	} = $props<{
         currentItem: FullMonster;
         uiEventListener: IUiEventListener;
         isEditable: boolean;
         onClose: () => void;
-        onItemSave: (currentItem: FullMonster) => boolean | Promise<boolean>;
+        onItemSave: (currentItem: FullMonster, context: ItemSaveContext) => ItemSaveResult | Promise<ItemSaveResult>;
         onItemDelete: (url: string) => boolean | Promise<boolean>;
     }>();
 
@@ -81,11 +82,15 @@
 
         if (saveChanges) {
             if (validateUrl(currentItem.url)) {
-                const saveSucceed = await onItemSave(currentItem);
-                if (saveSucceed) {
+                const saveResult = await onItemSave(currentItem, {
+                    originalUrl: reservedItem.url,
+                    originalOrigin: reservedItem.origin,
+                });
+                if (saveResult.ok) {
+					currentItem.origin = "manual";
                     isInEditMode = newIsInEditMode;
                 } else {
-                    new Notice(`Ошибка сохранения`);
+                    new Notice(saveResult.message);
                 }
             } else {
                 new Notice(`URL (${currentItem.url}) должен быть непустым и начинаться с /bestiary/`);
@@ -138,7 +143,7 @@
             <div class="section-horizontal-header">
                 <div class="header">
                     <div class="header-left">
-                        <MonsterName {currentItem} {isInEditMode} {uiEventListener} />
+                        <MonsterName {currentItem} {isInEditMode} isUrlEditable={currentItem.origin !== "manual"} {uiEventListener} />
                     </div>
 
                     <div class="header-right">

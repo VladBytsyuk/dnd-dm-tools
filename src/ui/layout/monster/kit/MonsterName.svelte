@@ -1,17 +1,19 @@
 <script lang="ts">
     import { onDestroy, onMount } from 'svelte';
-    import { copyMonsterToClipboard, copyTextToClipboard } from "src/data/clipboard";
+    import { copyTextToClipboard, formatEntityMarkdownLink } from "src/data/clipboard";
 	import { DiceRollersManager } from '../../dice-roller/DiceRollersManager';
 	import type { FullMonster } from '../../../../domain/models/monster/FullMonster';
 	import type { IUiEventListener } from '../../../../domain/listeners/ui_event_listener';
 
     let { 
 		currentItem,
-        isInEditMode,
+		isInEditMode,
+		isUrlEditable = true,
 		uiEventListener,
 	} = $props<{
         currentItem: FullMonster;
         isInEditMode: boolean;
+		isUrlEditable?: boolean;
         uiEventListener: IUiEventListener;
     }>();
     
@@ -29,33 +31,38 @@
         <input class="header-name inputlike"
             class:inputlike-editable={isInEditMode}
             bind:value={currentItem.name.rus} 
-            readonly={!isInEditMode} />
+            readonly={!isInEditMode}
+            onclick={() => { if (!isInEditMode) void copyTextToClipboard(currentItem.name.rus); }} />
         <div
             class="header-name"
             role="button"
             tabindex="0"
-            onclick={() => copyMonsterToClipboard(currentItem)}
-            onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyMonsterToClipboard(currentItem); } }}
-            aria-label="Скопировать статблок в буфер обмена"
+            onclick={() => copyTextToClipboard(currentItem.name.rus)}
+            onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyTextToClipboard(currentItem.name.rus); } }}
+            aria-label={`Скопировать: ${currentItem.name.rus}`}
         >📋</div>
     </div>
     <div class="header-line">
         <input class="header-subtext inputlike"
             class:inputlike-editable={isInEditMode}
             bind:value={currentItem.name.eng} 
-            readonly={!isInEditMode} />
+            readonly={!isInEditMode}
+            onclick={() => { if (!isInEditMode) void copyTextToClipboard(currentItem.name.eng); }} />
+        {#if !isInEditMode}
+            <div class="header-subtext" role="button" tabindex="0" onclick={() => copyTextToClipboard(currentItem.name.eng)} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyTextToClipboard(currentItem.name.eng); } }} aria-label={`Скопировать: ${currentItem.name.eng}`}>📋</div>
+        {/if}
     </div>
     <div class="header-line">
         <input class="header-subtext inputlike"
-            class:inputlike-editable={isInEditMode}
+            class:inputlike-editable={isInEditMode && isUrlEditable}
             bind:value={currentItem.url} 
-            readonly={!isInEditMode} />
+            readonly={!isInEditMode || !isUrlEditable} />
         <div 
             class="header-subtext" 
             role="button"
             tabindex="0"
-            onclick={() => copyTextToClipboard(currentItem.url)}
-            onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyTextToClipboard(currentItem.url); } }}
+            onclick={() => copyTextToClipboard(formatEntityMarkdownLink(currentItem.name.rus, currentItem.url))}
+            onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { copyTextToClipboard(formatEntityMarkdownLink(currentItem.name.rus, currentItem.url)); } }}
             aria-label="Скопировать ссылку в буфер обмена"
         >📋</div>
     </div>

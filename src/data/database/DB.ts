@@ -25,8 +25,10 @@ import { FullRaceSqlTableDao } from './FullRaceSqlTableDao';
 import { SmallClassSqlTableDao } from './SmallClassSqlTableDao';
 import { FullClassSqlTableDao } from './FullClassSqlTableDao';
 import { CharacterSheetSqlTableDao } from './CharacterSheetSqlTableDao';
+import { EntityOriginDao } from './EntityOriginDao';
 import type { Initializable } from 'src/domain/Initializable';
-import { DatabaseSeedOrchestrator } from 'src/data/services';
+import type { EntityKind } from 'src/domain/models/common/EntityOrigin';
+import { DatabaseSeedOrchestrator, bundledEntityUrlsByKind } from 'src/data/services';
 import { DbTransactionalStore, SeedStore } from 'src/data/stores';
 
 export default class DB implements Initializable {
@@ -55,6 +57,7 @@ export default class DB implements Initializable {
     public smallClassDao: SmallClassSqlTableDao;
     public fullClassDao: FullClassSqlTableDao;
     public characterSheetDao: CharacterSheetSqlTableDao;
+    public entityOriginDao: EntityOriginDao;
 
     constructor(
         private app: App,
@@ -90,6 +93,7 @@ export default class DB implements Initializable {
             const database = new SQL.Database(databaseData);
             this.database = database;
             const sqlTableDaos = this.initDaos(database);
+            this.entityOriginDao = new EntityOriginDao(database);
 
             // Check if classes migration needed
             const needsClassesMigration = await this.checkClassesMigration();
@@ -100,12 +104,16 @@ export default class DB implements Initializable {
 
             // Create tables if they do not exist
             await this.transaction(async () => {
+                await this.entityOriginDao.initialize();
                 await Promise.all(
                     sqlTableDaos.map(tableDao => tableDao.initialize())
                 );
+                this.smallArmorDao.ensureWeightColumn();
+                this.fullRaceDao.ensureAdditionalSectionsColumn();
             });
 
             await this.createSeedOrchestrator().seedAll();
+            await this.backfillRemoteOrigins();
 
             console.log('Database initialized');
         } catch (error) {
@@ -269,5 +277,33 @@ export default class DB implements Initializable {
         });
         await this.createSeedOrchestrator().seedSmallClass();
         console.log('Classes migration complete.');
+    }
+
+    private async backfillRemoteOrigins(): Promise<void> {
+        const tables: Array<[EntityKind, string]> = [
+            ["bestiary", "small_bestiary"],
+            ["spellbook", "small_spellbook"],
+            ["dm-screen", "dm_screen_items"],
+            ["arsenal", "small_arsenal"],
+            ["armory", "small_armory"],
+            ["equipment", "small_equipment"],
+            ["artifactory", "small_artifactory"],
+            ["backgrounds", "small_backgrounds"],
+            ["feats", "small_feats"],
+            ["races", "small_races"],
+            ["classes", "small_classes"],
+        ];
+        await this.transaction(async () => {
+            for (const [kind, table] of tables) {
+                const result = this.database!.exec(`SELECT url FROM ${table};`);
+                const bundledUrls = bundledEntityUrlsByKind[kind] ?? new Set<string>();
+                for (const [urlValue] of result[0]?.values ?? []) {
+                    const url = String(urlValue);
+                    if (await this.entityOriginDao.exists(kind, url)) continue;
+                    if (bundledUrls.has(url)) await this.entityOriginDao.ensureRemote(kind, url);
+                    else await this.entityOriginDao.markManual(kind, url);
+                }
+            }
+        });
     }
 }

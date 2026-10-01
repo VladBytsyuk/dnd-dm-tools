@@ -151,7 +151,7 @@ export class ClassesRepository
 
 	override async getFullItemByUrl(url: string): Promise<FullClass | null> {
 		const cachedFullItem = await this.#classStore.readFullClassByUrl(url);
-		if (cachedFullItem && hasClassContent(cachedFullItem)) {
+		if (cachedFullItem && (hasClassContent(cachedFullItem) || cachedFullItem.origin === "manual")) {
 			console.log(`Loaded ${url} from local storage.`);
 			return cachedFullItem;
 		}
@@ -177,7 +177,7 @@ export class ClassesRepository
 
 	override async getFullItemByName(name: string): Promise<FullClass | null> {
 		const cachedFullItem = await this.#classStore.readFullClassByName(name);
-		if (cachedFullItem && hasClassContent(cachedFullItem)) return cachedFullItem;
+		if (cachedFullItem && (hasClassContent(cachedFullItem) || cachedFullItem.origin === "manual")) return cachedFullItem;
 
 		const smallClassByName = await this.#classStore.readSmallClassByName(name);
 		if (smallClassByName) return await this.getFullItemBySmallItem(smallClassByName);

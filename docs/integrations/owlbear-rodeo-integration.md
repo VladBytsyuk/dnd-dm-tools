@@ -23,12 +23,12 @@ Minimum manifest shape:
   "version": "0.1.0",
   "manifest_version": 1,
   "description": "DnD DM Tools integration for Owlbear Rodeo.",
-  "icon": "/dnd-dm-tools/owlbear-extension/icon-v2.svg",
+  "icon": "/dnd-dm-tools/owlbear-extension/dnd-dm-tools-colored-outlined.svg",
   "author": "dnd-dm-tools",
   "homepage_url": "https://example.com/owlbear",
   "action": {
     "title": "DnD DM Tools",
-    "icon": "/dnd-dm-tools/owlbear-extension/icon-v2.svg",
+    "icon": "/dnd-dm-tools/owlbear-extension/dnd-dm-tools-transparent.svg",
     "popover": "/dnd-dm-tools/owlbear-extension/index.html",
     "width": 360,
     "height": 540

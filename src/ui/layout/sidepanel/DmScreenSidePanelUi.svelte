@@ -5,9 +5,14 @@
 	import UiSearchToolbar from "../uikit/organisms/UiSearchToolbar.svelte";
 	import UiEmptyState from "../uikit/organisms/UiEmptyState.svelte";
 	import PanelTypeTint from "../uikit/PanelTypeTint.svelte";
+	import HtmlBlock from "../uikit/HtmlBlock.svelte";
+	import { TextBlock } from "@dnd-dm-tools/design-system";
+	import { theme as appTheme, Theme } from "src/ui/theme";
+	import { copyDmScreenItem } from "src/data/clipboard";
 
     // ---- Props ----
-    let { item, children, uiEventListener, getFilteredItems, getChildrenCount, getChildren, getFullItem } = $props();
+    let { item, children, redesignEnabled = false, uiEventListener, getFilteredItems, getChildrenCount, getChildren, getFullItem } = $props();
+    const dsTheme: "dark" | "light" = $derived($appTheme === Theme.Dark ? "dark" : "light");
 
     // ---- State ----
     function getInitialItem() {
@@ -24,6 +29,10 @@
     let searchBarValue: string = $state('');
     
     let filteredItems: DmScreenItem[] = $state([]);
+
+    function copyCurrentItem() {
+        if (currentItem) void copyDmScreenItem(currentItem);
+    }
 
     async function filterItems() {
         if (searchBarValue.length === 0) {
@@ -85,7 +94,7 @@
     }
 </script>
 
-<div class="side-panel-container">
+<div class="side-panel-container" class:redesigned={redesignEnabled} data-theme={dsTheme}>
     <UiSearchToolbar
         onbackclick={itemsStack.length > 0 ? onSearchBarBackClick : undefined}
         onvaluechange={onSearchBarValueChanged}
@@ -94,6 +103,8 @@
         onfiltersclick={undefined}
         isfiltersapplied={undefined}
         onaddclick={undefined}
+        oncopyclick={currentItem && currentChildren.length === 0 && currentItem.description ? copyCurrentItem : undefined}
+        {redesignEnabled}
     />
     <div class="side-panel-spacer"></div>
     <div class="side-panel-content">
@@ -101,44 +112,84 @@
             <DmScreenItemUi
                 currentItem={currentItem}
                 uiEventListener={uiEventListener}
+                redesigned={redesignEnabled}
+                theme={dsTheme}
+                sectionName={itemsStack.length > 1 ? itemsStack.at(-2)?.name.rus : currentItem.group}
             />
         {:else if !currentItem && searchBarValue.length > 0}
             {#if filteredItems.length === 0}
                 <UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
             {:else}
-                <div class="content">
+                <div class="content dm-screen-grid" class:redesigned={redesignEnabled}>
                     {#each filteredItems as item}
-                        <PanelTypeTint panelKey="dm-screen">
+                        {#if redesignEnabled}
                             <DmScreenGroupUi
                                 icon={item.icon}
                                 name={item.name}
                                 source={item.source.shortName}
                                 onclick={onItemClick(item)}
+                                redesigned
+                                theme={dsTheme}
                             />
-                        </PanelTypeTint>
+                        {:else}
+                            <PanelTypeTint panelKey="dm-screen">
+                                <DmScreenGroupUi
+                                    icon={item.icon}
+                                    name={item.name}
+                                    source={item.source.shortName}
+                                    onclick={onItemClick(item)}
+                                />
+                            </PanelTypeTint>
+                        {/if}
                     {/each}
                 </div>
             {/if}
         {:else}
-            {#if currentItem}
+            {#if currentItem && redesignEnabled}
+                <header class="dm-screen-section-header redesigned-header">
+                    <TextBlock title={currentItem.name.rus} theme={dsTheme} />
+                    {#if currentItem.description}
+                        <div class="dm-screen-section-description">
+                            <HtmlBlock htmlContent={currentItem.description} {uiEventListener} />
+                        </div>
+                    {/if}
+                </header>
+            {:else if currentItem}
                 <h2>{currentItem.name.rus}</h2>
             {/if}
-            {#if currentItem && currentItem.description}
-                <div class="group-description">{@html currentItem.description}</div>
+            {#if !redesignEnabled && currentItem && currentItem.description}
+                <div class="group-description"><HtmlBlock htmlContent={currentItem.description} {uiEventListener} /></div>
             {/if}
-            <div>
+            <div class:dm-screen-browser={redesignEnabled}>
                 {#each (groupedChildren()) as childGroup}
-                    <div class="group-header">{@html childGroup.subgroupName}</div>
-                    <div class="content">
+                    {#if childGroup.subgroupName}
+                        {#if redesignEnabled}
+                            <TextBlock title={childGroup.subgroupName} theme={dsTheme} />
+                        {:else}
+                            <div class="group-header">{@html childGroup.subgroupName}</div>
+                        {/if}
+                    {/if}
+                    <div class="content dm-screen-grid" class:redesigned={redesignEnabled}>
                         {#each childGroup.group as group}
-                            <PanelTypeTint panelKey="dm-screen">
+                            {#if redesignEnabled}
                                 <DmScreenGroupUi
                                     icon={group.icon}
                                     name={group.name}
                                     source={group.source.shortName}
                                     onclick={onItemClick(group)}
+                                    redesigned
+                                    theme={dsTheme}
                                 />
-                            </PanelTypeTint>
+                            {:else}
+                                <PanelTypeTint panelKey="dm-screen">
+                                    <DmScreenGroupUi
+                                        icon={group.icon}
+                                        name={group.name}
+                                        source={group.source.shortName}
+                                        onclick={onItemClick(group)}
+                                    />
+                                </PanelTypeTint>
+                            {/if}
                         {/each}
                     </div>
                 {/each}
@@ -180,7 +231,7 @@
     .group-description {
         font-size: 0.875rem;
         color: var(--dnd-ui-text-secondary);
-    }       
+    }
 
     .group-header {
         font-weight: var(--dnd-ui-font-weight-semibold);
@@ -188,4 +239,25 @@
         margin-top: var(--dnd-ui-space-16);
         margin-bottom: var(--dnd-ui-space-8);
     }
+
+    .side-panel-container.redesigned .side-panel-content {
+        padding: 0 var(--dnd-ui-space-8) var(--dnd-ui-space-16);
+        background: var(--dnd-ui-surface-base);
+        color: var(--dnd-ui-text-primary);
+    }
+
+    .dm-screen-grid.redesigned {
+        grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 1fr));
+        gap: var(--dnd-ui-space-8);
+        padding: var(--dnd-ui-space-8) 0;
+        background: transparent;
+    }
+
+    .dm-screen-browser { display: grid; gap: var(--dnd-ui-space-8); }
+    .dm-screen-section-header {
+        margin: var(--dnd-ui-space-16) 0 var(--dnd-ui-space-8);
+    }
+    .dm-screen-section-description { margin-top: var(--dnd-ui-space-8); color: var(--dnd-ui-text-secondary); line-height: 1.5; }
+    .dm-screen-section-description :global(p) { margin: 0; }
+    .side-panel-container.redesigned :global(.empty-state) { padding: 0 var(--dnd-ui-space-8); }
 </style>

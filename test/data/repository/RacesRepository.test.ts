@@ -450,3 +450,51 @@ describe('RacesRepository - Grouping', () => {
         expect(groups[1].sort).toBe('Редкая');
     });
 });
+
+describe("RacesRepository - Manual race imports", () => {
+	it("rejects a nested subrace URL that belongs to remote content", async () => {
+		const nested = { ...fullRace1Subrace, url: "/races/remote-subrace" };
+		const race = { ...fullRace1, url: "/races/manual-parent", subraces: [nested] };
+		const raceStore = {
+			readSmallRaceByUrl: vi.fn(async (url: string) => url === nested.url ? smallRace2 : null),
+			saveManualRaceTree: vi.fn(),
+		};
+		const origins = { get: vi.fn(async () => "remote") };
+		const repo = new RacesRepository({
+			simpleDependencies: {
+				readStore: {}, writeStore: {}, service: {}, mapper: {}, projector: {}, origins,
+			},
+			raceStore,
+			service: {},
+			mapper: {},
+		} as any);
+
+		await expect(repo.putItem(race)).resolves.toMatchObject({ ok: false, code: "url-occupied" });
+		expect(raceStore.saveManualRaceTree).not.toHaveBeenCalled();
+	});
+
+	it("reloads small-item and filter caches after importing a race", async () => {
+		const race = { ...fullRace1, url: "/races/manual-parent" };
+		const savedSmallRace = { ...smallRace1, url: race.url };
+		const readAllSmallItems = vi.fn()
+			.mockResolvedValueOnce([])
+			.mockResolvedValueOnce([savedSmallRace]);
+		const raceStore = {
+			readSmallRaceByUrl: vi.fn().mockResolvedValue(null),
+			saveManualRaceTree: vi.fn(),
+		};
+		const repo = new RacesRepository({
+			simpleDependencies: {
+				readStore: { readAllSmallItems }, writeStore: {}, service: {}, mapper: {}, projector: {},
+			},
+			raceStore,
+			service: {},
+			mapper: {},
+		} as any);
+
+		await repo.initialize();
+		await expect(repo.putItem(race)).resolves.toEqual({ ok: true });
+		await expect(repo.getAllSmallItems()).resolves.toEqual([savedSmallRace]);
+		expect(readAllSmallItems).toHaveBeenCalledTimes(2);
+	});
+});

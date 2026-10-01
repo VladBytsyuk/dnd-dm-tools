@@ -1,13 +1,46 @@
 <script lang="ts">
-	import { copyDmScreenItem } from "src/data/clipboard";
+	import { copyDmScreenItem, showClipboardNotice } from "src/data/clipboard";
+	import { FullDmScreen } from "@dnd-dm-tools/design-system";
+	import { resolveDndEntityLink } from "src/domain/listeners/html_link_listener";
 	import HtmlBlock from "../uikit/HtmlBlock.svelte";
 	import UiCopyableText from "../uikit/atoms/UiCopyableText.svelte";
 	import UiItemMetaRow from "../uikit/molecules/UiItemMetaRow.svelte";
+	import { theme as appTheme, Theme } from "src/ui/theme";
 
     // ---- props ----
-    let { currentItem, uiEventListener } = $props();
+    let { currentItem, uiEventListener, redesigned = false, theme: themeProp, sectionName } = $props<{
+        currentItem: any;
+        uiEventListener: any;
+        redesigned?: boolean;
+        theme?: "dark" | "light";
+        sectionName?: string;
+    }>();
+    const theme: "dark" | "light" = $derived(themeProp ?? ($appTheme === Theme.Dark ? "dark" : "light"));
+
+    function handleEntityLink(link: { href: string }) {
+        const result = resolveDndEntityLink(uiEventListener, link.href);
+        if (result) return result;
+    }
+
+	function showCopyNotice(text: string) {
+		showClipboardNotice(text);
+	}
 </script>
 
+{#if redesigned}
+<FullDmScreen
+	russianName={currentItem.name.rus}
+	englishName={currentItem.name.eng}
+	entityLink={currentItem.url}
+	section={sectionName || currentItem.group}
+	source={currentItem.source}
+	icon={currentItem.icon}
+	html={currentItem.description}
+	onEntityLinkClick={handleEntityLink}
+	onCopyText={showCopyNotice}
+	{theme}
+/>
+{:else}
 <div class="item">
     {#if currentItem.name}
     <div class="item-header-box">
@@ -36,6 +69,7 @@
         {/if}
     </div>
 </div>
+{/if}
 
 <style>
     .item {
@@ -82,4 +116,5 @@
     .item-content-text {
         margin-top: 1em;
     }
+
 </style>

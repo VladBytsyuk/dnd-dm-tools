@@ -1,7 +1,6 @@
 <script lang="ts">
     import type { FullRace } from 'src/domain/models/race/FullRace';
     import type { IUiEventListener } from 'src/domain/listeners/ui_event_listener';
-    import { copyRaceToClipboard } from '../../../data/clipboard';
     import RaceHeaderFullUi from './RaceHeaderFullUi.svelte';
     import RaceSkill from './RaceSkill.svelte';
     import HtmlBlock from '../uikit/HtmlBlock.svelte';
@@ -62,8 +61,6 @@
         }, 0);
     };
 
-    // Copy to clipboard
-    const copyToClipboard = () => copyRaceToClipboard(currentItem);
 </script>
 
 <div class="full-item">
@@ -72,7 +69,6 @@
         url={currentItem.url}
         type={currentItem.type.name}
         source={currentItem.source}
-        onClick={copyToClipboard}
         {images}
         {uiEventListener}
         abilities={abilitiesText}

@@ -10,6 +10,7 @@ export interface FullRace extends SmallRace {
     size: string;
     speed: Speed[];
     skills: Tag[];
+    additionalSections?: { title: string; html: string }[];
     subraces?: FullRace[];
 }
 

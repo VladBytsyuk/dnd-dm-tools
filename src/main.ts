@@ -52,6 +52,7 @@ import {
 import { getOwlbearExtensionInstallUrl } from './data/owlbear/OwlbearExtensionHosting';
 import { clearActiveOwlbearPreview } from './data/owlbear/OwlbearPreviewLifecycle';
 import { createOwlbearPairingCode } from './data/owlbear/OwlbearPairing';
+import { ManualEntityArchiveService, type ManualEntityImportReport } from './data/services';
 
 export type OwlbearRuntimeStatus = {
 	cloudflared: CloudflaredInstallStatus;
@@ -139,11 +140,20 @@ export default class DndStatblockPlugin extends Plugin {
 		return this.settings;
 	}
 
+	async exportManualEntities(): Promise<string> {
+		const archive = await this.getManualEntityArchiveService().exportArchive();
+		return JSON.stringify(archive, null, 2);
+	}
+
+	async importManualEntities(json: string): Promise<ManualEntityImportReport> {
+		return this.getManualEntityArchiveService().importArchive(JSON.parse(json));
+	}
+
 	async updateSettings(patch: Partial<PluginSettingsState>): Promise<void> {
 		this.settings = {
 			...this.settings,
 			...patch,
-			schemaVersion: 3,
+			schemaVersion: 4,
 		};
 		this.assistantWorkspace = this.settings.workspace;
 		await this.saveData(this.settings);
@@ -280,6 +290,22 @@ export default class DndStatblockPlugin extends Plugin {
 
 	private async updateOwlbearSettings(patch: Partial<OwlbearSyncSettings>): Promise<void> {
 		await this.updateSettings({ owlbearSync: { ...this.settings.owlbearSync, ...patch } });
+	}
+
+	private getManualEntityArchiveService(): ManualEntityArchiveService {
+		return new ManualEntityArchiveService(this.#database.entityOriginDao, {
+			bestiary: this.bestiaryFeature.repository!,
+			spellbook: this.spellbookFeature.repository!,
+			"dm-screen": this.dmScreenFeature.repository!,
+			arsenal: this.arsenalFeature.repository!,
+			armory: this.armoryFeature.repository!,
+			equipment: this.equipmentFeature.repository!,
+			artifactory: this.artifactoryFeature.repository!,
+			backgrounds: this.backgroundFeature.repository!,
+			feats: this.featFeature.repository!,
+			races: this.raceFeature.repository!,
+			classes: this.classesFeature.repository!,
+		}, this.manifest.version);
 	}
 
 	private async resetOwlbearSnapshotForNewSession(): Promise<void> {
