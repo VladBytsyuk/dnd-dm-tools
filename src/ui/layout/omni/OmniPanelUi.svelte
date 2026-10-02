@@ -59,6 +59,7 @@
 	let workspace = $state(getInitialWorkspace());
 	let query = $state("");
 	let results = $state<PanelSearchResult[]>([]);
+	const favoriteResults = $derived(redesignEnabled ? results.filter((result) => result.favorite) : []);
 	let draggedTab = $state<DraggedTab | null>(null);
 	let dropIndicator = $state<DropIndicator | null>(null);
 	let tilesElement: HTMLElement;
@@ -362,11 +363,20 @@
 
 	{#if results.length}
 		<div class="omni-search-results" class:is-redesigned={redesignEnabled} aria-label="Результаты поиска">
+			{#if favoriteResults.length}
+				<h3 class="omni-search-results__heading">Избранное</h3>
+				{#each favoriteResults as result (`favorite:${result.panelKey}:${result.url}`)}
+					<div class="omni-search-results__item" class:is-redesigned={redesignEnabled && result.panelKey !== "character-sheets"}>
+						<OmniSearchResult {result} {redesignEnabled} onSelect={() => selectResult(result)} />
+					</div>
+				{/each}
+				<h3 class="omni-search-results__heading">Все результаты</h3>
+			{/if}
 			{#each results as result (`${result.panelKey}:${result.url}`)}
 				<div class="omni-search-results__item" class:is-redesigned={redesignEnabled && result.panelKey !== "character-sheets"}>
-										<OmniSearchResult
-											{result}
-											{redesignEnabled}
+					<OmniSearchResult
+						{result}
+						{redesignEnabled}
 						onSelect={() => selectResult(result)}
 					/>
 				</div>
@@ -600,6 +610,12 @@
 	}
 	.omni-search-results__item {
 		min-width: 0;
+	}
+	.omni-search-results__heading {
+		grid-column: 1 / -1;
+		margin: 0;
+		font-size: var(--dnd-ui-font-size-lg);
+		color: var(--dnd-ui-text-primary);
 	}
 	.omni-search-results__item :global(> *) {
 		height: 100%;

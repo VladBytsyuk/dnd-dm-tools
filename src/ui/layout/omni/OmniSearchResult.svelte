@@ -37,10 +37,11 @@
 			source={item.source.shortName}
 			onclick={onSelect}
 			redesigned
+			favorite={result.favorite ?? false}
 			{theme}
 		/>
 	{:else if redesignEnabled && result.panelKey !== "character-sheets"}
-		<RedesignedSmallItem panelKey={result.panelKey} smallItem={item} onItemClick={onSelect} />
+		<RedesignedSmallItem panelKey={result.panelKey} smallItem={item} favorite={result.favorite ?? false} onItemClick={onSelect} />
 	{:else}
 	<PanelTypeTint panelKey={result.panelKey}>
 	{#if result.panelKey === "bestiary"}

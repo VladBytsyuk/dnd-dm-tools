@@ -6,6 +6,7 @@ import type DndStatblockPlugin from "src/main";
 import type { PanelHost, PanelSearchResult } from "./PanelHost";
 import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
 import { sortItemsBySearchRelevance } from "./OmniSearchRanking";
+import type { EntityKind } from "src/domain/models/common/EntityOrigin";
 
 export abstract class BaseSidePanel<ST extends BaseItem, FT extends ST, F extends Filters> implements PanelHost {
 
@@ -34,12 +35,16 @@ export abstract class BaseSidePanel<ST extends BaseItem, FT extends ST, F extend
 
     async search(query: string): Promise<PanelSearchResult[]> {
         const items = await this.repository.getFilteredSmallItems(query, null);
-        return sortItemsBySearchRelevance(items, query).slice(0, 25).map((item) => ({
+		const favoriteUrls = new Set(this.repository.favorites?.listUrls(this.getKey() as EntityKind) ?? []);
+        return sortItemsBySearchRelevance(items, query)
+			.filter((item, index) => index < 25 || favoriteUrls.has(item.url))
+			.map((item) => ({
             panelKey: this.getKey(),
             url: item.url,
             title: item.name.rus || item.name.eng,
             subtitle: item.name.eng && item.name.eng !== item.name.rus ? item.name.eng : "",
             item,
+			favorite: favoriteUrls.has(item.url),
         }));
     }
 
