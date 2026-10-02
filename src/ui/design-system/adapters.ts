@@ -167,8 +167,8 @@ function joinArmorDuration(donningTime: string, doffingTime: string): string {
 function mapSpellComponents(value: Entity = {}) {
 	const material = value.m ?? value.material;
 	return {
-		verbal: booleanValue(value.v ?? value.verbal),
-		somatic: booleanValue(value.s ?? value.somatic),
+		verbal: booleanValue(value.v ?? value.verbal) ?? false,
+		somatic: booleanValue(value.s ?? value.somatic) ?? false,
 		material: typeof material === "string" ? material : material?.description ?? material?.value ?? material?.name ?? undefined,
 	};
 }
