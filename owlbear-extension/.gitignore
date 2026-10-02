@@ -1,2 +1,11 @@
 dist/
 node_modules/
+
+# Generated copies of public files, shared logos, and status icons.
+/background.js
+/background.html
+/index.html
+/manifest.json
+/dnd-dm-tools-colored-outlined.svg
+/dnd-dm-tools-transparent.svg
+/status-icons/
