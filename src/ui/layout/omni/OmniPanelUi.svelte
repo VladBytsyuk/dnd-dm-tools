@@ -363,7 +363,7 @@
 	{#if results.length}
 		<div class="omni-search-results" class:is-redesigned={redesignEnabled} aria-label="Результаты поиска">
 			{#each results as result (`${result.panelKey}:${result.url}`)}
-				<div class="omni-search-results__item" class:is-redesigned={redesignEnabled && result.panelKey !== "character-sheets" && result.panelKey !== "dm-screen"}>
+				<div class="omni-search-results__item" class:is-redesigned={redesignEnabled && result.panelKey !== "character-sheets"}>
 										<OmniSearchResult
 											{result}
 											{redesignEnabled}
