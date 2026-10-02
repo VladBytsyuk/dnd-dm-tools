@@ -16,6 +16,8 @@
 	import Skull from "lucide-svelte/icons/skull";
 	import SquareDashed from "lucide-svelte/icons/square-dashed";
 	import Plus from "lucide-svelte/icons/plus";
+	import X from "lucide-svelte/icons/x";
+	import { tick } from "svelte";
 	import ActionsBlock, { type ActionsBlockItem } from "./ActionsBlock.svelte";
 	import ChipsList, { type ChipsListItem } from "./ChipsList.svelte";
 	import FilledTextBlock from "./FilledTextBlock.svelte";
@@ -50,6 +52,35 @@
 		theme = "dark",
 		editable = false,
 	}: Props = $props();
+	let expandedImage = $state<string | null>(null);
+	let expandTrigger: HTMLElement | null = null;
+	let closeImageButton = $state<HTMLButtonElement | null>(null);
+
+	async function openExpandedImage(url: string) {
+		expandTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+		expandedImage = url;
+		await tick();
+		closeImageButton?.focus();
+	}
+
+	async function closeExpandedImage() {
+		expandedImage = null;
+		await tick();
+		expandTrigger?.focus();
+		expandTrigger = null;
+	}
+
+	function handleExpandedImageKeydown(event: KeyboardEvent) {
+		if (!expandedImage) return;
+		if (event.key === "Tab") {
+			event.preventDefault();
+			closeImageButton?.focus();
+		} else if (event.key === "Escape") {
+			event.preventDefault();
+			event.stopPropagation();
+			void closeExpandedImage();
+		}
+	}
 
 	const darkAccentColor = "var(--ds-bestiary-sub)";
 	const darkPrimaryColor = "var(--ds-bestiary)";
@@ -204,6 +235,8 @@
 	}
 </script>
 
+<svelte:window onkeydown={handleExpandedImageKeydown} />
+
 <article
 	class="full-statblock"
 	data-theme={theme}
@@ -221,6 +254,7 @@
 		chips={headerChips}
 		bind:images={statblock.images}
 		{onImageRequested}
+		onExpandImage={(url) => { void openExpandedImage(url); }}
 		alt={statblock.imageAlt ?? statblock.russianName}
 		editable={editable}
 		{theme}
@@ -284,11 +318,23 @@
 	{#if editable}
 		<div class="add-block-chip"><button type="button" aria-label="Добавить текстовый блок" onclick={addTag}><Plus size={15} strokeWidth={1.5} /></button></div>
 	{/if}
+	{#if expandedImage}
+		<div class="image-overlay" role="dialog" aria-modal="true" aria-label="Просмотр изображения">
+			<div class="image-overlay-viewer">
+				<button bind:this={closeImageButton} class="close-image-button" type="button" aria-label="Закрыть изображение" onclick={() => { void closeExpandedImage(); }}>
+					<X size={22} strokeWidth={1.5} aria-hidden={true} />
+				</button>
+				<img class="expanded-image" src={expandedImage} alt={statblock.imageAlt ?? statblock.russianName} />
+			</div>
+		</div>
+	{/if}
 </article>
 
 <style>
 	.full-statblock {
 		box-sizing: border-box;
+		position: relative;
+		isolation: isolate;
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
@@ -308,6 +354,46 @@
 	}
 
 	.full-statblock[data-theme="light"] { color: #1f2937; }
+	.image-overlay {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		border-radius: inherit;
+		background: rgb(0 0 0 / 84%);
+	}
+	.image-overlay-viewer {
+		box-sizing: border-box;
+		position: sticky;
+		top: 0;
+		display: grid;
+		place-items: center;
+		width: 100%;
+		height: min(100dvh, 100%);
+		padding: 48px 12px 12px;
+	}
+	.expanded-image {
+		width: 100%;
+		height: 100%;
+		min-height: 0;
+		object-fit: contain;
+	}
+	.close-image-button {
+		position: absolute;
+		top: 8px;
+		left: 8px;
+		display: grid;
+		width: 32px;
+		height: 32px;
+		place-items: center;
+		padding: 0;
+		border: 1px solid #fff;
+		border-radius: 4px;
+		background: rgb(0 0 0 / 45%);
+		color: #fff;
+		cursor: pointer;
+	}
+	.close-image-button:hover, .close-image-button:focus-visible { background: rgb(0 0 0 / 70%); }
+	.close-image-button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 	.full-statblock :global(.max-item-header) { margin-bottom: 4px; }
 	.add-block-chip { width: 100%; }
 	.add-block-chip button { all: unset; box-sizing: border-box; display: grid; width: 100%; min-height: 20px; place-items: center; border-radius: 4px; background: color-mix(in srgb, var(--statblock-accent) 40%, transparent); color: inherit; cursor: pointer; }

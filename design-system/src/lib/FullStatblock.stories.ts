@@ -92,3 +92,15 @@ export const Light: Story = {
 export const WithoutImage: Story = {
 	args: { statblock: { ...ogremoch, images: [] }, ...callbacks, theme: "dark" },
 };
+
+export const MultipleImages: Story = {
+	args: { statblock: { ...ogremoch, images: [image("#4d7c0f", "1"), image("#0f766e", "2")] }, ...callbacks, theme: "dark" },
+};
+
+export const UnavailableImage: Story = {
+	args: { statblock: { ...ogremoch, images: ["/missing-statblock-image.png"] }, ...callbacks, theme: "dark" },
+};
+
+export const Editable: Story = {
+	args: { statblock: ogremoch, ...callbacks, editable: true, theme: "dark" },
+};
