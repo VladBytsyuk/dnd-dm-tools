@@ -1,6 +1,7 @@
 import { TFile, type App } from "obsidian";
 import {
 	assertOwlbearImageSize,
+	assertOwlbearImageDataUrlSize,
 	downloadOwlbearRemoteImage,
 	mimeForOwlbearImagePath,
 } from "./OwlbearVaultImage";
@@ -50,6 +51,16 @@ export async function loadOwlbearPreviewRemoteImage(url: string): Promise<Owlbea
 	if (!isSupportedOwlbearPreviewMime(image.mime)) throw new Error("Поддерживаются PNG, JPEG, WebP, GIF и SVG.");
 	const name = decodeURIComponent(new URL(url).pathname.split("/").pop() || "Изображение");
 	return await createPreviewImage(name, image.mime, image.bytes);
+}
+
+export async function loadOwlbearPreviewDataUrl(name: string, dataUrl: string): Promise<OwlbearPreviewImage> {
+	const match = /^data:(image\/[a-z0-9.+-]+)(?:;charset=[^;,]+)?(;base64)?,([\s\S]*)$/i.exec(dataUrl);
+	if (!match || !isSupportedOwlbearPreviewMime(match[1])) throw new Error("Поддерживаются PNG, JPEG, WebP, GIF и SVG.");
+	assertOwlbearImageDataUrlSize(dataUrl);
+	const bytes = match[2]
+		? Uint8Array.from(atob(match[3]), (character) => character.charCodeAt(0))
+		: new TextEncoder().encode(decodeURIComponent(match[3]));
+	return await createPreviewImage(name, match[1], bytes);
 }
 
 async function createPreviewImage(name: string, mime: string, bytes: Uint8Array): Promise<OwlbearPreviewImage> {

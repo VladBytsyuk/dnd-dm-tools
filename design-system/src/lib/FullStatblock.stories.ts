@@ -78,6 +78,7 @@ type Story = StoryObj<typeof meta>;
 const callbacks = {
 	onCopyStatblock: (statblock: FullStatblockViewModel) => console.info("Copy statblock", statblock.entityLink),
 	onCopySpellLink: (link: { href: string; label: string }) => console.info("Copy spell link", link),
+	onSendImageToOwlbear: async (source: string, name: string) => console.info("Send image to Owlbear", source, name),
 };
 
 export const Default: Story = {

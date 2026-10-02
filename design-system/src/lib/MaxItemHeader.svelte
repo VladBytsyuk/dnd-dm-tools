@@ -23,7 +23,7 @@
 		initialIndex?: number;
 		onChange?: (index: number) => void;
 		onImageRequested?: (image: string) => Promise<string>;
-		onExpandImage?: (resolvedUrl: string) => void;
+		onExpandImage?: (resolvedUrl: string, source: string) => void;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};

@@ -17,6 +17,7 @@
 	import SquareDashed from "lucide-svelte/icons/square-dashed";
 	import Plus from "lucide-svelte/icons/plus";
 	import X from "lucide-svelte/icons/x";
+	import Send from "lucide-svelte/icons/send";
 	import { tick } from "svelte";
 	import ActionsBlock, { type ActionsBlockItem } from "./ActionsBlock.svelte";
 	import ChipsList, { type ChipsListItem } from "./ChipsList.svelte";
@@ -38,6 +39,7 @@
 		onCopySpellLink: (link: FullStatblockSpellLink) => void | Promise<void>;
 		onEntityLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
 		onImageRequested?: (image: string) => Promise<string>;
+		onSendImageToOwlbear?: (source: string, name: string) => Promise<void>;
 		theme?: "dark" | "light";
 		editable?: boolean;
 	};
@@ -49,18 +51,31 @@
 		onCopySpellLink,
 		onEntityLinkClick,
 		onImageRequested,
+		onSendImageToOwlbear,
 		theme = "dark",
 		editable = false,
 	}: Props = $props();
-	let expandedImage = $state<string | null>(null);
+	let expandedImage = $state<{ url: string; source: string } | null>(null);
 	let expandTrigger: HTMLElement | null = null;
 	let closeImageButton = $state<HTMLButtonElement | null>(null);
+	let sendImageButton = $state<HTMLButtonElement | null>(null);
+	let sendingImage = $state(false);
 
-	async function openExpandedImage(url: string) {
+	async function openExpandedImage(url: string, source: string) {
 		expandTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-		expandedImage = url;
+		expandedImage = { url, source };
 		await tick();
 		closeImageButton?.focus();
+	}
+
+	async function sendExpandedImage() {
+		if (!expandedImage || !onSendImageToOwlbear || sendingImage) return;
+		sendingImage = true;
+		try {
+			await onSendImageToOwlbear(expandedImage.source, statblock.russianName);
+		} finally {
+			sendingImage = false;
+		}
 	}
 
 	async function closeExpandedImage() {
@@ -74,7 +89,8 @@
 		if (!expandedImage) return;
 		if (event.key === "Tab") {
 			event.preventDefault();
-			closeImageButton?.focus();
+			if (document.activeElement === closeImageButton && !sendingImage && sendImageButton) sendImageButton.focus();
+			else closeImageButton?.focus();
 		} else if (event.key === "Escape") {
 			event.preventDefault();
 			event.stopPropagation();
@@ -254,7 +270,7 @@
 		chips={headerChips}
 		bind:images={statblock.images}
 		{onImageRequested}
-		onExpandImage={(url) => { void openExpandedImage(url); }}
+		onExpandImage={(url, source) => { void openExpandedImage(url, source); }}
 		alt={statblock.imageAlt ?? statblock.russianName}
 		editable={editable}
 		{theme}
@@ -324,7 +340,12 @@
 				<button bind:this={closeImageButton} class="close-image-button" type="button" aria-label="Закрыть изображение" onclick={() => { void closeExpandedImage(); }}>
 					<X size={22} strokeWidth={1.5} aria-hidden={true} />
 				</button>
-				<img class="expanded-image" src={expandedImage} alt={statblock.imageAlt ?? statblock.russianName} />
+				{#if onSendImageToOwlbear}
+					<button bind:this={sendImageButton} class="send-image-button" type="button" aria-label="Отправить в Owlbear" title="Отправить в Owlbear" disabled={sendingImage} onclick={() => { void sendExpandedImage(); }}>
+						<Send size={20} strokeWidth={1.5} aria-hidden={true} />
+					</button>
+				{/if}
+				<img class="expanded-image" src={expandedImage.url} alt={statblock.imageAlt ?? statblock.russianName} />
 			</div>
 		</div>
 	{/if}
@@ -377,10 +398,9 @@
 		min-height: 0;
 		object-fit: contain;
 	}
-	.close-image-button {
+	.close-image-button, .send-image-button {
 		position: absolute;
 		top: 8px;
-		left: 8px;
 		display: grid;
 		width: 32px;
 		height: 32px;
@@ -392,8 +412,11 @@
 		color: #fff;
 		cursor: pointer;
 	}
-	.close-image-button:hover, .close-image-button:focus-visible { background: rgb(0 0 0 / 70%); }
-	.close-image-button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+	.close-image-button { left: 8px; }
+	.send-image-button { right: 8px; }
+	.close-image-button:hover, .close-image-button:focus-visible, .send-image-button:hover, .send-image-button:focus-visible { background: rgb(0 0 0 / 70%); }
+	.close-image-button:focus-visible, .send-image-button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+	.send-image-button:disabled { opacity: 0.5; cursor: wait; }
 	.full-statblock :global(.max-item-header) { margin-bottom: 4px; }
 	.add-block-chip { width: 100%; }
 	.add-block-chip button { all: unset; box-sizing: border-box; display: grid; width: 100%; min-height: 20px; place-items: center; border-radius: 4px; background: color-mix(in srgb, var(--statblock-accent) 40%, transparent); color: inherit; cursor: pointer; }

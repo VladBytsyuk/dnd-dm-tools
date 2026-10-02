@@ -13,7 +13,7 @@
 		initialIndex?: number;
 		onChange?: (index: number) => void;
 		onImageRequested?: (image: string) => Promise<string>;
-		onExpandImage?: (resolvedUrl: string) => void;
+		onExpandImage?: (resolvedUrl: string, source: string) => void;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -92,7 +92,7 @@
 			<img class="fallback" src={defaultTokenUrl} alt="" aria-label="Изображение недоступно" />
 		{/if}
 		{#if onExpandImage && resolvedImage && loadedImage === resolvedImage && failedImage !== resolvedImage}
-			<button class="expand-button" type="button" aria-label="Развернуть изображение" onclick={(event) => { event.currentTarget.focus(); onExpandImage(resolvedImage); }}>
+			<button class="expand-button" type="button" aria-label="Развернуть изображение" onclick={(event) => { event.currentTarget.focus(); onExpandImage(resolvedImage, currentImage); }}>
 				<Expand size={18} strokeWidth={1.5} aria-hidden={true} />
 			</button>
 		{/if}

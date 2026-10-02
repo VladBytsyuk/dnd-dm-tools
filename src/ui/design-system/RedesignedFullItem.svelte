@@ -65,6 +65,14 @@
 		return find(baseDmScreenItems);
 	}
 	const imageResolver = (image: string) => uiEventListener.onImageRequested(image);
+	async function sendImageToOwlbear(source: string, name: string) {
+		try {
+			await uiEventListener.onOwlbearPreviewRequested?.(source, name);
+			new Notice("Изображение отправлено в Owlbear.");
+		} catch (error) {
+			new Notice(error instanceof Error ? error.message : "Не удалось отправить изображение в Owlbear.");
+		}
+	}
 	let container: HTMLDivElement;
 	onMount(() => {
 		const diceRollers = DiceRollersManager.create(uiEventListener, container);
@@ -178,7 +186,7 @@
 <div class="redesigned-full-item" bind:this={container}>
 	{#if validationError}<p class="error" role="alert">{validationError}</p>{/if}
 	{#if panelKey === "bestiary"}
-		<FullStatblock bind:statblock={draft as FullStatblockViewModel} onCopyStatblock={copyFullItem} onCopyText={showCopyNotice} onCopySpellLink={entityLinkHandler} onEntityLinkClick={entityLinkHandler} onImageRequested={imageResolver} editable={editing} {theme} />
+		<FullStatblock bind:statblock={draft as FullStatblockViewModel} onCopyStatblock={copyFullItem} onCopyText={showCopyNotice} onCopySpellLink={entityLinkHandler} onEntityLinkClick={entityLinkHandler} onImageRequested={imageResolver} onSendImageToOwlbear={uiEventListener.onOwlbearPreviewRequested ? sendImageToOwlbear : undefined} editable={editing} {theme} />
 	{:else if panelKey === "spellbook"}
 		<FullSpell bind:spell={draft as FullSpellViewModel} onCopySpell={copyFullItem} onCopyText={showCopyNotice} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
 	{:else if panelKey === "arsenal"}

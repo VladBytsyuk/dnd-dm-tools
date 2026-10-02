@@ -46,9 +46,12 @@ import type { OwlbearPreviewSnapshot } from './domain/models/owlbear/OwlbearPrev
 import {
 	isSupportedOwlbearPreviewFile,
 	isSupportedOwlbearPreviewUrl,
+	loadOwlbearPreviewDataUrl,
 	loadOwlbearPreviewRemoteImage,
 	loadOwlbearPreviewVaultImage,
+	type OwlbearPreviewImage,
 } from './data/owlbear/OwlbearPreviewImage';
+import { resolveVaultImageFile } from './domain/utils/image_utils';
 import { getOwlbearExtensionInstallUrl } from './data/owlbear/OwlbearExtensionHosting';
 import { clearActiveOwlbearPreview } from './data/owlbear/OwlbearPreviewLifecycle';
 import { createOwlbearPairingCode } from './data/owlbear/OwlbearPairing';
@@ -260,6 +263,20 @@ export default class DndStatblockPlugin extends Plugin {
 	async publishOwlbearPreviewFromUrl(url: string): Promise<void> {
 		const image = await loadOwlbearPreviewRemoteImage(url);
 		await this.publishOwlbearPreview(image.name, image.mime, image.width, image.height, image.dataUrl);
+	}
+
+	async publishOwlbearPreviewFromImage(source: string, name: string): Promise<void> {
+		let image: OwlbearPreviewImage;
+		if (isSupportedOwlbearPreviewUrl(source)) image = await loadOwlbearPreviewRemoteImage(source);
+		else if (source.startsWith("data:")) image = await loadOwlbearPreviewDataUrl(name, source);
+		else {
+			const file = resolveVaultImageFile(this.app, source);
+			if (!file) throw new Error("Файл изображения не найден внутри vault.");
+			image = await loadOwlbearPreviewVaultImage(this.app, file);
+		}
+		await this.publishOwlbearPreview(name || image.name, image.mime, image.width, image.height, image.dataUrl);
+		this.panelManager.discardPanel("owlbear-preview");
+		await this.panelManager.openPanel("owlbear-preview");
 	}
 
 	async hideOwlbearPreview(): Promise<void> {
@@ -545,6 +562,7 @@ export default class DndStatblockPlugin extends Plugin {
 			() => this.classesFeature,
 			() => this.characterSheetFeature,
 			() => this.dmScreenFeature,
+			(source, name) => this.publishOwlbearPreviewFromImage(source, name),
 		);
 
 		this.bestiaryFeature = new BestiaryFeature(this, this.#database, this.#uiEventListener);
