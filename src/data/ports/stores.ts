@@ -8,6 +8,7 @@ export interface ItemReadStore<
 > {
 	readAllSmallItems(): Promise<TSmall[]>;
 	readFilteredSmallItems(name: string | null, filter: TFilter | null): Promise<TSmall[]>;
+	readSmallItemsByUrls(urls: string[], filter: TFilter | null): Promise<TSmall[]>;
 	readSmallItemsPage(filter: TFilter | null, request: PageRequest): Promise<PageResult<TSmall>>;
 	readAllSmallItemNames(): Promise<string[]>;
 	readSmallItemByName(name: string): Promise<TSmall | null>;

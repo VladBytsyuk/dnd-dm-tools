@@ -26,6 +26,8 @@ import { SmallClassSqlTableDao } from './SmallClassSqlTableDao';
 import { FullClassSqlTableDao } from './FullClassSqlTableDao';
 import { CharacterSheetSqlTableDao } from './CharacterSheetSqlTableDao';
 import { EntityOriginDao } from './EntityOriginDao';
+import { FavoritesDao } from './FavoritesDao';
+import { FavoritesStore } from 'src/data/stores/FavoritesStore';
 import type { Initializable } from 'src/domain/Initializable';
 import type { EntityKind } from 'src/domain/models/common/EntityOrigin';
 import { DatabaseSeedOrchestrator, bundledEntityUrlsByKind } from 'src/data/services';
@@ -58,6 +60,8 @@ export default class DB implements Initializable {
     public fullClassDao: FullClassSqlTableDao;
     public characterSheetDao: CharacterSheetSqlTableDao;
     public entityOriginDao: EntityOriginDao;
+    public favoritesDao: FavoritesDao;
+    public favorites: FavoritesStore;
 
     constructor(
         private app: App,
@@ -94,6 +98,8 @@ export default class DB implements Initializable {
             this.database = database;
             const sqlTableDaos = this.initDaos(database);
             this.entityOriginDao = new EntityOriginDao(database);
+            this.favoritesDao = new FavoritesDao(database);
+            this.favorites = new FavoritesStore(this.favoritesDao, new DbTransactionalStore(this));
 
             // Check if classes migration needed
             const needsClassesMigration = await this.checkClassesMigration();
@@ -105,6 +111,7 @@ export default class DB implements Initializable {
             // Create tables if they do not exist
             await this.transaction(async () => {
                 await this.entityOriginDao.initialize();
+                this.favoritesDao.initialize();
                 await Promise.all(
                     sqlTableDaos.map(tableDao => tableDao.initialize())
                 );

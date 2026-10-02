@@ -12,9 +12,10 @@
 		onItemClick: (item: BaseItem) => void;
 		SmallItemSlot: any;
 		redesignEnabled?: boolean;
+		isFavorite?: (url: string) => boolean;
 	}
 
-	let { panelKey, groupTitle, items, onItemClick, SmallItemSlot, redesignEnabled = false }: Props = $props();
+	let { panelKey, groupTitle, items, onItemClick, SmallItemSlot, redesignEnabled = false, isFavorite }: Props = $props();
 	const groupColor = $derived(redesignEnabled ? getRedesignPanelTypeColor(panelKey) : getPanelTypeColor(panelKey));
 </script>
 
@@ -28,7 +29,7 @@
 		{#each items as item (item.url)}
 				<div class:manual-item={item.origin === "manual"}>
 					{#if redesignEnabled}
-						<RedesignedSmallItem {panelKey} smallItem={item} onItemClick={() => onItemClick(item)} />
+						<RedesignedSmallItem {panelKey} smallItem={item} favorite={isFavorite?.(item.url) ?? false} onItemClick={() => onItemClick(item)} />
 					{:else}
 						<PanelTypeTint {panelKey}><SmallItemSlot smallItem={item} onItemClick={() => onItemClick(item)} /></PanelTypeTint>
 					{/if}
@@ -123,9 +124,4 @@
 		border-radius: var(--dnd-ui-radius-lg);
 	}
 
-	.manual-item :global(.item-card__name-rus)::after {
-		content: " ⭐";
-		font-size: 0.8em;
-		vertical-align: 0.1em;
-	}
 </style>

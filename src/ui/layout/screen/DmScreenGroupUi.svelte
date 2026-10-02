@@ -2,19 +2,20 @@
     import { onkeydown } from "src/domain/utils/utils";
     import { SmallDmScreen } from "@dnd-dm-tools/design-system";
 
-    let { icon, name, source, onclick, redesigned = false, theme = "dark" } = $props<{
+    let { icon, name, source, onclick, redesigned = false, theme = "dark", favorite = false } = $props<{
         icon?: string;
         name: { rus: string; eng: string };
         source: string;
         onclick: () => void;
         redesigned?: boolean;
         theme?: "dark" | "light";
+		favorite?: boolean;
     }>();
 
 </script>
 
 {#if redesigned}
-    <SmallDmScreen icon={icon} title={name.rus} subtitle={name.eng} {source} {onclick} {theme} />
+    <SmallDmScreen icon={icon} title={name.rus} subtitle={name.eng} {source} {onclick} {favorite} {theme} />
 {:else}
     <div
         class="dm-screen-item"

@@ -56,6 +56,7 @@ import { getOwlbearExtensionInstallUrl } from './data/owlbear/OwlbearExtensionHo
 import { clearActiveOwlbearPreview } from './data/owlbear/OwlbearPreviewLifecycle';
 import { createOwlbearPairingCode } from './data/owlbear/OwlbearPairing';
 import { ManualEntityArchiveService, type ManualEntityImportReport } from './data/services';
+import { PluginUpdateService } from './data/services/PluginUpdateService';
 
 export type OwlbearRuntimeStatus = {
 	cloudflared: CloudflaredInstallStatus;
@@ -98,6 +99,7 @@ export default class DndStatblockPlugin extends Plugin {
 		tunnel: { state: "stopped" },
 	};
 	private readonly owlbearRuntimeListeners = new Set<() => void>();
+	private pluginUpdateService: PluginUpdateService;
 
 	#uiEventListener: IUiEventListener;
 
@@ -109,6 +111,11 @@ export default class DndStatblockPlugin extends Plugin {
 		this.removeStaleOwlbearPreviewTab();
 		this.shouldResetLegacyViews = loadResult.shouldResetLegacyViews;
 		await this.resetOwlbearSnapshotForNewSession();
+		const adapter = this.app.vault.adapter;
+		const pluginDirectory = Platform.isDesktopApp && adapter instanceof FileSystemAdapter
+			? [adapter.getBasePath(), this.app.vault.configDir, "plugins", this.manifest.id].join("/")
+			: null;
+		this.pluginUpdateService = new PluginUpdateService(this.manifest.id, this.manifest.version, pluginDirectory);
 		this.addSettingTab(new OwlbearSettingsTab(this));
 
 		await this.#initialize(() => {
@@ -142,6 +149,8 @@ export default class DndStatblockPlugin extends Plugin {
 	getSettings(): PluginSettingsState {
 		return this.settings;
 	}
+
+	getPluginUpdateService(): PluginUpdateService { return this.pluginUpdateService; }
 
 	async exportManualEntities(): Promise<string> {
 		const archive = await this.getManualEntityArchiveService().exportArchive();

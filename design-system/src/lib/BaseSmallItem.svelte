@@ -4,6 +4,7 @@
 	import "./colors.css";
 	import type { SvelteHTMLElements } from "svelte/elements";
 	import UserCog from "lucide-svelte/icons/user-cog";
+	import Star from "lucide-svelte/icons/star";
 
 	type Icon = typeof UserCog;
 	export type SmallItemMetaIcon = { icon: Icon; label: string };
@@ -27,6 +28,7 @@
 		bottomIcons?: SmallItemMetaIcon[];
 		metaWidth?: number;
 		icon?: Icon;
+		favorite?: boolean;
 		state?: "default" | "hovered" | "clicked";
 		theme?: "dark" | "light";
 	};
@@ -50,6 +52,7 @@
 		bottomIcons = [],
 		metaWidth = 32,
 		icon: Icon,
+		favorite = false,
 		state = "default",
 		theme = "dark",
 		...articleProps
@@ -91,8 +94,8 @@
 	{#if title || subtitle || description}
 		<div class="content">
 			{#if title || subtitle}
-				<div class="titles">
-					{#if title}<strong title={title}>{title}</strong>{/if}
+			<div class="titles">
+				{#if title}<strong title={title}>{#if favorite}<Star class="favorite-star" size={16} fill="currentColor" aria-label="В избранном" />{/if}<span class="title-text">{title}</span></strong>{/if}
 					{#if subtitle}<span title={subtitle}>{subtitle}</span>{/if}
 				</div>
 			{/if}
@@ -169,6 +172,9 @@
 	.titles { display: grid; gap: 2px; }
 	.content strong, .content span, .content p, .meta span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.content strong { font-size: 18px; font-weight: 700; line-height: 21px; }
+	.content strong { display: flex; align-items: center; gap: 5px; }
+	.content strong :global(.favorite-star) { flex: 0 0 auto; color: #f5b942; }
+	.content strong .title-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: inherit; font-weight: inherit; line-height: inherit; }
 	.content span, .content p, .meta span { font-size: 12px; font-weight: 400; line-height: 15px; }
 	.content p { margin: 0; }
 	.meta { align-items: end; min-width: 0; padding: 8px; color: rgb(255 255 255 / 80%); }

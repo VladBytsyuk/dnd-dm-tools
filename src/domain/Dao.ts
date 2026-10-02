@@ -155,6 +155,21 @@ export abstract class Dao<T extends BaseItem, F> implements Initializable {
         }
     }
 
+    async readItemsByUrls(urls: string[], filters: F | null): Promise<T[]> {
+        const items: T[] = [];
+        for (let offset = 0; offset < urls.length; offset += 500) {
+            const batch = urls.slice(offset, offset + 500);
+            const filter = filters ? await this.filterByFilters(filters) : WhereClauseData([], []);
+            const clauses = [`url IN (${batch.map(() => "?").join(", ")})`, ...filter.whereClauses];
+            const result = this.database.exec(
+                `SELECT * FROM ${this.getTableName()} WHERE ${clauses.join(" AND ")};`,
+                [...batch, ...filter.params],
+            );
+            items.push(...await Promise.all((result[0]?.values ?? []).map((row) => this.mapSqlValues(row))));
+        }
+        return items;
+    }
+
     async readItemsPage(filters: F | null, request: PageRequest): Promise<PageResult<T>> {
         try {
             const whereClauses: string[] = [];

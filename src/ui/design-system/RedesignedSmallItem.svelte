@@ -8,8 +8,8 @@
 	import { toSmallCardProps } from "./adapters";
 	import { theme as appTheme, Theme } from "src/ui/theme";
 
-	type Props = { panelKey: PanelKey; smallItem: BaseItem; onItemClick: () => void };
-	let { panelKey, smallItem, onItemClick }: Props = $props();
+	type Props = { panelKey: PanelKey; smallItem: BaseItem; onItemClick: () => void; favorite?: boolean };
+	let { panelKey, smallItem, onItemClick, favorite = false }: Props = $props();
 	const cardProps = $derived(toSmallCardProps(panelKey, smallItem as Record<string, any>));
 	const theme = $derived($appTheme === Theme.Dark ? "dark" : "light");
 	function activate(event: KeyboardEvent) {
@@ -18,16 +18,16 @@
 </script>
 
 <div class="item-action" role="button" tabindex="0" onclick={onItemClick} onkeydown={activate}>
-	{#if panelKey === "bestiary"}<SmallStatblock {...(cardProps as any)} {theme} />
-	{:else if panelKey === "spellbook"}<SmallSpell {...(cardProps as any)} {theme} />
-	{:else if panelKey === "arsenal"}<SmallWeapon {...(cardProps as any)} {theme} />
-	{:else if panelKey === "armory"}<SmallArmor {...(cardProps as any)} {theme} />
-	{:else if panelKey === "equipment"}<SmallEquipment {...(cardProps as any)} {theme} />
-	{:else if panelKey === "artifactory"}<SmallArtifact {...(cardProps as any)} {theme} />
-	{:else if panelKey === "feats"}<SmallFeat {...(cardProps as any)} {theme} />
-	{:else if panelKey === "backgrounds"}<SmallBackground {...(cardProps as any)} {theme} />
-	{:else if panelKey === "races"}<SmallRace {...(cardProps as any)} {theme} />
-	{:else if panelKey === "classes"}<SmallClass {...(cardProps as any)} {theme} />{/if}
+	{#if panelKey === "bestiary"}<SmallStatblock {...(cardProps as any)} {favorite} {theme} />
+	{:else if panelKey === "spellbook"}<SmallSpell {...(cardProps as any)} {favorite} {theme} />
+	{:else if panelKey === "arsenal"}<SmallWeapon {...(cardProps as any)} {favorite} {theme} />
+	{:else if panelKey === "armory"}<SmallArmor {...(cardProps as any)} {favorite} {theme} />
+	{:else if panelKey === "equipment"}<SmallEquipment {...(cardProps as any)} {favorite} {theme} />
+	{:else if panelKey === "artifactory"}<SmallArtifact {...(cardProps as any)} {favorite} {theme} />
+	{:else if panelKey === "feats"}<SmallFeat {...(cardProps as any)} {favorite} {theme} />
+	{:else if panelKey === "backgrounds"}<SmallBackground {...(cardProps as any)} {favorite} {theme} />
+	{:else if panelKey === "races"}<SmallRace {...(cardProps as any)} {favorite} {theme} />
+	{:else if panelKey === "classes"}<SmallClass {...(cardProps as any)} {favorite} {theme} />{/if}
 </div>
 
 <style>

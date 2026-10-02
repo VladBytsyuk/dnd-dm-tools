@@ -6,11 +6,12 @@
 		subtitle: string;
 		source: string;
 		icon?: string;
+		favorite?: boolean;
 		theme?: "dark" | "light";
 		onclick?: () => void;
 	};
 
-	let { title, subtitle, source, icon, theme = "dark", onclick }: Props = $props();
+	let { title, subtitle, source, icon, favorite = false, theme = "dark", onclick }: Props = $props();
 
 	function imageSource(value?: string): string | undefined {
 		if (!value) return undefined;
@@ -32,6 +33,7 @@
 	{title}
 	{subtitle}
 	{source}
+	{favorite}
 	height={imageSource(icon) ? 84 : 60}
 	primaryColor="var(--ds-dm-screen)"
 	secondaryColor="var(--ds-dm-screen-sub)"

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
+	import { Notice } from "obsidian";
 	import FiltersOverlay from "./FiltersOverlay.svelte";
 	import type { BaseItem } from "src/domain/models/common/BaseItem";
 	import type { Group, Repository } from "src/domain/repositories/Repository";
@@ -12,6 +13,7 @@
 	import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
 	import RedesignedFullItem from "src/ui/design-system/RedesignedFullItem.svelte";
 	import { createEmptyDomainItem } from "src/ui/design-system/adapters";
+	import type { EntityKind } from "src/domain/models/common/EntityOrigin";
 
     // ---- Props ----
     interface Props<Small extends BaseItem, Full extends Small, F extends Filters> {
@@ -69,6 +71,12 @@
     let detailSaving = $state(false);
     let toolbarActionRequest = $state<{ id: number; command: "edit" | "save" | "cancel" | "copy" | "paste" }>({ id: 0, command: "edit" });
     let groups: Group<BaseItem>[] = $state([]);
+    let favoriteGroupItems: BaseItem[] = $state([]);
+    function initialFavoriteUrls() {
+        return new Set(redesignEnabled ? repository.favorites?.listUrls(panelKey as EntityKind) ?? [] : []);
+    }
+    let favoriteUrls = $state<Set<string>>(initialFavoriteUrls());
+    let favoriteBusy = $state(false);
     let emptyFullItem = createEmptyFullItem();
     let isFiltersOverlayOpen: boolean = $state(false);
     let fullFilters: any = $state(null);
@@ -90,6 +98,7 @@
             detailEditing = false;
             detailSaving = false;
             toolbarActionRequest = { id: toolbarActionRequest.id + 1, command: "cancel" };
+            if (!currentItem) void updateGroups();
         }
     }
 
@@ -161,6 +170,25 @@
         return true;
     }
 
+    async function toggleFavorite() {
+        if (!redesignEnabled || !repository.favorites || !currentItem?.url || detailEditing || detailSaving || favoriteBusy) return;
+        favoriteBusy = true;
+        try {
+            const url = currentItem.url;
+            const nextFavorite = !favoriteUrls.has(url);
+            await repository.favorites.set(panelKey as EntityKind, url, nextFavorite);
+            const nextUrls = new Set(favoriteUrls);
+            if (nextFavorite) nextUrls.add(url);
+            else nextUrls.delete(url);
+            favoriteUrls = nextUrls;
+        } catch (error) {
+            console.error("Failed to update favorite:", error);
+            new Notice("Не удалось изменить избранное.");
+        } finally {
+            favoriteBusy = false;
+        }
+    }
+
     async function deleteCurrentManualItem() {
         if (currentItem?.origin !== "manual") return;
         await onItemDelete(currentItem.url);
@@ -182,12 +210,25 @@
         const searchValueNormalized = searchBarValue.toLowerCase();
         loadError = null;
         isLoading = false;
+        favoriteUrls = new Set(redesignEnabled ? repository.favorites?.listUrls(panelKey as EntityKind) ?? [] : []);
 
         if (paginated && searchValueNormalized.length === 0 && repository.getSmallItemsPage) {
             loadedItems = [];
             nextOffset = 0;
             hasMore = true;
             groups = [];
+            try {
+                favoriteGroupItems = redesignEnabled && repository.getFavoriteSmallItems
+                    ? await repository.getFavoriteSmallItems(filters)
+                    : [];
+            } catch (error) {
+                if (generation !== requestGeneration) return;
+                favoriteGroupItems = [];
+                hasMore = false;
+                loadError = error instanceof Error ? error.message : "Не удалось загрузить избранное.";
+                return;
+            }
+            if (generation !== requestGeneration) return;
             await loadNextPage(generation);
             return;
         }
@@ -198,9 +239,11 @@
             const smallItems: BaseItem[] = await repository.getFilteredSmallItems(searchValueNormalized, filters);
             if (generation !== requestGeneration) return;
             groups = await repository.groupItems(smallItems);
+            favoriteGroupItems = redesignEnabled ? smallItems.filter((item) => favoriteUrls.has(item.url)) : [];
         } catch (error) {
             if (generation !== requestGeneration) return;
             groups = [];
+            favoriteGroupItems = [];
             loadError = error instanceof Error ? error.message : "Не удалось загрузить список.";
         } finally {
             if (generation === requestGeneration) {
@@ -276,6 +319,9 @@
         onaddclick={!currentItem && emptyFullItem ? onAddClick : undefined}
         oneditclick={redesignEnabled && currentItem && panelKey !== "classes" && !detailEditing ? () => requestToolbarAction("edit") : undefined}
         oncopyclick={redesignEnabled && currentItem ? () => requestToolbarAction("copy") : undefined}
+        onfavoriteclick={redesignEnabled && repository.favorites && currentItem?.url && !detailEditing && !detailSaving ? toggleFavorite : undefined}
+        isfavorite={Boolean(currentItem?.url && favoriteUrls.has(currentItem.url))}
+        {favoriteBusy}
         onpasteclick={redesignEnabled && currentItem && detailEditing ? () => requestToolbarAction("paste") : undefined}
         ondeleteclick={redesignEnabled && !detailEditing && currentItem?.origin === "manual" ? deleteCurrentManualItem : undefined}
         onsaveclick={redesignEnabled && currentItem && detailEditing ? () => requestToolbarAction("save") : undefined}
@@ -313,6 +359,17 @@
         </div>
     {:else}
         <div class="content">
+            {#if redesignEnabled && favoriteGroupItems.length > 0}
+                <UiItemGroup
+                    {panelKey}
+                    groupTitle="Избранное"
+                    items={favoriteGroupItems}
+                    onItemClick={onSmallItemClick}
+                    {SmallItemSlot}
+                    {redesignEnabled}
+                    isFavorite={(url: string) => favoriteUrls.has(url)}
+                />
+            {/if}
             {#each groups as group (group.sort)}
                 <UiItemGroup
                     {panelKey}
@@ -321,6 +378,7 @@
                     onItemClick={onSmallItemClick}
 	                    {SmallItemSlot}
 	                    {redesignEnabled}
+	                    isFavorite={(url: string) => favoriteUrls.has(url)}
                 />
             {/each}
             {#if loadError}

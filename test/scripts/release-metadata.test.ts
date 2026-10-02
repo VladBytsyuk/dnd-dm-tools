@@ -35,6 +35,7 @@ describe('release metadata', () => {
 		expect(metadata).toMatchObject({
 			tag: 'v1.2.0-beta.1',
 			archiveName: 'dnd-dm-tools-1.2.0-beta.1.7z',
+			updateArchiveName: 'dnd-dm-tools-1.2.0-beta.1.tar.gz',
 			isPrerelease: true,
 			notes: 'Preview release',
 		});

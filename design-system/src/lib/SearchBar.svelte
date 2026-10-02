@@ -10,6 +10,7 @@
 		label: string;
 		text?: string;
 		disabled?: boolean;
+		favorite?: boolean;
 		onclick?: (event: MouseEvent) => void;
 	};
 
@@ -65,6 +66,7 @@
 		<button
 			class="icon-button"
 			class:has-label={action.text}
+			class:favorite-action={action.favorite}
 			type="button"
 			aria-label={action.label}
 			title={action.label}
@@ -164,6 +166,8 @@
 	.icon-button:hover:not(:disabled) { background: rgb(255 255 255 / 8%); }
 	.icon-button:focus-visible { outline: 2px solid currentcolor; outline-offset: -2px; }
 	.icon-button:disabled { cursor: not-allowed; opacity: 0.45; }
+	.favorite-action { color: #f5b942 !important; }
+	.favorite-action :global(svg) { fill: currentColor; }
 	.search-bar[data-theme="light"] {
 		background: rgb(15 23 42 / 12%);
 		color: #1f2937;
