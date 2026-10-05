@@ -190,6 +190,27 @@ describe("design system adapters", () => {
 		expect((monsterView as any).reactions.items[0]).toEqual({ title: "Парирование", html: "Добавляет 2 к КД." });
 	});
 
+	it("preserves linked actions across all five statblock sections and legacy weapon links", () => {
+		const monster = {
+			name: { rus: "Монстр", eng: "Monster" }, url: "/bestiary/monster",
+			actions: [{ name: "Меч", value: "<p>Атака</p>", weaponUrl: "/weapons/sword" }],
+		};
+		const view = toFullViewModel("bestiary", monster) as any;
+		expect(view.actions.items[0].entityUrl).toBe("/weapons/sword");
+
+		const sections = ["actions", "bonusActions", "reactions", "legendaryActions", "mythicActions"] as const;
+		for (const section of sections) {
+			view[section].items.push({ title: "Свет", html: "<p>Освещает.</p>", entityUrl: "/spells/light" });
+		}
+		const saved = applyFullViewModel("bestiary", monster, view);
+		const reopened = toFullViewModel("bestiary", saved) as any;
+		for (const section of sections) {
+			expect(reopened[section].items.at(-1)).toEqual({ title: "Свет", html: "<p>Освещает.</p>", entityUrl: "/spells/light" });
+		}
+		expect(saved.actions[0].weaponUrl).toBe("/weapons/sword");
+		expect(reopened.actions.items[0].entityUrl).toBe("/weapons/sword");
+	});
+
 	it("copies reactive proxy data when preparing an item for copy", () => {
 		const source = new Proxy([{ name: "Вложенные данные" }], {});
 		const original = new Proxy({

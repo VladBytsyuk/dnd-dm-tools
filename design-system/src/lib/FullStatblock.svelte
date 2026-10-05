@@ -32,11 +32,14 @@
 		FullStatblockViewModel,
 	} from "./FullStatblockViewModel";
 
+	type ActionSectionKey = "actions" | "bonusActions" | "reactions" | "legendaryActions" | "mythicActions";
+
 	type Props = {
 		statblock: FullStatblockViewModel;
 		onCopyStatblock: (statblock: FullStatblockViewModel) => void | Promise<void>;
 		onCopyText?: (text: string) => void;
 		onCopySpellLink: (link: FullStatblockSpellLink) => void | Promise<void>;
+		onPasteAction?: (section: ActionSectionKey) => void | Promise<void>;
 		onEntityLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
 		onImageRequested?: (image: string) => Promise<string>;
 		onSendImageToOwlbear?: (source: string, name: string) => Promise<void>;
@@ -49,6 +52,7 @@
 		onCopyStatblock,
 		onCopyText,
 		onCopySpellLink,
+		onPasteAction,
 		onEntityLinkClick,
 		onImageRequested,
 		onSendImageToOwlbear,
@@ -200,7 +204,7 @@
 	}
 
 	function toActionBlocks(section: FullStatblockActionSection): ActionsBlockItem[] {
-		return section.items.map((item) => ({ title: item.title, html: item.html }));
+		return section.items.map((item) => ({ title: item.title, html: item.html, entityUrl: item.entityUrl }));
 	}
 
 	function toLairBlocks(lair: FullStatblockLair | undefined): ActionsBlockItem[] {
@@ -295,6 +299,7 @@
 			bind:title={statblock.actions.title}
 			bind:descriptionHtml={statblock.actions.descriptionHtml}
 			bind:blocks={statblock.actions.items}
+			onPasteBlock={onPasteAction ? () => onPasteAction("actions") : undefined}
 			blocksExpanded={true}
 			{accentColor}
 			onSpellLinkClick={onCopySpellLink}
@@ -305,19 +310,19 @@
 	{/if}
 
 	{#if statblock.bonusActions && (hasSection(statblock.bonusActions) || editable)}
-		<ActionsBlock bind:title={statblock.bonusActions.title} bind:descriptionHtml={statblock.bonusActions.descriptionHtml} bind:blocks={statblock.bonusActions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
+		<ActionsBlock bind:title={statblock.bonusActions.title} bind:descriptionHtml={statblock.bonusActions.descriptionHtml} bind:blocks={statblock.bonusActions.items} onPasteBlock={onPasteAction ? () => onPasteAction("bonusActions") : undefined} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 
 	{#if statblock.reactions && (hasSection(statblock.reactions) || editable)}
-		<ActionsBlock bind:title={statblock.reactions.title} bind:descriptionHtml={statblock.reactions.descriptionHtml} bind:blocks={statblock.reactions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
+		<ActionsBlock bind:title={statblock.reactions.title} bind:descriptionHtml={statblock.reactions.descriptionHtml} bind:blocks={statblock.reactions.items} onPasteBlock={onPasteAction ? () => onPasteAction("reactions") : undefined} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 
 	{#if statblock.legendaryActions && (hasSection(statblock.legendaryActions) || editable)}
-		<ActionsBlock bind:title={statblock.legendaryActions.title} bind:descriptionHtml={statblock.legendaryActions.descriptionHtml} bind:blocks={statblock.legendaryActions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
+		<ActionsBlock bind:title={statblock.legendaryActions.title} bind:descriptionHtml={statblock.legendaryActions.descriptionHtml} bind:blocks={statblock.legendaryActions.items} onPasteBlock={onPasteAction ? () => onPasteAction("legendaryActions") : undefined} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 
 	{#if statblock.mythicActions && (hasSection(statblock.mythicActions) || editable)}
-		<ActionsBlock bind:title={statblock.mythicActions.title} bind:descriptionHtml={statblock.mythicActions.descriptionHtml} bind:blocks={statblock.mythicActions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
+		<ActionsBlock bind:title={statblock.mythicActions.title} bind:descriptionHtml={statblock.mythicActions.descriptionHtml} bind:blocks={statblock.mythicActions.items} onPasteBlock={onPasteAction ? () => onPasteAction("mythicActions") : undefined} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 
 	{#if hasLair(statblock.lair)}

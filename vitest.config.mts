@@ -1,8 +1,10 @@
 // vitest.config.ts
 import { defineConfig } from 'vitest/config';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
 import path from 'node:path';
 
 export default defineConfig({
+  plugins: [svelte()],
   test: {
     environment: 'jsdom',
     globals: true,
@@ -30,11 +32,12 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: { 
-      '@': path.resolve(__dirname, 'src'),
-      'src': path.resolve(__dirname, 'src'),
-      'obsidian': path.resolve(__dirname, 'test/__mocks__/obsidian.ts'), 
-    },
+    alias: [
+      { find: /^svelte$/, replacement: path.resolve(__dirname, 'node_modules/svelte/src/index-client.js') },
+      { find: '@', replacement: path.resolve(__dirname, 'src') },
+      { find: 'src', replacement: path.resolve(__dirname, 'src') },
+      { find: 'obsidian', replacement: path.resolve(__dirname, 'test/__mocks__/obsidian.ts') },
+    ],
   },
   esbuild: { sourcemap: true },
 });

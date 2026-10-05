@@ -47,6 +47,59 @@ export function createMonsterWeaponAction(
     };
 }
 
+export function createMonsterWeaponActionForPaste(
+    monster: FullMonster,
+    weapon: FullWeapon,
+): MonsterCombatAction | undefined {
+    if (!weapon?.name?.rus?.trim() || !weapon.url?.startsWith("/weapons/")) return undefined;
+    const ranged = weapon.type?.name?.trim() ? isRangedWeapon(weapon) : undefined;
+    const finesse = hasProperty(weapon, ["фехтовальное", "finesse"], ["/finesse"]);
+    const ability = monster.ability;
+    const hasAttackAbility = ranged === undefined ? false
+        : finesse ? Number.isFinite(ability?.str) && Number.isFinite(ability?.dex)
+        : Number.isFinite(ranged ? ability?.dex : ability?.str);
+    const proficiency = monster.proficiencyBonus?.trim();
+    const hasAttackBonus = hasAttackAbility && proficiency !== undefined && proficiency !== "" && Number.isFinite(Number(proficiency));
+    if (hasAttackBonus) {
+        try { return createMonsterWeaponAction(monster, weapon); }
+        catch { /* Render the available attack fields below. */ }
+    }
+
+    const thrown = hasProperty(weapon, ["метательное", "thrown"], ["/thrown"]);
+    const attackKind = ranged === undefined ? "Атака оружием"
+        : thrown && !ranged ? "Рукопашная или дальнобойная атака оружием"
+        : ranged ? "Дальнобойная атака оружием" : "Рукопашная атака оружием";
+    const parts: string[] = [];
+    if (hasAttackBonus) {
+        const modifier = getWeaponAbilityModifier(monster, ranged!, finesse);
+        const bonus = modifier + Number(proficiency);
+        parts.push(`<dice-roller label="Атака" formula="${formatFormula("к20", bonus)}">${formatModifier(bonus)}</dice-roller> к попаданию`);
+    }
+    if (ranged !== undefined) {
+        const targeting = buildTargetingText(weapon, ranged, thrown).trim().replace(/[. ]+$/u, "");
+        if (targeting) parts.push(targeting);
+    }
+
+    let hit = "";
+    if (weapon.damage?.dice?.trim() && weapon.damage.type?.trim()?.toLowerCase() !== "без урона") {
+        try {
+            const damageModifier = hasAttackAbility ? getWeaponAbilityModifier(monster, ranged!, finesse) : 0;
+            const damage = parseDamage(weapon.damage.dice, damageModifier);
+            const roll = damage.formula ? ` (<dice-roller label="Урон" formula="${damage.formula}"/>)` : "";
+            const type = weapon.damage.type?.trim();
+            const damageType = type ? ` ${DAMAGE_TYPE_GENITIVE[type.toLowerCase()] ?? escapeHtml(type)} урона` : " урона";
+            hit = `<em>Попадание:</em> ${damage.average}${roll}${damageType}`;
+        } catch { /* Keep the action parts that can be calculated. */ }
+    }
+
+    const meaningfulParts = parts.filter(part => part !== "одна цель");
+    const value = meaningfulParts.length || hit
+        ? `<p><em>${attackKind}:</em>${parts.length ? ` ${parts.join(", ")}.` : ""}${hit ? ` ${hit}.` : ""}</p>`
+        : weapon.description?.trim();
+    if (!value) return undefined;
+    return { name: weapon.name.rus.trim(), weaponUrl: weapon.url, value };
+}
+
 function validateWeapon(weapon: FullWeapon): void {
     if (!weapon?.name?.rus?.trim()) throw new Error("У оружия отсутствует название.");
     if (!weapon.url?.startsWith("/weapons/")) throw new Error("У оружия отсутствует корректная ссылка.");

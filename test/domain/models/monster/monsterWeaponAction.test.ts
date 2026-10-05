@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EmptyFullMonster, normalizeMonsterForEditing } from "src/domain/models/monster/FullMonster";
-import { createMonsterWeaponAction } from "src/domain/models/monster/monsterWeaponAction";
+import { createMonsterWeaponAction, createMonsterWeaponActionForPaste } from "src/domain/models/monster/monsterWeaponAction";
 import type { FullWeapon } from "src/domain/models/weapon/FullWeapon";
 import {
     fullWeaponBlowgun,
@@ -104,5 +104,41 @@ describe("createMonsterWeaponAction", () => {
         ["no damage weapon", weapon(fullWeaponMace, { damage: { type: "без урона" } }), "не наносит урон"],
     ])("rejects %s", (_label, invalidWeapon, message) => {
         expect(() => createMonsterWeaponAction(monster(), invalidWeapon)).toThrow(message);
+    });
+});
+
+describe("createMonsterWeaponActionForPaste", () => {
+    it("keeps the complete attack formula and does not invent secondary damage", () => {
+        const action = createMonsterWeaponActionForPaste(monster(), weapon(fullWeaponHalberd, { special: "Дополнительно 1к6 огненного урона." }));
+
+        expect(action?.value).toContain('formula="к20 + 5"');
+        expect(action?.value).toContain('formula="1к10 + 2"');
+        expect(action?.value).not.toContain("огненного");
+        expect(action?.value?.match(/label="Урон"/gu)).toHaveLength(1);
+    });
+
+    it("creates a partial attack when weapon damage is missing", () => {
+        const action = createMonsterWeaponActionForPaste(monster(), weapon(fullWeaponMace, { damage: { dice: "", type: "дробящий" } }));
+
+        expect(action?.value).toContain('formula="к20 + 5"');
+        expect(action?.value).toContain("досягаемость 5 фт., одна цель");
+        expect(action?.value).not.toContain("Попадание:");
+    });
+
+    it("uses available base damage without inventing an ability or proficiency bonus", () => {
+        const creature = monster();
+        creature.ability = undefined;
+        creature.proficiencyBonus = undefined;
+        const action = createMonsterWeaponActionForPaste(creature, fullWeaponMace);
+
+        expect(action?.value).not.toContain('label="Атака"');
+        expect(action?.value).toContain('formula="1к6"');
+        expect(action?.value).not.toContain('formula="1к6 +');
+    });
+
+    it("falls back to the weapon description when no attack data is usable", () => {
+        const incomplete = weapon(fullWeaponMace, { type: { name: "" }, damage: { dice: "", type: "" }, description: "<p>Текст оружия.</p>" });
+        expect(createMonsterWeaponActionForPaste(monster(), incomplete)?.value).toBe("<p>Текст оружия.</p>");
+        expect(createMonsterWeaponActionForPaste(monster(), { ...incomplete, description: "" })).toBeUndefined();
     });
 });

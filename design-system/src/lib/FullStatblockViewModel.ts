@@ -17,6 +17,7 @@ export type FullStatblockAbility = {
 export type FullStatblockRichTextItem = {
 	title: string;
 	html: string;
+	entityUrl?: string;
 };
 
 export type FullStatblockActionSection = {
