@@ -4,6 +4,7 @@ import omniIcon from "logo/dnd-dm-tools-transparent.svg";
 import type { BaseItem } from "src/domain/models/common/BaseItem";
 import {
 	activateOrOpenAssistantPanel,
+	createAssistantWorkspaceSnapshot,
 	PANEL_KEYS,
 	type AssistantWorkspaceState,
 	type PanelKey,
@@ -68,8 +69,11 @@ export class PanelManager {
 	}
 
 	getPanelSummaries() {
-		return PANEL_KEYS.map((key) => this.panels.get(key))
-			.filter((panel): panel is PanelHost => Boolean(panel))
+		const keys = this.isRedesignEnabled()
+			? ["initiative-tracker" as const, ...PANEL_KEYS.filter((key) => key !== "initiative-tracker")]
+			: PANEL_KEYS;
+		return keys.map((key) => this.panels.get(key))
+			.filter((panel): panel is PanelHost => panel !== undefined && this.isPanelAvailable(panel.getKey()))
 			.map((panel) => ({
 				key: panel.getKey(),
 				title: panel.getTitle(),
@@ -84,8 +88,30 @@ export class PanelManager {
 
 	isRedesignEnabled(): boolean { return this.plugin.getSettings().redesignEnabled; }
 
+	private isPanelAvailable(key: PanelKey): boolean {
+		return key !== "classes" || !this.isRedesignEnabled();
+	}
+
+	getVisibleWorkspace(): AssistantWorkspaceState {
+		const workspace = createAssistantWorkspaceSnapshot(this.getWorkspace());
+		if (!this.isRedesignEnabled()) return workspace;
+		for (const tile of workspace.tiles) {
+			const index = tile.tabs.indexOf("classes");
+			if (index >= 0) {
+				tile.tabs.splice(index, 1);
+				if (tile.activeTab === "classes") tile.activeTab = tile.tabs[Math.min(index, tile.tabs.length - 1)] ?? null;
+			}
+			const trackerIndex = tile.tabs.indexOf("initiative-tracker");
+			if (trackerIndex > 0) {
+				tile.tabs.splice(trackerIndex, 1);
+				tile.tabs.unshift("initiative-tracker");
+			}
+		}
+		return workspace;
+	}
+
 	async openPanel(key: PanelKey): Promise<void> {
-		if (!this.panels.has(key)) return;
+		if (!this.panels.has(key) || !this.isPanelAvailable(key)) return;
 		this.activateOrOpenPanelTab(key);
 		await this.persistWorkspace(this.getWorkspace());
 		await this.openAssistant();
@@ -93,6 +119,7 @@ export class PanelManager {
 	}
 
 	async openItem(key: PanelKey, item?: BaseItem): Promise<void> {
+		if (!this.isPanelAvailable(key)) return;
 		if (item) {
 			this.panelSessions.discard(key);
 			this.currentItems.set(key, item);
@@ -101,6 +128,7 @@ export class PanelManager {
 	}
 
 	async openItemByUrl(key: PanelKey, url: string): Promise<void> {
+		if (!this.isPanelAvailable(key)) return;
 		const item = await this.panels.get(key)?.resolveItem(url);
 		if (item) await this.openItem(key, item);
 	}
@@ -109,7 +137,7 @@ export class PanelManager {
 		const normalized = query.trim().toLocaleLowerCase("ru-RU");
 		if (!normalized) return [];
 		const results = await Promise.allSettled(
-			Array.from(this.panels.values()).map((panel) => panel.search(normalized)),
+			Array.from(this.panels.values()).filter((panel) => this.isPanelAvailable(panel.getKey())).map((panel) => panel.search(normalized)),
 		);
 		const combined = results.flatMap((result) =>
 			result.status === "fulfilled" ? result.value : []
@@ -216,7 +244,7 @@ class AssistantItemView extends ItemView {
 			target: container,
 			props: {
 				panels: this.manager.getPanelSummaries(),
-				initialWorkspace: structuredClone(this.manager.getWorkspace()),
+				initialWorkspace: this.manager.getVisibleWorkspace(),
 				redesignEnabled: this.manager.isRedesignEnabled(),
 				search: (query: string) => this.manager.search(query),
 				openResult: (result: PanelSearchResult) => this.manager.openSearchResult(result),

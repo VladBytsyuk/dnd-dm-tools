@@ -29,7 +29,25 @@ export interface FullBackground extends SmallBackground {
     
     /** Detailed description of the background (may contain HTML) */
     description: string;
+
+    /** Language choice granted by the background */
+    language?: string;
+
+    /** Background feature name and description */
+    skillName?: string;
+    skillDescription?: string;
     
     /** Personalization or roleplaying guidance for the background */
     personalization?: string;
+
+    /** Roll tables accompanying personalization */
+    personalizationTables?: BackgroundPersonalizationTable[];
+}
+
+export interface BackgroundPersonalizationTable {
+    type: string;
+    name: string;
+    formula: string;
+    thead: string[];
+    tbody: string[][];
 }

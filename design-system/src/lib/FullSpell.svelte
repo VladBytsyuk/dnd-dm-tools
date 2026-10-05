@@ -110,13 +110,15 @@ import UserCog from "lucide-svelte/icons/user-cog";
 		{theme}
 	/>
 
-	<TextBlock
-		bind:html={spell.description.html}
-		accentColor={accentColor}
-		{onEntityLinkClick}
-		{editable}
-		{theme}
-	/>
+	{#if editable || spell.description.html}
+		<TextBlock
+			bind:html={spell.description.html}
+			accentColor={accentColor}
+			{onEntityLinkClick}
+			{editable}
+			{theme}
+		/>
+	{/if}
 
 	{#if editable || spell.higherLevels?.html}
 		<FilledTextBlock

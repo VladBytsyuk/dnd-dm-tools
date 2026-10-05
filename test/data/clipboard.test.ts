@@ -1,4 +1,4 @@
-import { getEncounterFromClipboard, getEncounterParticipantFromClipboard, getMonsterFromClipboard, copyMonsterToClipboard, copyTextToClipboard, copyEncounterToClipboard, copySpellToClipboard, copyDmScreenItem, copyWeaponToClipboard, copyArmorToClipboard, copyEquipmentToClipboard, copyArtifactToClipboard, copyBackgroundToClipboard, getMarkdownCodeBlockFromClipboard } from "src/data/clipboard";
+import { getActionEntityFromClipboard, getEncounterFromClipboard, getEncounterParticipantFromClipboard, getMonsterFromClipboard, copyMonsterToClipboard, copyTextToClipboard, copyEncounterToClipboard, copySpellToClipboard, copyDmScreenItem, copyWeaponToClipboard, copyArmorToClipboard, copyEquipmentToClipboard, copyArtifactToClipboard, copyBackgroundToClipboard, getMarkdownCodeBlockFromClipboard } from "src/data/clipboard";
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mockMonster, mockEncounter, mockSpell, mockDmScreenItem, mockWeapon, mockArmor, mockEquipment, mockArtifact, mockBackground } from "../__mocks__/data";
 import * as obsidian from "obsidian";
@@ -252,6 +252,26 @@ ${yaml}
 
         await expect(getMarkdownCodeBlockFromClipboard("spell")).resolves.toEqual(spell);
         await expect(getMarkdownCodeBlockFromClipboard("weapon")).resolves.toBeUndefined();
+    });
+
+    it.each([
+        ["weapon", mockWeapon], ["spell", mockSpell], ["equip", mockEquipment], ["artifact", mockArtifact],
+    ] as const)('reads a %s action entity with one clipboard read', async (kind, item) => {
+        const extra = kind === "spell" ? `spell: ${item.name.rus}\n` : "";
+        const readText = vi.fn().mockResolvedValue(`\`\`\`${kind}\n${extra}${JSON.stringify(item)}\n\`\`\``);
+        Object.defineProperty(navigator, 'clipboard', { value: { readText }, writable: true });
+
+        await expect(getActionEntityFromClipboard()).resolves.toEqual({ kind, item });
+        expect(readText).toHaveBeenCalledOnce();
+    });
+
+    it('ignores unsupported and incomplete action blocks', async () => {
+        const readText = vi.fn().mockResolvedValue('not an entity');
+        Object.defineProperty(navigator, 'clipboard', { value: { readText }, writable: true });
+        await expect(getActionEntityFromClipboard()).resolves.toBeUndefined();
+
+        readText.mockResolvedValue('```weapon\n{}');
+        await expect(getActionEntityFromClipboard()).resolves.toBeUndefined();
     });
 
     it('should get monster from a statblock with surrounding whitespace and CRLF', async () => {

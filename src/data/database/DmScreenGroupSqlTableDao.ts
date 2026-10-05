@@ -189,4 +189,20 @@ export class DmScreenGroupSqlTableDao extends Dao<DmScreenItem, any> {
             throw error;
         }
     }
+
+    async readLeafItemsByUrls(urls: string[]): Promise<DmScreenItem[]> {
+        const items: DmScreenItem[] = [];
+        for (let offset = 0; offset < urls.length; offset += 500) {
+            const batch = urls.slice(offset, offset + 500);
+            const result = this.database.exec(`
+                SELECT item.* FROM ${this.getTableName()} item
+                WHERE item.url IN (${batch.map(() => "?").join(", ")})
+                AND NOT EXISTS (
+                    SELECT 1 FROM ${this.getTableName()} child WHERE child.parent_url = item.url
+                );
+            `, batch);
+            items.push(...await Promise.all((result[0]?.values ?? []).map((row) => this.mapSqlValues(row))));
+        }
+        return items;
+    }
 }

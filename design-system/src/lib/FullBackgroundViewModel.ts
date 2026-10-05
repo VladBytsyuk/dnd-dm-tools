@@ -19,6 +19,14 @@ export type FullBackgroundEntityLink = {
 	label: string;
 };
 
+export type FullBackgroundPersonalizationTable = {
+	type: string;
+	name: string;
+	formula: string;
+	thead: string[];
+	tbody: string[][];
+};
+
 export type FullBackgroundViewModel = {
 	russianName: string;
 	englishName: string;
@@ -29,6 +37,10 @@ export type FullBackgroundViewModel = {
 	equipments: FullBackgroundHtmlContent[];
 	startGold: number;
 	description: FullBackgroundHtmlContent;
+	language?: string;
+	skillName?: string;
+	skillDescription?: FullBackgroundHtmlContent;
+	personalizationTables?: FullBackgroundPersonalizationTable[];
 	origin?: FullBackgroundOrigin;
 	homebrew?: boolean;
 	associatedUrl?: string;

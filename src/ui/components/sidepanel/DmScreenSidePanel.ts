@@ -26,6 +26,8 @@ export class DmScreenSidePanel extends BaseSidePanel<DmScreenItem, DmScreenItem,
                 getChildrenCount: async (item: DmScreenItem) => await dmScreenRepository.getChildrenCount(item),
                 getChildren: async (item: DmScreenItem) => await dmScreenRepository.getChildren(item),
                 getFullItem: async (item: DmScreenItem) => await dmScreenRepository.getFullItem(item),
+				favorites: dmScreenRepository.favorites,
+				getFavoriteArticles: async () => await dmScreenRepository.getFavoriteArticles(),
             },
         });
     }

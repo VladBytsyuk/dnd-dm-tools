@@ -9,9 +9,23 @@
 	import { TextBlock } from "@dnd-dm-tools/design-system";
 	import { theme as appTheme, Theme } from "src/ui/theme";
 	import { copyDmScreenItem } from "src/data/clipboard";
+	import { Notice } from "obsidian";
+	import { onMount } from "svelte";
+	import type { FavoriteAccess } from "src/domain/repositories/Repository";
 
     // ---- Props ----
-    let { item, children, redesignEnabled = false, uiEventListener, getFilteredItems, getChildrenCount, getChildren, getFullItem } = $props();
+    let { item, children, redesignEnabled = false, uiEventListener, getFilteredItems, getChildrenCount, getChildren, getFullItem, favorites, getFavoriteArticles } = $props<{
+		item?: DmScreenItem;
+		children: DmScreenItem[];
+		redesignEnabled?: boolean;
+		uiEventListener: any;
+		getFilteredItems: (name: string) => Promise<DmScreenItem[]>;
+		getChildrenCount: (item: DmScreenItem) => Promise<number>;
+		getChildren: (item: DmScreenItem) => Promise<DmScreenItem[]>;
+		getFullItem: (item: DmScreenItem) => Promise<DmScreenItem | null>;
+		favorites?: FavoriteAccess;
+		getFavoriteArticles?: () => Promise<DmScreenItem[]>;
+	}>();
     const dsTheme: "dark" | "light" = $derived($appTheme === Theme.Dark ? "dark" : "light");
 
     // ---- State ----
@@ -29,6 +43,37 @@
     let searchBarValue: string = $state('');
     
     let filteredItems: DmScreenItem[] = $state([]);
+	let favoriteUrls = $state<Set<string>>(new Set());
+	let favoriteArticles = $state<DmScreenItem[]>([]);
+	let favoriteBusy = $state(false);
+
+	onMount(() => { if (redesignEnabled) void reloadFavorites(); });
+
+	async function reloadFavorites() {
+		const nextUrls = new Set<string>(favorites?.listUrls("dm-screen") ?? []);
+		const nextArticles = await getFavoriteArticles?.() ?? [];
+		favoriteUrls = nextUrls;
+		favoriteArticles = nextArticles;
+	}
+
+	async function toggleFavorite() {
+		if (!currentItem?.url || !currentItem.description || currentChildren.length > 0 || !favorites || favoriteBusy) return;
+		favoriteBusy = true;
+		try {
+			const nextFavorite = !favoriteUrls.has(currentItem.url);
+			await favorites.set("dm-screen", currentItem.url, nextFavorite);
+			const nextUrls = new Set(favoriteUrls);
+			if (nextFavorite) nextUrls.add(currentItem.url);
+			else nextUrls.delete(currentItem.url);
+			favoriteUrls = nextUrls;
+			favoriteArticles = await getFavoriteArticles?.() ?? [];
+		} catch (error) {
+			console.error("Failed to update DM screen favorite:", error);
+			new Notice("Не удалось изменить избранное.");
+		} finally {
+			favoriteBusy = false;
+		}
+	}
 
     function copyCurrentItem() {
         if (currentItem) void copyDmScreenItem(currentItem);
@@ -50,6 +95,7 @@
             const lastItem = itemsStack.last();
             currentChildren = lastItem ? await getChildren(lastItem) : children;
             currentItem = lastItem;
+			if (!lastItem && redesignEnabled) void reloadFavorites();
         }
     }
 
@@ -104,6 +150,9 @@
         isfiltersapplied={undefined}
         onaddclick={undefined}
         oncopyclick={currentItem && currentChildren.length === 0 && currentItem.description ? copyCurrentItem : undefined}
+		onfavoriteclick={redesignEnabled && favorites && currentItem?.description && currentChildren.length === 0 ? toggleFavorite : undefined}
+		isfavorite={Boolean(currentItem?.url && favoriteUrls.has(currentItem.url))}
+		{favoriteBusy}
         {redesignEnabled}
     />
     <div class="side-panel-spacer"></div>
@@ -120,6 +169,14 @@
             {#if filteredItems.length === 0}
                 <UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
             {:else}
+				{#if redesignEnabled && filteredItems.some((entry) => favoriteUrls.has(entry.url))}
+					<TextBlock title="Избранное" theme={dsTheme} />
+					<div class="content dm-screen-grid" class:redesigned={redesignEnabled}>
+						{#each filteredItems.filter((entry) => favoriteUrls.has(entry.url)) as favoriteItem (favoriteItem.url)}
+							<DmScreenGroupUi icon={favoriteItem.icon} name={favoriteItem.name} source={favoriteItem.source.shortName} onclick={onItemClick(favoriteItem)} redesigned theme={dsTheme} favorite />
+						{/each}
+					</div>
+				{/if}
                 <div class="content dm-screen-grid" class:redesigned={redesignEnabled}>
                     {#each filteredItems as item}
                         {#if redesignEnabled}
@@ -130,6 +187,7 @@
                                 onclick={onItemClick(item)}
                                 redesigned
                                 theme={dsTheme}
+								favorite={favoriteUrls.has(item.url)}
                             />
                         {:else}
                             <PanelTypeTint panelKey="dm-screen">
@@ -161,6 +219,14 @@
                 <div class="group-description"><HtmlBlock htmlContent={currentItem.description} {uiEventListener} /></div>
             {/if}
             <div class:dm-screen-browser={redesignEnabled}>
+				{#if !currentItem && redesignEnabled && favoriteArticles.length > 0}
+					<TextBlock title="Избранное" theme={dsTheme} />
+					<div class="content dm-screen-grid redesigned">
+						{#each favoriteArticles as favoriteItem (favoriteItem.url)}
+							<DmScreenGroupUi icon={favoriteItem.icon} name={favoriteItem.name} source={favoriteItem.source.shortName} onclick={onItemClick(favoriteItem)} redesigned theme={dsTheme} favorite />
+						{/each}
+					</div>
+				{/if}
                 {#each (groupedChildren()) as childGroup}
                     {#if childGroup.subgroupName}
                         {#if redesignEnabled}
@@ -179,6 +245,7 @@
                                     onclick={onItemClick(group)}
                                     redesigned
                                     theme={dsTheme}
+									favorite={favoriteUrls.has(group.url)}
                                 />
                             {:else}
                                 <PanelTypeTint panelKey="dm-screen">

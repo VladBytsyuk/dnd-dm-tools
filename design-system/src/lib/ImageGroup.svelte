@@ -1,6 +1,7 @@
 <script lang="ts">
 	import ChevronLeft from "lucide-svelte/icons/chevron-left";
 	import ChevronRight from "lucide-svelte/icons/chevron-right";
+	import Expand from "lucide-svelte/icons/expand";
 	import Plus from "lucide-svelte/icons/plus";
 	import defaultToken from "./assets/default-token.svg";
 
@@ -12,6 +13,7 @@
 		initialIndex?: number;
 		onChange?: (index: number) => void;
 		onImageRequested?: (image: string) => Promise<string>;
+		onExpandImage?: (resolvedUrl: string, source: string) => void;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -28,18 +30,21 @@
 		initialIndex = 0,
 		onChange,
 		onImageRequested,
+		onExpandImage,
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
 	let currentIndex = $state(getInitialIndex());
 	let currentImage = $derived(images[currentIndex]);
 	let resolvedImage = $state("");
+	let loadedImage = $state("");
 	let failedImage = $state("");
 	let defaultTokenUrl = `data:image/svg+xml,${encodeURIComponent(defaultToken)}`;
 	$effect(() => {
 		const source = currentImage;
+		resolvedImage = "";
+		loadedImage = "";
 		if (editable || !source) {
-			resolvedImage = "";
 			return;
 		}
 
@@ -82,9 +87,14 @@
 {:else}
 	<div class:fluid class="image-group" data-theme={theme} style={`--image-size: ${size}px`}>
 		{#if resolvedImage && failedImage !== resolvedImage}
-			<img src={resolvedImage} {alt} onerror={() => (failedImage = resolvedImage)} />
+			<img src={resolvedImage} {alt} onload={() => (loadedImage = resolvedImage)} onerror={() => (failedImage = resolvedImage)} />
 		{:else}
 			<img class="fallback" src={defaultTokenUrl} alt="" aria-label="Изображение недоступно" />
+		{/if}
+		{#if onExpandImage && resolvedImage && loadedImage === resolvedImage && failedImage !== resolvedImage}
+			<button class="expand-button" type="button" aria-label="Развернуть изображение" onclick={(event) => { event.currentTarget.focus(); onExpandImage(resolvedImage, currentImage); }}>
+				<Expand size={18} strokeWidth={1.5} aria-hidden={true} />
+			</button>
 		{/if}
 		{#if hasControls}
 			<div class="controls" aria-label="Переключение изображений">
@@ -194,6 +204,37 @@
 		opacity: 1;
 		pointer-events: auto;
 	}
+
+	.expand-button {
+		position: absolute;
+		top: 6px;
+		right: 6px;
+		display: grid;
+		width: 32px;
+		height: 32px;
+		place-items: center;
+		padding: 0;
+		border: 0.5px solid #fff;
+		border-radius: 4px;
+		background: rgb(0 0 0 / 20%);
+		box-shadow: 0 2px 2px rgb(0 0 0 / 25%);
+		color: #fff;
+		cursor: pointer;
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 120ms ease, background-color 120ms ease;
+	}
+
+	.image-group:hover .expand-button, .image-group:focus-within .expand-button {
+		opacity: 1;
+		pointer-events: auto;
+	}
+
+	.expand-button:hover, .expand-button:focus-visible { background: rgb(0 0 0 / 30%); }
+	.expand-button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+	.image-group[data-theme="light"] .expand-button { border-color: #1f2937; background: rgb(255 255 255 / 80%); color: #1f2937; }
+	.image-group[data-theme="light"] .expand-button:hover, .image-group[data-theme="light"] .expand-button:focus-visible { background: rgb(255 255 255 / 92%); }
+	.image-group[data-theme="light"] .expand-button:focus-visible { outline-color: #1f2937; }
 
 	.controls button {
 		display: grid;

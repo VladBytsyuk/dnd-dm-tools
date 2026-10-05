@@ -7,6 +7,7 @@ export interface PanelSearchResult {
 	title: string;
 	subtitle: string;
 	item: BaseItem;
+	favorite?: boolean;
 }
 
 export interface PanelHost {

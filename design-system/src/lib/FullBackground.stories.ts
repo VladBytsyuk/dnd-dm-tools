@@ -116,3 +116,27 @@ export const NewEdit: Story = {
 export const Complex: Story = {
 	args: { background: complexBackground, ...callbacks, theme: "dark" },
 };
+
+export const Noble: Story = {
+	args: {
+		background: {
+			...structuredClone(simpleBackground),
+			russianName: "Благородный",
+			englishName: "Noble",
+			entityLink: "/backgrounds/noble",
+			skills: ["История", "Убеждение"],
+			language: "Один на ваш выбор",
+			skillName: "Привилегированность",
+			skillDescription: { html: "<p>Вас принимают в высшем обществе.</p>" },
+			personalization: { html: "<p>Благородные рождаются и растут в особом окружении.</p>" },
+			personalizationTables: [
+				{ type: "TRAIT", name: "Черта характера", formula: "к8", thead: ["Черта характера"], tbody: [["1", "Я применяю много лести."], ["2", "Обыватели любят меня за доброту."]] },
+				{ type: "IDEAL", name: "Идеал", formula: "к6", thead: ["Идеал"], tbody: [["1", "<strong>Уважение.</strong> К другим нужно относиться с уважением."]] },
+				{ type: "AFFECTION", name: "Привязанность", formula: "к6", thead: ["Привязанность"], tbody: [["1", "Я защищаю имя семьи."]] },
+				{ type: "WEAKNESS", name: "Слабость", formula: "к6", thead: ["Слабость"], tbody: [["1", "Я втайне считаю всех ниже себя."]] },
+			],
+		},
+		...callbacks,
+		theme: "dark",
+	},
+};

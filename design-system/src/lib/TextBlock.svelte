@@ -9,6 +9,7 @@
 
 	type Props = {
 		title?: string;
+		entityUrl?: string;
 		titleSuffix?: string;
 		titleMeta?: string;
 		text?: string;
@@ -25,6 +26,7 @@
 
 	let {
 		title = $bindable(""),
+		entityUrl,
 		titleSuffix,
 		titleMeta,
 		text = $bindable(""),
@@ -60,6 +62,7 @@
 
 	let isExpanded = $state(getInitialExpanded());
 	let isCollapsible = $derived(Boolean(Icon && title));
+	let canOpenEntity = $derived(Boolean(entityUrl && onEntityLinkClick && dndEntityPathPrefixes.some(prefix => entityUrl.startsWith(prefix))));
 	let isContentVisible = $derived(!isCollapsible || isExpanded || editable);
 	let decoratedHtml = $derived(decorateTables(sanitizeRichHtml(html ?? "")));
 
@@ -104,7 +107,18 @@
 
 <section class="text-block" data-theme={theme}>
 	{#if title || editable}
-		{#if isCollapsible && !editable}
+		{#if canOpenEntity && !editable}
+			<div class="header linked-header">
+				{#if isCollapsible}
+					<button type="button" class="expand-toggle" aria-label={isExpanded ? `Свернуть: ${title}` : `Развернуть: ${title}`} aria-expanded={isExpanded} onclick={() => (isExpanded = !isExpanded)}>
+						<Icon class="icon" size={14} strokeWidth={2} aria-hidden={true} />
+					</button>
+				{/if}
+				<a href={entityUrl} onclick={(event) => { event.preventDefault(); void onEntityLinkClick?.({ href: entityUrl!, label: title }); }}>{title}</a>
+				{#if titleSuffix}<span class="title-suffix">{titleSuffix}</span>{/if}
+				{#if titleMeta}<span class="title-meta">{titleMeta}</span>{/if}
+			</div>
+		{:else if isCollapsible && !editable}
 			<button
 				type="button"
 				class:has-title-meta={Boolean(titleMeta)}
@@ -204,6 +218,12 @@
 	.toggle .title-meta { margin-left: auto; }
 	.toggle:hover { text-decoration: underline; }
 	.toggle:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
+	.linked-header a { color: inherit; font-weight: 700; text-decoration: none; overflow-wrap: anywhere; }
+	.linked-header a:hover { text-decoration: underline; }
+	.linked-header a:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
+	.expand-toggle { all: unset; display: flex; align-items: center; cursor: pointer; }
+	.expand-toggle:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
+	.expand-toggle[aria-expanded="true"] :global(.icon) { transform: rotate(90deg); }
 	:global(.icon) { flex: 0 0 auto; }
 	.toggle[aria-expanded="true"] :global(.icon) { transform: rotate(90deg); }
 

@@ -5,6 +5,7 @@ import { DbTransactionalStore, DmScreenStore } from "src/data/stores";
 import { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 import type { DmScreen } from "src/domain/repositories/DmScreen";
 import type { ItemSaveContext, ItemSaveResult } from "src/domain/models/common/EntityOrigin";
+import type { FavoriteAccess } from "src/domain/repositories/Repository";
 
 type DmScreenRepositoryDatabase = {
 	transaction(callback: (...args: any[]) => Promise<void>): Promise<void> | void;
@@ -17,6 +18,7 @@ type DmScreenRepositoryDatabase = {
 		readItemByName(name: string): Promise<DmScreenItem | null>;
 		readItemByUrl(url: string): Promise<DmScreenItem | null>;
 		updateItem(item: DmScreenItem): Promise<void>;
+		readLeafItemsByUrls?(urls: string[]): Promise<DmScreenItem[]>;
 	};
 };
 
@@ -25,6 +27,7 @@ export interface DmScreenRepositoryDependencies {
 	store: DmScreenStore;
 	service: FullItemReadService<TtgJsonObject>;
 	mapper: FullItemMapper<TtgJsonObject, DmScreenItem>;
+	favorites?: FavoriteAccess;
 }
 
 class DmScreenDescriptionService implements FullItemReadService<TtgJsonObject> {
@@ -41,6 +44,7 @@ export class DmScreenRepository implements DmScreen {
 	readonly #dao: DmScreenRepositoryDatabase["dmScreenGroupDao"];
 	readonly #service: FullItemReadService<TtgJsonObject>;
 	readonly #mapper: FullItemMapper<TtgJsonObject, DmScreenItem>;
+	readonly favorites: FavoriteAccess | undefined;
 
 	constructor(
 		dependencies: DmScreenRepositoryDatabase | DmScreenRepositoryDependencies,
@@ -51,6 +55,7 @@ export class DmScreenRepository implements DmScreen {
 			this.#service = dependencies.service;
 			this.#store = dependencies.store;
 			this.#mapper = dependencies.mapper;
+			this.favorites = dependencies.favorites;
 			return;
 		}
 
@@ -61,6 +66,12 @@ export class DmScreenRepository implements DmScreen {
 			new DbTransactionalStore(dependencies),
 		);
 		this.#mapper = new DmScreenDescriptionMapper();
+		this.favorites = undefined;
+	}
+
+	async getFavoriteArticles(): Promise<DmScreenItem[]> {
+		if (!this.favorites || !this.#dao.readLeafItemsByUrls) return [];
+		return this.#dao.readLeafItemsByUrls(this.favorites.listUrls("dm-screen"));
 	}
 
 	async initialize() {

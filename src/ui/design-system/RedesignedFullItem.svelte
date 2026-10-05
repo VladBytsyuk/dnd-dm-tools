@@ -18,7 +18,8 @@
 	import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 	import type { ItemSaveContext, ItemSaveResult } from "src/domain/models/common/EntityOrigin";
 	import { resolveDndEntityLink } from "src/domain/listeners/html_link_listener";
-	import { copyMonsterToClipboard, copySpellToClipboard, copyWeaponToClipboard, copyArmorToClipboard, copyEquipmentToClipboard, copyArtifactToClipboard, copyBackgroundToClipboard, copyFeatToClipboard, copyRaceToClipboard, copyClassToClipboard, getMarkdownCodeBlockFromClipboard, showClipboardNotice } from "src/data/clipboard";
+	import { copyMonsterToClipboard, copySpellToClipboard, copyWeaponToClipboard, copyArmorToClipboard, copyEquipmentToClipboard, copyArtifactToClipboard, copyBackgroundToClipboard, copyFeatToClipboard, copyRaceToClipboard, copyClassToClipboard, getActionEntityFromClipboard, getMarkdownCodeBlockFromClipboard, showClipboardNotice, type ClipboardActionEntity } from "src/data/clipboard";
+	import { createMonsterWeaponActionForPaste } from "src/domain/models/monster/monsterWeaponAction";
 	import type { FullMonster } from "src/domain/models/monster/FullMonster";
 	import type { FullSpell as FullSpellDomain } from "src/domain/models/spell/FullSpell";
 	import type { FullWeapon as FullWeaponDomain } from "src/domain/models/weapon/FullWeapon";
@@ -31,7 +32,7 @@
 	import type { FullClass as FullClassDomain } from "src/domain/models/class/FullClass";
 	import { baseDmScreenItems } from "src/assets/data/dm_screen";
 	import type { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
-	import { applyFullViewModel, cloneDesignData, entityUrlPrefix, toFullViewModel, type FullViewModel } from "./adapters";
+	import { applyFullViewModel, cloneDesignData, entityUrlPrefix, pruneEmptyFullViewModel, toFullViewModel, type FullViewModel } from "./adapters";
 	import { theme as appTheme, Theme } from "src/ui/theme";
 	import { onMount } from "svelte";
 	import { DiceRollersManager } from "src/ui/layout/dice-roller/DiceRollersManager";
@@ -43,6 +44,7 @@
 		onItemSave?: (item: any, context: ItemSaveContext) => ItemSaveResult | Promise<ItemSaveResult>;
 	};
 	let { panelKey, currentItem, uiEventListener, actionRequest = { id: 0, command: "edit" }, onEditorStateChange, onItemSave }: Props = $props();
+	type ActionSectionKey = "actions" | "bonusActions" | "reactions" | "legendaryActions" | "mythicActions";
 	const theme = $derived($appTheme === Theme.Dark ? "dark" : "light");
 	let editing = $state(false);
 	let saving = $state(false);
@@ -65,6 +67,14 @@
 		return find(baseDmScreenItems);
 	}
 	const imageResolver = (image: string) => uiEventListener.onImageRequested(image);
+	async function sendImageToOwlbear(source: string, name: string) {
+		try {
+			await uiEventListener.onOwlbearPreviewRequested?.(source, name);
+			new Notice("Изображение отправлено в Owlbear.");
+		} catch (error) {
+			new Notice(error instanceof Error ? error.message : "Не удалось отправить изображение в Owlbear.");
+		}
+	}
 	let container: HTMLDivElement;
 	onMount(() => {
 		const diceRollers = DiceRollersManager.create(uiEventListener, container);
@@ -132,6 +142,40 @@
 			new Notice("Не удалось прочитать корректный Markdown-блок из буфера обмена.");
 		}
 	}
+	function isValidActionEntity(value: ClipboardActionEntity | undefined): value is ClipboardActionEntity {
+		if (!value?.item || typeof value.item !== "object") return false;
+		const { kind, item } = value;
+		const prefixes = { weapon: "/weapons/", spell: "/spells/", equip: "/items/", artifact: "/items/magic/" };
+		return typeof item.name?.rus === "string" && Boolean(item.name.rus.trim())
+			&& typeof item.url === "string" && item.url.startsWith(prefixes[kind])
+			&& (kind === "weapon" || typeof item.description === "string");
+	}
+	async function pasteAction(sectionKey: ActionSectionKey) {
+		if (!editing || panelKey !== "bestiary") return;
+		try {
+			const source = await getActionEntityFromClipboard();
+			if (!isValidActionEntity(source)) {
+				new Notice("В буфере нет корректного блока оружия, заклинания, предмета или артефакта.");
+				return;
+			}
+			const item = source.item;
+			const action = source.kind === "weapon"
+				? createMonsterWeaponActionForPaste(applyFullViewModel("bestiary", pastedEntityBase ?? currentItem, draft) as FullMonster, source.item)
+				: { name: item.name.rus.trim(), value: item.description };
+			if (!action) {
+				new Notice("Недостаточно данных для действия: у оружия нет описания или параметров атаки.");
+				return;
+			}
+			const statblock = draft as FullStatblockViewModel;
+			const section = statblock[sectionKey] ?? { title: "", items: [] };
+			section.items = [...section.items, { title: action.name, html: String(action.value ?? ""), entityUrl: item.url }];
+			statblock[sectionKey] = section;
+			new Notice(`«${action.name}» добавлено в раздел «${section.title}».`);
+		} catch (error) {
+			console.error("Failed to paste a statblock action:", error);
+			new Notice("Не удалось прочитать действие из буфера обмена.");
+		}
+	}
 	function cancelEdit() {
 		if (saving) return;
 		editing = false;
@@ -147,9 +191,10 @@
 		saving = true;
 		onEditorStateChange?.({ editing, saving });
 		try {
-			const next = applyFullViewModel(panelKey, pastedEntityBase ?? currentItem, draft);
+			const cleanedDraft = pruneEmptyFullViewModel(panelKey, draft);
+			const next = applyFullViewModel(panelKey, pastedEntityBase ?? currentItem, cleanedDraft);
 			const result = await onItemSave?.(next, { originalUrl: currentItem.url || undefined, originalOrigin: currentItem.origin ?? "remote" });
-			if (!result || result.ok) { currentItem = next; editing = false; pastedEntityBase = undefined; validationError = ""; }
+			if (!result || result.ok) { currentItem = next; draft = cleanedDraft; editing = false; pastedEntityBase = undefined; validationError = ""; }
 			else validationError = result.message;
 		} catch (error) { validationError = error instanceof Error ? error.message : "Не удалось сохранить сущность."; }
 		finally {
@@ -178,7 +223,7 @@
 <div class="redesigned-full-item" bind:this={container}>
 	{#if validationError}<p class="error" role="alert">{validationError}</p>{/if}
 	{#if panelKey === "bestiary"}
-		<FullStatblock bind:statblock={draft as FullStatblockViewModel} onCopyStatblock={copyFullItem} onCopyText={showCopyNotice} onCopySpellLink={entityLinkHandler} onEntityLinkClick={entityLinkHandler} onImageRequested={imageResolver} editable={editing} {theme} />
+		<FullStatblock bind:statblock={draft as FullStatblockViewModel} onCopyStatblock={copyFullItem} onCopyText={showCopyNotice} onCopySpellLink={entityLinkHandler} onEntityLinkClick={entityLinkHandler} onPasteAction={pasteAction} onImageRequested={imageResolver} onSendImageToOwlbear={uiEventListener.onOwlbearPreviewRequested ? sendImageToOwlbear : undefined} editable={editing} {theme} />
 	{:else if panelKey === "spellbook"}
 		<FullSpell bind:spell={draft as FullSpellViewModel} onCopySpell={copyFullItem} onCopyText={showCopyNotice} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
 	{:else if panelKey === "arsenal"}

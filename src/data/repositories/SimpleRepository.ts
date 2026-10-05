@@ -21,6 +21,8 @@ import type {
 } from "src/domain/repositories/Repository";
 import type { EntityKind, ItemSaveContext, ItemSaveResult } from "src/domain/models/common/EntityOrigin";
 import type { EntityOriginDao } from "src/data/database/EntityOriginDao";
+import type { FavoritesDao } from "src/data/database/FavoritesDao";
+import type { FavoriteAccess } from "src/domain/repositories/Repository";
 
 export interface SimpleRepositoryDependencies<
 	TSmall extends BaseItem,
@@ -35,6 +37,7 @@ export interface SimpleRepositoryDependencies<
 	projector: SmallItemProjector<TFull, TSmall>;
 	entityKind?: EntityKind;
 	origins?: EntityOriginDao;
+	favorites?: FavoriteAccess;
 }
 
 export interface SimpleRepositoryDatabase {
@@ -55,6 +58,8 @@ export function createSimpleRepositoryDependencies<
 	service: FullItemReadService<TResponse> = new TtgService() as FullItemReadService<TResponse>,
 	entityKind?: EntityKind,
 	origins?: EntityOriginDao,
+	favorites?: FavoriteAccess,
+	favoritesDao?: FavoritesDao,
 ): SimpleRepositoryDependencies<TSmall, TFull, TFilter, TResponse> {
 	const transactions = new DbTransactionalStore(database);
 
@@ -66,12 +71,14 @@ export function createSimpleRepositoryDependencies<
 			transactions,
 			entityKind,
 			origins,
+			favoritesDao,
 		),
 		service,
 		mapper,
 		projector,
 		entityKind,
 		origins,
+		favorites,
 	};
 }
 
@@ -83,10 +90,19 @@ export abstract class SimpleRepository<
 > implements Repository<TSmall, TFull, TFilter> {
 	#smallItems?: TSmall[];
 	#filters?: TFilter;
+	readonly favorites: FavoriteAccess | undefined;
 
 	constructor(
 		private readonly dependencies: SimpleRepositoryDependencies<TSmall, TFull, TFilter, TResponse>,
-	) {}
+	) {
+		this.favorites = dependencies.favorites;
+	}
+
+	async getFavoriteSmallItems(filter: TFilter | null): Promise<TSmall[]> {
+		if (!this.favorites || !this.dependencies.entityKind) return [];
+		const urls = this.favorites.listUrls(this.dependencies.entityKind);
+		return this.dependencies.readStore.readSmallItemsByUrls(urls, filter);
+	}
 
 	async initialize(): Promise<void> {
 		if (!this.shouldPreloadSmallItems()) return;

@@ -140,7 +140,7 @@ function createSimpleDependencies<TSmall extends BaseItem, TFull extends TSmall,
 	service?: FullItemReadService<TResponse>,
 	entityKind?: EntityKind,
 ): SimpleRepositoryDependencies<TSmall, TFull, TFilter, TResponse> {
-	return createSimpleRepositoryDependencies(database, smallDao, fullDao, mapper, projector, service, entityKind, database.entityOriginDao);
+	return createSimpleRepositoryDependencies(database, smallDao, fullDao, mapper, projector, service, entityKind, database.entityOriginDao, database.favorites, database.favoritesDao);
 }
 
 export function createBestiaryRepository(database: DB, options: RepositoryFactoryServices = {}): BestiaryRepository {
@@ -292,6 +292,7 @@ export function createDmScreenRepository(database: DB, options: RepositoryFactor
 		store: new DmScreenStore(database.dmScreenGroupDao, new DbTransactionalStore(database), "dm-screen", database.entityOriginDao),
 		service: new DmScreenDescriptionService(serviceFrom(options)),
 		mapper: new DmScreenDescriptionMapper(),
+		favorites: database.favorites,
 	};
 	return new DmScreenRepository(dependencies);
 }

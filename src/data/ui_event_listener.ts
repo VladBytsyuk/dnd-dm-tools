@@ -32,6 +32,7 @@ export class UiEventListener implements IUiEventListener {
         private classesFeatureProvider: () => ClassesFeature,
         private characterSheetFeatureProvider: () => CharacterSheetFeature | null,
         private dmScreenFeatureProvider: () => DmScreenFeature,
+        private sendOwlbearPreview?: (source: string, name: string) => Promise<void>,
     ) {
         this.onBeastClick = this.onBeastClick.bind(this);
         this.onSpellClick = this.onSpellClick.bind(this);
@@ -46,6 +47,7 @@ export class UiEventListener implements IUiEventListener {
         this.onClassClick = this.onClassClick.bind(this);
         this.onCharacterSheetClick = this.onCharacterSheetClick.bind(this);
         this.isCharacterSheetLinkEnabled = this.isCharacterSheetLinkEnabled.bind(this);
+        this.onOwlbearPreviewRequested = this.onOwlbearPreviewRequested.bind(this);
     }
 
     // ---- methods ----
@@ -108,6 +110,11 @@ export class UiEventListener implements IUiEventListener {
 
     async onImageRequested(imageUrl: string): Promise<string> {
         return await getImageSource(this.app, imageUrl);
+    }
+
+    async onOwlbearPreviewRequested(source: string, name: string): Promise<void> {
+        if (!this.sendOwlbearPreview) throw new Error("Отправка изображения в Owlbear недоступна.");
+        await this.sendOwlbearPreview(source, name);
     }
 
     private async onClick(featureProvider: () => BaseFeature<any, any, any> | null, url: string): Promise<void> {

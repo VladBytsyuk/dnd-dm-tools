@@ -14,6 +14,7 @@
 	import SpellSmallUi from "../spell/SpellSmallUi.svelte";
 	import WeaponSmallUi from "../weapon/WeaponSmallUi.svelte";
 	import RedesignedSmallItem from "src/ui/design-system/RedesignedSmallItem.svelte";
+	import { theme as appTheme, Theme } from "src/ui/theme";
 
 	let {
 		result,
@@ -26,10 +27,21 @@
 	} = $props();
 
 	const item = $derived(result.item as any);
+	const theme = $derived($appTheme === Theme.Dark ? "dark" : "light");
 </script>
 
-	{#if redesignEnabled && result.panelKey !== "character-sheets" && result.panelKey !== "dm-screen"}
-		<RedesignedSmallItem panelKey={result.panelKey} smallItem={item} onItemClick={onSelect} />
+	{#if redesignEnabled && result.panelKey === "dm-screen"}
+		<DmScreenGroupUi
+			icon={item.icon}
+			name={item.name}
+			source={item.source.shortName}
+			onclick={onSelect}
+			redesigned
+			favorite={result.favorite ?? false}
+			{theme}
+		/>
+	{:else if redesignEnabled && result.panelKey !== "character-sheets"}
+		<RedesignedSmallItem panelKey={result.panelKey} smallItem={item} favorite={result.favorite ?? false} onItemClick={onSelect} />
 	{:else}
 	<PanelTypeTint panelKey={result.panelKey}>
 	{#if result.panelKey === "bestiary"}
