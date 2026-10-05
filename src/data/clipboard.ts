@@ -17,6 +17,12 @@ import type { FullCharacterSheet } from "src/domain/models/character";
 
 let lastWrittenClipboardText: string | undefined;
 
+export type ClipboardActionEntity =
+    | { kind: "weapon"; item: FullWeapon }
+    | { kind: "spell"; item: FullSpell }
+    | { kind: "equip"; item: FullItem }
+    | { kind: "artifact"; item: FullArtifact };
+
 // ---- Copy to clipboard ----
 export async function copyTextToClipboard(text: string, ignoreNotice: boolean = false): Promise<void> {
     try {
@@ -157,6 +163,30 @@ function parseClipboardBlock<T>(clipboard: string, blockName: string): T | undef
 
 export async function getMarkdownCodeBlockFromClipboard<T>(blockName: string): Promise<T | undefined> {
     return parseClipboardBlock<T>(await readTextFromClipboard(), blockName);
+}
+
+export async function getActionEntityFromClipboard(): Promise<ClipboardActionEntity | undefined> {
+    const clipboard = await readTextFromClipboard();
+    const blockName = clipboard.replace(/\r\n?/g, "\n").trim().split("\n", 1)[0]?.trim();
+    switch (blockName) {
+        case "```weapon": {
+            const item = parseClipboardBlock<FullWeapon>(clipboard, "weapon");
+            return item === undefined ? undefined : { kind: "weapon", item };
+        }
+        case "```spell": {
+            const item = parseClipboardBlock<FullSpell>(clipboard, "spell");
+            return item === undefined ? undefined : { kind: "spell", item };
+        }
+        case "```equip": {
+            const item = parseClipboardBlock<FullItem>(clipboard, "equip");
+            return item === undefined ? undefined : { kind: "equip", item };
+        }
+        case "```artifact": {
+            const item = parseClipboardBlock<FullArtifact>(clipboard, "artifact");
+            return item === undefined ? undefined : { kind: "artifact", item };
+        }
+        default: return undefined;
+    }
 }
 
 // ---- Get from clipboard ----

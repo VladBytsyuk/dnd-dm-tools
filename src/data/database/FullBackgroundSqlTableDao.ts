@@ -1,6 +1,6 @@
 import type { Database, SqlValue } from "sql.js";
 import { Dao } from "src/domain/Dao";
-import type { FullBackground } from "src/domain/models/background/FullBackground";
+import type { FullBackground, BackgroundPersonalizationTable } from "src/domain/models/background/FullBackground";
 
 export class FullBackgroundSqlTableDao extends Dao<FullBackground, any> {
 
@@ -34,9 +34,37 @@ export class FullBackgroundSqlTableDao extends Dao<FullBackground, any> {
                 equipments TEXT NOT NULL,
                 start_gold INTEGER NOT NULL,
                 description TEXT NOT NULL,
-                personalization TEXT
+                personalization TEXT,
+                language TEXT,
+                skill_name TEXT,
+                skill_description TEXT,
+                personalization_tables TEXT NOT NULL DEFAULT '[]'
             );
         `);
+    }
+
+    ensureDetailColumns(): void {
+        const result = this.database.exec(`PRAGMA table_info(${this.getTableName()});`);
+        if (!result.length) return;
+        const columns = new Set(result[0].values.map((column) => column[1] as string));
+        const additions = [
+            ['language', 'TEXT'],
+            ['skill_name', 'TEXT'],
+            ['skill_description', 'TEXT'],
+            ['personalization_tables', "TEXT NOT NULL DEFAULT '[]'"],
+        ];
+        let migrated = false;
+        for (const [name, definition] of additions) {
+            if (columns.has(name)) continue;
+            this.database.exec(`ALTER TABLE ${this.getTableName()} ADD COLUMN ${name} ${definition};`);
+            migrated = true;
+        }
+        if (migrated) {
+            // Remote details are a cache. Fetch them again so old rows gain the new fields.
+            this.database.exec(`DELETE FROM ${this.getTableName()} WHERE url NOT IN (
+                SELECT url FROM entity_origins WHERE entity_kind = 'backgrounds' AND origin = 'manual'
+            );`);
+        }
     }
 
     // CRUD operations
@@ -61,8 +89,12 @@ export class FullBackgroundSqlTableDao extends Dao<FullBackground, any> {
                     equipments,
                     start_gold,
                     description,
-                    personalization
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    personalization,
+                    language,
+                    skill_name,
+                    skill_description,
+                    personalization_tables
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `, [
                 item.name.rus,
                 item.name.eng,
@@ -80,6 +112,10 @@ export class FullBackgroundSqlTableDao extends Dao<FullBackground, any> {
                 item.startGold,
                 item.description,
                 item.personalization ?? null,
+                item.language ?? null,
+                item.skillName ?? null,
+                item.skillDescription ?? null,
+                JSON.stringify(item.personalizationTables ?? []),
             ]);
         } catch (error) {
             console.error(`Error creating FullBackground item ${item.name.rus}:`, error);
@@ -105,7 +141,11 @@ export class FullBackgroundSqlTableDao extends Dao<FullBackground, any> {
                     equipments = ?,
                     start_gold = ?,
                     description = ?,
-                    personalization = ?
+                    personalization = ?,
+                    language = ?,
+                    skill_name = ?,
+                    skill_description = ?,
+                    personalization_tables = ?
                 WHERE url = ?
             `, [
                 item.name.rus,
@@ -123,6 +163,10 @@ export class FullBackgroundSqlTableDao extends Dao<FullBackground, any> {
                 item.startGold,
                 item.description,
                 item.personalization ?? null,
+                item.language ?? null,
+                item.skillName ?? null,
+                item.skillDescription ?? null,
+                JSON.stringify(item.personalizationTables ?? []),
                 item.url
             ]);
         } catch (error) {
@@ -157,6 +201,12 @@ export class FullBackgroundSqlTableDao extends Dao<FullBackground, any> {
                 startGold: values[14] as number,
                 description: values[15] as string,
                 personalization: values[16] as string,
+                language: values[17] as string | undefined,
+                skillName: values[18] as string | undefined,
+                skillDescription: values[19] as string | undefined,
+                personalizationTables: values[20]
+                    ? JSON.parse(values[20] as string) as BackgroundPersonalizationTable[]
+                    : [],
             };
         } catch (error) {
             console.error('Error mapping SQL values to FullBackground:', error);

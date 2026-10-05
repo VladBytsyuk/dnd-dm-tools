@@ -80,6 +80,7 @@ export function validateReleaseMetadata({ packageJson, packageLock, manifest, ve
 		version,
 		tag: `v${version}`,
 		archiveName: `dnd-dm-tools-${version}.7z`,
+		updateArchiveName: `dnd-dm-tools-${version}.tar.gz`,
 		title: `DnD DM Tools v${version}`,
 		isPrerelease: parseSemver(version).prerelease.length > 0,
 		notes: getReleaseNotes(changelog, version),

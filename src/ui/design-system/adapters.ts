@@ -40,6 +40,98 @@ export function cloneDesignData<T>(value: T): T {
 	return value;
 }
 
+function hasVisibleContent(value: string | null | undefined): boolean {
+	if (!value) return false;
+	return /<(?:img|svg|dice-roller|iframe|video|audio)\b/iu.test(value)
+		|| Boolean(value.replace(/<[^>]*>/gu, " ").replace(/(?:&nbsp;|&#160;|&#xA0;)/giu, " ").replace(/[\s\u200b]+/gu, "").length);
+}
+
+function clearEmptyHtml(content: { html: string } | undefined): void {
+	if (content && !hasVisibleContent(content.html)) content.html = "";
+}
+
+export function pruneEmptyFullViewModel(kind: PanelKey, view: FullViewModel): FullViewModel {
+	const cleaned = cloneDesignData(view);
+	switch (kind) {
+		case "bestiary": {
+			const statblock = cleaned as FullStatblockViewModel;
+			statblock.traits = statblock.traits?.filter(entry => hasVisibleContent(entry.title) || hasVisibleContent(entry.html)) ?? [];
+			statblock.tags = statblock.tags?.filter(entry => hasVisibleContent(entry.title) || hasVisibleContent(entry.html)) ?? [];
+			for (const section of [statblock.actions, statblock.bonusActions, statblock.reactions, statblock.legendaryActions, statblock.mythicActions]) {
+				if (!section) continue;
+				section.items = section.items.filter(entry => hasVisibleContent(entry.title) || hasVisibleContent(entry.html));
+				if (!hasVisibleContent(section.descriptionHtml)) section.descriptionHtml = "";
+			}
+			if (!hasVisibleContent(statblock.descriptionHtml)) statblock.descriptionHtml = "";
+			if (statblock.lair) {
+				if (!hasVisibleContent(statblock.lair.descriptionHtml)) statblock.lair.descriptionHtml = "";
+				if (!hasVisibleContent(statblock.lair.actionsHtml)) statblock.lair.actionsHtml = "";
+				if (!hasVisibleContent(statblock.lair.regionalEffectsHtml)) statblock.lair.regionalEffectsHtml = "";
+			}
+			statblock.environment = statblock.environment?.filter(hasVisibleContent) ?? [];
+			break;
+		}
+		case "spellbook": {
+			const spell = cleaned as FullSpellViewModel;
+			clearEmptyHtml(spell.description);
+			clearEmptyHtml(spell.higherLevels);
+			break;
+		}
+		case "arsenal": {
+			const weapon = cleaned as FullWeaponViewModel;
+			weapon.properties = weapon.properties.filter(property => hasVisibleContent(property.name) || hasVisibleContent(property.distance));
+			clearEmptyHtml(weapon.description);
+			clearEmptyHtml(weapon.special);
+			break;
+		}
+		case "armory": {
+			clearEmptyHtml((cleaned as FullArmorViewModel).description);
+			break;
+		}
+		case "equipment": {
+			const equipment = cleaned as FullEquipmentViewModel;
+			equipment.categories = equipment.categories.filter(hasVisibleContent);
+			clearEmptyHtml(equipment.description);
+			break;
+		}
+		case "artifactory": {
+			const artifact = cleaned as FullArtifactViewModel;
+			clearEmptyHtml(artifact.description);
+			if (artifact.cost) {
+				if (!hasVisibleContent(artifact.cost.dmg)) artifact.cost.dmg = "";
+				if (!hasVisibleContent(artifact.cost.xge)) artifact.cost.xge = "";
+			}
+			break;
+		}
+		case "backgrounds": {
+			const background = cleaned as FullBackgroundViewModel;
+			background.skills = background.skills.filter(hasVisibleContent);
+			background.equipments = background.equipments.filter(entry => hasVisibleContent(entry.html));
+			clearEmptyHtml(background.toolOwnership);
+			clearEmptyHtml(background.description);
+			clearEmptyHtml(background.associatedHtml);
+			clearEmptyHtml(background.skillDescription);
+			clearEmptyHtml(background.personalization);
+			break;
+		}
+		case "feats": {
+			clearEmptyHtml((cleaned as FullFeatViewModel).description);
+			break;
+		}
+		case "races": {
+			const race = cleaned as FullRaceViewModel;
+			race.abilities = race.abilities.filter(ability => hasVisibleContent(ability.name));
+			race.speed = race.speed.filter(speed => hasVisibleContent(speed.name) || speed.value !== undefined || hasVisibleContent(speed.additional));
+			race.skills = race.skills.filter(skill => hasVisibleContent(skill.name) || hasVisibleContent(skill.html));
+			race.additionalSections = race.additionalSections?.filter(section => hasVisibleContent(section.title) || hasVisibleContent(section.html));
+			clearEmptyHtml(race.description);
+			race.subraces = race.subraces?.map(subrace => pruneEmptyFullViewModel("races", subrace) as FullRaceViewModel);
+			break;
+		}
+	}
+	return cleaned;
+}
+
 export function toSmallCardProps(kind: PanelKey, item: Entity): Entity {
 	const name = item.name ?? {};
 	const common = { title: name.rus ?? "", subtitle: name.eng ?? "", source: item.source?.shortName ?? "" };
@@ -104,7 +196,7 @@ export function toFullViewModel(kind: PanelKey, item: Entity): FullViewModel {
 		case "armory": { const [donningTime, doffingTime] = splitArmorDuration(item.duration ?? ""); return { ...names, armorType: typeName(item.type), armorClass: item.armorClass ?? "", price: item.price ?? "", weight: String(item.weight ?? ""), source, stealthDisadvantage: item.disadvantage, strengthRequirement: item.requirement, donningTime, doffingTime, description: item.description ? { html: item.description } : undefined } as FullArmorViewModel; }
 		case "equipment": return { ...names, source, categories: item.categories ?? [], price: item.price, weight: item.weight, homebrew: item.homebrew, description: item.description ? { html: item.description } : undefined } as FullEquipmentViewModel;
 		case "artifactory": return { ...names, origin: item.origin, type: { name: typeName(item.type) }, price: item.price ?? { dmg: null, xge: null }, source, rarity: { type: item.rarity?.type ?? "", name: item.rarity?.name ?? "", short: item.rarity?.short ?? "" }, customization: item.customization, homebrew: item.homebrew, description: { html: item.description ?? "" }, detailType: (item.detailType ?? []).map((v: Entity) => ({ name: v.name, type: v.type, url: v.url ?? null })), cost: item.cost, images: item.images ?? [], detailCustomization: item.detailCustomization } as FullArtifactViewModel;
-		case "backgrounds": return { ...names, source, skills: item.skills ?? [], toolOwnership: { html: item.toolOwnership ?? "" }, equipments: (item.equipments ?? []).map((html: string) => ({ html })), startGold: item.startGold ?? 0, description: { html: item.description ?? "" }, origin: item.origin, homebrew: item.homebrew, associatedUrl: item.associatedUrl, associatedHtml: item.associatedHtml ? { html: item.associatedHtml } : undefined, personalization: item.personalization ? { html: item.personalization } : undefined } as FullBackgroundViewModel;
+		case "backgrounds": return { ...names, source, skills: item.skills ?? [], toolOwnership: { html: item.toolOwnership ?? "" }, equipments: (item.equipments ?? []).map((html: string) => ({ html })), startGold: item.startGold ?? 0, description: { html: item.description ?? "" }, language: item.language, skillName: item.skillName, skillDescription: item.skillDescription ? { html: item.skillDescription } : undefined, personalizationTables: item.personalizationTables ?? [], origin: item.origin, homebrew: item.homebrew, associatedUrl: item.associatedUrl, associatedHtml: item.associatedHtml ? { html: item.associatedHtml } : undefined, personalization: item.personalization ? { html: item.personalization } : undefined } as FullBackgroundViewModel;
 		case "feats": return { ...names, requirements: item.requirements ?? "", source, description: { html: item.description ?? "" }, origin: item.origin, homebrew: item.homebrew } as FullFeatViewModel;
 		case "races": return { ...names, type: item.type ?? { name: "" }, group: item.group, source, abilities: (item.abilities ?? []).map((a: Entity) => ({ key: a.key ?? a.ability, name: a.name ?? a.key ?? "", shortName: a.shortName ?? a.key ?? "", value: a.value ?? a.bonus ?? 0 })), size: item.size ?? "", speed: item.speed ?? [], skills: (item.skills ?? []).map((s: Entity) => ({ name: s.name, html: s.description ?? "" })), description: { html: item.description ?? "" }, additionalSections: item.additionalSections ?? [], origin: item.origin, image: item.image, subraces: item.subraces?.map((sub: Entity) => toFullViewModel("races", sub) as FullRaceViewModel) } as FullRaceViewModel;
 		case "classes": return { ...names, dice: item.dice ?? "", source, isArchetype: item.isArchetype ?? false, parentClassUrl: item.parentClassUrl, archetypeType: item.archetypeType, associatedUrl: item.associatedUrl, associatedContent: item.associatedHtml ? { html: item.associatedHtml } : undefined, origin: item.origin } as FullClassViewModel;
@@ -147,7 +239,7 @@ export function applyFullViewModel(kind: PanelKey, original: Entity, view: FullV
 		case "armory": { const v = view as FullArmorViewModel; item.type = { ...item.type, name: v.armorType }; item.armorClass = v.armorClass; item.price = v.price; item.weight = numberValue(v.weight, item.weight); item.disadvantage = v.stealthDisadvantage; item.requirement = v.strengthRequirement; item.duration = joinArmorDuration(v.donningTime, v.doffingTime); item.description = v.description?.html ?? ""; break; }
 		case "equipment": { const v = view as FullEquipmentViewModel; item.categories = v.categories; item.price = v.price; item.weight = v.weight; item.description = v.description?.html ?? ""; item.homebrew = v.homebrew; break; }
 		case "artifactory": { const v = view as FullArtifactViewModel; item.type = { ...item.type, name: v.type.name }; item.price = v.price; item.rarity = { ...item.rarity, ...v.rarity }; item.customization = v.customization; item.description = v.description.html; item.detailType = v.detailType; item.cost = v.cost; item.images = v.images; item.detailCustomization = v.detailCustomization; item.homebrew = v.homebrew; break; }
-		case "backgrounds": { const v = view as FullBackgroundViewModel; item.skills = v.skills; item.toolOwnership = v.toolOwnership.html; item.equipments = v.equipments.map(e => e.html); item.startGold = numberValue(v.startGold, item.startGold); item.description = v.description.html; item.associatedHtml = v.associatedHtml?.html; item.personalization = v.personalization?.html; item.homebrew = v.homebrew; break; }
+		case "backgrounds": { const v = view as FullBackgroundViewModel; item.skills = v.skills; item.toolOwnership = v.toolOwnership.html; item.equipments = v.equipments.map(e => e.html); item.startGold = numberValue(v.startGold, item.startGold); item.description = v.description.html; item.language = v.language; item.skillName = v.skillName; item.skillDescription = v.skillDescription?.html; item.personalizationTables = v.personalizationTables ?? []; item.associatedHtml = v.associatedHtml?.html; item.personalization = v.personalization?.html; item.homebrew = v.homebrew; break; }
 		case "feats": { const v = view as FullFeatViewModel; item.requirements = v.requirements; item.description = v.description.html; item.homebrew = v.homebrew; break; }
 		case "races": { const v = view as FullRaceViewModel; item.type = typeof item.type === "string" ? v.type : { ...item.type, ...v.type }; item.group = v.group; item.abilities = v.abilities.map(a => ({ key: a.key, name: a.name, value: a.value })); item.size = v.size; item.speed = v.speed; item.skills = v.skills.map(s => ({ name: s.name, description: s.html })); item.description = v.description.html; item.additionalSections = v.additionalSections ?? []; item.image = v.image; item.subraces = v.subraces?.map((sub, index) => applyFullViewModel("races", item.subraces?.[index] ?? {}, sub)); break; }
 	}
@@ -167,8 +259,8 @@ function joinArmorDuration(donningTime: string, doffingTime: string): string {
 function mapSpellComponents(value: Entity = {}) {
 	const material = value.m ?? value.material;
 	return {
-		verbal: booleanValue(value.v ?? value.verbal),
-		somatic: booleanValue(value.s ?? value.somatic),
+		verbal: booleanValue(value.v ?? value.verbal) ?? false,
+		somatic: booleanValue(value.s ?? value.somatic) ?? false,
 		material: typeof material === "string" ? material : material?.description ?? material?.value ?? material?.name ?? undefined,
 	};
 }
@@ -193,7 +285,7 @@ function weaponColor(type: string): string { return type.toLocaleLowerCase().inc
 function creatureColor(type: string): string { const value = type.toLocaleLowerCase("ru"); return value.includes("гуманоид") ? "var(--ds-bestiary-humanoid)" : value.includes("нежит") ? "var(--ds-bestiary-undead)" : value.includes("дракон") ? "var(--ds-bestiary-dragon)" : value.includes("небес") ? "var(--ds-bestiary-celestial)" : value.includes("исчади") ? "var(--ds-bestiary-infernal)" : value.includes("слиз") ? "var(--ds-bestiary-slime)" : value ? "var(--ds-bestiary-magical)" : "var(--ds-bestiary-regular)"; }
 function schoolColor(school: string): string { const value = school.toLocaleLowerCase("ru"); return value.includes("вызов") ? "var(--ds-conjuration)" : value.includes("преграж") ? "var(--ds-abjurer)" : value.includes("прориц") ? "var(--ds-divination)" : value.includes("очаров") ? "var(--ds-enchantment)" : value.includes("воплощ") ? "var(--ds-evocation)" : value.includes("иллюз") ? "var(--ds-illusion)" : value.includes("некром") ? "var(--ds-necromancy)" : value.includes("преобраз") ? "var(--ds-transmutation)" : "var(--ds-spell)"; }
 function armorColor(type: string): string { return type.toLocaleLowerCase().includes("тяж") ? "var(--ds-armor-heavy)" : type.toLocaleLowerCase().includes("сред") ? "var(--ds-armor-medium)" : "var(--ds-armor-light)"; }
-function rarityColor(type: string): string { return ({ common: "var(--ds-artifact-regular)", regular: "var(--ds-artifact-regular)", uncommon: "var(--ds-artifact-uncommon)", rare: "var(--ds-artifact-rare)", very_rare: "var(--ds-artifact-very-rare)", legendary: "var(--ds-artifact-legendary)", artifact: "var(--ds-artifact-artifact)" } as Record<string, string>)[type] ?? "var(--ds-artifact-rare)"; }
+function rarityColor(type: string): string { return ({ common: "var(--ds-artifact-regular)", regular: "var(--ds-artifact-regular)", uncommon: "var(--ds-artifact-uncommon)", rare: "var(--ds-artifact-rare)", "very-rare": "var(--ds-artifact-very-rare)", very_rare: "var(--ds-artifact-very-rare)", legendary: "var(--ds-artifact-legendary)", artifact: "var(--ds-artifact-artifact)", unknown: "var(--ds-artifact-unspecified)", varies: "var(--ds-artifact-unspecified)" } as Record<string, string>)[type] ?? "var(--ds-artifact-unspecified)"; }
 function stringList(value: any): string { return Array.isArray(value) ? value.join(", ") : value ?? ""; }
 function namedValues(value: any): string { return Array.isArray(value) ? value.map(v => v.name ? `${v.name} ${v.value ?? ""}`.trim() : v.value ?? "").join(", ") : ""; }
 function namedValuesHtml(value: any): string {
@@ -211,7 +303,7 @@ function namedValuesHtml(value: any): string {
 function escapeHtml(value: string): string { return value.replace(/&/gu, "&amp;").replace(/</gu, "&lt;").replace(/>/gu, "&gt;"); }
 function escapeHtmlAttribute(value: string): string { return escapeHtml(value).replace(/"/gu, "&quot;"); }
 function richItems(value: any): { title: string; html: string }[] { return (value ?? []).map((v: Entity) => ({ title: v.name ?? v.title ?? "", html: v.value ?? v.description ?? v.html ?? v.text ?? "" })); }
-function actionSection(title: string, values: any[] = [], description?: string) { return { title, descriptionHtml: description ?? "", items: (values ?? []).map((v: Entity) => ({ title: v.name ?? v.title ?? "", html: v.value ?? v.description ?? v.html ?? v.text ?? "" })) }; }
+function actionSection(title: string, values: any[] = [], description?: string) { return { title, descriptionHtml: description ?? "", items: (values ?? []).map((v: Entity, sourceIndex: number) => ({ title: v.name ?? v.title ?? "", html: v.value ?? v.description ?? v.html ?? v.text ?? "", sourceIndex, ...(v.entityUrl || v.weaponUrl ? { entityUrl: v.entityUrl ?? v.weaponUrl } : {}) })) }; }
 function classLinks(values: any[] = []) { return values.map(v => ({ name: v.name?.rus ?? v.name ?? "", url: v.url ?? "", parentClass: v.parentClass })); }
 function speedText(values: any[] = []): string { return values.map(v => `${v.name ?? ""} ${v.value ?? ""}${v.additional ? ` ${v.additional}` : ""}`.trim()).join(", "); }
 function hitPointsFormula(value: any): string {
@@ -257,4 +349,4 @@ function parseNamedValues(text: string | undefined, fallback: any[] = [], saving
 }
 function applyAbilities(target: Entity = {}, values: FullStatblockViewModel["abilities"] = []) { const keys = ["str", "dex", "con", "int", "wiz", "cha"]; return Object.fromEntries(keys.map((key, i) => [key, numberValue(values?.[i]?.score, target[key] ?? 10)])); }
 function applyRichItems(target: any[] = [], values: FullStatblockViewModel["traits"] = []) { return values?.map((v, i) => ({ ...(target[i] ?? {}), name: v.title, value: v.html })) ?? []; }
-function applyActions(target: any[] = [], section?: FullStatblockViewModel["actions"]) { return section?.items.map((v, i) => ({ ...(target[i] ?? {}), name: v.title, value: v.html })) ?? []; }
+function applyActions(target: any[] = [], section?: FullStatblockViewModel["actions"]) { return section?.items.map(v => ({ ...(v.sourceIndex === undefined ? {} : target[v.sourceIndex] ?? {}), name: v.title, value: v.html, ...(v.entityUrl ? { entityUrl: v.entityUrl } : {}) })) ?? []; }

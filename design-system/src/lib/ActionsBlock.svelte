@@ -3,11 +3,13 @@
 		title?: string;
 		text?: string;
 		html?: string;
+		entityUrl?: string;
 	};
 </script>
 
 <script lang="ts">
 	import ChevronRight from "lucide-svelte/icons/chevron-right";
+	import ClipboardPaste from "lucide-svelte/icons/clipboard-paste";
 	import Plus from "lucide-svelte/icons/plus";
 	import Chip from "./Chip.svelte";
 	import FilledTextBlock from "./FilledTextBlock.svelte";
@@ -19,6 +21,7 @@
 		descriptionHtml?: string;
 		blocks?: ActionsBlockItem[];
 		onAddBlock?: () => void;
+		onPasteBlock?: () => void | Promise<void>;
 		accentColor?: string;
 		blocksExpanded?: boolean;
 		sectionExpanded?: boolean;
@@ -34,6 +37,7 @@
 		descriptionHtml = $bindable<string | undefined>(),
 		blocks = $bindable<ActionsBlockItem[]>([]),
 		onAddBlock,
+		onPasteBlock,
 		accentColor = "#d4d4d4",
 		blocksExpanded = true,
 		sectionExpanded = true,
@@ -56,6 +60,13 @@
 	}
 
 	let isSectionExpanded = $state(getInitialSectionExpanded());
+	let pastePending = $state(false);
+	async function pasteBlock() {
+		if (!onPasteBlock || pastePending) return;
+		pastePending = true;
+		try { await onPasteBlock(); }
+		finally { pastePending = false; }
+	}
 	let blockBackground = $derived(`color-mix(in srgb, ${accentColor} 40%, transparent)`);
 	let isContentVisible = $derived(!title || isSectionExpanded || editable);
 	let columns = $derived.by(() => {
@@ -100,6 +111,7 @@
 								<FilledTextBlock
 									bind:title={block.title}
 									bind:html={block.html}
+									entityUrl={block.entityUrl}
 									icon={block.title ? ChevronRight : undefined}
 									expanded={blocksExpanded}
 									background={blockBackground}
@@ -113,6 +125,7 @@
 								<FilledTextBlock
 									bind:title={block.title}
 									bind:text={block.text}
+									entityUrl={block.entityUrl}
 									icon={block.title ? ChevronRight : undefined}
 									expanded={blocksExpanded}
 									background={blockBackground}
@@ -126,6 +139,7 @@
 						{:else}
 							<FilledTextBlock
 								title={block.title}
+								entityUrl={block.entityUrl}
 								text={block.text}
 								html={block.html}
 								icon={block.title ? ChevronRight : undefined}
@@ -148,6 +162,11 @@
 			<button type="button" aria-label="Добавить текстовый блок" onclick={addBlock}>
 				<Chip icon={Plus} background={accentColor} {theme} />
 			</button>
+			{#if onPasteBlock}
+				<button type="button" aria-label="Вставить действие из буфера обмена" disabled={pastePending} onclick={pasteBlock}>
+					<Chip icon={ClipboardPaste} background={accentColor} {theme} />
+				</button>
+			{/if}
 		</div>
 	{/if}
 </section>
@@ -231,6 +250,8 @@
 	}
 
 	.add-block-chip {
+		display: flex;
+		gap: 8px;
 		width: 100%;
 		margin-top: 12px;
 	}
@@ -239,7 +260,8 @@
 		width: 100%;
 		justify-content: center;
 	}
-	.add-block-chip button { all: unset; display: block; width: 100%; cursor: pointer; }
+	.add-block-chip button { all: unset; display: block; flex: 1; cursor: pointer; }
+	.add-block-chip button:disabled { cursor: wait; opacity: 0.5; }
 	.add-block-chip button:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
 
 	@media (max-width: 280px) {

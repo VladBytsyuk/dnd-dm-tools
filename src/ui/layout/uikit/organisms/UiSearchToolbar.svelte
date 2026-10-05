@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Check, ChevronLeft, ClipboardPaste, Copy, Eraser, Pencil, Plus, SlidersHorizontal, Trash2, X } from "lucide-svelte";
+	import { Check, ChevronLeft, ClipboardPaste, Copy, Eraser, Pencil, Plus, SlidersHorizontal, Star, Trash2, X } from "lucide-svelte";
 	import { Debouncer, DEFAULT_DEBOUNCER_DELAY } from "../../../debouncer";
 	import { onDestroy } from "svelte";
 	import { SearchBar, type SearchBarAction } from "@dnd-dm-tools/design-system";
@@ -19,16 +19,20 @@
 		ondeleteclick?: () => void;
 		onsaveclick?: () => void;
 		oncancelclick?: () => void;
+		onfavoriteclick?: () => void;
+		isfavorite?: boolean;
+		favoriteBusy?: boolean;
 		actionBusy?: boolean;
 		redesignEnabled?: boolean;
 	}
 
-	let { onbackclick, onvaluechange, isvaluechangable, onclearclick, onfiltersclick, isfiltersapplied, onaddclick, oneditclick, oncopyclick, onpasteclick, ondeleteclick, onsaveclick, oncancelclick, actionBusy = false, redesignEnabled = false }: Props = $props();
+	let { onbackclick, onvaluechange, isvaluechangable, onclearclick, onfiltersclick, isfiltersapplied, onaddclick, oneditclick, oncopyclick, onpasteclick, ondeleteclick, onsaveclick, oncancelclick, onfavoriteclick, isfavorite = false, favoriteBusy = false, actionBusy = false, redesignEnabled = false }: Props = $props();
 
 	let searchValue = $state("");
 	const dsTheme = $derived($appTheme === Theme.Dark ? "dark" : "light");
 	const searchActions = $derived.by<SearchBarAction[]>(() => {
-		const result: SearchBarAction[] = oncopyclick ? [{ icon: Copy, label: "Копировать в буфер обмена", onclick: oncopyclick }] : [];
+		const result: SearchBarAction[] = onfavoriteclick ? [{ icon: Star, label: isfavorite ? "Убрать из избранного" : "Добавить в избранное", favorite: isfavorite, disabled: favoriteBusy, onclick: onfavoriteclick }] : [];
+		if (oncopyclick) result.push({ icon: Copy, label: "Копировать в буфер обмена", onclick: oncopyclick });
 		if (onpasteclick) result.push({ icon: ClipboardPaste, label: "Вставить", disabled: actionBusy, onclick: onpasteclick });
 		if (ondeleteclick) result.push({ icon: Trash2, label: "Удалить", onclick: ondeleteclick });
 		if (onsaveclick && oncancelclick) return [...result,

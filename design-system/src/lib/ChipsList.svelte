@@ -35,10 +35,18 @@
 	};
 
 	let { chips = [], editable = false, showAddButton = true, onAddChip, theme = "dark" }: Props = $props();
+	function hasContent(chip: ChipsListItem): boolean {
+		if (chip.editable) return true;
+		if (chip.toggle) return Boolean(chip.active);
+		if (chip.icon && !chip.onTextChange && !chip.onHtmlChange) return true;
+		return Boolean(chip.text?.trim() || chip.suffix?.trim() || chip.imageSrc?.trim()
+			|| chip.html?.replace(/<[^>]*>/gu, " ").replace(/(?:&nbsp;|&#160;|&#xA0;)/giu, " ").trim());
+	}
+	let visibleChips = $derived(editable ? chips : chips.filter(hasContent));
 </script>
 
 <div class="chips-list" data-theme={theme}>
-	{#each chips as chip}
+	{#each visibleChips as chip}
 		<Chip {...chip} {theme} editable={editable || chip.editable} />
 	{/each}
 	{#if editable && showAddButton && onAddChip}

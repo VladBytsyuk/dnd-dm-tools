@@ -1,8 +1,17 @@
 import type { Initializable } from "../Initializable";
 import type { BaseItem } from "../models/common/BaseItem";
 import type { ItemSaveContext, ItemSaveResult } from "../models/common/EntityOrigin";
+import type { EntityKind } from "../models/common/EntityOrigin";
+
+export interface FavoriteAccess {
+	has(kind: EntityKind, url: string): boolean;
+	listUrls(kind: EntityKind): string[];
+	set(kind: EntityKind, url: string, favorite: boolean): Promise<void>;
+}
 
 export interface Repository<SmallItem extends BaseItem, FullItem extends SmallItem, Filter> extends Initializable {
+	favorites?: FavoriteAccess;
+	getFavoriteSmallItems?(filter: Filter | null): Promise<SmallItem[]>;
 
     getAllFilters(): Promise<Filter | null>;
 

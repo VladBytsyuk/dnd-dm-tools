@@ -152,7 +152,7 @@ jobs:
     - name: Проверка метаданных релиза
       run: |
         node scripts/release-metadata.mjs validate "${RUNNER_TEMP}/release-notes.md" > "${RUNNER_TEMP}/release-metadata.json"
-        node -e "const metadata = require(process.argv[1]); for (const key of ['version', 'tag', 'archiveName', 'title', 'isPrerelease']) console.log(key + '=' + metadata[key])" "${RUNNER_TEMP}/release-metadata.json" >> "$GITHUB_ENV"
+        node -e "const metadata = require(process.argv[1]); for (const key of ['version', 'tag', 'archiveName', 'updateArchiveName', 'title', 'isPrerelease']) console.log(key + '=' + metadata[key])" "${RUNNER_TEMP}/release-metadata.json" >> "$GITHUB_ENV"
 
     - name: Проверка существующего тега и Release
       id: existing
@@ -180,8 +180,8 @@ jobs:
             echo "Release ${tag} is still a draft." >&2
             exit 1
           fi
-          if ! node -e "const release = require(process.argv[1]); process.exit(release.assets.some((asset) => asset.name === process.argv[2]) ? 0 : 1)" "${RUNNER_TEMP}/existing-release.json" "${archiveName}"; then
-            echo "Release ${tag} does not contain ${archiveName}." >&2
+          if ! node -e "const release = require(process.argv[1]); process.exit(process.argv.slice(2).every((name) => release.assets.some((asset) => asset.name === name)) ? 0 : 1)" "${RUNNER_TEMP}/existing-release.json" "${archiveName}" "${updateArchiveName}"; then
+            echo "Release ${tag} does not contain both plugin archives." >&2
             exit 1
           fi
           echo "already_published=true" >> "$GITHUB_OUTPUT"
@@ -204,6 +204,10 @@ jobs:
         cd .release
         7z a -t7z -mx=9 "${RUNNER_TEMP}/${archiveName}" dnd-dm-tools
 
+    - name: Создание tar.gz-архива для обновлений
+      if: steps.existing.outputs.already_published != 'true'
+      run: tar -czf "${RUNNER_TEMP}/${updateArchiveName}" -C .release dnd-dm-tools
+
     - name: Публикация GitHub Release
       if: steps.existing.outputs.already_published != 'true'
       env:
@@ -218,7 +222,7 @@ jobs:
         else
           release_args+=(--target "${GITHUB_SHA}")
         fi
-        gh release create "${tag}" "${RUNNER_TEMP}/${archiveName}" "${release_args[@]}"
+        gh release create "${tag}" "${RUNNER_TEMP}/${archiveName}" "${RUNNER_TEMP}/${updateArchiveName}" "${release_args[@]}"
 
     - name: Итог публикации
       env:
@@ -231,5 +235,6 @@ jobs:
           echo "- Version: ${version}"
           echo "- Tag: ${tag}"
           echo "- Archive: ${archiveName}"
+          echo "- Update archive: ${updateArchiveName}"
           echo "- Release: https://github.com/${GITHUB_REPOSITORY}/releases/tag/${tag}"
         } >> "$GITHUB_STEP_SUMMARY"

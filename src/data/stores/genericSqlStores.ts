@@ -4,6 +4,7 @@ import type { BaseItem } from "src/domain/models/common/BaseItem";
 import type { PageRequest, PageResult } from "src/domain/repositories/Repository";
 import type { EntityKind, EntityOrigin } from "src/domain/models/common/EntityOrigin";
 import type { EntityOriginDao } from "src/data/database/EntityOriginDao";
+import type { FavoritesDao } from "src/data/database/FavoritesDao";
 
 export class GenericSqlItemReadStore<
 	TSmall extends BaseItem,
@@ -23,6 +24,10 @@ export class GenericSqlItemReadStore<
 
 	async readFilteredSmallItems(name: string | null, filter: TFilter | null): Promise<TSmall[]> {
 		return this.withOrigins(await this.smallItemDao.readAllItems(name, filter));
+	}
+
+	async readSmallItemsByUrls(urls: string[], filter: TFilter | null): Promise<TSmall[]> {
+		return this.withOrigins(await this.smallItemDao.readItemsByUrls(urls, filter));
 	}
 
 	async readSmallItemsPage(
@@ -79,6 +84,7 @@ export class GenericSqlItemWriteStore<
 		private readonly transactions: TransactionalStore,
 		private readonly entityKind?: EntityKind,
 		private readonly origins?: EntityOriginDao,
+		private readonly favorites?: FavoritesDao,
 	) {}
 
 	async saveFetchedFull(fullItem: TFull): Promise<void> {
@@ -112,6 +118,7 @@ export class GenericSqlItemWriteStore<
 			await this.fullItemDao.deleteItemByUrl(url);
 			await this.smallItemDao.deleteItemByUrl(url);
 			if (this.entityKind && this.origins) await this.origins.delete(this.entityKind, url);
+			if (this.entityKind && this.favorites) this.favorites.delete(this.entityKind, url);
 		});
 	}
 }

@@ -23,6 +23,7 @@
 		initialIndex?: number;
 		onChange?: (index: number) => void;
 		onImageRequested?: (image: string) => Promise<string>;
+		onExpandImage?: (resolvedUrl: string, source: string) => void;
 		editable?: boolean;
 		theme?: "dark" | "light";
 	};
@@ -47,6 +48,7 @@
 		initialIndex,
 		onChange,
 		onImageRequested,
+		onExpandImage,
 		editable = false,
 		theme = "dark",
 	}: Props = $props();
@@ -80,7 +82,7 @@
 		{/if}
 	</div>
 
-		<ImageGroup bind:images {alt} {size} fluid {initialIndex} {onChange} {onImageRequested} {editable} {theme} />
+		<ImageGroup bind:images {alt} {size} fluid {initialIndex} {onChange} {onImageRequested} {onExpandImage} {editable} {theme} />
 </section>
 
 <style>

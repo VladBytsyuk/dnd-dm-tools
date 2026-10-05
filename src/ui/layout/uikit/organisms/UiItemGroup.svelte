@@ -12,29 +12,53 @@
 		onItemClick: (item: BaseItem) => void;
 		SmallItemSlot: any;
 		redesignEnabled?: boolean;
+		isFavorite?: (url: string) => boolean;
+		isOpen?: boolean;
+		onOpenChange?: (open: boolean) => void;
+		showLoadMore?: boolean;
+		onLoadMore?: () => void;
 	}
 
-	let { panelKey, groupTitle, items, onItemClick, SmallItemSlot, redesignEnabled = false }: Props = $props();
+	let { panelKey, groupTitle, items, onItemClick, SmallItemSlot, redesignEnabled = false, isFavorite, isOpen = true, onOpenChange, showLoadMore = false, onLoadMore }: Props = $props();
 	const groupColor = $derived(redesignEnabled ? getRedesignPanelTypeColor(panelKey) : getPanelTypeColor(panelKey));
+
+	function observeEnd(node: HTMLElement) {
+		const observer = new IntersectionObserver((entries) => {
+			if (entries.some((entry) => entry.isIntersecting)) onLoadMore?.();
+		}, { rootMargin: "200px" });
+		observer.observe(node);
+		return { destroy: () => observer.disconnect() };
+	}
+
+	function toggleGroup(event: MouseEvent) {
+		event.preventDefault();
+		const details = (event.currentTarget as HTMLElement).parentElement as HTMLDetailsElement;
+		const open = !details.open;
+		details.open = open;
+		onOpenChange?.(open);
+	}
 </script>
 
 <div
 	class="item-group"
 	style={`--item-group-color: ${groupColor}; --item-group-hover-color: color-mix(in srgb, ${groupColor} 85%, white)`}
 >
-	<details open>
-		<summary class="item-group__title">{groupTitle}</summary>
+	<details open={isOpen}>
+		<summary class="item-group__title" onclick={toggleGroup}>{groupTitle}</summary>
 		<div class="item-group__grid">
 		{#each items as item (item.url)}
 				<div class:manual-item={item.origin === "manual"}>
 					{#if redesignEnabled}
-						<RedesignedSmallItem {panelKey} smallItem={item} onItemClick={() => onItemClick(item)} />
+						<RedesignedSmallItem {panelKey} smallItem={item} favorite={isFavorite?.(item.url) ?? false} onItemClick={() => onItemClick(item)} />
 					{:else}
 						<PanelTypeTint {panelKey}><SmallItemSlot smallItem={item} onItemClick={() => onItemClick(item)} /></PanelTypeTint>
 					{/if}
 				</div>
 			{/each}
 		</div>
+		{#if isOpen && showLoadMore}
+			<div class="item-group__sentinel" use:observeEnd aria-hidden="true"></div>
+		{/if}
 	</details>
 </div>
 
@@ -123,9 +147,8 @@
 		border-radius: var(--dnd-ui-radius-lg);
 	}
 
-	.manual-item :global(.item-card__name-rus)::after {
-		content: " ⭐";
-		font-size: 0.8em;
-		vertical-align: 0.1em;
+	.item-group__sentinel {
+		height: 1px;
 	}
+
 </style>

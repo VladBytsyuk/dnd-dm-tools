@@ -1,19 +1,22 @@
 import { TFile, type App } from "obsidian";
 
 export async function getImageSource(app: App, imageName: string): Promise<string> {
+    const file = resolveVaultImageFile(app, imageName);
+    return file ? app.vault.getResourcePath(file) : imageName;
+}
+
+export function resolveVaultImageFile(app: App, imageName: string): TFile | null {
     const image = imageName.trim();
-    if (!image || isAbsoluteSystemPath(image) || !isLocalPath(image)) return imageName;
+    if (!image || isAbsoluteSystemPath(image) || !isLocalPath(image)) return null;
 
     const filePath = isObsidianUrl(image) ? getObsidianFilePath(image) : normalizeVaultLink(image);
-    if (!filePath) return imageName;
+    if (!filePath) return null;
 
     const vaultPath = filePath.replace(/^\/+/, "");
     const file = app.vault.getAbstractFileByPath(filePath)
         ?? app.vault.getAbstractFileByPath(vaultPath)
         ?? app.metadataCache.getFirstLinkpathDest(vaultPath, "");
-    if (file instanceof TFile) return app.vault.getResourcePath(file);
-
-    return imageName;
+    return file instanceof TFile ? file : null;
 }
 
 function isLocalPath(path: string) {

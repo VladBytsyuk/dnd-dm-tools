@@ -16,6 +16,9 @@
 	import Skull from "lucide-svelte/icons/skull";
 	import SquareDashed from "lucide-svelte/icons/square-dashed";
 	import Plus from "lucide-svelte/icons/plus";
+	import X from "lucide-svelte/icons/x";
+	import Send from "lucide-svelte/icons/send";
+	import { tick } from "svelte";
 	import ActionsBlock, { type ActionsBlockItem } from "./ActionsBlock.svelte";
 	import ChipsList, { type ChipsListItem } from "./ChipsList.svelte";
 	import FilledTextBlock from "./FilledTextBlock.svelte";
@@ -29,13 +32,17 @@
 		FullStatblockViewModel,
 	} from "./FullStatblockViewModel";
 
+	type ActionSectionKey = "actions" | "bonusActions" | "reactions" | "legendaryActions" | "mythicActions";
+
 	type Props = {
 		statblock: FullStatblockViewModel;
 		onCopyStatblock: (statblock: FullStatblockViewModel) => void | Promise<void>;
 		onCopyText?: (text: string) => void;
 		onCopySpellLink: (link: FullStatblockSpellLink) => void | Promise<void>;
+		onPasteAction?: (section: ActionSectionKey) => void | Promise<void>;
 		onEntityLinkClick?: (link: { href: string; label: string }) => void | Promise<void>;
 		onImageRequested?: (image: string) => Promise<string>;
+		onSendImageToOwlbear?: (source: string, name: string) => Promise<void>;
 		theme?: "dark" | "light";
 		editable?: boolean;
 	};
@@ -45,11 +52,55 @@
 		onCopyStatblock,
 		onCopyText,
 		onCopySpellLink,
+		onPasteAction,
 		onEntityLinkClick,
 		onImageRequested,
+		onSendImageToOwlbear,
 		theme = "dark",
 		editable = false,
 	}: Props = $props();
+	let expandedImage = $state<{ url: string; source: string } | null>(null);
+	let expandTrigger: HTMLElement | null = null;
+	let closeImageButton = $state<HTMLButtonElement | null>(null);
+	let sendImageButton = $state<HTMLButtonElement | null>(null);
+	let sendingImage = $state(false);
+
+	async function openExpandedImage(url: string, source: string) {
+		expandTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+		expandedImage = { url, source };
+		await tick();
+		closeImageButton?.focus();
+	}
+
+	async function sendExpandedImage() {
+		if (!expandedImage || !onSendImageToOwlbear || sendingImage) return;
+		sendingImage = true;
+		try {
+			await onSendImageToOwlbear(expandedImage.source, statblock.russianName);
+		} finally {
+			sendingImage = false;
+		}
+	}
+
+	async function closeExpandedImage() {
+		expandedImage = null;
+		await tick();
+		expandTrigger?.focus();
+		expandTrigger = null;
+	}
+
+	function handleExpandedImageKeydown(event: KeyboardEvent) {
+		if (!expandedImage) return;
+		if (event.key === "Tab") {
+			event.preventDefault();
+			if (document.activeElement === closeImageButton && !sendingImage && sendImageButton) sendImageButton.focus();
+			else closeImageButton?.focus();
+		} else if (event.key === "Escape") {
+			event.preventDefault();
+			event.stopPropagation();
+			void closeExpandedImage();
+		}
+	}
 
 	const darkAccentColor = "var(--ds-bestiary-sub)";
 	const darkPrimaryColor = "var(--ds-bestiary)";
@@ -153,7 +204,7 @@
 	}
 
 	function toActionBlocks(section: FullStatblockActionSection): ActionsBlockItem[] {
-		return section.items.map((item) => ({ title: item.title, html: item.html }));
+		return section.items.map((item) => ({ title: item.title, html: item.html, entityUrl: item.entityUrl }));
 	}
 
 	function toLairBlocks(lair: FullStatblockLair | undefined): ActionsBlockItem[] {
@@ -204,6 +255,8 @@
 	}
 </script>
 
+<svelte:window onkeydown={handleExpandedImageKeydown} />
+
 <article
 	class="full-statblock"
 	data-theme={theme}
@@ -221,6 +274,7 @@
 		chips={headerChips}
 		bind:images={statblock.images}
 		{onImageRequested}
+		onExpandImage={(url, source) => { void openExpandedImage(url, source); }}
 		alt={statblock.imageAlt ?? statblock.russianName}
 		editable={editable}
 		{theme}
@@ -245,6 +299,7 @@
 			bind:title={statblock.actions.title}
 			bind:descriptionHtml={statblock.actions.descriptionHtml}
 			bind:blocks={statblock.actions.items}
+			onPasteBlock={onPasteAction ? () => onPasteAction("actions") : undefined}
 			blocksExpanded={true}
 			{accentColor}
 			onSpellLinkClick={onCopySpellLink}
@@ -255,19 +310,19 @@
 	{/if}
 
 	{#if statblock.bonusActions && (hasSection(statblock.bonusActions) || editable)}
-		<ActionsBlock bind:title={statblock.bonusActions.title} bind:descriptionHtml={statblock.bonusActions.descriptionHtml} bind:blocks={statblock.bonusActions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
+		<ActionsBlock bind:title={statblock.bonusActions.title} bind:descriptionHtml={statblock.bonusActions.descriptionHtml} bind:blocks={statblock.bonusActions.items} onPasteBlock={onPasteAction ? () => onPasteAction("bonusActions") : undefined} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 
 	{#if statblock.reactions && (hasSection(statblock.reactions) || editable)}
-		<ActionsBlock bind:title={statblock.reactions.title} bind:descriptionHtml={statblock.reactions.descriptionHtml} bind:blocks={statblock.reactions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
+		<ActionsBlock bind:title={statblock.reactions.title} bind:descriptionHtml={statblock.reactions.descriptionHtml} bind:blocks={statblock.reactions.items} onPasteBlock={onPasteAction ? () => onPasteAction("reactions") : undefined} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 
 	{#if statblock.legendaryActions && (hasSection(statblock.legendaryActions) || editable)}
-		<ActionsBlock bind:title={statblock.legendaryActions.title} bind:descriptionHtml={statblock.legendaryActions.descriptionHtml} bind:blocks={statblock.legendaryActions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
+		<ActionsBlock bind:title={statblock.legendaryActions.title} bind:descriptionHtml={statblock.legendaryActions.descriptionHtml} bind:blocks={statblock.legendaryActions.items} onPasteBlock={onPasteAction ? () => onPasteAction("legendaryActions") : undefined} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 
 	{#if statblock.mythicActions && (hasSection(statblock.mythicActions) || editable)}
-		<ActionsBlock bind:title={statblock.mythicActions.title} bind:descriptionHtml={statblock.mythicActions.descriptionHtml} bind:blocks={statblock.mythicActions.items} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
+		<ActionsBlock bind:title={statblock.mythicActions.title} bind:descriptionHtml={statblock.mythicActions.descriptionHtml} bind:blocks={statblock.mythicActions.items} onPasteBlock={onPasteAction ? () => onPasteAction("mythicActions") : undefined} blocksExpanded={false} {accentColor} onSpellLinkClick={onCopySpellLink} {onEntityLinkClick} {editable} {theme} />
 	{/if}
 
 	{#if hasLair(statblock.lair)}
@@ -284,11 +339,28 @@
 	{#if editable}
 		<div class="add-block-chip"><button type="button" aria-label="Добавить текстовый блок" onclick={addTag}><Plus size={15} strokeWidth={1.5} /></button></div>
 	{/if}
+	{#if expandedImage}
+		<div class="image-overlay" role="dialog" aria-modal="true" aria-label="Просмотр изображения">
+			<div class="image-overlay-viewer">
+				<button bind:this={closeImageButton} class="close-image-button" type="button" aria-label="Закрыть изображение" onclick={() => { void closeExpandedImage(); }}>
+					<X size={22} strokeWidth={1.5} aria-hidden={true} />
+				</button>
+				{#if onSendImageToOwlbear}
+					<button bind:this={sendImageButton} class="send-image-button" type="button" aria-label="Отправить в Owlbear" title="Отправить в Owlbear" disabled={sendingImage} onclick={() => { void sendExpandedImage(); }}>
+						<Send size={20} strokeWidth={1.5} aria-hidden={true} />
+					</button>
+				{/if}
+				<img class="expanded-image" src={expandedImage.url} alt={statblock.imageAlt ?? statblock.russianName} />
+			</div>
+		</div>
+	{/if}
 </article>
 
 <style>
 	.full-statblock {
 		box-sizing: border-box;
+		position: relative;
+		isolation: isolate;
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
@@ -308,6 +380,48 @@
 	}
 
 	.full-statblock[data-theme="light"] { color: #1f2937; }
+	.image-overlay {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		border-radius: inherit;
+		background: rgb(0 0 0 / 84%);
+	}
+	.image-overlay-viewer {
+		box-sizing: border-box;
+		position: sticky;
+		top: 0;
+		display: grid;
+		place-items: center;
+		width: 100%;
+		height: min(100dvh, 100%);
+		padding: 48px 12px 12px;
+	}
+	.expanded-image {
+		width: 100%;
+		height: 100%;
+		min-height: 0;
+		object-fit: contain;
+	}
+	.close-image-button, .send-image-button {
+		position: absolute;
+		top: 8px;
+		display: grid;
+		width: 32px;
+		height: 32px;
+		place-items: center;
+		padding: 0;
+		border: 1px solid #fff;
+		border-radius: 4px;
+		background: rgb(0 0 0 / 45%);
+		color: #fff;
+		cursor: pointer;
+	}
+	.close-image-button { left: 8px; }
+	.send-image-button { right: 8px; }
+	.close-image-button:hover, .close-image-button:focus-visible, .send-image-button:hover, .send-image-button:focus-visible { background: rgb(0 0 0 / 70%); }
+	.close-image-button:focus-visible, .send-image-button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+	.send-image-button:disabled { opacity: 0.5; cursor: wait; }
 	.full-statblock :global(.max-item-header) { margin-bottom: 4px; }
 	.add-block-chip { width: 100%; }
 	.add-block-chip button { all: unset; box-sizing: border-box; display: grid; width: 100%; min-height: 20px; place-items: center; border-radius: 4px; background: color-mix(in srgb, var(--statblock-accent) 40%, transparent); color: inherit; cursor: pointer; }

@@ -85,6 +85,15 @@ describe("GenericSqlItemReadStore", () => {
 		expect(smallDao.readAllItems).toHaveBeenCalledWith("fire", filter);
 	});
 
+	it("reads favorited small items by URL with the active filter", async () => {
+		const smallDao = createSmallDao({ readItemsByUrls: vi.fn().mockResolvedValue([smallItem]) });
+		const store = createReadStore(smallDao);
+		const filter = { source: "PHB" };
+
+		await expect(store.readSmallItemsByUrls([smallItem.url], filter)).resolves.toEqual([smallItem]);
+		expect(smallDao.readItemsByUrls).toHaveBeenCalledWith([smallItem.url], filter);
+	});
+
 	it("reads a page of small items through the small DAO", async () => {
 		const smallDao = createSmallDao();
 		const filter = { source: "PHB" };
@@ -173,6 +182,19 @@ describe("GenericSqlItemWriteStore", () => {
 
 		expect(fullDao.deleteItemByUrl).toHaveBeenCalledWith(fullItem.url);
 		expect(smallDao.deleteItemByUrl).toHaveBeenCalledWith(fullItem.url);
+		expect(transactions.calls.map((call) => call.method)).toEqual(["begin", "commit"]);
+	});
+
+	it("deletes the favorite together with a user entity", async () => {
+		const favorites = { delete: vi.fn() };
+		const transactions = new TransactionalStoreSpy();
+		const store = new GenericSqlItemWriteStore(
+			createSmallDao(), createFullDao(), transactions, "spellbook", undefined, favorites as any,
+		);
+
+		await store.deleteByUrl(fullItem.url);
+
+		expect(favorites.delete).toHaveBeenCalledWith("spellbook", fullItem.url);
 		expect(transactions.calls.map((call) => call.method)).toEqual(["begin", "commit"]);
 	});
 

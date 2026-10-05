@@ -1,17 +1,22 @@
-import { Notice, PluginSettingTab, Setting } from "obsidian";
+import { Notice, Platform, PluginSettingTab, Setting } from "obsidian";
 import { writeTextToClipboard } from "src/data/clipboard";
+import type { PluginUpdateStatus } from "src/data/services/PluginUpdateService";
 import type DndStatblockPlugin from "src/main";
 
 export class OwlbearSettingsTab extends PluginSettingTab {
 	private unsubscribeRuntime: (() => void) | null = null;
+	private unsubscribeUpdate: (() => void) | null = null;
 	private refreshQueued = false;
+	private updateCheckStarted = false;
 
 	constructor(private readonly plugin: DndStatblockPlugin) { super(plugin.app, plugin); }
 
 	display(): void {
 		this.unsubscribeRuntime?.();
+		this.unsubscribeUpdate?.();
 		const { containerEl } = this;
 		containerEl.empty();
+		this.renderPluginVersion(containerEl);
 		containerEl.createEl("h2", { text: "Интерфейс" });
 		new Setting(containerEl)
 			.setName("Включить редизайн справочников")
@@ -127,16 +132,52 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 		if (settings.enabled && pairingCode) {
 			this.copySetting(containerEl, "Код сопряжения", pairingCode);
 		}
-		this.unsubscribeRuntime = this.plugin.subscribeOwlbearRuntimeStatus(() => {
-			if (this.refreshQueued) return;
-			this.refreshQueued = true;
-			window.setTimeout(() => { this.refreshQueued = false; if (this.containerEl.isConnected) this.display(); }, 100);
-		});
+		this.unsubscribeRuntime = this.plugin.subscribeOwlbearRuntimeStatus(() => this.queueRefresh());
+		this.unsubscribeUpdate = this.plugin.getPluginUpdateService().subscribe(() => this.queueRefresh());
+		if (!this.updateCheckStarted) {
+			this.updateCheckStarted = true;
+			void this.plugin.getPluginUpdateService().check();
+		}
 	}
 
 	hide(): void {
 		this.unsubscribeRuntime?.();
 		this.unsubscribeRuntime = null;
+		this.unsubscribeUpdate?.();
+		this.unsubscribeUpdate = null;
+		this.updateCheckStarted = false;
+	}
+
+	private renderPluginVersion(containerEl: HTMLElement): void {
+		containerEl.createEl("h2", { text: "Обновления" });
+		const updater = this.plugin.getPluginUpdateService();
+		const status = updater.getStatus();
+		const setting = new Setting(containerEl)
+			.setName(`Версия плагина: ${this.plugin.manifest.version}`)
+			.setDesc(updateStatusText(status));
+		const release = status.state === "available" || status.state === "error" ? status.release : undefined;
+		if (release) {
+			if (!release.archive) {
+				appendReleaseLink(setting.descEl, release.pageUrl, "Скачать релиз вручную");
+			} else if (!Platform.isDesktopApp || !updater.canInstall()) {
+				setting.descEl.appendText(" Установка доступна в настольном Obsidian.");
+			} else {
+				setting.addButton((button) => button.setButtonText(status.state === "error" ? "Повторить" : "Обновить")
+					.onClick(() => { void updater.install(); }));
+				if (status.state === "error") appendReleaseLink(setting.descEl, release.pageUrl, "Открыть релиз");
+			}
+		} else if (status.state === "error") {
+			setting.addButton((button) => button.setButtonText("Повторить проверку")
+				.onClick(() => { void updater.check(); }));
+		} else if (status.state === "downloading" || status.state === "downloadingTool" || status.state === "installing") {
+			setting.addButton((button) => button.setButtonText("Обновление...").setDisabled(true));
+		}
+	}
+
+	private queueRefresh(): void {
+		if (this.refreshQueued) return;
+		this.refreshQueued = true;
+		window.setTimeout(() => { this.refreshQueued = false; if (this.containerEl.isConnected) this.display(); }, 100);
 	}
 
 	private copySetting(containerEl: HTMLElement, name: string, value: string): void {
@@ -149,6 +190,30 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 			}
 		}));
 	}
+}
+
+function updateStatusText(status: PluginUpdateStatus): string {
+	switch (status.state) {
+		case "idle":
+		case "checking": return "Проверка обновлений...";
+		case "current": return "Последняя актуальная версия";
+		case "available": return `Есть версия новее ${status.release.version}.`;
+		case "downloading": {
+			const percent = status.totalBytes > 0 ? Math.min(100, Math.round(status.downloadedBytes * 100 / status.totalBytes)) : 0;
+			return `Загрузка обновления: ${percent}% (${formatBytes(status.downloadedBytes)} / ${formatBytes(status.totalBytes)}).`;
+		}
+		case "downloadingTool": return "Загрузка распаковщика 7z...";
+		case "installing": return "Установка обновления...";
+		case "complete": return `Версия ${status.version} установлена. Перезапустите Obsidian, чтобы применить обновление.`;
+		case "error": return `${status.release ? "Не удалось обновить плагин" : "Не удалось проверить обновления"}: ${status.message}`;
+	}
+}
+
+function appendReleaseLink(container: HTMLElement, url: string, label: string): void {
+	container.appendText(" ");
+	const link = container.createEl("a", { text: label, href: url });
+	link.target = "_blank";
+	link.rel = "noopener noreferrer";
 }
 
 function downloadJson(json: string, filename: string): void {

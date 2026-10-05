@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
-import { applyFullViewModel, createEmptyDomainItem, entityUrlPrefix, toFullViewModel, toSmallCardProps } from "src/ui/design-system/adapters";
+import { applyFullViewModel, createEmptyDomainItem, entityUrlPrefix, pruneEmptyFullViewModel, toFullViewModel, toSmallCardProps } from "src/ui/design-system/adapters";
 
 const panelKeys: PanelKey[] = [
 	"bestiary", "spellbook", "arsenal", "armory", "equipment", "artifactory",
@@ -35,6 +35,17 @@ describe("design system adapters", () => {
 		expect(artifact.customization).toBe(true);
 	});
 
+	it("colors very rare and unspecified artifact cards distinctly", () => {
+		const color = (type?: string) => toSmallCardProps("artifactory", { rarity: { type } }).rarityColor;
+
+		expect(color("rare")).toBe("var(--ds-artifact-rare)");
+		expect(color("very-rare")).toBe("var(--ds-artifact-very-rare)");
+		expect(color("very_rare")).toBe("var(--ds-artifact-very-rare)");
+		for (const type of ["unknown", "varies", "", undefined]) {
+			expect(color(type)).toBe("var(--ds-artifact-unspecified)");
+		}
+	});
+
 	it.each(panelKeys)("maps small and full models for %s", (panelKey) => {
 		const item = createEmptyDomainItem(panelKey) ?? {
 			name: { rus: "Тест", eng: "Test" }, url: "/classes/test", dice: "к8", source: { shortName: "PHB", name: "PHB", group: { shortName: "Basic", name: "Основные" } }, isArchetype: false,
@@ -60,10 +71,49 @@ describe("design system adapters", () => {
 		expect(view).toMatchObject({ cost: { dmg: "", xge: "" }, images: [], description: { html: "" } });
 	});
 
+	it("passes complete background details through the redesigned view model", () => {
+		const item = {
+			name: { rus: "Благородный", eng: "Noble" },
+			url: "/backgrounds/noble",
+			source: { shortName: "PHB", name: "Книга игрока", group: { shortName: "Basic", name: "Официальные источники" } },
+			skills: ["История", "Убеждение"],
+			toolOwnership: "Один игровой набор",
+			equipments: [],
+			startGold: 25,
+			description: "<p>Описание</p>",
+			language: "Один на ваш выбор",
+			skillName: "Привилегированность",
+			skillDescription: "<p>Вас принимают в высшем обществе.</p>",
+			personalizationTables: [{ type: "TRAIT", name: "Черта характера", formula: "к8", thead: ["Черта характера"], tbody: [["1", "Пример"]] }],
+		};
+		const view = toFullViewModel("backgrounds", item) as any;
+
+		expect(view).toMatchObject({
+			language: item.language,
+			skillName: item.skillName,
+			skillDescription: { html: item.skillDescription },
+			personalizationTables: item.personalizationTables,
+		});
+		expect(applyFullViewModel("backgrounds", item, view)).toMatchObject({
+			language: item.language,
+			skillName: item.skillName,
+			skillDescription: item.skillDescription,
+			personalizationTables: item.personalizationTables,
+		});
+	});
+
 	it("normalizes missing artifact images for the editable image group", () => {
 		const view = toFullViewModel("artifactory", { name: { rus: "Артефакт", eng: "Artifact" } }) as any;
 
 		expect(view.images).toEqual([]);
+	});
+
+	it("clears whitespace-only artifact cost chips", () => {
+		const artifact = createEmptyDomainItem("artifactory")!;
+		const view = toFullViewModel("artifactory", artifact) as any;
+		view.cost = { dmg: "  ", xge: "1к6" };
+		const saved = applyFullViewModel("artifactory", artifact, pruneEmptyFullViewModel("artifactory", view));
+		expect(saved.cost).toEqual({ dmg: "", xge: "1к6" });
 	});
 
 	it("persists weapon damage and edited properties from the full view model", () => {
@@ -144,8 +194,98 @@ describe("design system adapters", () => {
 		});
 
 		expect((monsterView as any).traits[0].html).toBe("Описание особенности");
-		expect((monsterView as any).actions.items[0]).toEqual({ title: "Короткий меч", html: "Атака коротким мечом." });
-		expect((monsterView as any).reactions.items[0]).toEqual({ title: "Парирование", html: "Добавляет 2 к КД." });
+		expect((monsterView as any).actions.items[0]).toMatchObject({ title: "Короткий меч", html: "Атака коротким мечом." });
+		expect((monsterView as any).reactions.items[0]).toMatchObject({ title: "Парирование", html: "Добавляет 2 к КД." });
+	});
+
+	it("preserves linked actions across all five statblock sections and legacy weapon links", () => {
+		const monster = {
+			name: { rus: "Монстр", eng: "Monster" }, url: "/bestiary/monster",
+			actions: [{ name: "Меч", value: "<p>Атака</p>", weaponUrl: "/weapons/sword" }],
+		};
+		const view = toFullViewModel("bestiary", monster) as any;
+		expect(view.actions.items[0].entityUrl).toBe("/weapons/sword");
+
+		const sections = ["actions", "bonusActions", "reactions", "legendaryActions", "mythicActions"] as const;
+		for (const section of sections) {
+			view[section].items.push({ title: "Свет", html: "<p>Освещает.</p>", entityUrl: "/spells/light" });
+		}
+		const saved = applyFullViewModel("bestiary", monster, view);
+		const reopened = toFullViewModel("bestiary", saved) as any;
+		for (const section of sections) {
+			expect(reopened[section].items.at(-1)).toMatchObject({ title: "Свет", html: "<p>Освещает.</p>", entityUrl: "/spells/light" });
+		}
+		expect(saved.actions[0].weaponUrl).toBe("/weapons/sword");
+		expect(reopened.actions.items[0].entityUrl).toBe("/weapons/sword");
+	});
+
+	it("keeps action metadata with its source after pruning an earlier action", () => {
+		const monster = {
+			name: { rus: "Монстр", eng: "Monster" }, url: "/bestiary/monster",
+			actions: [
+				{ name: "Меч", value: "Атака", weaponUrl: "/weapons/sword", note: "first" },
+				{ name: "Рёв", value: "Пугает", note: "second" },
+			],
+		};
+		const view = toFullViewModel("bestiary", monster) as any;
+		view.actions.items[0].title = " ";
+		view.actions.items[0].html = "<p></p>";
+		view.actions.items.push({ title: "Свет", html: "Освещает" });
+
+		const saved = applyFullViewModel("bestiary", monster, pruneEmptyFullViewModel("bestiary", view));
+		expect(saved.actions).toEqual([
+			{ name: "Рёв", value: "Пугает", note: "second" },
+			{ name: "Свет", value: "Освещает" },
+		]);
+		expect((toFullViewModel("bestiary", saved) as any).actions.items[0].entityUrl).toBeUndefined();
+	});
+
+	it("removes blank statblock blocks while keeping a title or description on its own", () => {
+		const original = createEmptyDomainItem("bestiary")!;
+		const view = toFullViewModel("bestiary", original) as any;
+		view.traits = [{ title: " ", html: "<p><br></p>" }, { title: "Черта", html: "" }];
+		view.tags = [{ title: "", html: "&nbsp;" }, { title: "", html: "<p>Текст</p>" }];
+		for (const key of ["actions", "bonusActions", "reactions", "legendaryActions", "mythicActions"]) {
+			view[key].items = [
+				{ title: " ", html: "<p></p>" },
+				{ title: "Свет", html: "" },
+				{ title: "", html: "<p>Светит.</p>" },
+			];
+		}
+		const cleaned = pruneEmptyFullViewModel("bestiary", view) as any;
+		const saved = applyFullViewModel("bestiary", original, cleaned);
+		expect(view.traits).toHaveLength(2);
+		expect(saved.feats.map((entry: any) => entry.name)).toEqual(["Черта"]);
+		expect(saved.tags.map((entry: any) => entry.description)).toEqual(["<p>Текст</p>"]);
+		for (const section of [saved.actions, saved.bonusActions, saved.reactions, saved.legendary.list, saved.mythic.list]) {
+			expect(section.map((entry: any) => [entry.name, entry.value])).toEqual([["Свет", ""], ["", "<p>Светит.</p>"]]);
+		}
+	});
+
+	it("removes empty weapon chips and race and background blocks", () => {
+		const weapon = createEmptyDomainItem("arsenal")!;
+		const weaponView = toFullViewModel("arsenal", weapon) as any;
+		weaponView.properties = [
+			{ name: " ", url: "/screens/empty", description: { html: "<p><br></p>" } },
+			{ name: "Двуручное", url: "/screens/two-handed" },
+		];
+		expect(applyFullViewModel("arsenal", weapon, pruneEmptyFullViewModel("arsenal", weaponView)).properties).toHaveLength(1);
+
+		const race = createEmptyDomainItem("races")!;
+		const raceView = toFullViewModel("races", race) as any;
+		raceView.skills = [{ name: "", html: "<p></p>" }, { name: "Навык", html: "" }];
+		raceView.additionalSections = [{ title: " ", html: "&nbsp;" }, { title: "История", html: "" }];
+		const savedRace = applyFullViewModel("races", race, pruneEmptyFullViewModel("races", raceView));
+		expect(savedRace.skills).toEqual([{ name: "Навык", description: "" }]);
+		expect(savedRace.additionalSections).toEqual([{ title: "История", html: "" }]);
+
+		const background = createEmptyDomainItem("backgrounds")!;
+		const backgroundView = toFullViewModel("backgrounds", background) as any;
+		backgroundView.equipments = [{ html: "<br>" }, { html: "Верёвка" }];
+		backgroundView.skills = [" ", "История"];
+		const savedBackground = applyFullViewModel("backgrounds", background, pruneEmptyFullViewModel("backgrounds", backgroundView));
+		expect(savedBackground.equipments).toEqual(["Верёвка"]);
+		expect(savedBackground.skills).toEqual(["История"]);
 	});
 
 	it("copies reactive proxy data when preparing an item for copy", () => {

@@ -46,13 +46,17 @@ import type { OwlbearPreviewSnapshot } from './domain/models/owlbear/OwlbearPrev
 import {
 	isSupportedOwlbearPreviewFile,
 	isSupportedOwlbearPreviewUrl,
+	loadOwlbearPreviewDataUrl,
 	loadOwlbearPreviewRemoteImage,
 	loadOwlbearPreviewVaultImage,
+	type OwlbearPreviewImage,
 } from './data/owlbear/OwlbearPreviewImage';
+import { resolveVaultImageFile } from './domain/utils/image_utils';
 import { getOwlbearExtensionInstallUrl } from './data/owlbear/OwlbearExtensionHosting';
 import { clearActiveOwlbearPreview } from './data/owlbear/OwlbearPreviewLifecycle';
 import { createOwlbearPairingCode } from './data/owlbear/OwlbearPairing';
 import { ManualEntityArchiveService, type ManualEntityImportReport } from './data/services';
+import { PluginUpdateService } from './data/services/PluginUpdateService';
 
 export type OwlbearRuntimeStatus = {
 	cloudflared: CloudflaredInstallStatus;
@@ -95,6 +99,7 @@ export default class DndStatblockPlugin extends Plugin {
 		tunnel: { state: "stopped" },
 	};
 	private readonly owlbearRuntimeListeners = new Set<() => void>();
+	private pluginUpdateService: PluginUpdateService;
 
 	#uiEventListener: IUiEventListener;
 
@@ -106,6 +111,11 @@ export default class DndStatblockPlugin extends Plugin {
 		this.removeStaleOwlbearPreviewTab();
 		this.shouldResetLegacyViews = loadResult.shouldResetLegacyViews;
 		await this.resetOwlbearSnapshotForNewSession();
+		const adapter = this.app.vault.adapter;
+		const pluginDirectory = Platform.isDesktopApp && adapter instanceof FileSystemAdapter
+			? [adapter.getBasePath(), this.app.vault.configDir, "plugins", this.manifest.id].join("/")
+			: null;
+		this.pluginUpdateService = new PluginUpdateService(this.manifest.id, this.manifest.version, pluginDirectory);
 		this.addSettingTab(new OwlbearSettingsTab(this));
 
 		await this.#initialize(() => {
@@ -139,6 +149,8 @@ export default class DndStatblockPlugin extends Plugin {
 	getSettings(): PluginSettingsState {
 		return this.settings;
 	}
+
+	getPluginUpdateService(): PluginUpdateService { return this.pluginUpdateService; }
 
 	async exportManualEntities(): Promise<string> {
 		const archive = await this.getManualEntityArchiveService().exportArchive();
@@ -260,6 +272,20 @@ export default class DndStatblockPlugin extends Plugin {
 	async publishOwlbearPreviewFromUrl(url: string): Promise<void> {
 		const image = await loadOwlbearPreviewRemoteImage(url);
 		await this.publishOwlbearPreview(image.name, image.mime, image.width, image.height, image.dataUrl);
+	}
+
+	async publishOwlbearPreviewFromImage(source: string, name: string): Promise<void> {
+		let image: OwlbearPreviewImage;
+		if (isSupportedOwlbearPreviewUrl(source)) image = await loadOwlbearPreviewRemoteImage(source);
+		else if (source.startsWith("data:")) image = await loadOwlbearPreviewDataUrl(name, source);
+		else {
+			const file = resolveVaultImageFile(this.app, source);
+			if (!file) throw new Error("Файл изображения не найден внутри vault.");
+			image = await loadOwlbearPreviewVaultImage(this.app, file);
+		}
+		await this.publishOwlbearPreview(name || image.name, image.mime, image.width, image.height, image.dataUrl);
+		this.panelManager.discardPanel("owlbear-preview");
+		await this.panelManager.openPanel("owlbear-preview");
 	}
 
 	async hideOwlbearPreview(): Promise<void> {
@@ -545,6 +571,7 @@ export default class DndStatblockPlugin extends Plugin {
 			() => this.classesFeature,
 			() => this.characterSheetFeature,
 			() => this.dmScreenFeature,
+			(source, name) => this.publishOwlbearPreviewFromImage(source, name),
 		);
 
 		this.bestiaryFeature = new BestiaryFeature(this, this.#database, this.#uiEventListener);
