@@ -86,6 +86,13 @@
     let isLoading = $state(false);
     let loadError: string | null = $state(null);
     let requestGeneration = 0;
+    let groupOpen = $state(new Map<string, boolean>());
+    let groupVisibleCounts = $state(new Map<string, number>());
+    let favoriteGroupOpen = $state(true);
+    let pendingAdvanceFrom: string | null = $state(null);
+    let pageRequest: Promise<boolean> | null = null;
+    let advanceRequest: Promise<void> | null = null;
+    const revealingGroups = new Set<string>();
 
     // ---- Lifecycle ----  
     onMount(() => updateGroups()); 
@@ -104,7 +111,7 @@
 
     function onSearchBarValueChanged(value: string) { 
         searchBarValue = value;
-        updateGroups();
+        updateGroups(true);
     }                       
 
     function requestToolbarAction(command: "edit" | "save" | "cancel" | "copy" | "paste") {
@@ -133,7 +140,7 @@
     async function handleFiltersApply(newFilters: any) {
         filters = filterApplyTransform ? filterApplyTransform(newFilters) : newFilters;
         isFiltersOverlayOpen = false;
-        await updateGroups();
+        await updateGroups(true);
     }
 
     function handleFiltersClose() {
@@ -205,11 +212,19 @@
     }
 
     // ---- private functions ----
-    async function updateGroups() {
+    async function updateGroups(resetGroupState = false) {
         const generation = ++requestGeneration;
         const searchValueNormalized = searchBarValue.toLowerCase();
         loadError = null;
         isLoading = false;
+        pendingAdvanceFrom = null;
+        pageRequest = null;
+        advanceRequest = null;
+        if (resetGroupState) {
+            groupOpen = new Map();
+            groupVisibleCounts = new Map();
+            favoriteGroupOpen = true;
+        }
         favoriteUrls = new Set(redesignEnabled ? repository.favorites?.listUrls(panelKey as EntityKind) ?? [] : []);
 
         if (paginated && searchValueNormalized.length === 0 && repository.getSmallItemsPage) {
@@ -252,35 +267,136 @@
         }
     }
 
-    async function loadNextPage(generation = requestGeneration) {
+    function isGroupOpen(sort: string): boolean {
+        return groupOpen.get(sort) ?? true;
+    }
+
+    function visibleGroupItems(group: Group<BaseItem>): BaseItem[] {
+        const count = groupVisibleCounts.get(group.sort);
+        return count === undefined ? group.smallItems : group.smallItems.slice(0, count);
+    }
+
+    function hasOpenGroupAfter(sort: string): boolean {
+        const index = groups.findIndex((group) => group.sort === sort);
+        return index >= 0 && groups.slice(index + 1).some((group) => isGroupOpen(group.sort));
+    }
+
+    function onGroupOpenChange(sort: string, open: boolean) {
+        if (isGroupOpen(sort) === open) return;
+        groupOpen = new Map(groupOpen).set(sort, open);
+
+        if (open) {
+            if (pendingAdvanceFrom === sort) pendingAdvanceFrom = null;
+            return;
+        }
+
+        const group = groups.find((entry) => entry.sort === sort);
+        if (group) {
+            const counts = new Map(groupVisibleCounts);
+            counts.set(sort, Math.min(counts.get(sort) ?? group.smallItems.length, group.smallItems.length));
+            groupVisibleCounts = counts;
+        }
+        if (paginated && !searchBarValue && hasMore && !hasOpenGroupAfter(sort)) {
+            pendingAdvanceFrom = sort;
+            void advanceToNextOpenGroup();
+        }
+    }
+
+    async function advanceToNextOpenGroup() {
+        if (advanceRequest) return advanceRequest;
+        const generation = requestGeneration;
+        const request = (async () => {
+            while (
+                generation === requestGeneration
+                && pendingAdvanceFrom !== null
+                && !hasOpenGroupAfter(pendingAdvanceFrom)
+                && hasMore
+                && !loadError
+            ) {
+                if (!await loadNextPage(generation)) break;
+            }
+            if (generation === requestGeneration && pendingAdvanceFrom !== null && (hasOpenGroupAfter(pendingAdvanceFrom) || !hasMore)) {
+                pendingAdvanceFrom = null;
+            }
+        })();
+        advanceRequest = request;
+        try {
+            await request;
+        } finally {
+            if (advanceRequest === request) advanceRequest = null;
+        }
+    }
+
+    function showGroupLoadMore(group: Group<BaseItem>, index: number): boolean {
+        const count = groupVisibleCounts.get(group.sort);
+        return count !== undefined
+            && !loadError
+            && !isLoading
+            && (count < group.smallItems.length || (hasMore && index === groups.length - 1));
+    }
+
+    async function revealGroupPage(sort: string) {
+        if (revealingGroups.has(sort)) return;
+        const count = groupVisibleCounts.get(sort);
+        if (count === undefined || !isGroupOpen(sort)) return;
+        revealingGroups.add(sort);
+        try {
+            let group = groups.find((entry) => entry.sort === sort);
+            if (!group) return;
+            if (count >= group.smallItems.length && hasMore && groups.at(-1)?.sort === sort) {
+                if (!await loadNextPage()) return;
+                group = groups.find((entry) => entry.sort === sort);
+            }
+            if (group && group.smallItems.length > count) {
+                groupVisibleCounts = new Map(groupVisibleCounts).set(sort, Math.min(count + pageSize, group.smallItems.length));
+            }
+        } finally {
+            revealingGroups.delete(sort);
+        }
+    }
+
+    async function loadNextPage(generation = requestGeneration): Promise<boolean> {
         if (
             !paginated
             || !repository.getSmallItemsPage
             || !hasMore
-            || isLoading
+            || generation !== requestGeneration
             || searchBarValue.length > 0
-        ) return;
+        ) return false;
+        if (pageRequest) return pageRequest;
+        if (isLoading) return false;
 
-        isLoading = true;
-        loadError = null;
-        try {
-            const page = await repository.getSmallItemsPage(filters, {
-                offset: nextOffset,
-                limit: pageSize,
-            });
-            if (generation !== requestGeneration) return;
+        const request = (async () => {
+            isLoading = true;
+            loadError = null;
+            try {
+                const page = await repository.getSmallItemsPage!(filters, {
+                    offset: nextOffset,
+                    limit: pageSize,
+                });
+                if (generation !== requestGeneration) return false;
 
-            loadedItems = [...loadedItems, ...page.items];
-            nextOffset += page.items.length;
-            hasMore = page.hasMore;
-            groups = await repository.groupItems(loadedItems);
-        } catch (error) {
-            if (generation !== requestGeneration) return;
-            loadError = error instanceof Error ? error.message : "Не удалось загрузить следующую страницу.";
-        } finally {
-            if (generation === requestGeneration) {
-                isLoading = false;
+                const nextItems = [...loadedItems, ...page.items];
+                const nextGroups = await repository.groupItems(nextItems);
+                if (generation !== requestGeneration) return false;
+                loadedItems = nextItems;
+                nextOffset += page.items.length;
+                hasMore = page.hasMore;
+                groups = nextGroups;
+                return page.items.length > 0;
+            } catch (error) {
+                if (generation !== requestGeneration) return false;
+                loadError = error instanceof Error ? error.message : "Не удалось загрузить следующую страницу.";
+                return false;
+            } finally {
+                if (generation === requestGeneration) isLoading = false;
             }
+        })();
+        pageRequest = request;
+        try {
+            return await request;
+        } finally {
+            if (pageRequest === request) pageRequest = null;
         }
     }
 
@@ -301,7 +417,12 @@
 
     function retryLoad() {
         if (paginated && searchBarValue.length === 0 && repository.getSmallItemsPage) {
-            void loadNextPage();
+            if (pendingAdvanceFrom !== null) {
+                loadError = null;
+                void advanceToNextOpenGroup();
+            } else {
+                void loadNextPage();
+            }
         } else {
             void updateGroups();
         }
@@ -368,17 +489,23 @@
                     {SmallItemSlot}
                     {redesignEnabled}
                     isFavorite={(url: string) => favoriteUrls.has(url)}
+                    isOpen={favoriteGroupOpen}
+                    onOpenChange={(open: boolean) => favoriteGroupOpen = open}
                 />
             {/if}
-            {#each groups as group (group.sort)}
+            {#each groups as group, index (group.sort)}
                 <UiItemGroup
                     {panelKey}
                     groupTitle={groupTitleBuilder(group)}
-                    items={group.smallItems}
+                    items={visibleGroupItems(group)}
                     onItemClick={onSmallItemClick}
 	                    {SmallItemSlot}
 	                    {redesignEnabled}
 	                    isFavorite={(url: string) => favoriteUrls.has(url)}
+                    isOpen={isGroupOpen(group.sort)}
+                    onOpenChange={(open: boolean) => onGroupOpenChange(group.sort, open)}
+                    showLoadMore={showGroupLoadMore(group, index)}
+                    onLoadMore={() => void revealGroupPage(group.sort)}
                 />
             {/each}
             {#if loadError}
@@ -389,7 +516,7 @@
             {:else if isLoading}
                 <div class="pagination-status" aria-live="polite">Загрузка...</div>
             {/if}
-            {#if paginated && hasMore && !loadError && !isLoading}
+            {#if paginated && hasMore && !loadError && !isLoading && pendingAdvanceFrom === null}
                 <div class="pagination-sentinel" use:observePageEnd aria-hidden="true"></div>
             {/if}
         </div>
