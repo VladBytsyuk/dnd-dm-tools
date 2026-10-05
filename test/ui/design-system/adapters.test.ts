@@ -194,8 +194,8 @@ describe("design system adapters", () => {
 		});
 
 		expect((monsterView as any).traits[0].html).toBe("Описание особенности");
-		expect((monsterView as any).actions.items[0]).toEqual({ title: "Короткий меч", html: "Атака коротким мечом." });
-		expect((monsterView as any).reactions.items[0]).toEqual({ title: "Парирование", html: "Добавляет 2 к КД." });
+		expect((monsterView as any).actions.items[0]).toMatchObject({ title: "Короткий меч", html: "Атака коротким мечом." });
+		expect((monsterView as any).reactions.items[0]).toMatchObject({ title: "Парирование", html: "Добавляет 2 к КД." });
 	});
 
 	it("preserves linked actions across all five statblock sections and legacy weapon links", () => {
@@ -213,10 +213,31 @@ describe("design system adapters", () => {
 		const saved = applyFullViewModel("bestiary", monster, view);
 		const reopened = toFullViewModel("bestiary", saved) as any;
 		for (const section of sections) {
-			expect(reopened[section].items.at(-1)).toEqual({ title: "Свет", html: "<p>Освещает.</p>", entityUrl: "/spells/light" });
+			expect(reopened[section].items.at(-1)).toMatchObject({ title: "Свет", html: "<p>Освещает.</p>", entityUrl: "/spells/light" });
 		}
 		expect(saved.actions[0].weaponUrl).toBe("/weapons/sword");
 		expect(reopened.actions.items[0].entityUrl).toBe("/weapons/sword");
+	});
+
+	it("keeps action metadata with its source after pruning an earlier action", () => {
+		const monster = {
+			name: { rus: "Монстр", eng: "Monster" }, url: "/bestiary/monster",
+			actions: [
+				{ name: "Меч", value: "Атака", weaponUrl: "/weapons/sword", note: "first" },
+				{ name: "Рёв", value: "Пугает", note: "second" },
+			],
+		};
+		const view = toFullViewModel("bestiary", monster) as any;
+		view.actions.items[0].title = " ";
+		view.actions.items[0].html = "<p></p>";
+		view.actions.items.push({ title: "Свет", html: "Освещает" });
+
+		const saved = applyFullViewModel("bestiary", monster, pruneEmptyFullViewModel("bestiary", view));
+		expect(saved.actions).toEqual([
+			{ name: "Рёв", value: "Пугает", note: "second" },
+			{ name: "Свет", value: "Освещает" },
+		]);
+		expect((toFullViewModel("bestiary", saved) as any).actions.items[0].entityUrl).toBeUndefined();
 	});
 
 	it("removes blank statblock blocks while keeping a title or description on its own", () => {

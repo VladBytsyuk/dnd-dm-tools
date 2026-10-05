@@ -47,7 +47,15 @@ describe("PluginUpdateService", () => {
 		vi.spyOn(obsidian, "requestUrl").mockResolvedValue({ json: release("1.2.1", null) } as never);
 		const updater = new PluginUpdateService("dnd-dm-tools", "1.2.0", null);
 		await updater.check();
-		expect(updater.getStatus()).toMatchObject({ state: "available", release: { version: "1.2.1", archive: null } });
+		expect(updater.getStatus()).toMatchObject({
+			state: "available",
+			release: {
+				version: "1.2.1",
+				archive: null,
+				url: "https://github.com/VladBytsyuk/dnd-dm-tools/releases/download/v1.2.1",
+				pageUrl: "https://github.com/VladBytsyuk/dnd-dm-tools/releases/tag/v1.2.1",
+			},
+		});
 	});
 
 	it("reports a network error and allows a retry", async () => {

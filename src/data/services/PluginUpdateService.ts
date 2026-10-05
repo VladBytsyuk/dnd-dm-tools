@@ -3,11 +3,13 @@ import { compareVersions } from "src/domain/utils/compareVersions";
 
 const RELEASE_API = "https://api.github.com/repos/VladBytsyuk/dnd-dm-tools/releases/latest";
 const RELEASE_DOWNLOAD_BASE = "https://github.com/VladBytsyuk/dnd-dm-tools/releases/download";
+const RELEASE_PAGE_BASE = "https://github.com/VladBytsyuk/dnd-dm-tools/releases/tag";
 const MAX_ARCHIVE_BYTES = 150 * 1024 * 1024;
 
 export type PluginRelease = {
 	version: string;
 	url: string;
+	pageUrl: string;
 	archive: { name: string; size: number; digest?: string } | null;
 };
 
@@ -112,6 +114,7 @@ export function parseLatestRelease(value: unknown): PluginRelease {
 	return {
 		version,
 		url: `${RELEASE_DOWNLOAD_BASE}/${tag}`,
+		pageUrl: `${RELEASE_PAGE_BASE}/${tag}`,
 		archive: asset ? { name: asset.name as string, size: size as number, ...(typeof digest === "string" ? { digest } : {}) } : null,
 	};
 }

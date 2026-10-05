@@ -158,13 +158,13 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 		const release = status.state === "available" || status.state === "error" ? status.release : undefined;
 		if (release) {
 			if (!release.archive) {
-				appendReleaseLink(setting.descEl, release.url, "Скачать релиз вручную");
+				appendReleaseLink(setting.descEl, release.pageUrl, "Скачать релиз вручную");
 			} else if (!Platform.isDesktopApp || !updater.canInstall()) {
 				setting.descEl.appendText(" Установка доступна в настольном Obsidian.");
 			} else {
 				setting.addButton((button) => button.setButtonText(status.state === "error" ? "Повторить" : "Обновить")
 					.onClick(() => { void updater.install(); }));
-				if (status.state === "error") appendReleaseLink(setting.descEl, release.url, "Открыть релиз");
+				if (status.state === "error") appendReleaseLink(setting.descEl, release.pageUrl, "Открыть релиз");
 			}
 		} else if (status.state === "error") {
 			setting.addButton((button) => button.setButtonText("Повторить проверку")

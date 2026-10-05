@@ -303,7 +303,7 @@ function namedValuesHtml(value: any): string {
 function escapeHtml(value: string): string { return value.replace(/&/gu, "&amp;").replace(/</gu, "&lt;").replace(/>/gu, "&gt;"); }
 function escapeHtmlAttribute(value: string): string { return escapeHtml(value).replace(/"/gu, "&quot;"); }
 function richItems(value: any): { title: string; html: string }[] { return (value ?? []).map((v: Entity) => ({ title: v.name ?? v.title ?? "", html: v.value ?? v.description ?? v.html ?? v.text ?? "" })); }
-function actionSection(title: string, values: any[] = [], description?: string) { return { title, descriptionHtml: description ?? "", items: (values ?? []).map((v: Entity) => ({ title: v.name ?? v.title ?? "", html: v.value ?? v.description ?? v.html ?? v.text ?? "", ...(v.entityUrl || v.weaponUrl ? { entityUrl: v.entityUrl ?? v.weaponUrl } : {}) })) }; }
+function actionSection(title: string, values: any[] = [], description?: string) { return { title, descriptionHtml: description ?? "", items: (values ?? []).map((v: Entity, sourceIndex: number) => ({ title: v.name ?? v.title ?? "", html: v.value ?? v.description ?? v.html ?? v.text ?? "", sourceIndex, ...(v.entityUrl || v.weaponUrl ? { entityUrl: v.entityUrl ?? v.weaponUrl } : {}) })) }; }
 function classLinks(values: any[] = []) { return values.map(v => ({ name: v.name?.rus ?? v.name ?? "", url: v.url ?? "", parentClass: v.parentClass })); }
 function speedText(values: any[] = []): string { return values.map(v => `${v.name ?? ""} ${v.value ?? ""}${v.additional ? ` ${v.additional}` : ""}`.trim()).join(", "); }
 function hitPointsFormula(value: any): string {
@@ -349,4 +349,4 @@ function parseNamedValues(text: string | undefined, fallback: any[] = [], saving
 }
 function applyAbilities(target: Entity = {}, values: FullStatblockViewModel["abilities"] = []) { const keys = ["str", "dex", "con", "int", "wiz", "cha"]; return Object.fromEntries(keys.map((key, i) => [key, numberValue(values?.[i]?.score, target[key] ?? 10)])); }
 function applyRichItems(target: any[] = [], values: FullStatblockViewModel["traits"] = []) { return values?.map((v, i) => ({ ...(target[i] ?? {}), name: v.title, value: v.html })) ?? []; }
-function applyActions(target: any[] = [], section?: FullStatblockViewModel["actions"]) { return section?.items.map((v, i) => ({ ...(target[i] ?? {}), name: v.title, value: v.html, ...(v.entityUrl ? { entityUrl: v.entityUrl } : {}) })) ?? []; }
+function applyActions(target: any[] = [], section?: FullStatblockViewModel["actions"]) { return section?.items.map(v => ({ ...(v.sourceIndex === undefined ? {} : target[v.sourceIndex] ?? {}), name: v.title, value: v.html, ...(v.entityUrl ? { entityUrl: v.entityUrl } : {}) })) ?? []; }
