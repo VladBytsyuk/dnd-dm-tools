@@ -198,9 +198,9 @@
 		/>
 	{/if}
 
-	{#if background.skillName || background.skillDescription?.html}
+	{#if background.skillName || background.skillDescription?.html || editable}
 		<TextBlock
-			title={background.skillName || "Особенность"}
+			bind:title={() => background.skillName || "Особенность", (value) => { background.skillName = value; }}
 			html={background.skillDescription?.html ?? ""}
 			onHtmlChange={updateSkillDescription}
 			expanded={true}
