@@ -38,6 +38,25 @@ runBaseRepositoryTests<SmallArtifact, FullArtifact, ArtifactoryFilters>({
 });
 
 describe("ArtifactoryRepository pagination", () => {
+    it("keeps one stable common group across gendered rarity names", async () => {
+        const repository = new ArtifactoryRepository(mockDatabase(
+            [smallArtifactAmulet],
+            [fullArtifactAmulet],
+        ));
+        const commonNeuter = {
+            ...smallArtifactAmulet,
+            url: "/items/magic/common_neuter",
+            rarity: { ...smallArtifactAmulet.rarity, name: "обычное", short: "О" },
+        };
+
+        expect(await repository.groupItems([smallArtifactAmulet])).toEqual([
+            { sort: "O", smallItems: [smallArtifactAmulet] },
+        ]);
+        expect(await repository.groupItems([smallArtifactAmulet, commonNeuter])).toEqual([
+            { sort: "O", smallItems: [smallArtifactAmulet, commonNeuter] },
+        ]);
+    });
+
     it("does not preload all artifacts during initialization", async () => {
         const database = mockDatabase(
             [smallArtifactAmulet, smallArtifactSphere, smallArtifactWand],
