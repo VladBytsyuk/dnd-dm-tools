@@ -61,6 +61,7 @@
 	--ds-artifact-very-rare: color-mix(in srgb, #9333ea var(--ds-color-strength), white);
 	--ds-artifact-legendary: color-mix(in srgb, #ea580c var(--ds-color-strength), white);
 	--ds-artifact-artifact: color-mix(in srgb, #dcb844 var(--ds-color-strength), white);
+	--ds-artifact-unspecified: color-mix(in srgb, #0d9488 var(--ds-color-strength), white);
 	--ds-bestiary-regular: color-mix(in srgb, #65a30d var(--ds-color-strength), white);
 	--ds-bestiary-humanoid: color-mix(in srgb, #d97706 var(--ds-color-strength), white);
 	--ds-bestiary-magical: color-mix(in srgb, #7c3aed var(--ds-color-strength), white);
@@ -151,6 +152,7 @@
 	--ds-artifact-very-rare-light: color-mix(in srgb, #9333ea 82%, white);
 	--ds-artifact-legendary-light: color-mix(in srgb, #ea580c 82%, white);
 	--ds-artifact-artifact-light: color-mix(in srgb, #dcb844 82%, white);
+	--ds-artifact-unspecified-light: color-mix(in srgb, #0d9488 82%, white);
 	--ds-bestiary-regular-light: color-mix(in srgb, #65a30d 82%, white);
 	--ds-bestiary-humanoid-light: color-mix(in srgb, #d97706 82%, white);
 	--ds-bestiary-magical-light: color-mix(in srgb, #7c3aed 82%, white);

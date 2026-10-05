@@ -35,6 +35,17 @@ describe("design system adapters", () => {
 		expect(artifact.customization).toBe(true);
 	});
 
+	it("colors very rare and unspecified artifact cards distinctly", () => {
+		const color = (type?: string) => toSmallCardProps("artifactory", { rarity: { type } }).rarityColor;
+
+		expect(color("rare")).toBe("var(--ds-artifact-rare)");
+		expect(color("very-rare")).toBe("var(--ds-artifact-very-rare)");
+		expect(color("very_rare")).toBe("var(--ds-artifact-very-rare)");
+		for (const type of ["unknown", "varies", "", undefined]) {
+			expect(color(type)).toBe("var(--ds-artifact-unspecified)");
+		}
+	});
+
 	it.each(panelKeys)("maps small and full models for %s", (panelKey) => {
 		const item = createEmptyDomainItem(panelKey) ?? {
 			name: { rus: "Тест", eng: "Test" }, url: "/classes/test", dice: "к8", source: { shortName: "PHB", name: "PHB", group: { shortName: "Basic", name: "Основные" } }, isArchetype: false,

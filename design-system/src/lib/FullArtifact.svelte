@@ -82,10 +82,13 @@
 			case "common": return "var(--ds-artifact-regular)";
 			case "uncommon": return "var(--ds-artifact-uncommon)";
 			case "rare": return "var(--ds-artifact-rare)";
-			case "very-rare": return "var(--ds-artifact-very-rare)";
+			case "very-rare":
+			case "very_rare": return "var(--ds-artifact-very-rare)";
 			case "legendary": return "var(--ds-artifact-legendary)";
 			case "artifact": return "var(--ds-artifact-artifact)";
-			default: return "var(--ds-artifacts)";
+			case "unknown":
+			case "varies":
+			default: return "var(--ds-artifact-unspecified)";
 		}
 	}
 
