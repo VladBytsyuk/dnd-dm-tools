@@ -69,7 +69,10 @@ export class PanelManager {
 	}
 
 	getPanelSummaries() {
-		return PANEL_KEYS.map((key) => this.panels.get(key))
+		const keys = this.isRedesignEnabled()
+			? ["initiative-tracker" as const, ...PANEL_KEYS.filter((key) => key !== "initiative-tracker")]
+			: PANEL_KEYS;
+		return keys.map((key) => this.panels.get(key))
 			.filter((panel): panel is PanelHost => panel !== undefined && this.isPanelAvailable(panel.getKey()))
 			.map((panel) => ({
 				key: panel.getKey(),
@@ -94,9 +97,15 @@ export class PanelManager {
 		if (!this.isRedesignEnabled()) return workspace;
 		for (const tile of workspace.tiles) {
 			const index = tile.tabs.indexOf("classes");
-			if (index < 0) continue;
-			tile.tabs.splice(index, 1);
-			if (tile.activeTab === "classes") tile.activeTab = tile.tabs[Math.min(index, tile.tabs.length - 1)] ?? null;
+			if (index >= 0) {
+				tile.tabs.splice(index, 1);
+				if (tile.activeTab === "classes") tile.activeTab = tile.tabs[Math.min(index, tile.tabs.length - 1)] ?? null;
+			}
+			const trackerIndex = tile.tabs.indexOf("initiative-tracker");
+			if (trackerIndex > 0) {
+				tile.tabs.splice(trackerIndex, 1);
+				tile.tabs.unshift("initiative-tracker");
+			}
 		}
 		return workspace;
 	}

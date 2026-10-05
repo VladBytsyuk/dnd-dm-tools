@@ -133,6 +133,11 @@
 
 	function openPanel(key: PanelKey) {
 		activateOrOpenAssistantPanel(workspace, key);
+		if (redesignEnabled && key === "initiative-tracker") {
+			const tabs = workspace.tiles[workspace.focusedTile].tabs;
+			tabs.splice(tabs.indexOf(key), 1);
+			tabs.unshift(key);
+		}
 		persist();
 	}
 
