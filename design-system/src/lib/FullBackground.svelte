@@ -186,7 +186,7 @@
 			{editable}
 			{theme}
 		/>
-	{:else}
+	{:else if background.description.html || editable}
 		<TextBlock
 			title="Описание"
 			bind:html={background.description.html}

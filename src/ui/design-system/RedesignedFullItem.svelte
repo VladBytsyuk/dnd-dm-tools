@@ -32,7 +32,7 @@
 	import type { FullClass as FullClassDomain } from "src/domain/models/class/FullClass";
 	import { baseDmScreenItems } from "src/assets/data/dm_screen";
 	import type { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
-	import { applyFullViewModel, cloneDesignData, entityUrlPrefix, toFullViewModel, type FullViewModel } from "./adapters";
+	import { applyFullViewModel, cloneDesignData, entityUrlPrefix, pruneEmptyFullViewModel, toFullViewModel, type FullViewModel } from "./adapters";
 	import { theme as appTheme, Theme } from "src/ui/theme";
 	import { onMount } from "svelte";
 	import { DiceRollersManager } from "src/ui/layout/dice-roller/DiceRollersManager";
@@ -191,9 +191,10 @@
 		saving = true;
 		onEditorStateChange?.({ editing, saving });
 		try {
-			const next = applyFullViewModel(panelKey, pastedEntityBase ?? currentItem, draft);
+			const cleanedDraft = pruneEmptyFullViewModel(panelKey, draft);
+			const next = applyFullViewModel(panelKey, pastedEntityBase ?? currentItem, cleanedDraft);
 			const result = await onItemSave?.(next, { originalUrl: currentItem.url || undefined, originalOrigin: currentItem.origin ?? "remote" });
-			if (!result || result.ok) { currentItem = next; editing = false; pastedEntityBase = undefined; validationError = ""; }
+			if (!result || result.ok) { currentItem = next; draft = cleanedDraft; editing = false; pastedEntityBase = undefined; validationError = ""; }
 			else validationError = result.message;
 		} catch (error) { validationError = error instanceof Error ? error.message : "Не удалось сохранить сущность."; }
 		finally {

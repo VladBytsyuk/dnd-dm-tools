@@ -221,7 +221,7 @@
 	{/if}
 
 	{#each race.additionalSections ?? [] as section, index (index)}
-		{#if section.html.trim() || editable}
+		{#if section.title.trim() || section.html.trim() || editable}
 			<FilledTextBlock
 				bind:title={section.title}
 				bind:html={section.html}

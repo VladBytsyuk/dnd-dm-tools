@@ -156,14 +156,16 @@
 		{/if}
 	</div>
 
-	<TextBlock
-		bind:html={artifact.description.html}
-		expanded={true}
-		accentColor={accentColor}
-		{onEntityLinkClick}
-		{editable}
-		{theme}
-	/>
+	{#if editable || artifact.description.html}
+		<TextBlock
+			bind:html={artifact.description.html}
+			expanded={true}
+			accentColor={accentColor}
+			{onEntityLinkClick}
+			{editable}
+			{theme}
+		/>
+	{/if}
 </article>
 
 <style>

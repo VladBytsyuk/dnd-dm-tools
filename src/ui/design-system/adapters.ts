@@ -40,6 +40,98 @@ export function cloneDesignData<T>(value: T): T {
 	return value;
 }
 
+function hasVisibleContent(value: string | null | undefined): boolean {
+	if (!value) return false;
+	return /<(?:img|svg|dice-roller|iframe|video|audio)\b/iu.test(value)
+		|| Boolean(value.replace(/<[^>]*>/gu, " ").replace(/(?:&nbsp;|&#160;|&#xA0;)/giu, " ").replace(/[\s\u200b]+/gu, "").length);
+}
+
+function clearEmptyHtml(content: { html: string } | undefined): void {
+	if (content && !hasVisibleContent(content.html)) content.html = "";
+}
+
+export function pruneEmptyFullViewModel(kind: PanelKey, view: FullViewModel): FullViewModel {
+	const cleaned = cloneDesignData(view);
+	switch (kind) {
+		case "bestiary": {
+			const statblock = cleaned as FullStatblockViewModel;
+			statblock.traits = statblock.traits?.filter(entry => hasVisibleContent(entry.title) || hasVisibleContent(entry.html)) ?? [];
+			statblock.tags = statblock.tags?.filter(entry => hasVisibleContent(entry.title) || hasVisibleContent(entry.html)) ?? [];
+			for (const section of [statblock.actions, statblock.bonusActions, statblock.reactions, statblock.legendaryActions, statblock.mythicActions]) {
+				if (!section) continue;
+				section.items = section.items.filter(entry => hasVisibleContent(entry.title) || hasVisibleContent(entry.html));
+				if (!hasVisibleContent(section.descriptionHtml)) section.descriptionHtml = "";
+			}
+			if (!hasVisibleContent(statblock.descriptionHtml)) statblock.descriptionHtml = "";
+			if (statblock.lair) {
+				if (!hasVisibleContent(statblock.lair.descriptionHtml)) statblock.lair.descriptionHtml = "";
+				if (!hasVisibleContent(statblock.lair.actionsHtml)) statblock.lair.actionsHtml = "";
+				if (!hasVisibleContent(statblock.lair.regionalEffectsHtml)) statblock.lair.regionalEffectsHtml = "";
+			}
+			statblock.environment = statblock.environment?.filter(hasVisibleContent) ?? [];
+			break;
+		}
+		case "spellbook": {
+			const spell = cleaned as FullSpellViewModel;
+			clearEmptyHtml(spell.description);
+			clearEmptyHtml(spell.higherLevels);
+			break;
+		}
+		case "arsenal": {
+			const weapon = cleaned as FullWeaponViewModel;
+			weapon.properties = weapon.properties.filter(property => hasVisibleContent(property.name) || hasVisibleContent(property.distance));
+			clearEmptyHtml(weapon.description);
+			clearEmptyHtml(weapon.special);
+			break;
+		}
+		case "armory": {
+			clearEmptyHtml((cleaned as FullArmorViewModel).description);
+			break;
+		}
+		case "equipment": {
+			const equipment = cleaned as FullEquipmentViewModel;
+			equipment.categories = equipment.categories.filter(hasVisibleContent);
+			clearEmptyHtml(equipment.description);
+			break;
+		}
+		case "artifactory": {
+			const artifact = cleaned as FullArtifactViewModel;
+			clearEmptyHtml(artifact.description);
+			if (artifact.cost) {
+				if (!hasVisibleContent(artifact.cost.dmg)) artifact.cost.dmg = "";
+				if (!hasVisibleContent(artifact.cost.xge)) artifact.cost.xge = "";
+			}
+			break;
+		}
+		case "backgrounds": {
+			const background = cleaned as FullBackgroundViewModel;
+			background.skills = background.skills.filter(hasVisibleContent);
+			background.equipments = background.equipments.filter(entry => hasVisibleContent(entry.html));
+			clearEmptyHtml(background.toolOwnership);
+			clearEmptyHtml(background.description);
+			clearEmptyHtml(background.associatedHtml);
+			clearEmptyHtml(background.skillDescription);
+			clearEmptyHtml(background.personalization);
+			break;
+		}
+		case "feats": {
+			clearEmptyHtml((cleaned as FullFeatViewModel).description);
+			break;
+		}
+		case "races": {
+			const race = cleaned as FullRaceViewModel;
+			race.abilities = race.abilities.filter(ability => hasVisibleContent(ability.name));
+			race.speed = race.speed.filter(speed => hasVisibleContent(speed.name) || speed.value !== undefined || hasVisibleContent(speed.additional));
+			race.skills = race.skills.filter(skill => hasVisibleContent(skill.name) || hasVisibleContent(skill.html));
+			race.additionalSections = race.additionalSections?.filter(section => hasVisibleContent(section.title) || hasVisibleContent(section.html));
+			clearEmptyHtml(race.description);
+			race.subraces = race.subraces?.map(subrace => pruneEmptyFullViewModel("races", subrace) as FullRaceViewModel);
+			break;
+		}
+	}
+	return cleaned;
+}
+
 export function toSmallCardProps(kind: PanelKey, item: Entity): Entity {
 	const name = item.name ?? {};
 	const common = { title: name.rus ?? "", subtitle: name.eng ?? "", source: item.source?.shortName ?? "" };
