@@ -60,6 +60,37 @@ describe("design system adapters", () => {
 		expect(view).toMatchObject({ cost: { dmg: "", xge: "" }, images: [], description: { html: "" } });
 	});
 
+	it("passes complete background details through the redesigned view model", () => {
+		const item = {
+			name: { rus: "Благородный", eng: "Noble" },
+			url: "/backgrounds/noble",
+			source: { shortName: "PHB", name: "Книга игрока", group: { shortName: "Basic", name: "Официальные источники" } },
+			skills: ["История", "Убеждение"],
+			toolOwnership: "Один игровой набор",
+			equipments: [],
+			startGold: 25,
+			description: "<p>Описание</p>",
+			language: "Один на ваш выбор",
+			skillName: "Привилегированность",
+			skillDescription: "<p>Вас принимают в высшем обществе.</p>",
+			personalizationTables: [{ type: "TRAIT", name: "Черта характера", formula: "к8", thead: ["Черта характера"], tbody: [["1", "Пример"]] }],
+		};
+		const view = toFullViewModel("backgrounds", item) as any;
+
+		expect(view).toMatchObject({
+			language: item.language,
+			skillName: item.skillName,
+			skillDescription: { html: item.skillDescription },
+			personalizationTables: item.personalizationTables,
+		});
+		expect(applyFullViewModel("backgrounds", item, view)).toMatchObject({
+			language: item.language,
+			skillName: item.skillName,
+			skillDescription: item.skillDescription,
+			personalizationTables: item.personalizationTables,
+		});
+	});
+
 	it("normalizes missing artifact images for the editable image group", () => {
 		const view = toFullViewModel("artifactory", { name: { rus: "Артефакт", eng: "Artifact" } }) as any;
 

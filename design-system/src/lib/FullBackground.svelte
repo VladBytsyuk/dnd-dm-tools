@@ -2,11 +2,13 @@
 	import "./colors.css";
 	import BicepsFlexed from "lucide-svelte/icons/biceps-flexed";
 	import Coins from "lucide-svelte/icons/coins";
+	import Languages from "lucide-svelte/icons/languages";
 	import Wrench from "lucide-svelte/icons/wrench";
 	import ChipsList, { type ChipsListItem } from "./ChipsList.svelte";
 	import FilledTextBlock from "./FilledTextBlock.svelte";
 	import FullItemHeader from "./FullItemHeader.svelte";
 	import TextBlock from "./TextBlock.svelte";
+	import { sanitizeRichHtml } from "./sanitizeRichHtml";
 	import type {
 		FullBackgroundEntityLink,
 		FullBackgroundViewModel,
@@ -74,6 +76,16 @@
 			});
 		}
 
+		if (background.language?.trim() || editable) {
+			items.push({
+				text: background.language ?? "",
+				icon: Languages,
+				iconTooltip: "Языки",
+				background: accentBackground,
+				onTextChange: (value) => { background.language = value; },
+			});
+		}
+
 		return items;
 	});
 
@@ -123,6 +135,10 @@
 
 	function updatePersonalization(html: string) {
 		background.personalization = { ...(background.personalization ?? {}), html };
+	}
+
+	function updateSkillDescription(html: string) {
+		background.skillDescription = { html };
 	}
 </script>
 
@@ -182,6 +198,19 @@
 		/>
 	{/if}
 
+	{#if background.skillName || background.skillDescription?.html}
+		<TextBlock
+			title={background.skillName || "Особенность"}
+			html={background.skillDescription?.html ?? ""}
+			onHtmlChange={updateSkillDescription}
+			expanded={true}
+			{accentColor}
+			{onEntityLinkClick}
+			{editable}
+			{theme}
+		/>
+	{/if}
+
 	{#if hasPersonalization || editable}
 		<TextBlock
 			title="Персонализация"
@@ -194,6 +223,30 @@
 			{theme}
 		/>
 	{/if}
+
+	{#each background.personalizationTables ?? [] as table}
+		<section class="table-section">
+			<h2>{table.name}</h2>
+			<div class="table-scroll">
+				<table class="dnd-table" data-theme={theme} style={`--dnd-table-accent: ${accentColor};`}>
+					<thead>
+						<tr>
+							<th scope="col"><dice-roller label={table.name} formula={table.formula}>{table.formula}</dice-roller></th>
+							<th scope="col">{table.thead[0] || table.name}</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each table.tbody as row}
+							<tr>
+								<td>{row[0]}</td>
+								<td>{@html sanitizeRichHtml(row[1] ?? "")}</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		</section>
+	{/each}
 </article>
 
 <style>
@@ -254,4 +307,11 @@
 		padding-left: 18px;
 	}
 	.full-background :global(.rich-content li + li) { margin-top: 1px; }
+	.table-section { display: grid; gap: 4px; min-width: 0; }
+	.table-section h2 { margin: 0; font-size: 18px; font-weight: 700; line-height: 21px; }
+	.table-scroll { overflow-x: auto; }
+	.table-section :global(.dnd-table) { margin: 4px 0; }
+	.table-section :global(.dnd-table th:first-child),
+	.table-section :global(.dnd-table td:first-child) { width: 3em; }
+	.table-section :global(.dnd-table td:nth-child(2)) { text-align: left; }
 </style>

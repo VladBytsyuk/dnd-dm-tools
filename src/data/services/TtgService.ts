@@ -259,7 +259,11 @@ function adaptV2Response(url: string, response: TtgJsonObject): TtgJsonObject {
 			equipments: splitList(response.equipments ?? response.equipment),
 			startGold: asNumber(response.startGold) ?? 0,
 			description: markupToString(response.description),
+			language: asString(response.language),
+			skillName: asString(response.skillName),
+			skillDescription: markupToString(response.skillDescription),
 			personalization: markupToString(response.personalization) || undefined,
+			personalizationTables: response.personalizationTables,
 		};
 	}
 

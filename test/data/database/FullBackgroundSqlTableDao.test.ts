@@ -1,4 +1,7 @@
-import { expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import initSqlJs from 'sql.js';
 import { FullBackgroundSqlTableDao } from '../../../src/data/database/FullBackgroundSqlTableDao';
 import type { FullBackground } from '../../../src/domain/models/background/FullBackground';
 import type { BackgroundsFilters } from '../../../src/domain/models/background/BackgroundsFilters';
@@ -37,6 +40,10 @@ runSqlDaoBaseTests<FullBackground, any>({
             fullBackgroundGolgariAgent.startGold,
             fullBackgroundGolgariAgent.description,
             fullBackgroundGolgariAgent.personalization,
+            'Один на ваш выбор',
+            'Особенность',
+            '<p>Текст особенности.</p>',
+            JSON.stringify([{ type: 'TRAIT', name: 'Черта характера', formula: 'к8', thead: ['Черта характера'], tbody: [['1', 'Пример']] }]),
         ],
         assert: (background) => {
             expect(background.name.rus).toStrictEqual(fullBackgroundGolgariAgent.name.rus);
@@ -55,6 +62,52 @@ runSqlDaoBaseTests<FullBackground, any>({
             expect(background.startGold).toStrictEqual(fullBackgroundGolgariAgent.startGold);
             expect(background.description).toStrictEqual(fullBackgroundGolgariAgent.description);
             expect(background.personalization).toStrictEqual(fullBackgroundGolgariAgent.personalization);
+            expect(background.language).toBe('Один на ваш выбор');
+            expect(background.skillName).toBe('Особенность');
+            expect(background.skillDescription).toBe('<p>Текст особенности.</p>');
+            expect(background.personalizationTables).toEqual([{ type: 'TRAIT', name: 'Черта характера', formula: 'к8', thead: ['Черта характера'], tbody: [['1', 'Пример']] }]);
         },
     },
+});
+
+describe('Dao: Background detail fields', () => {
+    const wasmBinary = readFileSync(resolve('node_modules/sql.js/dist/sql-wasm.wasm'));
+
+    it('persists the feature, language, and personalization tables', async () => {
+        const SQL = await initSqlJs({ wasmBinary });
+        const db = new SQL.Database();
+        const dao = new FullBackgroundSqlTableDao(db);
+        await dao.createTable();
+        const item: FullBackground = {
+            ...fullBackgroundGolgariAgent,
+            language: 'Один на ваш выбор',
+            skillName: 'Привилегированность',
+            skillDescription: '<p>Описание особенности</p>',
+            personalizationTables: [{ type: 'TRAIT', name: 'Черта характера', formula: 'к8', thead: ['Черта характера'], tbody: [['1', '<strong>Пример</strong>']] }],
+        };
+
+        await dao.createItem(item);
+        const loaded = await dao.readItemByUrl(item.url);
+        expect(loaded).toMatchObject({
+            language: item.language,
+            skillName: item.skillName,
+            skillDescription: item.skillDescription,
+            personalizationTables: item.personalizationTables,
+        });
+        db.close();
+    });
+
+    it('refreshes old remote details while preserving manual entries', async () => {
+        const SQL = await initSqlJs({ wasmBinary });
+        const db = new SQL.Database();
+        db.exec("CREATE TABLE full_backgrounds (url TEXT); INSERT INTO full_backgrounds VALUES ('/backgrounds/noble'), ('/backgrounds/custom');");
+        db.exec("CREATE TABLE entity_origins (entity_kind TEXT, url TEXT, origin TEXT); INSERT INTO entity_origins VALUES ('backgrounds', '/backgrounds/custom', 'manual');");
+        const dao = new FullBackgroundSqlTableDao(db);
+
+        dao.ensureDetailColumns();
+
+        expect(db.exec('SELECT url FROM full_backgrounds')[0].values).toEqual([['/backgrounds/custom']]);
+        expect(db.exec('PRAGMA table_info(full_backgrounds)')[0].values.map((column) => column[1])).toContain('personalization_tables');
+        db.close();
+    });
 });
