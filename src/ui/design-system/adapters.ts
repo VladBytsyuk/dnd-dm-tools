@@ -183,7 +183,7 @@ export function toFullViewModel(kind: PanelKey, item: Entity): FullViewModel {
 			legendaryActions: actionSection("Легендарные действия", item.legendary?.list, item.legendary?.description),
 			mythicActions: actionSection("Мифические действия", item.mythic?.list, item.mythic?.description),
 			lair: item.lair ? { descriptionHtml: item.lair.description, actionsHtml: item.lair.action, regionalEffectsHtml: item.lair.effect } : undefined,
-			descriptionHtml: item.description, tags: richItems(item.tags), environment: item.environment,
+			descriptionHtml: item.description ?? "", tags: richItems(item.tags), environment: item.environment,
 		} as FullStatblockViewModel;
 		case "spellbook": return {
 			...names, level: item.level ?? 0, school: item.school ?? "", additionalType: item.additionalType,

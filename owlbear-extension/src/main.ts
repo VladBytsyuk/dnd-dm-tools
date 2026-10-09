@@ -3,7 +3,7 @@ import { connectionStatusText, formatDiagnosticsLog, type ConnectionState } from
 import { publicInitiativeFromMetadata } from "./publicInitiative";
 import { renderPublicInitiative } from "./publicInitiativeUi";
 import { createInitialDiagnostics } from "./state";
-import { MANUAL_DISCONNECT_KEY, PAIRING_KEY, RUNTIME_CHANNEL_NAME, type RuntimeMessage, type RuntimeState } from "./protocol";
+import { AUTO_SCROLL_KEY, MANUAL_DISCONNECT_KEY, PAIRING_KEY, RUNTIME_CHANNEL_NAME, type RuntimeMessage, type RuntimeState } from "./protocol";
 import type { PublicInitiativeState } from "./types";
 
 const authStatusEl = document.querySelector<HTMLSpanElement>("#auth-status");
@@ -17,7 +17,15 @@ const statusButton = document.querySelector<HTMLButtonElement>("#toggle-status")
 const copyStatusButton = document.querySelector<HTMLButtonElement>("#copy-status");
 const servicePanel = document.querySelector<HTMLElement>("#service-panel");
 const initiativePanel = document.querySelector<HTMLElement>("#initiative-panel");
+const autoScrollInput = document.querySelector<HTMLInputElement>("#auto-scroll");
 const channel = new BroadcastChannel(RUNTIME_CHANNEL_NAME);
+
+if (autoScrollInput) {
+	autoScrollInput.checked = localStorage.getItem(AUTO_SCROLL_KEY) !== "false";
+	autoScrollInput.addEventListener("change", () => {
+		localStorage.setItem(AUTO_SCROLL_KEY, String(autoScrollInput.checked));
+	});
+}
 
 let runtimeState: RuntimeState = {
 	connectionState: localStorage.getItem(PAIRING_KEY) ? "disconnected" : "unauthorized",

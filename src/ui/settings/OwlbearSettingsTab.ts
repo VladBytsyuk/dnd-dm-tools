@@ -19,8 +19,8 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 		this.renderPluginVersion(containerEl);
 		containerEl.createEl("h2", { text: "Интерфейс" });
 		new Setting(containerEl)
-			.setName("Включить редизайн справочников")
-			.setDesc("Использовать компоненты новой дизайн системы в справочниках. Изменение применяется после перезагрузки плагина.")
+			.setName("Новый интерфейс справочников")
+			.setDesc("Обновлённые карточки, избранное и редактирование сущностей. Изменение применяется после перезагрузки плагина.")
 			.addToggle((toggle) => toggle
 				.setValue(this.plugin.getSettings().redesignEnabled)
 				.onChange(async (redesignEnabled) => {
@@ -53,10 +53,9 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 		containerEl.createEl("hr");
 		containerEl.createEl("h2", { text: "Интеграция с Owlbear" });
 		const settings = this.plugin.getSettings().owlbearSync;
-		let pendingPort = settings.port?.toString() ?? "";
 		new Setting(containerEl)
 			.setName("Включить интеграцию")
-			.setDesc("Запускает локальный сервер для Owlbear Rodeo.")
+			.setDesc(Platform.isDesktopApp ? "Синхронизировать столкновения и отправлять изображения в Owlbear Rodeo." : "Интеграция доступна только в настольном Obsidian.")
 			.addToggle((toggle) => toggle.setValue(settings.enabled).onChange(async (enabled) => {
 				await this.plugin.setOwlbearIntegrationEnabled(enabled);
 				this.display();
@@ -65,68 +64,73 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 			let developmentPath = settings.developmentExtensionPath ?? "";
 			new Setting(containerEl)
 				.setName("Путь к dev bundle")
-				.setDesc("Необязательно. Абсолютный путь к owlbear-extension/dist для разработки без release-сборки.")
+				.setDesc("Абсолютный путь к owlbear-extension/dist для локальной dev-сборки.")
 				.addText((text) => text.setValue(developmentPath).setPlaceholder("/путь/к/owlbear-extension/dist").onChange((value) => { developmentPath = value; }))
 				.addButton((button) => button.setButtonText("Сохранить").onClick(async () => {
 					await this.plugin.setOwlbearDevelopmentExtensionPath(developmentPath);
 					this.display();
 				}));
+			let pendingPort = settings.port?.toString() ?? "";
+			new Setting(containerEl)
+				.setName("Порт")
+				.setDesc("1024–65535. После смены обновите код сопряжения в Owlbear.")
+				.addText((text) => text.setValue(pendingPort).setPlaceholder("Случайный").onChange((value) => { pendingPort = value; }))
+				.addButton((button) => button.setButtonText("Применить").onClick(async () => {
+					await this.plugin.setOwlbearPort(pendingPort.trim() ? Number(pendingPort) : null);
+					this.display();
+				}))
+				.addExtraButton((button) => button.setIcon("refresh-cw").setTooltip("Выбрать случайный порт").onClick(async () => {
+					await this.plugin.setOwlbearPort(null);
+					this.display();
+				}));
 		}
-		new Setting(containerEl)
-			.setName("Порт")
-			.setDesc("1024–65535. После смены обновите код сопряжения в Owlbear.")
-			.addText((text) => text.setValue(pendingPort).setPlaceholder("Случайный").onChange((value) => { pendingPort = value; }))
-			.addButton((button) => button.setButtonText("Применить").onClick(async () => {
-				await this.plugin.setOwlbearPort(pendingPort.trim() ? Number(pendingPort) : null);
-				this.display();
-			}))
-			.addExtraButton((button) => button.setIcon("refresh-cw").setTooltip("Выбрать случайный порт").onClick(async () => {
-				await this.plugin.setOwlbearPort(null);
-				this.display();
-			}));
-		const statusDetails = containerEl.createEl("details");
-		statusDetails.createEl("summary", { text: "Статус интеграции" });
-		const statusContainer = statusDetails.createDiv();
-		const status = this.plugin.getOwlbearServerStatus();
-		statusContainer.createEl("p", { text: `Статус: ${status.running ? (status.connected ? "расширение подключено" : "ожидание расширения") : "выключено"}${status.error ? `. Ошибка: ${status.error}` : ""}` });
-		const runtime = this.plugin.getOwlbearRuntimeStatus();
-		const install = runtime.cloudflared;
-		let installText = `cloudflared ${install.version}: ${cloudflaredStateLabel(install.state)}`;
-		if (install.state === "downloading") {
-			const downloaded = install.downloadedBytes ?? 0;
-			const total = install.totalBytes ?? 0;
-			const percent = total > 0 ? Math.min(100, Math.round(downloaded * 100 / total)) : 0;
-			installText += ` — ${percent}% (${formatBytes(downloaded)} / ${formatBytes(total)})`;
-		}
-		if (install.error) installText += `. Ошибка: ${install.error}`;
-		statusContainer.createEl("p", { text: installText });
-		if (settings.enabled && (install.state === "checking" || install.state === "downloading")) {
-			statusContainer.createEl("p", { text: "Ожидание cloudflared. Интеграция запустится автоматически после загрузки." });
-		}
-		if (install.state === "error") {
-			new Setting(containerEl).setName("Загрузка cloudflared").addButton((button) => button.setButtonText("Повторить загрузку").onClick(async () => {
-				await this.plugin.retryCloudflaredDownload();
-				this.display();
-			}));
-		}
-		const tunnel = runtime.tunnel;
-		statusContainer.createEl("p", { text: `Туннель: ${tunnelStateLabel(tunnel.state)}${tunnel.publicHost ? `. Публичный host: ${tunnel.publicHost}` : ""}${tunnel.error ? `. Ошибка: ${tunnel.error}` : ""}` });
-		if (settings.enabled && tunnel.state === "ready" && !status.connected) {
-			statusContainer.createEl("p", { text: "Скопируйте текущий код сопряжения в Owlbear. После перезапуска Obsidian или туннеля код изменится." });
-		}
-		if (tunnel.diagnostic) {
-			const details = statusContainer.createEl("details");
-			details.createEl("summary", { text: "Технический лог последней ошибки туннеля" });
-			details.createEl("pre", { text: tunnel.diagnostic });
-		}
-		if (settings.enabled && install.state === "ready") {
-			new Setting(containerEl).setName("Quick Tunnel").addButton((button) => button.setButtonText("Перезапустить туннель").onClick(async () => {
-				await this.plugin.restartOwlbearTunnel();
-				this.display();
-			}));
+		if (settings.enabled || __DND_DM_TOOLS_DEV__) {
+			const statusDetails = containerEl.createEl("details");
+			statusDetails.createEl("summary", { text: "Статус интеграции" });
+			const statusContainer = statusDetails.createDiv();
+			const status = this.plugin.getOwlbearServerStatus();
+			statusContainer.createEl("p", { text: `Статус: ${status.running ? (status.connected ? "расширение подключено" : "ожидание расширения") : "выключено"}${status.error ? `. Ошибка: ${status.error}` : ""}` });
+			const runtime = this.plugin.getOwlbearRuntimeStatus();
+			const install = runtime.cloudflared;
+			let installText = `${__DND_DM_TOOLS_DEV__ ? `cloudflared ${install.version}` : "Компонент подключения"}: ${cloudflaredStateLabel(install.state)}`;
+			if (install.state === "downloading") {
+				const downloaded = install.downloadedBytes ?? 0;
+				const total = install.totalBytes ?? 0;
+				const percent = total > 0 ? Math.min(100, Math.round(downloaded * 100 / total)) : 0;
+				installText += ` — ${percent}% (${formatBytes(downloaded)} / ${formatBytes(total)})`;
+			}
+			if (install.error) installText += `. Ошибка: ${install.error}`;
+			statusContainer.createEl("p", { text: installText });
+			if (settings.enabled && (install.state === "checking" || install.state === "downloading")) {
+				statusContainer.createEl("p", { text: "Подготовка подключения. Интеграция запустится автоматически после загрузки." });
+			}
+			if (settings.enabled && install.state === "error") {
+				new Setting(containerEl).setName("Компонент подключения").addButton((button) => button.setButtonText("Повторить загрузку").onClick(async () => {
+					await this.plugin.retryCloudflaredDownload();
+					this.display();
+				}));
+			}
+			const tunnel = runtime.tunnel;
+			statusContainer.createEl("p", { text: `Туннель: ${tunnelStateLabel(tunnel.state)}${__DND_DM_TOOLS_DEV__ && tunnel.publicHost ? `. Публичный host: ${tunnel.publicHost}` : ""}${tunnel.error ? `. Ошибка: ${tunnel.error}` : ""}` });
+			if (settings.enabled && tunnel.state === "ready" && !status.connected) {
+				statusContainer.createEl("p", { text: "Скопируйте текущий код сопряжения в Owlbear. После перезапуска Obsidian или туннеля код изменится." });
+			}
+			if (tunnel.diagnostic) {
+				const details = statusContainer.createEl("details");
+				details.createEl("summary", { text: "Технический лог последней ошибки туннеля" });
+				details.createEl("pre", { text: `cloudflared ${install.version}\n${tunnel.diagnostic}` });
+			}
+			if (settings.enabled && install.state === "ready") {
+				new Setting(containerEl).setName("Подключение Owlbear")
+					.setDesc("После перезапуска скопируйте новый код сопряжения в расширение.")
+					.addButton((button) => button.setButtonText("Перезапустить подключение").onClick(async () => {
+					await this.plugin.restartOwlbearTunnel();
+					this.display();
+				}));
+			}
 		}
 		if (settings.enabled) {
-			this.copySetting(containerEl, "Install Link", this.plugin.getOwlbearInstallLink());
+			this.copySetting(containerEl, "Ссылка для установки расширения", this.plugin.getOwlbearInstallLink());
 		}
 		const pairingCode = this.plugin.getOwlbearPairingCode();
 		if (settings.enabled && pairingCode) {
@@ -202,7 +206,7 @@ function updateStatusText(status: PluginUpdateStatus): string {
 			const percent = status.totalBytes > 0 ? Math.min(100, Math.round(status.downloadedBytes * 100 / status.totalBytes)) : 0;
 			return `Загрузка обновления: ${percent}% (${formatBytes(status.downloadedBytes)} / ${formatBytes(status.totalBytes)}).`;
 		}
-		case "downloadingTool": return "Загрузка распаковщика 7z...";
+		case "downloadingTool": return "Подготовка обновления...";
 		case "installing": return "Установка обновления...";
 		case "complete": return `Версия ${status.version} установлена. Перезапустите Obsidian, чтобы применить обновление.`;
 		case "error": return `${status.release ? "Не удалось обновить плагин" : "Не удалось проверить обновления"}: ${status.message}`;

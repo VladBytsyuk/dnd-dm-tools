@@ -363,7 +363,7 @@ export default class DndStatblockPlugin extends Plugin {
 				(snapshotId, links, diagnostics) => this.persistOwlbearApplied(snapshotId, links, diagnostics),
 				(status) => { this.owlbearServerStatus = status; this.notifyOwlbearRuntimeStatus(); this.notifyOwlbearReady(); },
 			);
-			const port = await server.start(sync.port ?? 0);
+			const port = await server.start(__DND_DM_TOOLS_DEV__ ? sync.port ?? 0 : 0);
 			this.owlbearServer = server;
 			const latestSnapshot = this.settings.owlbearSync.latestSnapshot;
 			if (latestSnapshot) {

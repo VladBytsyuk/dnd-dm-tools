@@ -6,6 +6,7 @@ export const AUTH_ERROR_CLOSE_CODE = 4001;
 export const PROTOCOL_ERROR_CLOSE_CODE = 4002;
 export const PAIRING_KEY = "dnd-dm-tools.owlbear.pairing";
 export const MANUAL_DISCONNECT_KEY = "dnd-dm-tools.owlbear.manual-disconnect";
+export const AUTO_SCROLL_KEY = "dnd-dm-tools.owlbear.auto-scroll";
 export const RUNTIME_CHANNEL_NAME = "dnd-dm-tools.owlbear.runtime";
 
 export type RuntimeState = {

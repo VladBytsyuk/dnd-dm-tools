@@ -114,6 +114,17 @@
 
 			.service-panel[hidden] { display: none; }
 
+			.auto-scroll-option {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				margin: 8px 0;
+				font-size: 13px;
+				cursor: pointer;
+			}
+
+			.auto-scroll-option input { width: auto; margin: 0; }
+
 			.auth-row {
 				display: grid;
 				grid-template-columns: minmax(0, 1fr) 36px;
@@ -251,6 +262,10 @@
 				<button id="reconnect" class="icon-button" type="button"></button>
 				<button id="toggle-status" class="icon-button" type="button" aria-controls="status-panel"></button>
 			</div>
+			<label class="auto-scroll-option">
+				<input id="auto-scroll" type="checkbox" checked />
+				Автоскролл к активному токену
+			</label>
 			<section class="status-panel" id="status-panel" hidden>
 				<header class="status-header">
 					<span>Статус</span>
