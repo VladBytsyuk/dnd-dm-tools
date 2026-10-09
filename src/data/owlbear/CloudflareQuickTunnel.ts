@@ -4,7 +4,7 @@ import { get } from "https";
 import { join } from "path";
 
 const PUBLIC_URL_PATTERN = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/gi;
-const HEALTH_TIMEOUT_MS = 30_000;
+const HEALTH_TIMEOUT_MS = 90_000;
 const MAX_RETRY_DELAY_MS = 30_000;
 
 export type OwlbearTunnelStatus = {
@@ -22,6 +22,7 @@ export class CloudflareQuickTunnel {
 	private attempt = 0;
 	private generation = 0;
 	private diagnostic = "";
+	private failureReason: string | null = null;
 	private lastFailure: { error: string; diagnostic: string } | null = null;
 	private status: OwlbearTunnelStatus = { state: "stopped" };
 
@@ -69,6 +70,7 @@ export class CloudflareQuickTunnel {
 		if (!this.desiredRunning || this.child) return;
 		const generation = ++this.generation;
 		this.diagnostic = "";
+		this.failureReason = null;
 		this.setStatus({
 			state: retrying ? "retrying" : "starting",
 			...(this.lastFailure ?? {}),
@@ -82,6 +84,7 @@ export class CloudflareQuickTunnel {
 			this.child = child;
 			let candidate: string | null = null;
 			const handleOutput = (chunk: Buffer) => {
+				if (this.child !== child || this.generation !== generation) return;
 				const text = chunk.toString("utf8");
 				this.diagnostic = (this.diagnostic + text).slice(-2_000);
 				if (candidate) return;
@@ -103,26 +106,28 @@ export class CloudflareQuickTunnel {
 			if (!this.desiredRunning || this.child !== child || this.generation !== generation) return;
 			this.attempt = 0;
 			await this.onReady(origin);
+			if (!this.desiredRunning || this.child !== child || this.generation !== generation) return;
 			this.lastFailure = null;
 			this.setStatus({ state: "ready", publicHost: origin });
 		} catch (error) {
 			if (this.child !== child || generation !== this.generation) return;
+			this.failureReason = formatHealthError(error, origin);
 			this.diagnostic = `${this.diagnostic}\n${formatError(error)}`.trim();
 			child.kill("SIGTERM");
 		}
 	}
 
 	private handleExit(child: ChildProcess, generation: number, reason: string): void {
-		if (this.child !== child) return;
+		if (this.child !== child || generation !== this.generation) return;
 		this.child = null;
 		this.onUnavailable();
 		if (!this.desiredRunning || generation !== this.generation) return;
-		this.scheduleRetry(this.diagnostic.trim() || reason);
+		this.scheduleRetry(this.failureReason ?? reason);
 	}
 
 	private handleLaunchFailure(generation: number, reason: string): void {
-		this.onUnavailable();
 		if (!this.desiredRunning || generation !== this.generation) return;
+		this.onUnavailable();
 		this.scheduleRetry(reason);
 	}
 
@@ -166,6 +171,7 @@ async function waitForHealth(url: string, timeoutMs: number, shouldContinue: () 
 	while (Date.now() < deadline && shouldContinue()) {
 		try {
 			if (await healthRequest(url)) return;
+			lastError = "Публичный health endpoint туннеля пока не отвечает HTTP 200.";
 		} catch (error) { lastError = formatError(error); }
 		await new Promise((resolve) => setTimeout(resolve, 500));
 	}
@@ -175,18 +181,27 @@ async function waitForHealth(url: string, timeoutMs: number, shouldContinue: () 
 function healthRequest(url: string): Promise<boolean> {
 	return new Promise((resolve, reject) => {
 		const request = get(url, { headers: { "User-Agent": "dnd-dm-tools-tunnel-health" } }, (response) => {
+			clearTimeout(timeout);
 			response.resume();
 			resolve(response.statusCode === 200);
 		});
-		request.setTimeout(5_000, () => request.destroy(new Error("Проверка туннеля превысила 5 секунд.")));
-		request.once("error", reject);
+		const timeout = setTimeout(() => request.destroy(new Error("Проверка туннеля превысила 5 секунд.")), 5_000);
+		request.once("error", (error) => { clearTimeout(timeout); reject(error); });
 	});
+}
+
+function formatHealthError(error: unknown, origin: string): string {
+	const message = formatError(error);
+	if (/\b(?:ENOTFOUND|EAI_AGAIN)\b/u.test(message)) {
+		return `Не удалось разрешить DNS-адрес ${new URL(origin).hostname} за 90 секунд. Проверьте подключение и DNS; туннель будет запущен повторно.`;
+	}
+	return `Публичный адрес туннеля недоступен: ${message}`;
 }
 
 function formatError(error: unknown): string { return error instanceof Error ? error.message : String(error); }
 
 export function buildQuickTunnelArguments(configPath: string, assetPort: number): string[] {
-	return ["tunnel", "--config", configPath, "--url", `http://127.0.0.1:${assetPort}`, "--no-autoupdate", "--output", "json"];
+	return ["tunnel", "--config", configPath, "--url", `http://127.0.0.1:${assetPort}`, "--protocol", "http2", "--no-autoupdate", "--output", "json"];
 }
 
 export function findQuickTunnelOrigin(output: string): string | null {

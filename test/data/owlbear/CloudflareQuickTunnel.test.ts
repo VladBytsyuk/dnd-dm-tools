@@ -7,6 +7,7 @@ describe("Cloudflare Quick Tunnel", () => {
 			"tunnel",
 			"--config", "/plugin/cloudflared/quick-tunnel.yml",
 			"--url", "http://127.0.0.1:32123",
+			"--protocol", "http2",
 			"--no-autoupdate",
 			"--output", "json",
 		]);
