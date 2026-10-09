@@ -1,5 +1,6 @@
 import OBR, { buildImage, buildShape, buildText } from "@owlbear-rodeo/sdk";
 import { deriveMarkers, layoutMarkers } from "./overlays";
+import { AUTO_SCROLL_KEY } from "./protocol";
 import { resolveTokenVisualImage, type TokenImage } from "./tokenVisuals";
 import {
 	OWLBEAR_ENCOUNTER_ID_KEY,
@@ -161,6 +162,7 @@ async function focusActiveParticipant(
 	previousSnapshot: OwlbearEncounterSnapshot | null,
 	items: SceneItem[],
 ): Promise<void> {
+	if (localStorage.getItem(AUTO_SCROLL_KEY) === "false") return;
 	if (snapshot.activeParticipantId == null || snapshot.activeParticipantId === previousSnapshot?.activeParticipantId) return;
 	const token = findLinkedTokens(items, snapshot).get(snapshot.activeParticipantId);
 	if (!token?.position) return;
@@ -172,10 +174,11 @@ async function focusActiveParticipant(
 			OBR.viewport.getHeight(),
 		]);
 		const viewportCenter = await OBR.viewport.inverseTransformPoint({ x: viewportWidth / 2, y: viewportHeight / 2 });
+		if (localStorage.getItem(AUTO_SCROLL_KEY) === "false") return;
 		await OBR.viewport.animateTo({
 			position: {
-				x: viewportPosition.x + viewportCenter.x - token.position.x,
-				y: viewportPosition.y + viewportCenter.y - token.position.y,
+				x: viewportPosition.x + (viewportCenter.x - token.position.x) * scale,
+				y: viewportPosition.y + (viewportCenter.y - token.position.y) * scale,
 			},
 			scale,
 		});

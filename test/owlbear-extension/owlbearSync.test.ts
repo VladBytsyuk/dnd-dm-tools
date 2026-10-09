@@ -83,6 +83,7 @@ import {
 import type { OwlbearEncounterSnapshot } from "../../owlbear-extension/src/types";
 import { clearPreviewFromScene, pushPreviewToScene } from "../../owlbear-extension/src/previewSync";
 import { OWLBEAR_PREVIEW_ID_KEY, OWLBEAR_PREVIEW_KIND_KEY, type OwlbearPreviewSnapshot } from "../../owlbear-extension/src/types";
+import { AUTO_SCROLL_KEY } from "../../owlbear-extension/src/protocol";
 
 function snapshot(participantIds: number[], encounterId = "encounter-1"): OwlbearEncounterSnapshot {
 	return {
@@ -160,6 +161,7 @@ function turnHighlights(items: any[], encounterId = "encounter-1") {
 
 afterEach(() => {
 	vi.clearAllMocks();
+	localStorage.clear();
 });
 
 describe("Owlbear scene synchronization", () => {
@@ -180,7 +182,7 @@ describe("Owlbear scene synchronization", () => {
 		await pushSnapshotToScene(initial);
 		const activeToken = items.find((item) => item.metadata?.[OWLBEAR_PARTICIPANT_ID_KEY] === 1 && item.type === "IMAGE");
 		expect(sdkMock.obr.viewport.animateTo).toHaveBeenCalledWith({
-			position: { x: 500 - activeToken.position.x, y: 400 - activeToken.position.y },
+			position: { x: (500 - activeToken.position.x) * 0.75, y: (400 - activeToken.position.y) * 0.75 },
 			scale: 0.75,
 		});
 
@@ -192,9 +194,47 @@ describe("Owlbear scene synchronization", () => {
 		await pushSnapshotToScene(next, initial);
 		const nextToken = items.find((item) => item.metadata?.[OWLBEAR_PARTICIPANT_ID_KEY] === 2 && item.type === "IMAGE");
 		expect(sdkMock.obr.viewport.animateTo).toHaveBeenCalledWith({
-			position: { x: 500 - nextToken.position.x, y: 400 - nextToken.position.y },
+			position: { x: (500 - nextToken.position.x) * 0.75, y: (400 - nextToken.position.y) * 0.75 },
 			scale: 0.75,
 		});
+	});
+
+	it.each([0.25, 0.75, 1, 2.5])("centers a distant token at scale %s after panning", async (scale) => {
+		const items = mockScene();
+		const initial = snapshot([1]);
+		await pushSnapshotToScene(initial);
+		const token = items.find((item) => item.type === "IMAGE");
+		token.position = { x: 4200, y: -1800 };
+		const viewportPosition = { x: -900, y: 650 };
+		sdkMock.obr.viewport.getPosition.mockResolvedValue(viewportPosition);
+		sdkMock.obr.viewport.getScale.mockResolvedValue(scale);
+		sdkMock.obr.viewport.inverseTransformPoint.mockImplementation(({ x, y }: { x: number; y: number }) =>
+			Promise.resolve({ x: (x - viewportPosition.x) / scale, y: (y - viewportPosition.y) / scale })
+		);
+
+		await pushSnapshotToScene({ ...initial, activeParticipantId: 1 }, initial);
+
+		const transform = sdkMock.obr.viewport.animateTo.mock.calls[0][0];
+		expect(transform.scale).toBe(scale);
+		expect(token.position.x * transform.scale + transform.position.x).toBeCloseTo(500);
+		expect(token.position.y * transform.scale + transform.position.y).toBeCloseTo(400);
+	});
+
+	it("keeps syncing tokens and highlights with auto-scroll disabled, then follows the next turn when enabled", async () => {
+		const items = mockScene();
+		const initial = snapshot([1, 2]);
+		initial.activeParticipantId = 1;
+		localStorage.setItem(AUTO_SCROLL_KEY, "false");
+
+		const result = await pushSnapshotToScene(initial);
+
+		expect(result.tokenLinks).toHaveLength(2);
+		expect(turnHighlights(items).some((item) => item.metadata[OWLBEAR_TURN_HIGHLIGHT_ROLE_KEY] === "active")).toBe(true);
+		expect(sdkMock.obr.viewport.animateTo).not.toHaveBeenCalled();
+
+		localStorage.setItem(AUTO_SCROLL_KEY, "true");
+		await pushSnapshotToScene({ ...initial, activeParticipantId: 2 }, initial);
+		expect(sdkMock.obr.viewport.animateTo).toHaveBeenCalledOnce();
 	});
 
 	it("removes only scene items owned by DnD DM Tools", async () => {
