@@ -468,6 +468,8 @@
 		box-sizing: border-box;
 		padding: 8px;
 		min-width: 380px;
+		min-height: 0;
+		overflow-y: auto;
 		container-type: inline-size;
 	}
 
