@@ -13,7 +13,8 @@ describe("PluginSettings", () => {
 			],
 		});
 
-		expect(result.settings.schemaVersion).toBe(4);
+		expect(result.settings.schemaVersion).toBe(5);
+		expect(result.settings.media.playlists).toEqual([]);
 		expect(result.settings.redesignEnabled).toBe(false);
 		expect(result.settings.workspace.layout).toBe("vertical-split");
 		expect(result.settings.workspace.tiles[0].tabs).toEqual(["bestiary"]);
@@ -93,5 +94,24 @@ describe("PluginSettings", () => {
 	it("rejects invalid persisted Owlbear ports and tokens", () => {
 		const result = loadPluginSettings({ owlbearSync: { enabled: true, port: 80, authToken: "short" } });
 		expect(result.settings.owlbearSync).toMatchObject({ enabled: true, port: null, authToken: null });
+	});
+
+	it("restores media and the new panel tabs after a restart", () => {
+		const result = loadPluginSettings({
+			schemaVersion: 5,
+			workspace: { layout: "single", focusedTile: 0, splitRatio: 0.5, tiles: [
+				{ tabs: ["player", "adventures"], activeTab: "adventures" },
+				{ tabs: [], activeTab: null },
+			] },
+			media: {
+				audioFiles: [{ id: "audio", path: "Music/scene.mp3", alias: "Сцена" }],
+				playlists: [{ id: "list", name: "Сессия", items: [{ id: "item", normalAudioId: "audio", combatAudioId: null, loop: true }] }],
+				adventures: [], musicVolume: 0.5, effectsVolume: 0.75,
+				activeAdventureId: null, activeSceneId: null,
+			},
+		});
+		expect(result.settings.workspace.tiles[0]).toEqual({ tabs: ["player", "adventures"], activeTab: "adventures" });
+		expect(result.settings.media.playlists[0].items[0].loop).toBe(true);
+		expect(result.settings.media.musicVolume).toBe(0.5);
 	});
 });

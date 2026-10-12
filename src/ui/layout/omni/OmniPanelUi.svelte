@@ -6,7 +6,9 @@
 		type AssistantWorkspaceState,
 		type PanelKey,
 	} from "src/domain/models/assistant/AssistantWorkspace";
-	import { setIcon, type IconName } from "obsidian";
+	import { Notice, setIcon, type IconName } from "obsidian";
+	import { onMount } from "svelte";
+	import type { MediaPlaybackService } from "src/data/services/MediaPlaybackService";
 	import type { PanelSearchResult } from "src/ui/components/sidepanel/PanelHost";
 	import { getPanelTypeColor, getRedesignPanelTypeColor } from "../uikit/PanelTypeColor";
 	import OmniPanelContent from "./OmniPanelContent.svelte";
@@ -33,6 +35,7 @@
 	let {
 		panels,
 		redesignEnabled = false,
+		mediaPlayback,
 		initialWorkspace,
 		search,
 		openResult,
@@ -43,6 +46,7 @@
 	}: {
 		panels: PanelSummary[];
 		redesignEnabled?: boolean;
+		mediaPlayback: MediaPlaybackService;
 		initialWorkspace: AssistantWorkspaceState;
 		search: (query: string) => Promise<PanelSearchResult[]>;
 		openResult: (result: PanelSearchResult) => Promise<void>;
@@ -55,8 +59,14 @@
 	function getInitialWorkspace() {
 		return initialWorkspace;
 	}
+	function getInitialPlayback() { return mediaPlayback.getSnapshot(); }
 
 	let workspace = $state(getInitialWorkspace());
+	let playback = $state(getInitialPlayback());
+	onMount(() => mediaPlayback.subscribe(() => { playback = mediaPlayback.getSnapshot(); }));
+	async function transport(action: () => Promise<void> | void) {
+		try { await action(); } catch (error) { new Notice(error instanceof Error ? error.message : "Не удалось воспроизвести аудио."); }
+	}
 	let query = $state("");
 	let results = $state<PanelSearchResult[]>([]);
 	const favoriteResults = $derived(redesignEnabled ? results.filter((result) => result.favorite) : []);
@@ -366,6 +376,15 @@
 		</div>
 	</div>
 
+	{#if playback.itemId}
+		<div class="now-playing" aria-label="Сейчас играет">
+			<span class="now-playing__title">♪ {playback.title ?? "Аудио"}{playback.combatMode ? " · бой" : ""}</span>
+			<button type="button" aria-label={playback.playing ? "Пауза" : "Продолжить"} onclick={() => transport(() => playback.playing ? mediaPlayback.pause() : mediaPlayback.resume())}>{playback.playing ? "Ⅱ" : "▶"}</button>
+			<button type="button" aria-label="Следующий элемент" onclick={() => transport(() => mediaPlayback.next())}>⏭</button>
+			<button type="button" aria-label="Остановить" onclick={() => transport(() => mediaPlayback.stop())}>■</button>
+		</div>
+	{/if}
+
 	{#if results.length}
 		<div class="omni-search-results" class:is-redesigned={redesignEnabled} aria-label="Результаты поиска">
 			{#if favoriteResults.length}
@@ -547,6 +566,9 @@
 </div>
 
 <style>
+	.now-playing { display: flex; align-items: center; gap: 4px; padding: 4px 8px; background: var(--background-secondary); border-bottom: 1px solid var(--background-modifier-border); }
+	.now-playing__title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+	.now-playing button { border: 0; background: transparent; color: var(--text-normal); cursor: pointer; min-width: 28px; min-height: 28px; }
 	.omni,
 	.tiles,
 	.tile,

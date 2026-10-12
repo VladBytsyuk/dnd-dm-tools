@@ -44,7 +44,7 @@
 	import { OwlbearSyncScheduler } from "./OwlbearSyncScheduler";
 	import ParticipantItem from "./ParticipantItem.svelte";
 
-	let { app, encounter, isEditable, isOwlbearIntegrationEnabled = () => false, subscribeOwlbearRuntimeStatus = () => () => {}, onPortraitClick, onConditionClick, onImageRequested, onOwlbearSnapshotCreated, onOwlbearTurnChanged } =
+	let { app, encounter, isEditable, isOwlbearIntegrationEnabled = () => false, subscribeOwlbearRuntimeStatus = () => () => {}, onPortraitClick, onConditionClick, onImageRequested, onOwlbearSnapshotCreated, onOwlbearTurnChanged, onCombatChanged } =
 		$props<{
 			app: any;
 			encounter: Encounter;
@@ -56,6 +56,7 @@
 			onImageRequested: (url: string) => Promise<string>;
 			onOwlbearSnapshotCreated: (snapshot: OwlbearEncounterSnapshot) => Promise<void>;
 			onOwlbearTurnChanged: (snapshot: OwlbearEncounterSnapshot) => Promise<void>;
+			onCombatChanged?: (active: boolean) => void;
 		}>();
 
 	function createEncounterManager() {
@@ -90,12 +91,16 @@
 	const unsubscribeOwlbearRuntimeStatus = subscribeToOwlbearRuntimeStatus();
 
 	onDestroy(() => {
+		if (trackerState.current.activeParticipantIndex != null) onCombatChanged?.(false);
 		owlbearSyncScheduler.dispose();
 		unsubscribeOwlbearRuntimeStatus();
 	});
 
 	encounterManager.setOnUpdate(() => {
+		const wasInCombat = trackerState.current.activeParticipantIndex != null;
 		trackerState.current = encounterManager.current;
+		const isInCombat = trackerState.current.activeParticipantIndex != null;
+		if (wasInCombat !== isInCombat) onCombatChanged?.(isInCombat);
 		trackerState.canUndo = encounterManager.canUndo;
 		trackerState.canRedo = encounterManager.canRedo;
 		if (owlbearSynced) {

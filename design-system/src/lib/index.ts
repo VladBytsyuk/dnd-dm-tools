@@ -34,6 +34,7 @@ export { default as Weight } from "lucide-svelte/icons/weight";
 export { default as Wrench } from "lucide-svelte/icons/wrench";
 export { default as SearchBar } from "./SearchBar.svelte";
 export type { SearchBarAction } from "./SearchBar.svelte";
+export { default as ProgressBar } from "./ProgressBar.svelte";
 export { default as BaseSmallItem } from "./BaseSmallItem.svelte";
 export type { SmallItemMetaIcon } from "./BaseSmallItem.svelte";
 export { default as FullItemHeader } from "./FullItemHeader.svelte";

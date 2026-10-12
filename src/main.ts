@@ -1,6 +1,7 @@
 import { FileSystemAdapter, Notice, Platform, Plugin, TFile, type Menu } from 'obsidian';
 import { registerThemeChangeListener } from './ui/theme';
 import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor/encounter_md_code_block_processor';
+import { registerMediaMdCodeBlockProcessors } from './ui/components/processor/media_md_code_block_processor';
 import { registerNoteLinkProcessor } from './ui/components/processor/note_link_processor';
 import { registerAddEncounterCommand } from './ui/components/command/add_encounter_command';
 import { UiEventListener } from './data/ui_event_listener';
@@ -57,6 +58,9 @@ import { clearActiveOwlbearPreview } from './data/owlbear/OwlbearPreviewLifecycl
 import { createOwlbearPairingCode } from './data/owlbear/OwlbearPairing';
 import { ManualEntityArchiveService, type ManualEntityImportReport } from './data/services';
 import { PluginUpdateService } from './data/services/PluginUpdateService';
+import { MediaPlaybackService } from './data/services/MediaPlaybackService';
+import { updateVaultFilePath, type MediaState } from './domain/models/media/MediaState';
+import { PlayerPanel, AdventuresPanel } from './ui/components/sidepanel/MediaPanels';
 
 export type OwlbearRuntimeStatus = {
 	cloudflared: CloudflaredInstallStatus;
@@ -100,6 +104,9 @@ export default class DndStatblockPlugin extends Plugin {
 	};
 	private readonly owlbearRuntimeListeners = new Set<() => void>();
 	private pluginUpdateService: PluginUpdateService;
+	private mediaPlayback: MediaPlaybackService;
+	private readonly mediaListeners = new Set<() => void>();
+	private settingsSaveQueue: Promise<void> = Promise.resolve();
 
 	#uiEventListener: IUiEventListener;
 
@@ -107,7 +114,17 @@ export default class DndStatblockPlugin extends Plugin {
 	async onload() {
 		const loadResult = loadPluginSettings(await this.loadData());
 		this.settings = loadResult.settings;
+		this.mediaPlayback = new MediaPlaybackService(this.app, () => this.settings.media);
 		this.assistantWorkspace = this.settings.workspace;
+		this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
+			const tracked = this.settings.media.audioFiles.some((audio) => audio.path === oldPath || audio.path.startsWith(`${oldPath}/`))
+				|| this.settings.media.adventures.some((adventure) => adventure.scenes.some((scene) => scene.path === oldPath || scene.path.startsWith(`${oldPath}/`)));
+			if (!tracked) return;
+			void this.updateMedia((media) => Object.assign(media, updateVaultFilePath(media, oldPath, file.path))).catch((error) => {
+				new Notice(error instanceof Error ? error.message : "Не удалось обновить путь файла.");
+			});
+		}));
+		this.registerEvent(this.app.vault.on("delete", () => this.notifyMedia()));
 		this.removeStaleOwlbearPreviewTab();
 		this.shouldResetLegacyViews = loadResult.shouldResetLegacyViews;
 		await this.resetOwlbearSnapshotForNewSession();
@@ -125,6 +142,7 @@ export default class DndStatblockPlugin extends Plugin {
 				this.dmScreenFeature.repository!,
 				this.#uiEventListener,
 			);
+			registerMediaMdCodeBlockProcessors(this);
 			registerNoteLinkProcessor(this, this.#uiEventListener);
 			registerAddEncounterCommand(this);
 			registerThemeChangeListener();
@@ -135,6 +153,7 @@ export default class DndStatblockPlugin extends Plugin {
 	}
 
 	onunload() {
+		this.mediaPlayback.dispose();
 		this.cloudflaredInstaller?.dispose();
 		void this.stopOwlbearIntegration();
 		this.#dispose();
@@ -148,6 +167,42 @@ export default class DndStatblockPlugin extends Plugin {
 
 	getSettings(): PluginSettingsState {
 		return this.settings;
+	}
+
+	getMediaState(): MediaState { return this.settings.media; }
+	getMediaPlayback(): MediaPlaybackService { return this.mediaPlayback; }
+	subscribeMedia(listener: () => void): () => void {
+		this.mediaListeners.add(listener);
+		return () => this.mediaListeners.delete(listener);
+	}
+	private notifyMedia(): void {
+		this.mediaPlayback.onMediaChanged();
+		for (const listener of this.mediaListeners) listener();
+	}
+	async updateMedia(change: (media: MediaState) => void): Promise<void> {
+		const media = structuredClone(this.settings.media);
+		change(media);
+		this.settings = { ...this.settings, media };
+		this.notifyMedia();
+		await this.persistSettings();
+	}
+	private persistSettings(): Promise<void> {
+		this.settingsSaveQueue = this.settingsSaveQueue.catch(() => {}).then(() => this.saveData(this.settings));
+		return this.settingsSaveQueue;
+	}
+	async activateScene(adventureId: string, sceneId: string): Promise<void> {
+		const adventure = this.settings.media.adventures.find((item) => item.id === adventureId);
+		const scene = adventure?.scenes.find((item) => item.id === sceneId);
+		if (!adventure || !scene) throw new Error("Сцена не найдена.");
+		const file = this.app.vault.getFileByPath(scene.path);
+		if (!file) throw new Error(`Файл сцены не найден: ${scene.path}`);
+		await this.updateMedia((media) => {
+			media.activeAdventureId = adventureId;
+			media.activeSceneId = sceneId;
+		});
+		await this.app.workspace.getLeaf("tab").openFile(file);
+		if (scene.playlistId && scene.itemId) await this.mediaPlayback.play(scene.playlistId, scene.itemId);
+		else this.mediaPlayback.stop();
 	}
 
 	getPluginUpdateService(): PluginUpdateService { return this.pluginUpdateService; }
@@ -165,10 +220,10 @@ export default class DndStatblockPlugin extends Plugin {
 		this.settings = {
 			...this.settings,
 			...patch,
-			schemaVersion: 4,
+			schemaVersion: 5,
 		};
 		this.assistantWorkspace = this.settings.workspace;
-		await this.saveData(this.settings);
+		await this.persistSettings();
 	}
 
 	async persistLatestOwlbearSnapshot(snapshot: OwlbearEncounterSnapshot): Promise<void> {
@@ -611,6 +666,8 @@ export default class DndStatblockPlugin extends Plugin {
 			.map((feature) => feature.sidePanel)
 			.filter((panel): panel is NonNullable<typeof panel> => Boolean(panel));
 		panels.push(new InitiativeTrackerPanel(this, this.#uiEventListener));
+		panels.push(new PlayerPanel(this));
+		panels.push(new AdventuresPanel(this));
 		panels.push(new OwlbearPreviewPanel(this));
 		await this.panelManager.register(panels, this.shouldResetLegacyViews);
 		await this.persistAssistantWorkspace(this.assistantWorkspace);

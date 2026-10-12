@@ -15,6 +15,7 @@ import type { PanelHost, PanelSearchResult } from "./PanelHost";
 import { sortPanelResultsBySearchRelevance } from "./OmniSearchRanking";
 import { PanelSessionCache } from "./PanelSessionCache";
 import { detachLegacyPanelViews } from "./LegacyPanelViews";
+import type { MediaPlaybackService } from "src/data/services/MediaPlaybackService";
 
 export const OMNI_VIEW_ID = "dnd-dm-tools-omni";
 const OMNI_ICON_ID = "dnd-dm-tools-omni";
@@ -87,6 +88,7 @@ export class PanelManager {
 	}
 
 	isRedesignEnabled(): boolean { return this.plugin.getSettings().redesignEnabled; }
+	getMediaPlayback(): MediaPlaybackService { return this.plugin.getMediaPlayback(); }
 
 	private isPanelAvailable(key: PanelKey): boolean {
 		return key !== "classes" || !this.isRedesignEnabled();
@@ -246,6 +248,7 @@ class AssistantItemView extends ItemView {
 				panels: this.manager.getPanelSummaries(),
 				initialWorkspace: this.manager.getVisibleWorkspace(),
 				redesignEnabled: this.manager.isRedesignEnabled(),
+				mediaPlayback: this.manager.getMediaPlayback(),
 				search: (query: string) => this.manager.search(query),
 				openResult: (result: PanelSearchResult) => this.manager.openSearchResult(result),
 				mountPanel: (key: PanelKey, element: Element) => this.manager.mountPanel(key, element),

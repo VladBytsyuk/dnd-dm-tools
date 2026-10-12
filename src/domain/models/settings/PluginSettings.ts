@@ -4,12 +4,14 @@ import {
 	type AssistantWorkspaceState,
 } from "../assistant/AssistantWorkspace";
 import type { OwlbearEncounterSnapshot } from "../owlbear/OwlbearSync";
+import { createDefaultMediaState, loadMediaState, type MediaState } from "../media/MediaState";
 
 export interface PluginSettingsState {
-	schemaVersion: 4;
+	schemaVersion: 5;
 	redesignEnabled: boolean;
 	workspace: AssistantWorkspaceState;
 	owlbearSync: OwlbearSyncSettings;
+	media: MediaState;
 }
 
 export interface OwlbearSyncSettings {
@@ -27,10 +29,11 @@ export interface PluginSettingsLoadResult {
 
 export function createDefaultPluginSettings(): PluginSettingsState {
 	return {
-		schemaVersion: 4,
+		schemaVersion: 5,
 		redesignEnabled: false,
 		workspace: createDefaultAssistantWorkspace(),
 		owlbearSync: { enabled: false, port: null, authToken: null },
+		media: createDefaultMediaState(),
 	};
 }
 
@@ -42,15 +45,16 @@ export function loadPluginSettings(value: unknown): PluginSettingsLoadResult {
 
 	const stored = value as Record<string, any>;
 	const workspaceResult = loadAssistantWorkspace(
-			(stored.schemaVersion === 2 || stored.schemaVersion === 3 || stored.schemaVersion === 4) ? stored.workspace : stored,
+			(stored.schemaVersion === 2 || stored.schemaVersion === 3 || stored.schemaVersion === 4 || stored.schemaVersion === 5) ? stored.workspace : stored,
 	);
 
 	return {
 		settings: {
-			schemaVersion: 4,
+			schemaVersion: 5,
 			redesignEnabled: stored.redesignEnabled === true,
 			workspace: workspaceResult.workspace,
 			owlbearSync: loadOwlbearSyncSettings(stored.owlbearSync),
+			media: loadMediaState(stored.media),
 		},
 		shouldResetLegacyViews: workspaceResult.shouldResetLegacyViews,
 	};
