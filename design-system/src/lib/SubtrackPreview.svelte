@@ -18,5 +18,5 @@
 </div>
 
 <style>
-	.preview { width: 455px; max-width: 100%; }
+	.preview { width: 100%; min-width: 0; }
 </style>
