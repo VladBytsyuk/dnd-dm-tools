@@ -169,6 +169,8 @@ export { default as SmallClass } from "./SmallClass.svelte";
 export { default as SmallEquipment } from "./SmallEquipment.svelte";
 export { default as SmallBackground } from "./SmallBackground.svelte";
 export { default as SmallDmScreen } from "./SmallDmScreen.svelte";
+export { default as SmallTrack } from "./SmallTrack.svelte";
+export { default as SmallPlaylist } from "./SmallPlaylist.svelte";
 export { default as EyeDashed } from "./icons/EyeDashed.svelte";
 export { default as HandFist } from "./icons/HandFist.svelte";
 export { default as One } from "./icons/One.svelte";

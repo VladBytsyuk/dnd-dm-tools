@@ -11,6 +11,8 @@
 	import SmallSpell from "./SmallSpell.svelte";
 	import SmallStatblock from "./SmallStatblock.svelte";
 	import SmallWeapon from "./SmallWeapon.svelte";
+	import SmallTrack from "./SmallTrack.svelte";
+	import SmallPlaylist from "./SmallPlaylist.svelte";
 
 	type Props = { theme?: "dark" | "light" };
 	let { theme = "dark" }: Props = $props();
@@ -29,6 +31,8 @@
 	<SmallEquipment title="Арбалетные болты" subtitle="Crossbow Bolt" source="PHB" {theme} />
 	<SmallBackground title="Моряк" subtitle="Sailor" source="PHB" {theme} />
 	<SmallDmScreen {...dmScreenProps} {theme} />
+	<SmallTrack title="Подземье" atmosphere="напряженное" source="PHB" hasCombat={true} {theme} />
+	<SmallPlaylist title="Дорога в Подземье" atmosphere="напряженное" source="PHB" trackCount={3} {theme} />
 </div>
 
 <style>
