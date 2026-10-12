@@ -15,6 +15,7 @@
 		currentTime?: number;
 		duration?: number;
 		disabled?: boolean;
+		theme?: "dark" | "light";
 		onPlayingChange?: (playing: boolean) => void;
 		onSeek?: (time: number) => void;
 		onAdd?: () => void;
@@ -28,6 +29,7 @@
 		currentTime = $bindable(0),
 		duration = 0,
 		disabled = false,
+		theme = "dark",
 		onPlayingChange,
 		onSeek,
 		onAdd,
@@ -54,7 +56,7 @@
 	}
 </script>
 
-<section class="subtrack" aria-label={title}>
+<section class="subtrack" data-theme={theme} aria-label={title}>
 	<header>
 		<span class="title">{title}</span>
 		{#if fileName}
@@ -73,7 +75,7 @@
 				<span class="time">{formatTime(elapsed)} / {formatTime(total)}</span>
 			</div>
 			<div class="progress">
-				<ProgressBar value={progress} onValueChange={seek} disabled={disabled || total === 0} ariaLabel={`Позиция воспроизведения: ${fileName}`} />
+				<ProgressBar value={progress} onValueChange={seek} disabled={disabled || total === 0} ariaLabel={`Позиция воспроизведения: ${fileName}`} {theme} />
 			</div>
 		</div>
 	{:else}
@@ -101,6 +103,8 @@
 		font-weight: 400;
 		line-height: 17px;
 	}
+
+	.subtrack[data-theme="light"] { background: rgb(48 48 48 / 8%); color: #1f2937; }
 
 	header, .file-row {
 		display: flex;
@@ -148,6 +152,7 @@
 	}
 
 	.subtrack button.icon-button:hover:not(:disabled) { background: rgb(255 255 255 / 10%); }
+	.subtrack[data-theme="light"] button.icon-button:hover:not(:disabled) { background: rgb(15 23 42 / 8%); }
 	.subtrack button.icon-button:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
 	.subtrack button.icon-button:disabled { opacity: 0.4; cursor: default; }
 	.subtrack button.add { align-self: center; flex-basis: 24px; width: 24px; height: 24px; }

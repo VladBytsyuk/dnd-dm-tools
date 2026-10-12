@@ -20,3 +20,20 @@ export const Empty: Story = { args: { fileName: undefined, currentTime: 0 } };
 export const Combat: Story = { args: { title: "Боевой", fileName: "underdark_battle.mp3" } };
 export const LongFileName: Story = { args: { fileName: "underdark_tunnel_atmosphere_extended_version.mp3" } };
 export const Disabled: Story = { args: { disabled: true } };
+
+export const Light: Story = {
+	globals: { backgrounds: { value: "light" } },
+	args: { theme: "light", playing: true },
+};
+export const LightStopped: Story = {
+	globals: { backgrounds: { value: "light" } },
+	args: { theme: "light", playing: false },
+};
+export const LightEmpty: Story = {
+	globals: { backgrounds: { value: "light" } },
+	args: { theme: "light", fileName: undefined, currentTime: 0 },
+};
+export const LightDisabled: Story = {
+	globals: { backgrounds: { value: "light" } },
+	args: { theme: "light", disabled: true },
+};

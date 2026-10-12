@@ -5,6 +5,7 @@
 		onValueChange?: (value: number) => void;
 		disabled?: boolean;
 		ariaLabel?: string;
+		theme?: "dark" | "light";
 	};
 
 	let {
@@ -12,6 +13,7 @@
 		onValueChange,
 		disabled = false,
 		ariaLabel = "Позиция воспроизведения",
+		theme = "dark",
 	}: Props = $props();
 
 	let position = $derived(Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0);
@@ -25,6 +27,7 @@
 
 <input
 	class="progress-bar"
+	data-theme={theme}
 	type="range"
 	min="0"
 	max="100"
@@ -38,6 +41,9 @@
 
 <style>
 	.progress-bar {
+		--progress-color: #d9d9d9;
+		--progress-unplayed: rgb(217 217 217 / 50%);
+		--progress-focus: rgb(217 217 217 / 30%);
 		display: block;
 		width: 100%;
 		min-width: 0;
@@ -45,8 +51,14 @@
 		margin: 0;
 		padding: 0;
 		appearance: none;
-		background: linear-gradient(to right, #d9d9d9 var(--progress), rgb(217 217 217 / 50%) var(--progress)) center / 100% 2px no-repeat;
+		background: linear-gradient(to right, var(--progress-color) var(--progress), var(--progress-unplayed) var(--progress)) center / 100% 2px no-repeat;
 		cursor: pointer;
+	}
+
+	.progress-bar[data-theme="light"] {
+		--progress-color: #1f2937;
+		--progress-unplayed: rgb(31 41 55 / 50%);
+		--progress-focus: rgb(31 41 55 / 30%);
 	}
 
 	.progress-bar::-webkit-slider-runnable-track {
@@ -66,7 +78,7 @@
 		border: 0;
 		border-radius: 50%;
 		appearance: none;
-		background: #d9d9d9;
+		background: var(--progress-color);
 	}
 
 	.progress-bar::-moz-range-thumb {
@@ -74,7 +86,7 @@
 		height: 4px;
 		border: 0;
 		border-radius: 50%;
-		background: #d9d9d9;
+		background: var(--progress-color);
 	}
 
 	.progress-bar:focus-visible {
@@ -82,11 +94,11 @@
 	}
 
 	.progress-bar:focus-visible::-webkit-slider-thumb {
-		box-shadow: 0 0 0 5px rgb(217 217 217 / 30%);
+		box-shadow: 0 0 0 5px var(--progress-focus);
 	}
 
 	.progress-bar:focus-visible::-moz-range-thumb {
-		box-shadow: 0 0 0 5px rgb(217 217 217 / 30%);
+		box-shadow: 0 0 0 5px var(--progress-focus);
 	}
 
 	.progress-bar:disabled {

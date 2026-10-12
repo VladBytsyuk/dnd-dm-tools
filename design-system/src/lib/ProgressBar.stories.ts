@@ -22,3 +22,13 @@ export const Interactive: Story = {
 export const Disabled: Story = {
 	args: { value: 65, disabled: true },
 };
+
+export const Light: Story = {
+	globals: { backgrounds: { value: "light" } },
+	args: { value: 65, theme: "light" },
+};
+
+export const LightDisabled: Story = {
+	globals: { backgrounds: { value: "light" } },
+	args: { value: 65, theme: "light", disabled: true },
+};
