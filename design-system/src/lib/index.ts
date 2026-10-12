@@ -35,6 +35,7 @@ export { default as Wrench } from "lucide-svelte/icons/wrench";
 export { default as SearchBar } from "./SearchBar.svelte";
 export type { SearchBarAction } from "./SearchBar.svelte";
 export { default as ProgressBar } from "./ProgressBar.svelte";
+export { default as Player } from "./Player.svelte";
 export { default as Subtrack } from "./Subtrack.svelte";
 export { default as Track } from "./Track.svelte";
 export type { TrackAudio, TrackVariant } from "./Track.svelte";
