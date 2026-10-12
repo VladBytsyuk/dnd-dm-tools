@@ -36,6 +36,8 @@ export { default as SearchBar } from "./SearchBar.svelte";
 export type { SearchBarAction } from "./SearchBar.svelte";
 export { default as ProgressBar } from "./ProgressBar.svelte";
 export { default as Subtrack } from "./Subtrack.svelte";
+export { default as Track } from "./Track.svelte";
+export type { TrackAudio, TrackVariant } from "./Track.svelte";
 export { default as BaseSmallItem } from "./BaseSmallItem.svelte";
 export type { SmallItemMetaIcon } from "./BaseSmallItem.svelte";
 export { default as FullItemHeader } from "./FullItemHeader.svelte";

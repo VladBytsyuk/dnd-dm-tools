@@ -15,6 +15,7 @@
 	type Props = {
 		russianName: string;
 		englishName: string;
+		showEnglishName?: boolean;
 		entityLink: string;
 		badge?: string | number;
 		badgeInputType?: "text" | "number";
@@ -31,6 +32,7 @@
 	let {
 		russianName = $bindable(""),
 		englishName = $bindable(""),
+		showEnglishName = true,
 		entityLink = $bindable(""),
 		badge = $bindable(),
 		badgeInputType = "text",
@@ -84,15 +86,17 @@
 	<div class="names">
 		{#if editable}
 			<input class="name russian-name" bind:value={russianName} placeholder="Русское название" aria-label="Русское название" />
-			<input class="name english-name" bind:value={englishName} placeholder="English name" aria-label="Английское название" />
+			{#if showEnglishName}<input class="name english-name" bind:value={englishName} placeholder="English name" aria-label="Английское название" />{/if}
 			<input class="entity-link" bind:value={entityLink} placeholder="/bestiary/slug" aria-label="Ссылка на сущность" />
 		{:else}
 			<button type="button" class="name russian-name" onclick={() => copyName(russianName)} aria-label={`Скопировать: ${russianName}`}>
 				{russianName}
 			</button>
-			<button type="button" class="name english-name" onclick={() => copyName(englishName)} aria-label={`Скопировать: ${englishName}`}>
-				{englishName}
-			</button>
+			{#if showEnglishName}
+				<button type="button" class="name english-name" onclick={() => copyName(englishName)} aria-label={`Скопировать: ${englishName}`}>
+					{englishName}
+				</button>
+			{/if}
 			<button type="button" class="entity-link" onclick={copyEntityLink} aria-label={`Скопировать ссылку: dnd:${entityLink}`}>
 				{entityLink}
 			</button>

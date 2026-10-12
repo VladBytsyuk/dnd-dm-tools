@@ -79,6 +79,7 @@
 		border-radius: 50%;
 		appearance: none;
 		background: var(--progress-color);
+		transition: transform 120ms ease;
 	}
 
 	.progress-bar::-moz-range-thumb {
@@ -87,6 +88,17 @@
 		border: 0;
 		border-radius: 50%;
 		background: var(--progress-color);
+		transition: transform 120ms ease;
+	}
+
+	.progress-bar:hover:not(:disabled)::-webkit-slider-thumb { transform: scale(2); }
+	.progress-bar:hover:not(:disabled)::-moz-range-thumb { transform: scale(2); }
+	.progress-bar:active:not(:disabled)::-webkit-slider-thumb { transform: scale(3); }
+	.progress-bar:active:not(:disabled)::-moz-range-thumb { transform: scale(3); }
+
+	@media (prefers-reduced-motion: reduce) {
+		.progress-bar::-webkit-slider-thumb { transition: none; }
+		.progress-bar::-moz-range-thumb { transition: none; }
 	}
 
 	.progress-bar:focus-visible {
