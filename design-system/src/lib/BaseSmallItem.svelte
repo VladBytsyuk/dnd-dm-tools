@@ -102,7 +102,7 @@
 		{#if description}<p title={description}>{description}</p>{/if}
 		</div>
 	{/if}
-	{#if source || secondarySource || Icon}
+	{#if source || secondarySource || centerIcons.length || bottomIcons.length || Icon}
 		<div class="meta">
 			{#if source}<span>{source}</span>{/if}
 			{#if centerIcons.length}

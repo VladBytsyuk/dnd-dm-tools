@@ -38,6 +38,8 @@ export { default as ProgressBar } from "./ProgressBar.svelte";
 export { default as Subtrack } from "./Subtrack.svelte";
 export { default as Track } from "./Track.svelte";
 export type { TrackAudio, TrackVariant } from "./Track.svelte";
+export { default as Playlist } from "./Playlist.svelte";
+export type { PlaylistTrack } from "./Playlist.svelte";
 export { default as BaseSmallItem } from "./BaseSmallItem.svelte";
 export type { SmallItemMetaIcon } from "./BaseSmallItem.svelte";
 export { default as FullItemHeader } from "./FullItemHeader.svelte";

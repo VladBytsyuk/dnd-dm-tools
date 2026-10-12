@@ -3,7 +3,7 @@ import Track from "./Track.svelte";
 import TrackPreview from "./TrackPreview.svelte";
 
 const meta = {
-	title: "Components/Track",
+	title: "Items/Track",
 	component: Track,
 	render: (args) => ({ Component: TrackPreview, props: args }),
 	parameters: { layout: "padded" },
