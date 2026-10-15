@@ -1,6 +1,7 @@
 <script lang="ts">
 	import "@fontsource/golos-text/400.css";
 	import "@fontsource/golos-text/700.css";
+	import type { Snippet } from "svelte";
 
 	export type FullItemSource = {
 		shortName: string;
@@ -20,6 +21,7 @@
 		badge?: string | number;
 		badgeInputType?: "text" | "number";
 		info?: string;
+		infoContent?: Snippet;
 		source?: FullItemSource;
 		sourceSuffix?: string;
 		wrapRussianName?: boolean;
@@ -37,6 +39,7 @@
 		badge = $bindable(),
 		badgeInputType = "text",
 		info = $bindable(),
+		infoContent,
 		source = $bindable(),
 		sourceSuffix = "",
 		wrapRussianName = false,
@@ -103,7 +106,7 @@
 		{/if}
 	</div>
 
-	{#if badge !== undefined || (editable && info !== undefined) || info || source}
+	{#if badge !== undefined || (editable && info !== undefined) || info || infoContent || source}
 		<div class="details">
 			{#if badge !== undefined}
 				{#if editable}
@@ -112,7 +115,9 @@
 					<span class="badge">{badge}</span>
 				{/if}
 			{/if}
-			{#if (editable && info !== undefined) || info}
+			{#if infoContent}
+				{@render infoContent()}
+			{:else if (editable && info !== undefined) || info}
 				{#if editable}
 					<input class="info" bind:value={info} oninput={handleInfoInput} placeholder="Тип или категория" aria-label="Описание" />
 				{:else}

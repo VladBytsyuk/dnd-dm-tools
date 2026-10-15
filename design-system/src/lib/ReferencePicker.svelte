@@ -1,0 +1,112 @@
+<script lang="ts">
+	import { tick } from "svelte";
+	import ChevronDown from "lucide-svelte/icons/chevron-down";
+	import X from "lucide-svelte/icons/x";
+	import "@fontsource/golos-text/400.css";
+
+	export type ReferenceOption = { value: string; label: string };
+	type Props = {
+		label: string;
+		options?: ReferenceOption[];
+		value?: string | null;
+		selectedLabel?: string;
+		placeholder?: string;
+		onChange?: (value: string | null) => void;
+		align?: "start" | "end";
+		theme?: "dark" | "light";
+	};
+	let { label, options = [], value = $bindable<string | null>(null), selectedLabel, placeholder = "Выбрать", onChange, align = "start", theme = "dark" }: Props = $props();
+	const id = $props.id();
+	let open = $state(false);
+	let query = $state("");
+	let activeIndex = $state(0);
+	let root: HTMLDivElement;
+	let trigger: HTMLButtonElement;
+	let search = $state<HTMLInputElement>();
+	let filtered = $derived(options.filter((option) => option.label.toLocaleLowerCase("ru").includes(query.trim().toLocaleLowerCase("ru"))));
+	let currentLabel = $derived(selectedLabel ?? options.find((option) => option.value === value)?.label ?? value ?? placeholder);
+	let active = $derived(filtered.length ? Math.max(0, Math.min(activeIndex, filtered.length - 1)) : -1);
+
+	async function show(last = false) {
+		query = "";
+		const selected = options.findIndex((option) => option.value === value);
+		activeIndex = selected >= 0 ? selected : last ? options.length - 1 : 0;
+		open = true;
+		await tick();
+		search?.focus();
+		scrollActive();
+	}
+	function close(restoreFocus = true) {
+		open = false;
+		query = "";
+		if (restoreFocus) trigger?.focus();
+	}
+	function choose(next: string | null) {
+		value = next;
+		onChange?.(next);
+		close();
+	}
+	function scrollActive() {
+		root?.querySelector<HTMLElement>(`[data-option-index="${active}"]`)?.scrollIntoView?.({ block: "nearest" });
+	}
+	async function handleKey(event: KeyboardEvent) {
+		if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); return; }
+		if (event.key === "Enter") {
+			event.preventDefault();
+			if (active >= 0) choose(filtered[active].value);
+			return;
+		}
+		if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+		event.preventDefault();
+		if (event.key === "Home") activeIndex = 0;
+		else if (event.key === "End") activeIndex = Math.max(0, filtered.length - 1);
+		else if (filtered.length) activeIndex = (active + (event.key === "ArrowDown" ? 1 : -1) + filtered.length) % filtered.length;
+		await tick();
+		scrollActive();
+	}
+</script>
+
+<svelte:window onpointerdown={(event) => { if (open && event.target instanceof Node && !root.contains(event.target)) close(); }} />
+
+<div class="reference-picker" data-theme={theme} data-align={align} bind:this={root} onfocusout={(event) => { if (open && event.relatedTarget instanceof Node && !root.contains(event.relatedTarget)) close(false); }}>
+	<div class="picker-controls">
+		<button class="picker-trigger" type="button" bind:this={trigger} aria-label={label} aria-haspopup="listbox" aria-expanded={open} aria-controls={`${id}-list`} title={value ? currentLabel : undefined} onclick={() => open ? close() : show()} onkeydown={(event) => { if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); void show(event.key === "ArrowUp"); } else if (event.key === "Escape" && open) close(); }}>
+			<span>{value ? currentLabel : placeholder}</span><ChevronDown size={12} aria-hidden={true} />
+		</button>
+		{#if value !== null}<button class="clear" type="button" aria-label={`Убрать: ${label}`} title={`Убрать: ${label}`} onclick={() => choose(null)}><X size={12} aria-hidden={true} /></button>{/if}
+	</div>
+	{#if open}
+		<div class="picker-panel">
+			<input bind:this={search} role="combobox" aria-label={`Поиск: ${label}`} aria-expanded="true" aria-autocomplete="list" aria-controls={`${id}-list`} aria-activedescendant={active >= 0 ? `${id}-option-${active}` : undefined} placeholder="Поиск…" value={query} oninput={(event) => { query = event.currentTarget.value; activeIndex = 0; }} onkeydown={handleKey} />
+			<div class="options" role="listbox" id={`${id}-list`} aria-label={label}>
+				{#each filtered as option, index (option.value)}
+					<button class="option" class:highlighted={index === active} type="button" role="option" id={`${id}-option-${index}`} data-option-index={index} aria-selected={option.value === value} tabindex="-1" title={option.label} onpointermove={() => { activeIndex = index; }} onclick={() => choose(option.value)}>{option.label}</button>
+				{/each}
+			</div>
+			{#if !filtered.length}<p class="empty" role="status">{options.length ? "Ничего не найдено" : "Нет доступных вариантов"}</p>{/if}
+		</div>
+	{/if}
+</div>
+
+<style>
+	.reference-picker { position: relative; min-width: 0; max-width: 100%; color: #fff; font: 12px/15px "Golos Text", sans-serif; text-align: left; }
+	.reference-picker[data-theme="light"] { color: #1f2937; }
+	.picker-controls { display: flex; align-items: center; gap: 2px; min-width: 0; }
+	.reference-picker button { all: unset; box-sizing: border-box; cursor: pointer; border-radius: 4px; }
+	.reference-picker .picker-trigger { display: flex; flex: 1; align-items: center; justify-content: space-between; gap: 4px; min-width: 0; padding: 3px 4px; background: rgb(212 212 212 / 20%); }
+	.picker-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.picker-trigger :global(svg) { flex: 0 0 auto; }
+	.reference-picker .clear { display: grid; flex: 0 0 20px; width: 20px; height: 20px; place-items: center; }
+	.reference-picker button:hover { background: rgb(212 212 212 / 25%); }
+	.reference-picker button:focus-visible, .reference-picker input:focus-visible { outline: 2px solid currentcolor; outline-offset: 1px; }
+	.picker-panel { position: absolute; left: 0; top: calc(100% + 4px); z-index: 10; box-sizing: border-box; width: max(100%, 240px); max-width: min(320px, calc(100vw - 32px)); padding: 6px; border: 1px solid rgb(255 255 255 / 25%); border-radius: 6px; background: #303030; box-shadow: 0 4px 12px rgb(0 0 0 / 35%); }
+	.reference-picker[data-align="end"] .picker-panel { left: auto; right: 0; }
+	.reference-picker[data-theme="light"] .picker-panel { background: #fff; border-color: rgb(31 41 55 / 25%); }
+	.reference-picker input { box-sizing: border-box; width: 100%; min-width: 0; padding: 5px; border: 1px solid rgb(127 127 127 / 60%); border-radius: 3px; background: transparent; color: inherit; font: inherit; }
+	.reference-picker input::placeholder { color: inherit; opacity: 0.6; }
+	.options { display: flex; flex-direction: column; gap: 2px; max-height: 200px; overflow-y: auto; margin-top: 4px; }
+	.reference-picker .option { flex: 0 0 auto; padding: 5px; overflow-wrap: anywhere; }
+	.reference-picker .option.highlighted { background: rgb(127 127 127 / 30%); }
+	.option[aria-selected="true"] { font-weight: 700; }
+	.empty { margin: 6px 0 2px; opacity: 0.7; }
+</style>

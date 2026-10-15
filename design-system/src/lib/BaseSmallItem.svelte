@@ -3,6 +3,7 @@
 	import "@fontsource/golos-text/700.css";
 	import "./colors.css";
 	import type { SvelteHTMLElements } from "svelte/elements";
+	import type { Snippet } from "svelte";
 	import UserCog from "lucide-svelte/icons/user-cog";
 	import Star from "lucide-svelte/icons/star";
 
@@ -27,6 +28,7 @@
 		centerIcons?: SmallItemMetaIcon[];
 		bottomIcons?: SmallItemMetaIcon[];
 		metaWidth?: number;
+		footer?: Snippet;
 		icon?: Icon;
 		favorite?: boolean;
 		state?: "default" | "hovered" | "clicked";
@@ -51,6 +53,7 @@
 		centerIcons = [],
 		bottomIcons = [],
 		metaWidth = 32,
+		footer,
 		icon: Icon,
 		favorite = false,
 		state = "default",
@@ -80,6 +83,7 @@
 	data-has-meta={Boolean(source || secondarySource || centerIcons.length || bottomIcons.length || Icon)}
 	data-has-image={Boolean(imageSrc)}
 	data-has-description={Boolean(description)}
+	data-has-footer={Boolean(footer)}
 	style={`--accent-color: ${resolvedAccentColor}; --primary-color: ${resolvedPrimaryColor}; --secondary-color: ${resolvedSecondaryColor}; --overlay-opacity: ${resolvedOverlayOpacity}; --item-height: ${height}px; --meta-width: ${metaWidth}px; --value-font-size: ${valueFontSize}px`}
 >
 	{#if accentColor}
@@ -125,6 +129,7 @@
 			{#if Icon}<Icon size={16} strokeWidth={1} />{/if}
 		</div>
 	{/if}
+	{#if footer}<div class="footer">{@render footer()}</div>{/if}
 </article>
 
 <style>
@@ -147,6 +152,8 @@
 		font-family: "Golos Text", sans-serif;
 	}
 	.small-item[data-has-description="true"] { height: max(var(--item-height), 72px); }
+	.small-item[data-has-footer="true"] { grid-template-rows: minmax(0, 1fr) auto; }
+	.footer { grid-column: 1 / -1; min-width: 0; padding: 0 8px 8px; font-size: 8px; line-height: 10px; }
 
 	.small-item::after {
 		position: absolute;
