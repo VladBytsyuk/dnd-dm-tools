@@ -5,6 +5,17 @@ import ReferencePicker from "../../../design-system/src/lib/ReferencePicker.svel
 const options = [{ value: "cult", label: "Культ Вазрона" }, { value: "shamat", label: "Дорога в Шамат" }];
 
 describe("ReferencePicker", () => {
+	it("opens a controlled panel without a trigger and reports closing without changing the value", async () => {
+		const onChange = vi.fn();
+		const onClose = vi.fn();
+		render(ReferencePicker, { label: "Следующая заметка", options, open: true, panelOnly: true, onChange, onClose });
+		expect(screen.queryByRole("button", { name: "Следующая заметка" })).toBeNull();
+		expect(screen.getByRole("combobox")).toBeTruthy();
+		await fireEvent.keyDown(screen.getByRole("combobox"), { key: "Escape" });
+		expect(onClose).toHaveBeenCalledOnce();
+		expect(onChange).not.toHaveBeenCalled();
+		expect(screen.queryByRole("listbox")).toBeNull();
+	});
 	it("filters existing references and reports selecting and clearing a value", async () => {
 		const onChange = vi.fn();
 		render(ReferencePicker, { label: "Приключение", options, onChange });

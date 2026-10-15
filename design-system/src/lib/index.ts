@@ -178,6 +178,8 @@ export { default as FullScene } from "./FullScene.svelte";
 export type { FullSceneAdventure, FullSceneTrack, FullSceneEntity } from "./FullScene.svelte";
 export { default as ReferencePicker } from "./ReferencePicker.svelte";
 export type { ReferenceOption } from "./ReferencePicker.svelte";
+export { default as SceneGraph } from "./SceneGraph.svelte";
+export type { SceneGraphNote, SceneGraphNode, SceneGraphLink, SceneGraphSide, SceneGraphData } from "./sceneGraphModel";
 export { default as EyeDashed } from "./icons/EyeDashed.svelte";
 export { default as HandFist } from "./icons/HandFist.svelte";
 export { default as One } from "./icons/One.svelte";
