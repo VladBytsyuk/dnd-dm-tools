@@ -31,6 +31,8 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Dark: Story = {};
+export const ReadOnly: Story = { args: { editable: false } };
+export const ReadOnlyEmpty: Story = { args: { editable: false, nodes: [], links: [] } };
 export const Light: Story = { globals: { backgrounds: { value: "light" } }, args: { theme: "light" } };
 export const Empty: Story = { args: { nodes: [], links: [] } };
 export const OneScene: Story = { args: { nodes: nodes.slice(0, 1), links: [] } };

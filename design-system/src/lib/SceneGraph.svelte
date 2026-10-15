@@ -16,10 +16,11 @@
 		availableNotes?: SceneGraphNote[];
 		theme?: "dark" | "light";
 		height?: number;
+		editable?: boolean;
 		onChange?: (graph: SceneGraphData) => void;
 		onSceneSelect?: (id: string | null) => void;
 	};
-	let { nodes = $bindable<SceneGraphNode[]>([]), links = $bindable<SceneGraphLink[]>([]), availableNotes = [], theme = "dark", height = 400, onChange, onSceneSelect }: Props = $props();
+	let { nodes = $bindable<SceneGraphNode[]>([]), links = $bindable<SceneGraphLink[]>([]), availableNotes = [], theme = "dark", height = 400, editable = true, onChange, onSceneSelect }: Props = $props();
 	const nodeTypes = { scene: SceneNode };
 	const edgeTypes = { scene: SceneEdge };
 	let flowNodes = $state.raw<SceneFlowNode[]>([]);
@@ -34,38 +35,42 @@
 	let pickerAnchor: HTMLButtonElement | undefined;
 	let pickerPosition = $state({ x: 8, y: 48 });
 	let pickerMaxHeight = $state(280);
-	let canDelete = $derived(selectedNodeIds.size > 0 || selectedEdgeKeys.size > 0);
+	let canDelete = $derived(editable && (selectedNodeIds.size > 0 || selectedEdgeKeys.size > 0));
 	let notesByPath = $derived(new Map(availableNotes.map((note) => [note.path, note])));
 	let pickerOptions = $derived([...notesByPath.values()].filter((note) => !nodes.some((node) => node.note.path === note.path)).map((note) => ({ value: note.path, label: `${note.title} — ${note.path}` })));
 
-	// Only external graph data and theme trigger reconciliation. Dragging and selection stay local.
+	// Only external graph data, theme and mode trigger reconciliation. Dragging and selection stay local.
 	$effect.pre(() => {
 		const nextNodes = nodes.map((node) => ({ ...node, note: { ...node.note }, position: { ...node.position } }));
 		const nextTheme = theme;
+		const nextEditable = editable;
 		untrack(() => {
 			flowNodes = nextNodes.map((node) => ({
 				id: node.id, type: "scene", position: node.position, width: SCENE_WIDTH, height: SCENE_HEIGHT,
 				selected: selectedNodeIds.has(node.id), ariaLabel: node.note.title,
-				data: { note: node.note, theme: nextTheme },
+				data: { note: node.note, theme: nextTheme, editable: nextEditable },
 			}));
 		});
 	});
 	$effect.pre(() => {
 		const identified = identifySceneLinks(links, () => crypto.randomUUID());
-		if (identified !== links) links = identified;
+		if (editable && identified !== links) links = identified;
 		const offsets = sceneLinkOffsets(identified);
 		const nextLinks = identified.map((link, index) => ({ ...link, offset: offsets[index] }));
 		const titles = new Map(nodes.map((node) => [node.id, node.note.title]));
 		const edgeColor = theme === "dark" ? "#a3a3a3" : "#737373";
+		const nextEditable = editable;
 		untrack(() => {
 			flowEdges = nextLinks.filter((link) => titles.has(link.fromSceneId) && titles.has(link.toSceneId)).map((link) => ({
 				id: sceneEdgeKey(link), source: link.fromSceneId, target: link.toSceneId, type: "scene", selected: selectedEdgeKeys.has(sceneEdgeKey(link)),
-				sourceHandle: link.fromSide ?? "bottom", targetHandle: link.toSide ?? "top", data: { offset: link.offset, label: `${titles.get(link.fromSceneId)} → ${titles.get(link.toSceneId)}`, color: edgeColor },
+				sourceHandle: link.fromSide ?? "bottom", targetHandle: link.toSide ?? "top", data: { offset: link.offset, label: `${titles.get(link.fromSceneId)} → ${titles.get(link.toSceneId)}`, color: edgeColor, editable: nextEditable },
 				style: `stroke: ${edgeColor}; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round`, interactionWidth: 20,
 				ariaLabel: `Связь: ${titles.get(link.fromSceneId)} → ${titles.get(link.toSceneId)}`,
 			}));
 		});
 	});
+
+	$effect(() => { if (!editable) pickerOpen = false; });
 
 	function notifySelection(id: string | null) {
 		if (id !== lastNotifiedSelection) { lastNotifiedSelection = id; onSceneSelect?.(id); }
@@ -82,6 +87,7 @@
 		flowEdges = flowEdges.map((edge) => ({ ...edge, selected: false }));
 	}
 	function commit(graph: SceneGraphData) {
+		if (!editable) return;
 		nodes = graph.nodes;
 		links = graph.links;
 		onChange?.(graph);
@@ -99,6 +105,7 @@
 		};
 	}
 	function reconnectScenes(edge: Edge, connection: Connection) {
+		if (!editable) return;
 		const before = { nodes, links };
 		const replacement = { ...linkFromConnection(connection), id: edge.id };
 		const after = reconnectSceneLink(before, edge.id, replacement);
@@ -118,6 +125,7 @@
 		if (changed) commit({ nodes: nextNodes, links });
 	}
 	function openPicker(anchor: HTMLButtonElement) {
+		if (!editable) return;
 		const bounds = root.getBoundingClientRect();
 		const button = anchor.getBoundingClientRect();
 		pickerSession++;
@@ -132,7 +140,7 @@
 	}
 	function pickerClosed() { if (pickerAnchor?.isConnected) pickerAnchor.focus(); else root.focus(); }
 	async function chooseNote(path: string | null) {
-		if (!path || !toolbar) return;
+		if (!editable || !path || !toolbar) return;
 		const note = notesByPath.get(path);
 		if (!note) return;
 		const bounds = root.getBoundingClientRect();
@@ -147,6 +155,7 @@
 		toolbar?.revealNode(target.id, root.getBoundingClientRect());
 	}
 	function deleteSelection() {
+		if (!editable) return;
 		const before = { nodes, links };
 		const after = removeSceneSelection(before, selectedNodeIds, selectedEdgeKeys);
 		if (after === before) return;
@@ -160,13 +169,13 @@
 		return target instanceof Element && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
 	}
 	function handleKey(event: KeyboardEvent) {
-		if (pickerOpen || isTyping(event.target)) return;
+		if (!editable || pickerOpen || isTyping(event.target)) return;
 		if ((event.key === "Delete" || event.key === "Backspace") && canDelete) {
 			event.preventDefault(); event.stopPropagation(); deleteSelection();
 		}
 	}
 	async function handleKeyUp(event: KeyboardEvent) {
-		if (pickerOpen || isTyping(event.target) || !event.key.startsWith("Arrow")) return;
+		if (!editable || pickerOpen || isTyping(event.target) || !event.key.startsWith("Arrow")) return;
 		await tick();
 		commitPositions(flowNodes);
 	}
@@ -177,11 +186,11 @@
 	}
 </script>
 
-<div class="scene-graph" data-theme={theme} style:height={`${height}px`} role="application" aria-label="Редактор сцен" tabindex="-1" bind:this={root} use:keyboard>
-	<SvelteFlow bind:nodes={flowNodes} bind:edges={flowEdges} {nodeTypes} {edgeTypes} colorMode={theme} connectionMode={ConnectionMode.Loose} connectionLineType={ConnectionLineType.Straight} isValidConnection={(connection) => canConnectScenes({ nodes, links }, { fromSceneId: connection.source, toSceneId: connection.target })} onconnect={connectScenes} onreconnect={reconnectScenes} onedgeclick={() => root.focus()} deleteKey={[]} nodeDragThreshold={4} zoomOnDoubleClick={false} minZoom={0.2} maxZoom={2} fitView fitViewOptions={{ padding: 0.2, maxZoom: 1 }} onnodedragstop={({ nodes: moved }) => commitPositions(moved)} onselectionchange={selectionChanged} ariaLabelConfig={{ 'node.a11yDescription.default': "Enter — выделить сцену, стрелки — переместить, Delete — удалить. Tab — следующая кнопка.", 'node.a11yDescription.ariaLiveMessage': ({ x, y }) => `Сцена перемещена. Координаты: ${x}, ${y}.`, 'edge.a11yDescription.default': "Enter — выделить связь, Delete — удалить. Перетащите конец выделенной стрелки, чтобы изменить связь." }}>
-		<SceneGraphToolbar bind:this={toolbar} {canDelete} onAdd={openPicker} onDelete={deleteSelection} />
+<div class="scene-graph" data-theme={theme} data-editable={editable} style:height={`${height}px`} role="application" aria-label="Редактор сцен" tabindex="-1" bind:this={root} use:keyboard>
+	<SvelteFlow bind:nodes={flowNodes} bind:edges={flowEdges} {nodeTypes} {edgeTypes} nodesDraggable={editable} nodesConnectable={editable} panOnScroll={!editable} zoomOnScroll={editable} colorMode={theme} connectionMode={ConnectionMode.Loose} connectionLineType={ConnectionLineType.Straight} isValidConnection={(connection) => editable && canConnectScenes({ nodes, links }, { fromSceneId: connection.source, toSceneId: connection.target })} onconnect={connectScenes} onreconnect={reconnectScenes} onedgeclick={() => root.focus()} deleteKey={[]} nodeDragThreshold={4} zoomOnDoubleClick={false} minZoom={0.2} maxZoom={2} fitView fitViewOptions={{ padding: 0.2, maxZoom: 1 }} onnodedragstop={({ nodes: moved }) => commitPositions(moved)} onselectionchange={selectionChanged} ariaLabelConfig={{ 'node.a11yDescription.default': editable ? "Enter — выделить сцену, стрелки — переместить, Delete — удалить. Tab — следующая кнопка." : "Enter — выделить сцену. Граф доступен только для просмотра.", 'node.a11yDescription.ariaLiveMessage': ({ x, y }) => `Сцена перемещена. Координаты: ${x}, ${y}.`, 'edge.a11yDescription.default': editable ? "Enter — выделить связь, Delete — удалить. Перетащите конец выделенной стрелки, чтобы изменить связь." : "Enter — выделить связь. Граф доступен только для просмотра." }}>
+		<SceneGraphToolbar bind:this={toolbar} {editable} {canDelete} onAdd={openPicker} onDelete={deleteSelection} />
 	</SvelteFlow>
-	{#if !nodes.length}<p class="empty">Сцены пока не добавлены. Выберите заметку через «Добавить сцену».</p>{/if}
+	{#if !nodes.length}<p class="empty">Сцены пока не добавлены.{#if editable} Выберите заметку через «Добавить сцену».{/if}</p>{/if}
 	{#if pickerOpen}
 		{#key pickerSession}
 		<div class="scene-picker" style:left={`${pickerPosition.x}px`} style:top={`${pickerPosition.y}px`} style:--reference-picker-max-height={`${pickerMaxHeight}px`}>

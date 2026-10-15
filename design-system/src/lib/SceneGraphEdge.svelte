@@ -35,7 +35,7 @@
 <BaseEdge {id} path={geometry.shaft} interactionWidth={0} style={selected ? `${style}; stroke: var(--scene-ink); stroke-width: 2` : style} />
 <path class="scene-arrow-head" d={geometry.head} fill={selected ? "var(--scene-ink)" : data?.color ?? "#a3a3a3"} stroke="none" pointer-events="none" />
 <path class="svelte-flow__edge-interaction" d={geometry.hitArea} fill="none" stroke="transparent" stroke-width={interactionWidth ?? 20} />
-{#if selected}
+{#if selected && data?.editable}
 	<EdgeReconnectAnchor type="source" position={start} size={18} class="scene-edge-anchor" aria-label={`Перенести начало стрелки: ${label}`} title="Перетащите начало стрелки к другой точке">
 		<span class="anchor-dot"></span>
 	</EdgeReconnectAnchor>

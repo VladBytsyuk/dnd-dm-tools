@@ -176,6 +176,8 @@ export { default as SmallScene } from "./SmallScene.svelte";
 export { default as SmallAdventure } from "./SmallAdventure.svelte";
 export { default as FullScene } from "./FullScene.svelte";
 export type { FullSceneAdventure, FullSceneTrack, FullSceneEntity } from "./FullScene.svelte";
+export { default as FullAdventure } from "./FullAdventure.svelte";
+export type { FullAdventurePlaylist, FullAdventureEntity } from "./FullAdventure.svelte";
 export { default as ReferencePicker } from "./ReferencePicker.svelte";
 export type { ReferenceOption } from "./ReferencePicker.svelte";
 export { default as SceneGraph } from "./SceneGraph.svelte";
