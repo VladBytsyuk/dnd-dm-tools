@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, tick } from "svelte";
 	import { Notice } from "obsidian";
 	import FiltersOverlay from "./FiltersOverlay.svelte";
 	import type { BaseItem } from "src/domain/models/common/BaseItem";
@@ -79,6 +79,7 @@
     let favoriteBusy = $state(false);
     let emptyFullItem = createEmptyFullItem();
     let isFiltersOverlayOpen: boolean = $state(false);
+    let filtersTrigger: HTMLElement | null = null;
     let fullFilters: any = $state(null);
     let loadedItems: BaseItem[] = $state([]);
     let nextOffset = $state(0);
@@ -131,6 +132,7 @@
     }
 
     async function onSearchBarFiltersClick() {
+        filtersTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         const rawFilters = await repository.getAllFilters();
         if (!rawFilters) return;
         fullFilters = filterDisplayTransform ? filterDisplayTransform(rawFilters) : rawFilters;
@@ -145,6 +147,7 @@
 
     function handleFiltersClose() {
         isFiltersOverlayOpen = false;
+        if (redesignEnabled) void tick().then(() => filtersTrigger?.focus({ preventScroll: true }));
     }
 
     async function onSmallItemClick(smallItem: BaseItem) {
@@ -430,107 +433,115 @@
 </script>
 
 <div class="side-panel-container">
-    <UiSearchToolbar
-        onbackclick={currentItem ? onSearchBarBackClick : undefined}
-        onvaluechange={onSearchBarValueChanged}
-        isvaluechangable={() => !currentItem}
-        onclearclick={undefined}
-        onfiltersclick={currentItem ? undefined : onSearchBarFiltersClick}
-        isfiltersapplied={() => !isFiltersEmpty(filters)}
-        onaddclick={!currentItem && emptyFullItem ? onAddClick : undefined}
-        oneditclick={redesignEnabled && currentItem && panelKey !== "classes" && !detailEditing ? () => requestToolbarAction("edit") : undefined}
-        oncopyclick={redesignEnabled && currentItem ? () => requestToolbarAction("copy") : undefined}
-        onfavoriteclick={redesignEnabled && repository.favorites && currentItem?.url && !detailEditing && !detailSaving ? toggleFavorite : undefined}
-        isfavorite={Boolean(currentItem?.url && favoriteUrls.has(currentItem.url))}
-        {favoriteBusy}
-        onpasteclick={redesignEnabled && currentItem && detailEditing ? () => requestToolbarAction("paste") : undefined}
-        ondeleteclick={redesignEnabled && !detailEditing && currentItem?.origin === "manual" ? deleteCurrentManualItem : undefined}
-        onsaveclick={redesignEnabled && currentItem && detailEditing ? () => requestToolbarAction("save") : undefined}
-        oncancelclick={redesignEnabled && currentItem && detailEditing ? () => requestToolbarAction("cancel") : undefined}
-        actionBusy={detailSaving}
-        {redesignEnabled}
-    />
-    <div class="side-panel-spacer"></div>
-    {#if currentItem}
-        <div class="content content-full">
-            {#if redesignEnabled}
-                {#key currentItem.url}
-                    <RedesignedFullItem
-                        {panelKey}
-                        currentItem={currentItem}
-                        actionRequest={toolbarActionRequest}
-                        onEditorStateChange={onRedesignedEditorStateChange}
-                        {uiEventListener}
-                        {onItemSave}
-                    />
-                {/key}
-            {:else}<FullItemSlot
-                currentItem={currentItem}
-                repository={repository}
-                uiEventListener={uiEventListener}
-                isEditable=true
-                onClose={() => currentItem = undefined}
-                {onItemSave}
-                {onItemDelete}
-            />{/if}
-        </div>
-    {:else if searchBarValue.length > 0 && groups.length === 0 && !isLoading && !loadError}
-        <div class="content content-empty">
-            <UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
-        </div>
-    {:else}
-        <div class="content">
-            {#if redesignEnabled && favoriteGroupItems.length > 0}
-                <UiItemGroup
-                    {panelKey}
-                    groupTitle="Избранное"
-                    items={favoriteGroupItems}
-                    onItemClick={onSmallItemClick}
-                    {SmallItemSlot}
-                    {redesignEnabled}
-                    isFavorite={(url: string) => favoriteUrls.has(url)}
-                    isOpen={favoriteGroupOpen}
-                    onOpenChange={(open: boolean) => favoriteGroupOpen = open}
-                />
-            {/if}
-            {#each groups as group, index (group.sort)}
-                <UiItemGroup
-                    {panelKey}
-                    groupTitle={groupTitleBuilder(group)}
-                    items={visibleGroupItems(group)}
-                    onItemClick={onSmallItemClick}
-	                    {SmallItemSlot}
-	                    {redesignEnabled}
-	                    isFavorite={(url: string) => favoriteUrls.has(url)}
-                    isOpen={isGroupOpen(group.sort)}
-                    onOpenChange={(open: boolean) => onGroupOpenChange(group.sort, open)}
-                    showLoadMore={showGroupLoadMore(group, index)}
-                    onLoadMore={() => void revealGroupPage(group.sort)}
-                />
-            {/each}
-            {#if loadError}
-                <div class="pagination-status pagination-status-error">
-                    <span>{loadError}</span>
-                    <button type="button" onclick={retryLoad}>Повторить</button>
-                </div>
-            {:else if isLoading}
-                <div class="pagination-status" aria-live="polite">Загрузка...</div>
-            {/if}
-            {#if paginated && hasMore && !loadError && !isLoading && pendingAdvanceFrom === null}
-                <div class="pagination-sentinel" use:observePageEnd aria-hidden="true"></div>
-            {/if}
-        </div>
-    {/if}
-
-    {#if isFiltersOverlayOpen && fullFilters}
-        <FiltersOverlay
-            fullFilters={fullFilters}
-            initialFilters={filterDisplayTransform ? filterDisplayTransform(filters) : filters}
-            filterConfig={filterConfig}
-            onApply={handleFiltersApply}
-            onClose={handleFiltersClose}
+    <div class="side-panel-toolbar" inert={redesignEnabled && isFiltersOverlayOpen}>
+        <UiSearchToolbar
+            onbackclick={currentItem ? onSearchBarBackClick : undefined}
+            onvaluechange={onSearchBarValueChanged}
+            isvaluechangable={() => !currentItem}
+            onclearclick={undefined}
+            onfiltersclick={currentItem ? undefined : onSearchBarFiltersClick}
+            isfiltersapplied={() => !isFiltersEmpty(filters)}
+            onaddclick={!currentItem && emptyFullItem ? onAddClick : undefined}
+            oneditclick={redesignEnabled && currentItem && panelKey !== "classes" && !detailEditing ? () => requestToolbarAction("edit") : undefined}
+            oncopyclick={redesignEnabled && currentItem ? () => requestToolbarAction("copy") : undefined}
+            onfavoriteclick={redesignEnabled && repository.favorites && currentItem?.url && !detailEditing && !detailSaving ? toggleFavorite : undefined}
+            isfavorite={Boolean(currentItem?.url && favoriteUrls.has(currentItem.url))}
+            {favoriteBusy}
+            onpasteclick={redesignEnabled && currentItem && detailEditing ? () => requestToolbarAction("paste") : undefined}
+            ondeleteclick={redesignEnabled && !detailEditing && currentItem?.origin === "manual" ? deleteCurrentManualItem : undefined}
+            onsaveclick={redesignEnabled && currentItem && detailEditing ? () => requestToolbarAction("save") : undefined}
+            oncancelclick={redesignEnabled && currentItem && detailEditing ? () => requestToolbarAction("cancel") : undefined}
+            actionBusy={detailSaving}
+            {redesignEnabled}
         />
-    {/if}
+    </div>
+    <div class="side-panel-spacer"></div>
+    <div class="side-panel-main">
+        <div class="side-panel-view" class:filters-open={redesignEnabled && isFiltersOverlayOpen} inert={redesignEnabled && isFiltersOverlayOpen}>
+            {#if currentItem}
+                <div class="content content-full">
+                    {#if redesignEnabled}
+                        {#key currentItem.url}
+                            <RedesignedFullItem
+                                {panelKey}
+                                currentItem={currentItem}
+                                actionRequest={toolbarActionRequest}
+                                onEditorStateChange={onRedesignedEditorStateChange}
+                                {uiEventListener}
+                                {onItemSave}
+                            />
+                        {/key}
+                    {:else}<FullItemSlot
+                        currentItem={currentItem}
+                        repository={repository}
+                        uiEventListener={uiEventListener}
+                        isEditable=true
+                        onClose={() => currentItem = undefined}
+                        {onItemSave}
+                        {onItemDelete}
+                    />{/if}
+                </div>
+            {:else if searchBarValue.length > 0 && groups.length === 0 && !isLoading && !loadError}
+                <div class="content content-empty">
+                    <UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
+                </div>
+            {:else}
+                <div class="content">
+                    {#if redesignEnabled && favoriteGroupItems.length > 0}
+                        <UiItemGroup
+                            {panelKey}
+                            groupTitle="Избранное"
+                            items={favoriteGroupItems}
+                            onItemClick={onSmallItemClick}
+                            {SmallItemSlot}
+                            {redesignEnabled}
+                            isFavorite={(url: string) => favoriteUrls.has(url)}
+                            isOpen={favoriteGroupOpen}
+                            onOpenChange={(open: boolean) => favoriteGroupOpen = open}
+                        />
+                    {/if}
+                    {#each groups as group, index (group.sort)}
+                        <UiItemGroup
+                            {panelKey}
+                            groupTitle={groupTitleBuilder(group)}
+                            items={visibleGroupItems(group)}
+                            onItemClick={onSmallItemClick}
+                            {SmallItemSlot}
+                            {redesignEnabled}
+                            isFavorite={(url: string) => favoriteUrls.has(url)}
+                            isOpen={isGroupOpen(group.sort)}
+                            onOpenChange={(open: boolean) => onGroupOpenChange(group.sort, open)}
+                            showLoadMore={showGroupLoadMore(group, index)}
+                            onLoadMore={() => void revealGroupPage(group.sort)}
+                        />
+                    {/each}
+                    {#if loadError}
+                        <div class="pagination-status pagination-status-error">
+                            <span>{loadError}</span>
+                            <button type="button" onclick={retryLoad}>Повторить</button>
+                        </div>
+                    {:else if isLoading}
+                        <div class="pagination-status" aria-live="polite">Загрузка...</div>
+                    {/if}
+                    {#if paginated && hasMore && !loadError && !isLoading && pendingAdvanceFrom === null}
+                        <div class="pagination-sentinel" use:observePageEnd aria-hidden="true"></div>
+                    {/if}
+                </div>
+            {/if}
+        </div>
+
+        {#if isFiltersOverlayOpen && fullFilters}
+            <FiltersOverlay
+                {panelKey}
+                {redesignEnabled}
+                fullFilters={fullFilters}
+                initialFilters={filterDisplayTransform ? filterDisplayTransform(filters) : filters}
+                filterConfig={filterConfig}
+                onApply={handleFiltersApply}
+                onClose={handleFiltersClose}
+            />
+        {/if}
+    </div>
 </div>
 
 <style>
@@ -546,6 +557,21 @@
         height: 1em;
         flex-shrink: 0;
     }
+
+    .side-panel-toolbar { flex-shrink: 0; min-width: 0; }
+
+    .side-panel-main,
+    .side-panel-view {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .side-panel-view.filters-open .content { overflow: hidden; }
 
     .content {
         flex: 1;
