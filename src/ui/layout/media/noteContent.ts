@@ -21,6 +21,27 @@ export function extractNoteEntityUrls(markdown: string): string[] {
 	return [...new Set([...matches].map((match) => match[1].slice(4)))];
 }
 
+/** Keep encounter fences in note order, including their original language and body. */
+export function extractNoteEncounterBlocks(markdown: string): string[] {
+	const blocks: string[] = [];
+	let fence: { char: string; size: number; encounter: boolean; lines: string[] } | null = null;
+	for (const line of markdown.replace(/<!--[^]*?-->/g, "").split(/\r?\n/)) {
+		if (fence) {
+			fence.lines.push(line);
+			const closing = line.match(/^ {0,3}(`{3,}|~{3,})\s*$/);
+			if (closing && closing[1][0] === fence.char && closing[1].length >= fence.size) {
+				if (fence.encounter) blocks.push(fence.lines.join("\n"));
+				fence = null;
+			}
+			continue;
+		}
+		const opening = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+		if (opening) fence = { char: opening[1][0], size: opening[1].length, encounter: /^encounter(?:\s|$)/.test(opening[2].trim()), lines: [line] };
+	}
+	if (fence?.encounter) blocks.push([...fence.lines, fence.char.repeat(fence.size)].join("\n"));
+	return blocks;
+}
+
 export function noteEntityCard(result: PanelSearchResult) {
 	return createRawSnippet<["dark" | "light"]>((getTheme) => {
 		const theme = getTheme();

@@ -12,8 +12,9 @@
 	import UiSearchToolbar from "../uikit/organisms/UiSearchToolbar.svelte";
 	import UiItemGroup from "../uikit/organisms/UiItemGroup.svelte";
 	import type { MediaNavigation } from "./MediaNavigation";
-	import { extractNoteEntityUrls, noteEntityCard } from "./noteContent";
+	import { extractNoteEntityUrls, extractNoteEncounterBlocks, noteEntityCard } from "./noteContent";
 	import MediaFullCardUi from "./MediaFullCardUi.svelte";
+	import NoteEncountersUi from "./NoteEncountersUi.svelte";
 	import { exportMediaMarkdownBlock, importPlaylistSnapshot, importAdventureSnapshot } from "src/domain/models/media/MediaSnapshot";
 	import { writeTextToClipboard, getMarkdownCodeBlockFromClipboard } from "src/data/clipboard";
 
@@ -45,6 +46,7 @@
 	let leaveQuestion = $state(false);
 	let resolveLeave: ((value: "save" | "discard" | "stay") => void) | undefined;
 	let entities = $state<FullSceneEntity[]>([]);
+	let encounters = $state<string[]>([]);
 	let noteError = $state("");
 	let noteLoading = $state(false);
 	let noteSequence = 0;
@@ -95,16 +97,18 @@
 		void fileVersion;
 		void media;
 		const sequence = ++noteSequence;
-		entities = []; noteError = ""; noteLoading = !!path;
+		entities = []; encounters = []; noteError = ""; noteLoading = !!path;
 		if (!path) return;
 		void (async () => {
 			try {
 				const file = plugin.app.vault.getFileByPath(path);
 				if (!file) throw new Error(`Заметка отсутствует: ${path}`);
-				const urls = extractNoteEntityUrls(await plugin.app.vault.cachedRead(file));
+				const markdown = await plugin.app.vault.cachedRead(file);
+				const urls = extractNoteEntityUrls(markdown);
 				const resolved = await Promise.allSettled(urls.map((url) => plugin.panelManager.resolveEntity(url)));
 				if (sequence !== noteSequence) return;
 				entities = resolved.flatMap((result) => result.status === "fulfilled" && result.value ? [{ url: result.value.url, label: result.value.title, card: noteEntityCard(result.value) }] : []);
+				encounters = extractNoteEncounterBlocks(markdown);
 				const missing = resolved.filter((result) => result.status === "rejected" || !result.value).length;
 				if (missing) noteError = `Не удалось найти сущности: ${missing}`;
 			} catch (failure) { if (sequence === noteSequence) noteError = message(failure); }
@@ -282,7 +286,7 @@
 			{/if}
 		{:else if !record}<p class="empty">Запись не найдена</p>
 		{:else if !editing && entry}
-			<MediaFullCardUi {plugin} item={entry} {media} {entities} {theme}
+			<MediaFullCardUi {plugin} item={entry} {media} {entities} {encounters} {theme}
 				onOpenMedia={(url) => { const item = libraryItems.find((value) => value.url === url); if (item) return open(item); }}
 				onSceneOpen={(id) => void navigation.open({ kind: "scene", id, adventureId: entry!.record.id })} />
 		{:else if route.kind === "track" && track}
@@ -301,13 +305,13 @@
 				playlist={playlistOptions.find((item) => item.id === adventure!.playlistId) ?? null} {availableNotes} availablePlaylists={playlistOptions} onPlaylistChange={(value) => adventure!.playlistId = value?.id ?? null}
 				nodes={graphNodes(adventure)} links={adventure.links} onGraphChange={updateGraph} onSceneOpen={(id) => void navigation.open({ kind: "scene", id, adventureId: adventure!.id })}
 				onCreateScene={() => void create("scene", adventure!.id)} createSceneDisabled={!!newRecords[adventure.id] || saving}
-				{entities} editable={editing} {theme} onOpenNote={(path) => action(() => plugin.openMediaNote(path))} onPlaylistClick={openPlaylist} onEntityClick={openEntity} />
+				{entities} afterContent={encounters.length ? encounterContent : undefined} editable={editing} {theme} onOpenNote={(path) => action(() => plugin.openMediaNote(path))} onPlaylistClick={openPlaylist} onEntityClick={openEntity} />
 		{:else if route.kind === "scene" && scene}
 			<FullScene bind:russianName={scene.name} bind:entityLink={scene.url} bind:source={scene.source} bind:notePath={scene.notePath}
 				adventure={media.adventures.find((item) => item.id === (editing ? sceneParentId : entry?.parent?.id)) ? { id: (editing ? sceneParentId : entry?.parent?.id)!, title: media.adventures.find((item) => item.id === (editing ? sceneParentId : entry?.parent?.id))!.name } : null}
 				availableAdventures={media.adventures.map((item) => ({ id: item.id, title: item.name }))} onAdventureChange={(value) => sceneParentId = value?.id ?? null}
 				track={trackOptions.find((item) => item.id === scene!.trackId) ?? null} availableTracks={trackOptions} onTrackChange={(value) => scene!.trackId = value?.id ?? null}
-				{availableNotes} {entities} editable={editing} {theme} onOpenNote={(path) => action(() => plugin.openMediaNote(path))} onTrackClick={openTrack} onEntityClick={openEntity} />
+				{availableNotes} {entities} afterContent={encounters.length ? encounterContent : undefined} editable={editing} {theme} onOpenNote={(path) => action(() => plugin.openMediaNote(path))} onTrackClick={openTrack} onEntityClick={openEntity} />
 		{/if}
 		{#if noteLoading}<p class="empty" role="status">Загрузка ссылок из заметки…</p>{/if}
 		{#if noteError}<p class="error" role="status">{noteError}</p>{/if}
@@ -324,6 +328,10 @@
 		</div></div>
 	{/if}
 </div>
+
+{#snippet encounterContent()}
+	<NoteEncountersUi app={plugin.app} {encounters} sourcePath={notePath ?? ""} />
+{/snippet}
 
 {#snippet listCard(base: BaseItem)}
 	{@const item = base as MediaItem}

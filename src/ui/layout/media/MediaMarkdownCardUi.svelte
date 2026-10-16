@@ -5,7 +5,7 @@
 	import { mediaSnapshotState, type MediaSnapshot } from "src/domain/models/media/MediaSnapshot";
 	import { findMediaItem } from "src/domain/models/media/MediaLibrary";
 	import { theme as appTheme, Theme } from "src/ui/theme";
-	import { extractNoteEntityUrls, noteEntityCard } from "./noteContent";
+	import { extractNoteEntityUrls, extractNoteEncounterBlocks, noteEntityCard } from "./noteContent";
 	import MediaFullCardUi from "./MediaFullCardUi.svelte";
 
 	let { plugin, snapshot }: { plugin: DndStatblockPlugin; snapshot: MediaSnapshot } = $props();
@@ -13,6 +13,7 @@
 	const item = $derived(findMediaItem(data.media, data.route)!);
 	const theme = $derived($appTheme === Theme.Dark ? "dark" : "light");
 	let entities = $state<FullSceneEntity[]>([]);
+	let encounters = $state<string[]>([]);
 	let error = $state("");
 	let version = $state(0);
 	let sequence = 0;
@@ -20,16 +21,18 @@
 		void version;
 		const path = "notePath" in item.record ? item.record.notePath : null;
 		const request = ++sequence;
-		entities = []; error = "";
+		entities = []; encounters = []; error = "";
 		if (!path) return;
 		void (async () => {
 			try {
 				const file = plugin.app.vault.getFileByPath(path);
 				if (!file) throw new Error(`Заметка отсутствует: ${path}`);
-				const urls = extractNoteEntityUrls(await plugin.app.vault.cachedRead(file));
+				const markdown = await plugin.app.vault.cachedRead(file);
+				const urls = extractNoteEntityUrls(markdown);
 				const resolved = await Promise.allSettled(urls.map((url) => plugin.panelManager.resolveEntity(url)));
 				if (request !== sequence) return;
 				entities = resolved.flatMap((value) => value.status === "fulfilled" && value.value ? [{ url: value.value.url, label: value.value.title, card: noteEntityCard(value.value) }] : []);
+				encounters = extractNoteEncounterBlocks(markdown);
 				const missing = resolved.filter((value) => value.status === "rejected" || !value.value).length;
 				if (missing) error = `Не удалось найти сущности: ${missing}`;
 			} catch (failure) { if (request === sequence) error = failure instanceof Error ? failure.message : String(failure); }
@@ -44,7 +47,7 @@
 </script>
 
 <div class="media-markdown-card">
-	<MediaFullCardUi {plugin} {item} media={data.media} {entities} {theme} />
+	<MediaFullCardUi {plugin} {item} media={data.media} {entities} {encounters} {theme} />
 	{#if error}<p class="error" role="status">{error}</p>{/if}
 </div>
 

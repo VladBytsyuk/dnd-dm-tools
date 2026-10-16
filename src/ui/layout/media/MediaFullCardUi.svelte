@@ -6,9 +6,10 @@
 	import type { MediaItem } from "src/domain/models/media/MediaLibrary";
 	import type { Adventure, AdventureScene, MediaState, MediaTrack, Playlist } from "src/domain/models/media/MediaState";
 	import { cloneDesignData } from "src/ui/design-system/adapters";
+	import NoteEncountersUi from "./NoteEncountersUi.svelte";
 
-	let { plugin, item, media, entities = [], theme, onOpenMedia, onSceneOpen }: {
-		plugin: DndStatblockPlugin; item: MediaItem; media: MediaState; entities?: FullSceneEntity[]; theme: "dark" | "light";
+	let { plugin, item, media, entities = [], encounters = [], theme, onOpenMedia, onSceneOpen }: {
+		plugin: DndStatblockPlugin; item: MediaItem; media: MediaState; entities?: FullSceneEntity[]; encounters?: string[]; theme: "dark" | "light";
 		onOpenMedia?: (url: string) => void | Promise<void>; onSceneOpen?: (id: string) => void;
 	} = $props();
 	function initialPlayback() { return plugin.getMediaPlayback().getSnapshot(); }
@@ -59,13 +60,17 @@
 		onTrackClick={(id) => { const entry = playlist.items.find((entry) => entry.id === id); if (entry) openTrack(entry.trackId); }} />
 {:else if item.mediaRoute.kind === "adventure"}
 	<FullAdventure russianName={adventure.name} entityLink={adventure.url} campaignName={adventure.campaignName} source={adventure.source} notePath={adventure.notePath}
-		playlist={playlistOptions.find((value) => value.id === adventure.playlistId) ?? null} {theme} {entities}
+		playlist={playlistOptions.find((value) => value.id === adventure.playlistId) ?? null} {theme} {entities} afterContent={encounters.length ? encounterContent : undefined}
 		nodes={adventure.scenes.map((value) => ({ id: value.id, position: value.position, note: { path: value.notePath ?? undefined, title: value.name, source: value.source?.shortName, adventureName: adventure.name, info: adventure.campaignName, musicName: media.tracks.find((track) => track.id === value.trackId)?.name } }))}
 		links={adventure.links} onSceneOpen={openScene} onOpenNote={(path) => action(() => plugin.openMediaNote(path))} onPlaylistClick={openPlaylist} onEntityClick={openEntity} />
 {:else}
 	<FullScene russianName={scene.name} entityLink={scene.url} source={scene.source} notePath={scene.notePath}
 		adventure={item.parent ? { id: item.parent.id, title: item.parent.name } : null} track={trackOptions.find((value) => value.id === scene.trackId) ?? null}
-		{theme} {entities} onOpenNote={(path) => action(() => plugin.openMediaNote(path))} onTrackClick={openTrack} onEntityClick={openEntity} />
+		{theme} {entities} afterContent={encounters.length ? encounterContent : undefined} onOpenNote={(path) => action(() => plugin.openMediaNote(path))} onTrackClick={openTrack} onEntityClick={openEntity} />
 {/if}
+
+{#snippet encounterContent()}
+	<NoteEncountersUi app={plugin.app} {encounters} sourcePath={"notePath" in displayed ? displayed.notePath ?? "" : ""} />
+{/snippet}
 
 <style>.error { color: var(--text-error); font-size: 12px; margin: 4px 8px; overflow-wrap: anywhere; }</style>

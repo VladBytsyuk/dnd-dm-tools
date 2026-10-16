@@ -20,6 +20,7 @@
 		availableNotes?: string[];
 		availableTracks?: FullSceneTrack[];
 		entities?: FullSceneEntity[];
+		afterContent?: Snippet;
 		source?: FullItemSource;
 		editable?: boolean;
 		theme?: "dark" | "light";
@@ -34,7 +35,7 @@
 	let {
 		russianName = $bindable(""), entityLink = $bindable(""),
 		adventure = $bindable<FullSceneAdventure | null>(null), notePath = $bindable<string | null>(null), track = $bindable<FullSceneTrack | null>(null),
-		availableAdventures = [], availableNotes = [], availableTracks = [], entities = [], source = $bindable<FullItemSource | undefined>(),
+		availableAdventures = [], availableNotes = [], availableTracks = [], entities = [], afterContent, source = $bindable<FullItemSource | undefined>(),
 		editable = false, theme = "dark", onOpenNote, onTrackClick, onEntityClick, onAdventureChange, onNoteChange, onTrackChange, onCopyText,
 	}: Props = $props();
 	let uniqueEntities = $derived.by(() => {
@@ -79,7 +80,8 @@
 				</li>
 			{/each}
 		</ul>
-	{:else}<p class="empty">В заметке нет ссылок на сущности плагина</p>{/if}
+	{:else if !afterContent}<p class="empty">В заметке нет ссылок на сущности плагина</p>{/if}
+	{@render afterContent?.()}
 </article>
 
 {#snippet adventurePicker()}

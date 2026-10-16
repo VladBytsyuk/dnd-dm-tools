@@ -1,11 +1,12 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/svelte";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/svelte";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { get } from "svelte/store";
 import MediaLibraryUi from "src/ui/layout/media/MediaLibraryUi.svelte";
 import GlobalPlayerUi from "src/ui/layout/media/GlobalPlayerUi.svelte";
 import { MediaNavigation } from "src/ui/layout/media/MediaNavigation";
 import { sampleMedia } from "../../../fixtures/media";
-import { extractNoteEntityUrls } from "src/ui/layout/media/noteContent";
+import { extractNoteEntityUrls, extractNoteEncounterBlocks } from "src/ui/layout/media/noteContent";
+import { Component, MarkdownRenderer } from "obsidian";
 import { exportAdventureSnapshot, exportPlaylistSnapshot, exportMediaMarkdownBlock, parseMediaSnapshot } from "src/domain/models/media/MediaSnapshot";
 import { getMarkdownCodeBlockFromClipboard, writeTextToClipboard } from "src/data/clipboard";
 import MediaMarkdownCardUi from "src/ui/layout/media/MediaMarkdownCardUi.svelte";
@@ -16,7 +17,7 @@ beforeAll(() => {
 	vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
 	vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: false, addEventListener() {}, removeEventListener() {} })));
 });
-afterEach(() => { cleanup(); vi.clearAllMocks(); });
+afterEach(() => { cleanup(); vi.clearAllMocks(); vi.restoreAllMocks(); });
 function setup(panel: "player" | "adventures" = "player") {
 	let state = sampleMedia();
 	const mediaListeners = new Set<() => void>(), playbackListeners = new Set<() => void>();
@@ -37,6 +38,39 @@ function setup(panel: "player" | "adventures" = "player") {
 }
 
 describe("integrated media screens", () => {
+	it.each([
+		["scene", "panel"], ["adventure", "panel"], ["scene", "markdown"], ["adventure", "markdown"],
+	] as const)("appends full encounters after %s entities in %s and refreshes them when the note changes", async (kind, mode) => {
+		const test = setup("adventures");
+		test.state().adventures[0].notePath = "Scenes/Start.md";
+		const path = "Scenes/Start.md", id = kind === "scene" ? "start" : "quest";
+		const markdown = '[Правило](dnd:/screens/rule)\n```encounter\nname: Засада\nparticipants: []\n```\n~~~encounter\nname: Погоня\nparticipants: []\n~~~';
+		test.plugin.app.vault.cachedRead.mockResolvedValue(markdown);
+		test.plugin.panelManager.resolveEntity.mockResolvedValue({ panelKey: "dm-screen", url: "/screens/rule", title: "Укрытие", subtitle: "", item: { name: { rus: "Укрытие", eng: "" }, url: "/screens/rule" } } as any);
+		const renderer = vi.spyOn(MarkdownRenderer, "render"), unload = vi.spyOn(Component.prototype, "unload");
+		let view;
+		if (mode === "panel") { await test.navigation.open({ kind, id }); view = test.render(); }
+		else {
+			const block = exportMediaMarkdownBlock(test.state(), { kind, id });
+			view = render(MediaMarkdownCardUi, { plugin: test.plugin as any, snapshot: parseMediaSnapshot(block.split("\n").slice(1, -1).join("\n")) });
+		}
+		await waitFor(() => expect(renderer).toHaveBeenCalledTimes(2));
+		const card = view.container.querySelector(kind === "scene" ? ".full-scene" : ".full-adventure")!;
+		const list = card.querySelector(kind === "scene" ? ".scene-content" : ".adventure-content")!;
+		expect(list.nextElementSibling?.classList.contains("note-encounters")).toBe(true);
+		expect(card.querySelectorAll(".encounter-block")).toHaveLength(2);
+		expect(renderer.mock.calls.map((args) => args[1])).toEqual(extractNoteEncounterBlocks(markdown));
+		expect(renderer.mock.calls.every((args) => args[3] === path)).toBe(true);
+		test.plugin.app.vault.cachedRead.mockResolvedValue('```encounter\nname: Новое столкновение\nparticipants: []\n```');
+		const refresh = test.plugin.app.vault.on.mock.calls.find((args: unknown[]) => args[0] === "modify")![1] as () => void;
+		await act(() => refresh());
+		await waitFor(() => expect(card.querySelectorAll(".encounter-block")).toHaveLength(1));
+		expect(card.textContent).toContain("Новое столкновение");
+		expect(card.textContent).not.toContain("В заметке нет ссылок на сущности плагина");
+		expect(unload.mock.calls.length).toBeGreaterThanOrEqual(2);
+		view.unmount();
+		expect(unload.mock.calls.length).toBeGreaterThanOrEqual(3);
+	});
 	it.each(["track", "playlist", "scene", "adventure"] as const)("copies a %s block and renders the same full card in Markdown", async (kind) => {
 		const test = setup(kind === "track" || kind === "playlist" ? "player" : "adventures");
 		const id = kind === "track" ? test.state().tracks[0].id : kind === "playlist" ? "music" : kind === "scene" ? "start" : "quest";
@@ -229,6 +263,13 @@ describe("integrated media screens", () => {
 });
 
 describe("direct note links", () => {
+	it("extracts encounter fences in order without interpreting examples or comments as encounters", () => {
+		const first = '```encounter\nname: Первый\nparticipants: []\n```';
+		const second = '~~~encounter\nname: Второй\nparticipants: []\n~~~';
+		const example = '````markdown\n```encounter\nname: Пример\nparticipants: []\n```\n````';
+		expect(extractNoteEncounterBlocks([example, first, `<!-- ${second} -->`, second].join("\n"))).toEqual([first, second]);
+		expect(extractNoteEncounterBlocks('```encounter\nname: Незакрытый\nparticipants: []')).toEqual(['```encounter\nname: Незакрытый\nparticipants: []\n```']);
+	});
 	it("preserves first occurrence and excludes code and comments", () => {
 		const text = '[А](dnd:/bestiary/a) [А](dnd:/bestiary/a)\n`[Нет](dnd:/spells/no)`\n```md\n[Нет](dnd:/spells/code)\n```\n    [Нет](dnd:/spells/indent)\n<!-- [Нет](dnd:/spells/comment) -->\n[Трек](dnd:/track/music)\n<a href="dnd:/items/rope">Верёвка</a>';
 		expect(extractNoteEntityUrls(text)).toEqual(["/bestiary/a", "/track/music", "/items/rope"]);

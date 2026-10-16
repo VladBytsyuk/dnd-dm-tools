@@ -25,6 +25,7 @@
 		availablePlaylists?: FullAdventurePlaylist[];
 		availableSceneNotes?: SceneGraphNote[];
 		entities?: FullAdventureEntity[];
+		afterContent?: Snippet;
 		editable?: boolean;
 		theme?: "dark" | "light";
 		graphHeight?: number;
@@ -43,7 +44,7 @@
 	let {
 		russianName = $bindable(""), entityLink = $bindable(""), campaignName = $bindable(""), source = $bindable<FullItemSource | undefined>(),
 		notePath = $bindable<string | null>(null), playlist = $bindable<FullAdventurePlaylist | null>(null), nodes = $bindable<SceneGraphNode[]>([]), links = $bindable<SceneGraphLink[]>([]),
-		availableNotes = [], availablePlaylists = [], availableSceneNotes = [], entities = [], editable = false, theme = "dark", graphHeight = 400,
+		availableNotes = [], availablePlaylists = [], availableSceneNotes = [], entities = [], afterContent, editable = false, theme = "dark", graphHeight = 400,
 		onOpenNote, onPlaylistClick, onEntityClick, onNoteChange, onPlaylistChange, onGraphChange, onSceneSelect, onSceneOpen, onCreateScene, createSceneDisabled = false, onCopyText,
 	}: Props = $props();
 	let uniqueEntities = $derived.by(() => {
@@ -92,7 +93,8 @@
 				</li>
 			{/each}
 		</ul>
-	{:else}<p class="empty">В заметке нет ссылок на сущности плагина</p>{/if}
+	{:else if !afterContent}<p class="empty">В заметке нет ссылок на сущности плагина</p>{/if}
+	{@render afterContent?.()}
 </article>
 
 {#snippet campaignInput()}
