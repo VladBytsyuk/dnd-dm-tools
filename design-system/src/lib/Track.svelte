@@ -109,20 +109,20 @@
 </article>
 
 {#snippet headerActions()}
-	{#if editable}<button class="header-action" type="button" aria-label="Повторять трек" title="Повторять трек" aria-pressed={loop} onclick={toggleLoop}><Repeat size={16} aria-hidden={true} /></button>{/if}
+	{#if editable}<button class="header-action" type="button" aria-label="Повторять трек" title="Повторять трек" aria-pressed={loop} onclick={toggleLoop}><Repeat size="calc(16 * var(--ds-media-unit, 1px))" aria-hidden={true} /></button>{/if}
 {/snippet}
 
 <style>
-	.track {
+	.track { --ds-media-unit: 1.5px;
 		--track-primary: var(--ds-track);
 		--track-secondary: var(--ds-track-sub);
 		box-sizing: border-box;
 		display: flex;
 		flex-direction: column;
-		gap: 6px;
+		gap: calc(6 * var(--ds-media-unit, 1px));
 		width: 100%;
 		min-width: 0;
-		padding: 8px;
+		padding: calc(8 * var(--ds-media-unit, 1px));
 		background:
 			linear-gradient(to top right,
 				color-mix(in srgb, var(--track-primary) var(--ds-gradient-strength, 20%), transparent),
@@ -135,14 +135,14 @@
 		--track-secondary: var(--ds-track-sub-light);
 	}
 
-	.track :global(.full-item-header) { min-height: 36px; gap: 4px; }
-	.track :global(.details) { flex: 0 1 88px; }
-	.track :global(.full-item-header .russian-name) { font-size: 16px; font-weight: 700; line-height: 20px; }
-	.track :global(.full-item-header .info) { font-size: 10px; line-height: 12px; overflow-wrap: anywhere; }
-	.track :global(.full-item-header .entity-link), .track :global(.full-item-header .source) { font-size: 8px; line-height: 10px; }
-	.header-action { display: grid; place-items: center; width: 24px; height: 24px; padding: 2px; border: 0; border-radius: 4px; background: rgb(127 127 127 / 20%); color: inherit; cursor: pointer; }
+	.track :global(.full-item-header) { min-height: calc(36 * var(--ds-media-unit, 1px)); gap: calc(4 * var(--ds-media-unit, 1px)); }
+	.track :global(.details) { flex: 0 1 calc(88 * var(--ds-media-unit, 1px)); }
+	.track :global(.full-item-header .russian-name) { font-size: calc(16 * var(--ds-media-unit, 1px)); font-weight: 700; line-height: calc(20 * var(--ds-media-unit, 1px)); }
+	.track :global(.full-item-header .info) { font-size: calc(10 * var(--ds-media-unit, 1px)); line-height: calc(12 * var(--ds-media-unit, 1px)); overflow-wrap: anywhere; }
+	.track :global(.full-item-header .entity-link), .track :global(.full-item-header .source) { font-size: calc(8 * var(--ds-media-unit, 1px)); line-height: calc(10 * var(--ds-media-unit, 1px)); }
+	.header-action { display: grid; place-items: center; width: calc(24 * var(--ds-media-unit, 1px)); height: calc(24 * var(--ds-media-unit, 1px)); padding: calc(2 * var(--ds-media-unit, 1px)); border: 0; border-radius: calc(4 * var(--ds-media-unit, 1px)); background: rgb(127 127 127 / 20%); color: inherit; cursor: pointer; }
 	.header-action:hover:not(:disabled) { background: rgb(127 127 127 / 35%); }
 	.header-action:disabled { opacity: 0.4; cursor: default; }
-	.header-action:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
+	.header-action:focus-visible { outline: calc(2 * var(--ds-media-unit, 1px)) solid currentcolor; outline-offset: calc(2 * var(--ds-media-unit, 1px)); }
 	.header-action[aria-pressed="true"] { background: rgb(127 127 127 / 45%); }
 </style>

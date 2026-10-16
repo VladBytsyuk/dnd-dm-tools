@@ -11,10 +11,10 @@ const notes: SceneGraphNote[] = [
 	{ path: "Дорога в Шамат/Затопленный зал.md", title: "Затопленный зал", adventureName: "Дорога в Шамат", source: "PHB" },
 ];
 const nodes: SceneGraphNode[] = [
-	{ id: "tunnel", note: notes[0], position: { x: 110, y: 0 } },
-	{ id: "spider", note: notes[1], position: { x: 0, y: 120 } },
-	{ id: "temple", note: notes[2], position: { x: 220, y: 120 } },
-	{ id: "exit", note: notes[3], position: { x: 110, y: 240 } },
+	{ id: "tunnel", note: notes[0], position: { x: 165, y: 0 } },
+	{ id: "spider", note: notes[1], position: { x: 0, y: 180 } },
+	{ id: "temple", note: notes[2], position: { x: 330, y: 180 } },
+	{ id: "exit", note: notes[3], position: { x: 165, y: 360 } },
 ];
 const links: SceneGraphLink[] = [
 	{ fromSceneId: "tunnel", toSceneId: "spider" }, { fromSceneId: "tunnel", toSceneId: "temple" },
@@ -38,7 +38,7 @@ export const Empty: Story = { args: { nodes: [], links: [] } };
 export const OneScene: Story = { args: { nodes: nodes.slice(0, 1), links: [] } };
 export const Cycle: Story = { args: { links: [...links, { fromSceneId: "exit", toSceneId: "tunnel" }] } };
 export const ParallelLinks: Story = { args: {
-	nodes: [{ ...nodes[0], position: { x: 0, y: 0 } }, { ...nodes[1], position: { x: 0, y: 180 } }],
+	nodes: [{ ...nodes[0], position: { x: 0, y: 0 } }, { ...nodes[1], position: { x: 0, y: 270 } }],
 	links: [
 		{ fromSceneId: "tunnel", toSceneId: "spider" },
 		{ fromSceneId: "tunnel", toSceneId: "spider" },
@@ -48,11 +48,11 @@ export const ParallelLinks: Story = { args: {
 } };
 export const AllSides: Story = { args: {
 	nodes: [
-		{ id: "tunnel", note: notes[0], position: { x: 240, y: 120 } },
-		{ id: "spider", note: notes[1], position: { x: 240, y: 0 } },
-		{ id: "temple", note: notes[2], position: { x: 480, y: 120 } },
-		{ id: "exit", note: notes[3], position: { x: 240, y: 240 } },
-		{ id: "hall", note: notes[4], position: { x: 0, y: 120 } },
+		{ id: "tunnel", note: notes[0], position: { x: 360, y: 180 } },
+		{ id: "spider", note: notes[1], position: { x: 360, y: 0 } },
+		{ id: "temple", note: notes[2], position: { x: 720, y: 180 } },
+		{ id: "exit", note: notes[3], position: { x: 360, y: 360 } },
+		{ id: "hall", note: notes[4], position: { x: 0, y: 180 } },
 	],
 	links: [
 		{ fromSceneId: "tunnel", toSceneId: "spider", fromSide: "top", toSide: "bottom" },

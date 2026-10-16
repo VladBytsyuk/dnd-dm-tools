@@ -8,9 +8,9 @@ export type SceneGraphSide = "top" | "right" | "bottom" | "left";
 export type SceneGraphLink = { id?: string; fromSceneId: string; toSceneId: string; fromSide?: SceneGraphSide; toSide?: SceneGraphSide };
 export type SceneGraphData = { nodes: SceneGraphNode[]; links: SceneGraphLink[] };
 
-export const SCENE_WIDTH = 196;
-export const SCENE_HEIGHT = 64;
-export const SCENE_HANDLE_SIZE = 6;
+export const SCENE_WIDTH = 294;
+export const SCENE_HEIGHT = 96;
+export const SCENE_HANDLE_SIZE = 9;
 
 export function canConnectScenes(graph: SceneGraphData, link: SceneGraphLink): boolean {
 	return link.fromSceneId !== link.toSceneId
@@ -58,7 +58,7 @@ export function sceneLinkOffsets(links: SceneGraphLink[]): number[] {
 	const offsets = links.map(() => 0);
 	for (const group of groups.values()) group.forEach((index, order) => {
 		const link = links[index];
-		offsets[index] = (order - (group.length - 1) / 2) * 48 * (link.fromSceneId < link.toSceneId ? 1 : -1);
+		offsets[index] = (order - (group.length - 1) / 2) * 72 * (link.fromSceneId < link.toSceneId ? 1 : -1);
 	});
 	return offsets;
 }
@@ -73,10 +73,10 @@ export function sceneBoundaryPoint(x: number, y: number, side: SceneGraphSide): 
 export function findScenePosition(nodes: SceneGraphNode[], origin: SceneGraphNode["position"]): SceneGraphNode["position"] {
 	let offset = 0;
 	let position = { ...origin };
-	while (nodes.some((node) => Math.abs(node.position.x - position.x) < SCENE_WIDTH + 24 && Math.abs(node.position.y - position.y) < SCENE_HEIGHT + 36)) {
+	while (nodes.some((node) => Math.abs(node.position.x - position.x) < SCENE_WIDTH + 36 && Math.abs(node.position.y - position.y) < SCENE_HEIGHT + 54)) {
 		offset++;
 		const column = Math.ceil(offset / 2) * (offset % 2 ? 1 : -1);
-		position = { x: origin.x + column * (SCENE_WIDTH + 24), y: origin.y };
+		position = { x: origin.x + column * (SCENE_WIDTH + 36), y: origin.y };
 	}
 	return position;
 }
@@ -86,7 +86,7 @@ export function addSceneNote(graph: SceneGraphData, note: SceneGraphNote, fromId
 	if (fromId !== null && !from) return graph;
 	const existing = note.path ? graph.nodes.find((node) => node.note.path === note.path) : undefined;
 	if (existing && (fromId === null || existing.id === fromId)) return graph;
-	const target = existing ?? { id: newId, note, position: findScenePosition(graph.nodes, from ? { x: from.position.x, y: from.position.y + 120 } : origin) };
+	const target = existing ?? { id: newId, note, position: findScenePosition(graph.nodes, from ? { x: from.position.x, y: from.position.y + 180 } : origin) };
 	return {
 		nodes: existing ? graph.nodes : [...graph.nodes, target],
 		links: fromId === null ? graph.links : [...graph.links, { id: crypto.randomUUID(), fromSceneId: fromId, toSceneId: target.id }],

@@ -18,10 +18,10 @@
 		russianName = $bindable(""), entityLink = $bindable(""), campaignName = $bindable(""), source = $bindable(),
 		notePath = $bindable(null), playlist = $bindable(null),
 		nodes = $bindable([
-			{ id: "tunnel", note: sceneNotes[0], position: { x: 110, y: 0 } },
-			{ id: "spider", note: sceneNotes[1], position: { x: 0, y: 120 } },
-			{ id: "temple", note: sceneNotes[2], position: { x: 220, y: 120 } },
-			{ id: "exit", note: sceneNotes[3], position: { x: 110, y: 240 } },
+			{ id: "tunnel", note: sceneNotes[0], position: { x: 165, y: 0 } },
+			{ id: "spider", note: sceneNotes[1], position: { x: 0, y: 180 } },
+			{ id: "temple", note: sceneNotes[2], position: { x: 330, y: 180 } },
+			{ id: "exit", note: sceneNotes[3], position: { x: 165, y: 360 } },
 		]),
 		links = $bindable([
 			{ fromSceneId: "tunnel", toSceneId: "spider" }, { fromSceneId: "tunnel", toSceneId: "temple" },

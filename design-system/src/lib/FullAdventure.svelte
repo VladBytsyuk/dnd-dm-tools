@@ -44,7 +44,7 @@
 	let {
 		russianName = $bindable(""), entityLink = $bindable(""), campaignName = $bindable(""), source = $bindable<FullItemSource | undefined>(),
 		notePath = $bindable<string | null>(null), playlist = $bindable<FullAdventurePlaylist | null>(null), nodes = $bindable<SceneGraphNode[]>([]), links = $bindable<SceneGraphLink[]>([]),
-		availableNotes = [], availablePlaylists = [], availableSceneNotes = [], entities = [], afterContent, editable = false, theme = "dark", graphHeight = 400,
+		availableNotes = [], availablePlaylists = [], availableSceneNotes = [], entities = [], afterContent, editable = false, theme = "dark", graphHeight = 600,
 		onOpenNote, onPlaylistClick, onEntityClick, onNoteChange, onPlaylistChange, onGraphChange, onSceneSelect, onSceneOpen, onCreateScene, createSceneDisabled = false, onCopyText,
 	}: Props = $props();
 	let uniqueEntities = $derived.by(() => {
@@ -79,7 +79,7 @@
 	{/if}
 	<h2>Сцены</h2>
 	<SceneGraph {nodes} {links} availableNotes={availableSceneNotes} height={graphHeight} onChange={changeGraph} {onSceneSelect} {onSceneOpen} showAddScene={!onCreateScene} {editable} {theme} />
-	{#if editable && onCreateScene}<button class="create-scene" type="button" disabled={createSceneDisabled} onclick={onCreateScene}><Plus size={14} aria-hidden={true} />Создать сцену</button>{/if}
+	{#if editable && onCreateScene}<button class="create-scene" type="button" disabled={createSceneDisabled} onclick={onCreateScene}><Plus size="calc(14 * var(--ds-media-unit, 1px))" aria-hidden={true} />Создать сцену</button>{/if}
 	<h2>Контент приключения</h2>
 	{#if uniqueEntities.length}
 		<ul class="adventure-content">
@@ -102,30 +102,30 @@
 {/snippet}
 
 <style>
-	.full-adventure { container: full-adventure / inline-size; }
-	.full-adventure { --adventure-primary: var(--ds-adventure); --adventure-secondary: var(--ds-adventure-sub); box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; width: 100%; min-width: 0; padding: 8px; background: linear-gradient(to top right, color-mix(in srgb, var(--adventure-primary) var(--ds-gradient-strength, 20%), transparent), color-mix(in srgb, var(--adventure-secondary) var(--ds-gradient-strength, 20%), transparent)), var(--ds-full-surface); color: #fff; font-family: "Golos Text", sans-serif; }
+	.full-adventure { --ds-media-unit: 1.5px; container: full-adventure / inline-size; }
+	.full-adventure { --adventure-primary: var(--ds-adventure); --adventure-secondary: var(--ds-adventure-sub); box-sizing: border-box; display: flex; flex-direction: column; gap: calc(6 * var(--ds-media-unit, 1px)); width: 100%; min-width: 0; padding: calc(8 * var(--ds-media-unit, 1px)); background: linear-gradient(to top right, color-mix(in srgb, var(--adventure-primary) var(--ds-gradient-strength, 20%), transparent), color-mix(in srgb, var(--adventure-secondary) var(--ds-gradient-strength, 20%), transparent)), var(--ds-full-surface); color: #fff; font-family: "Golos Text", sans-serif; }
 	.full-adventure[data-theme="light"] { --adventure-primary: var(--ds-adventure-light); --adventure-secondary: var(--ds-adventure-sub-light); color: #1f2937; }
-	.full-adventure :global(.full-item-header) { min-height: 36px; gap: 4px; }
-	.full-adventure :global(.full-item-header .details) { flex: 0 1 160px; max-width: 45%; gap: 2px; }
-	.full-adventure :global(.full-item-header .russian-name) { font-size: 16px; font-weight: 700; line-height: 20px; }
-	.full-adventure :global(.full-item-header .info) { font-size: 10px; line-height: 12px; overflow-wrap: anywhere; }
-	.full-adventure :global(.full-item-header .entity-link), .full-adventure :global(.full-item-header .source) { font-size: 8px; line-height: 10px; }
+	.full-adventure :global(.full-item-header) { min-height: calc(36 * var(--ds-media-unit, 1px)); gap: calc(4 * var(--ds-media-unit, 1px)); }
+	.full-adventure :global(.full-item-header .details) { flex: 0 1 calc(160 * var(--ds-media-unit, 1px)); max-width: 45%; gap: calc(2 * var(--ds-media-unit, 1px)); }
+	.full-adventure :global(.full-item-header .russian-name) { font-size: calc(16 * var(--ds-media-unit, 1px)); font-weight: 700; line-height: calc(20 * var(--ds-media-unit, 1px)); }
+	.full-adventure :global(.full-item-header .info) { font-size: calc(10 * var(--ds-media-unit, 1px)); line-height: calc(12 * var(--ds-media-unit, 1px)); overflow-wrap: anywhere; }
+	.full-adventure :global(.full-item-header .entity-link), .full-adventure :global(.full-item-header .source) { font-size: calc(8 * var(--ds-media-unit, 1px)); line-height: calc(10 * var(--ds-media-unit, 1px)); }
 	input.info { all: unset; box-sizing: border-box; display: block; width: 100%; min-width: 0; max-width: 100%; color: inherit; font: inherit; text-align: inherit; cursor: text; }
 	input.info::placeholder { color: currentcolor; opacity: 0.65; }
-	input.info:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
-	.reference { width: min(100%, 320px); min-width: 0; }
+	input.info:focus-visible { outline: calc(2 * var(--ds-media-unit, 1px)) solid currentcolor; outline-offset: calc(2 * var(--ds-media-unit, 1px)); }
+	.reference { width: min(100%, calc(320 * var(--ds-media-unit, 1px))); min-width: 0; }
 	.note-link { display: flex; min-width: 0; }
-	.note-link :global(.chip) { box-sizing: border-box; min-width: 0; max-width: 100%; font-size: 8px; line-height: 10px; }
+	.note-link :global(.chip) { box-sizing: border-box; min-width: 0; max-width: 100%; font-size: calc(8 * var(--ds-media-unit, 1px)); line-height: calc(10 * var(--ds-media-unit, 1px)); }
 	.note-link :global(a) { overflow-wrap: anywhere; }
-	h2 { margin: 0; font-size: 16px; line-height: 20px; }
-	.adventure-content { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 6px; padding: 0; margin: 0; list-style: none; }
+	h2 { margin: 0; font-size: calc(16 * var(--ds-media-unit, 1px)); line-height: calc(20 * var(--ds-media-unit, 1px)); }
+	.adventure-content { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: calc(6 * var(--ds-media-unit, 1px)); padding: 0; margin: 0; list-style: none; }
 	.adventure-content li, .entity-card { min-width: 0; }
-	.entity-card { border-radius: 8px; }
+	.entity-card { --ds-media-unit: 1px; border-radius: calc(8 * var(--ds-media-unit, 1px)); }
 	.entity-card[role="button"] { cursor: pointer; }
-	.entity-card:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
-	.empty { margin: 0; opacity: 0.7; font-size: 12px; line-height: 15px; }
-	.create-scene { display: inline-flex; align-self: flex-start; align-items: center; gap: 4px; min-height: 26px; padding: 4px 8px; border: 1px solid currentcolor; border-radius: 4px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+	.entity-card:focus-visible { outline: calc(2 * var(--ds-media-unit, 1px)) solid currentcolor; outline-offset: calc(2 * var(--ds-media-unit, 1px)); }
+	.empty { margin: 0; opacity: 0.7; font-size: calc(12 * var(--ds-media-unit, 1px)); line-height: calc(15 * var(--ds-media-unit, 1px)); }
+	.create-scene { display: inline-flex; align-self: flex-start; align-items: center; gap: calc(4 * var(--ds-media-unit, 1px)); min-height: calc(26 * var(--ds-media-unit, 1px)); padding: calc(4 * var(--ds-media-unit, 1px)) calc(8 * var(--ds-media-unit, 1px)); border: calc(1 * var(--ds-media-unit, 1px)) solid currentcolor; border-radius: calc(4 * var(--ds-media-unit, 1px)); background: transparent; color: inherit; font: inherit; font-size: calc(16 * var(--ds-media-unit, 1px)); cursor: pointer; }
 	.create-scene:disabled { opacity: 0.4; cursor: default; }
-	.create-scene:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
-	@container full-adventure (max-width: 527px) { .adventure-content { grid-template-columns: minmax(0, 1fr); } }
+	.create-scene:focus-visible { outline: calc(2 * var(--ds-media-unit, 1px)) solid currentcolor; outline-offset: calc(2 * var(--ds-media-unit, 1px)); }
+	@container full-adventure (max-width: 790.5px) { .adventure-content { grid-template-columns: minmax(0, 1fr); } }
 </style>

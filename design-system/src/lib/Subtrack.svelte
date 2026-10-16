@@ -63,7 +63,7 @@
 		<span class="title">{title}</span>
 		{#if fileName}
 			<button class="icon-button" type="button" aria-label={`Удалить файл: ${fileName}`} title="Удалить файл" disabled={disabled || !onRemove} onclick={onRemove}>
-				<Trash size={20} strokeWidth={1.5} aria-hidden={true} />
+				<Trash size="calc(20 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} />
 			</button>
 		{/if}
 	</header>
@@ -71,7 +71,7 @@
 		<div class="content">
 			<div class="file-row">
 				<button class="icon-button" type="button" aria-label={`${playing ? "Остановить" : "Воспроизвести"}: ${fileName}`} title={playing ? "Остановить" : "Воспроизвести"} disabled={disabled || playbackDisabled} onclick={togglePlayback}>
-					{#if playing}<Square size={20} strokeWidth={2} aria-hidden={true} />{:else}<Play size={20} strokeWidth={2} aria-hidden={true} />{/if}
+					{#if playing}<Square size="calc(20 * var(--ds-media-unit, 1px))" strokeWidth={2} aria-hidden={true} />{:else}<Play size="calc(20 * var(--ds-media-unit, 1px))" strokeWidth={2} aria-hidden={true} />{/if}
 				</button>
 				<span class="file-name" title={fileName}>{fileName}</span>
 				<span class="time">{formatTime(elapsed)} / {formatTime(total)}</span>
@@ -82,7 +82,7 @@
 		</div>
 	{:else}
 		<button class="icon-button add" type="button" aria-label={`Добавить аудиофайл: ${title}`} title="Добавить аудиофайл" disabled={disabled || !onAdd} onclick={onAdd}>
-			<Plus size={24} strokeWidth={2} aria-hidden={true} />
+			<Plus size="calc(24 * var(--ds-media-unit, 1px))" strokeWidth={2} aria-hidden={true} />
 		</button>
 	{/if}
 </section>
@@ -92,18 +92,18 @@
 		box-sizing: border-box;
 		display: flex;
 		flex-direction: column;
-		gap: 6px;
+		gap: calc(6 * var(--ds-media-unit, 1px));
 		width: 100%;
 		min-width: 0;
-		padding: 6px;
-		border-radius: 12px;
+		padding: calc(6 * var(--ds-media-unit, 1px));
+		border-radius: calc(12 * var(--ds-media-unit, 1px));
 		background: rgb(48 48 48 / 40%);
-		box-shadow: 0 4px 4px rgb(0 0 0 / 25%);
+		box-shadow: 0 calc(4 * var(--ds-media-unit, 1px)) calc(4 * var(--ds-media-unit, 1px)) rgb(0 0 0 / 25%);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
-		font-size: 14px;
+		font-size: calc(14 * var(--ds-media-unit, 1px));
 		font-weight: 400;
-		line-height: 17px;
+		line-height: calc(17 * var(--ds-media-unit, 1px));
 	}
 
 	.subtrack[data-theme="light"] { background: rgb(48 48 48 / 8%); color: #1f2937; }
@@ -111,9 +111,9 @@
 	header, .file-row {
 		display: flex;
 		align-items: center;
-		gap: 6px;
+		gap: calc(6 * var(--ds-media-unit, 1px));
 		min-width: 0;
-		min-height: 20px;
+		min-height: calc(20 * var(--ds-media-unit, 1px));
 	}
 
 	.title {
@@ -126,7 +126,7 @@
 	.content {
 		display: flex;
 		flex-direction: column;
-		gap: 6px;
+		gap: calc(6 * var(--ds-media-unit, 1px));
 		min-width: 0;
 	}
 
@@ -144,20 +144,20 @@
 		all: unset;
 		box-sizing: border-box;
 		display: grid;
-		flex: 0 0 20px;
-		width: 20px;
-		height: 20px;
+		flex: 0 0 calc(20 * var(--ds-media-unit, 1px));
+		width: calc(20 * var(--ds-media-unit, 1px));
+		height: calc(20 * var(--ds-media-unit, 1px));
 		place-items: center;
-		border-radius: 2px;
+		border-radius: calc(2 * var(--ds-media-unit, 1px));
 		color: inherit;
 		cursor: pointer;
 	}
 
 	.subtrack button.icon-button:hover:not(:disabled) { background: rgb(255 255 255 / 10%); }
 	.subtrack[data-theme="light"] button.icon-button:hover:not(:disabled) { background: rgb(15 23 42 / 8%); }
-	.subtrack button.icon-button:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
+	.subtrack button.icon-button:focus-visible { outline: calc(2 * var(--ds-media-unit, 1px)) solid currentcolor; outline-offset: calc(2 * var(--ds-media-unit, 1px)); }
 	.subtrack button.icon-button:disabled { opacity: 0.4; cursor: default; }
-	.subtrack button.add { align-self: center; flex-basis: 24px; width: 24px; height: 24px; }
+	.subtrack button.add { align-self: center; flex-basis: calc(24 * var(--ds-media-unit, 1px)); width: calc(24 * var(--ds-media-unit, 1px)); height: calc(24 * var(--ds-media-unit, 1px)); }
 
-	.progress { display: flex; align-items: center; height: 4px; }
+	.progress { display: flex; align-items: center; height: calc(4 * var(--ds-media-unit, 1px)); }
 </style>

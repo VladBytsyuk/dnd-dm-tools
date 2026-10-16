@@ -22,7 +22,7 @@
 		onSceneSelect?: (id: string | null) => void;
 		onSceneOpen?: (id: string) => void;
 	};
-	let { nodes = $bindable<SceneGraphNode[]>([]), links = $bindable<SceneGraphLink[]>([]), availableNotes = [], theme = "dark", height = 400, editable = true, showAddScene = true, onChange, onSceneSelect, onSceneOpen }: Props = $props();
+	let { nodes = $bindable<SceneGraphNode[]>([]), links = $bindable<SceneGraphLink[]>([]), availableNotes = [], theme = "dark", height = 600, editable = true, showAddScene = true, onChange, onSceneSelect, onSceneOpen }: Props = $props();
 	const nodeTypes = { scene: SceneNode };
 	const edgeTypes = { scene: SceneEdge };
 	let flowNodes = $state.raw<SceneFlowNode[]>([]);
@@ -35,8 +35,8 @@
 	let pickerOpen = $state(false);
 	let pickerSession = $state(0);
 	let pickerAnchor: HTMLButtonElement | undefined;
-	let pickerPosition = $state({ x: 8, y: 48 });
-	let pickerMaxHeight = $state(280);
+	let pickerPosition = $state({ x: 12, y: 72 });
+	let pickerMaxHeight = $state(420);
 	let pointerStart: { x: number; y: number } | null = null;
 	let pointerMoved = false;
 	let canDelete = $derived(editable && (selectedNodeIds.size > 0 || selectedEdgeKeys.size > 0));
@@ -68,7 +68,7 @@
 			flowEdges = nextLinks.filter((link) => titles.has(link.fromSceneId) && titles.has(link.toSceneId)).map((link) => ({
 				id: sceneEdgeKey(link), source: link.fromSceneId, target: link.toSceneId, type: "scene", selected: selectedEdgeKeys.has(sceneEdgeKey(link)),
 				sourceHandle: link.fromSide ?? "bottom", targetHandle: link.toSide ?? "top", data: { offset: link.offset, label: `${titles.get(link.fromSceneId)} → ${titles.get(link.toSceneId)}`, color: edgeColor, editable: nextEditable },
-				style: `stroke: ${edgeColor}; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round`, interactionWidth: 20,
+				style: `stroke: ${edgeColor}; stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round`, interactionWidth: 30,
 				ariaLabel: `Связь: ${titles.get(link.fromSceneId)} → ${titles.get(link.toSceneId)}`,
 			}));
 		});
@@ -134,12 +134,12 @@
 		const button = anchor.getBoundingClientRect();
 		pickerSession++;
 		pickerAnchor = anchor;
-		const panelWidth = Math.min(280, bounds.width - 16);
+		const panelWidth = Math.min(420, bounds.width - 24);
 		pickerPosition = {
-			x: Math.max(8, Math.min(button.left - bounds.left, bounds.width - panelWidth - 8)),
-			y: Math.max(48, Math.min(button.bottom - bounds.top + 4, bounds.height - 280)),
+			x: Math.max(12, Math.min(button.left - bounds.left, bounds.width - panelWidth - 12)),
+			y: Math.max(72, Math.min(button.bottom - bounds.top + 6, bounds.height - 420)),
 		};
-		pickerMaxHeight = bounds.height - pickerPosition.y - 8;
+		pickerMaxHeight = bounds.height - pickerPosition.y - 12;
 		pickerOpen = true;
 	}
 	function pickerClosed() { if (pickerAnchor?.isConnected) pickerAnchor.focus(); else root.focus(); }
@@ -218,12 +218,12 @@
 </div>
 
 <style>
-	.scene-graph { --scene-ink: #fff; --scene-toolbar-bg: #404040; --xy-background-color: transparent; --xy-edge-stroke-selected: #fff; position: relative; box-sizing: border-box; width: 100%; min-width: 0; min-height: 240px; overflow: hidden; border-radius: 8px; background: rgb(48 48 48 / 20%); color: var(--scene-ink); font-family: "Golos Text", sans-serif; }
+	.scene-graph { --ds-media-unit: 1.5px; --scene-ink: #fff; --scene-toolbar-bg: #404040; --xy-background-color: transparent; --xy-edge-stroke-selected: #fff; position: relative; box-sizing: border-box; width: 100%; min-width: 0; min-height: calc(240 * var(--ds-media-unit, 1px)); overflow: hidden; border-radius: calc(8 * var(--ds-media-unit, 1px)); background: rgb(48 48 48 / 20%); color: var(--scene-ink); font-family: "Golos Text", sans-serif; }
 	.scene-graph[data-theme="light"] { --scene-ink: #1f2937; --scene-toolbar-bg: #fff; --xy-edge-stroke-selected: #1f2937; background: rgb(48 48 48 / 6%); }
 	.scene-graph :global(.svelte-flow) { background: transparent; }
-	.scene-graph :global(.svelte-flow__node-scene.selected) { outline: 2px solid var(--scene-ink); outline-offset: 3px; border-radius: 8px; }
-	.scene-graph :global(.svelte-flow__edge.selected .svelte-flow__edge-path) { stroke: var(--scene-ink); stroke-width: 2; }
-	.scene-graph :global(.svelte-flow__node-scene:focus-visible) { outline: 2px dashed var(--scene-ink); outline-offset: 3px; }
-	.scene-picker { position: absolute; z-index: 20; width: min(280px, calc(100% - 16px)); }
-	.empty { position: absolute; top: 45%; left: 16px; right: 16px; margin: 0; text-align: center; pointer-events: none; font-size: 12px; line-height: 16px; opacity: 0.7; }
+	.scene-graph :global(.svelte-flow__node-scene.selected) { outline: calc(2 * var(--ds-media-unit, 1px)) solid var(--scene-ink); outline-offset: calc(3 * var(--ds-media-unit, 1px)); border-radius: calc(8 * var(--ds-media-unit, 1px)); }
+	.scene-graph :global(.svelte-flow__edge.selected .svelte-flow__edge-path) { stroke: var(--scene-ink); stroke-width: 3; }
+	.scene-graph :global(.svelte-flow__node-scene:focus-visible) { outline: calc(2 * var(--ds-media-unit, 1px)) dashed var(--scene-ink); outline-offset: calc(3 * var(--ds-media-unit, 1px)); }
+	.scene-picker { position: absolute; z-index: 20; width: min(calc(280 * var(--ds-media-unit, 1px)), calc(100% - calc(16 * var(--ds-media-unit, 1px)))); }
+	.empty { position: absolute; top: 45%; left: calc(16 * var(--ds-media-unit, 1px)); right: calc(16 * var(--ds-media-unit, 1px)); margin: 0; text-align: center; pointer-events: none; font-size: calc(12 * var(--ds-media-unit, 1px)); line-height: calc(16 * var(--ds-media-unit, 1px)); opacity: 0.7; }
 </style>

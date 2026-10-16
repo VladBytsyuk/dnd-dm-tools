@@ -44,12 +44,12 @@
 {/snippet}
 
 <style>
-	.small-scene { width: 100%; min-width: 0; }
-	.small-scene :global(.content strong) { font-size: 12px; line-height: 14px; }
-	.small-scene :global(.content span:not(.title-text)), .small-scene :global(.meta span) { font-size: 8px; line-height: 10px; }
+	.small-scene { --ds-media-unit: 1.5px; width: 100%; min-width: 0; }
+	.small-scene :global(.content strong) { font-size: calc(12 * var(--ds-media-unit, 1px)); line-height: calc(14 * var(--ds-media-unit, 1px)); }
+	.small-scene :global(.content span:not(.title-text)), .small-scene :global(.meta span) { font-size: calc(8 * var(--ds-media-unit, 1px)); line-height: calc(10 * var(--ds-media-unit, 1px)); }
 	.small-scene :global([role="button"]) { cursor: pointer; }
-	.small-scene :global([role="button"]:focus-visible) { outline: 2px solid currentcolor; outline-offset: 2px; }
-	.scene-footer { display: flex; gap: 6px; min-width: 0; }
+	.small-scene :global([role="button"]:focus-visible) { outline: calc(2 * var(--ds-media-unit, 1px)) solid currentcolor; outline-offset: calc(2 * var(--ds-media-unit, 1px)); }
+	.scene-footer { display: flex; gap: calc(6 * var(--ds-media-unit, 1px)); min-width: 0; }
 	.scene-footer span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.music { flex: 1; }
 	.info { flex: 0 1 auto; max-width: 50%; text-align: right; }

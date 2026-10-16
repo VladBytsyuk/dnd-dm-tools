@@ -17,7 +17,7 @@
 		const tangentLength = Math.hypot(tangentX, tangentY);
 		const unitX = tangentX / (tangentLength || 1);
 		const unitY = tangentY / (tangentLength || 1);
-		const headLength = Math.min(selected ? 12.8 : 9.6, tangentLength / 2);
+		const headLength = Math.min(selected ? 19.2 : 14.4, tangentLength / 2);
 		const halfWidth = headLength * 3 / 8;
 		const base = { x: end.x - unitX * headLength, y: end.y - unitY * headLength };
 		const pathTo = (target: { x: number; y: number }) => offset
@@ -32,14 +32,14 @@
 	});
 </script>
 
-<BaseEdge {id} path={geometry.shaft} interactionWidth={0} style={selected ? `${style}; stroke: var(--scene-ink); stroke-width: 2` : style} />
+<BaseEdge {id} path={geometry.shaft} interactionWidth={0} style={selected ? `${style}; stroke: var(--scene-ink); stroke-width: 3` : style} />
 <path class="scene-arrow-head" d={geometry.head} fill={selected ? "var(--scene-ink)" : data?.color ?? "#a3a3a3"} stroke="none" pointer-events="none" />
-<path class="svelte-flow__edge-interaction" d={geometry.hitArea} fill="none" stroke="transparent" stroke-width={interactionWidth ?? 20} />
+<path class="svelte-flow__edge-interaction" d={geometry.hitArea} fill="none" stroke="transparent" stroke-width={interactionWidth ?? 30} />
 {#if selected && data?.editable}
-	<EdgeReconnectAnchor type="source" position={start} size={18} class="scene-edge-anchor" aria-label={`Перенести начало стрелки: ${label}`} title="Перетащите начало стрелки к другой точке">
+	<EdgeReconnectAnchor type="source" position={start} size={27} class="scene-edge-anchor" aria-label={`Перенести начало стрелки: ${label}`} title="Перетащите начало стрелки к другой точке">
 		<span class="anchor-dot"></span>
 	</EdgeReconnectAnchor>
-	<EdgeReconnectAnchor type="target" position={end} size={18} class="scene-edge-anchor" aria-label={`Перенести конец стрелки: ${label}`} title="Перетащите конец стрелки к другой точке">
+	<EdgeReconnectAnchor type="target" position={end} size={27} class="scene-edge-anchor" aria-label={`Перенести конец стрелки: ${label}`} title="Перетащите конец стрелки к другой точке">
 		<span class="anchor-dot"></span>
 	</EdgeReconnectAnchor>
 {/if}
@@ -47,5 +47,5 @@
 <style>
 	:global(.scene-edge-anchor) { display: grid; place-items: center; cursor: grab; }
 	:global(.scene-edge-anchor:active) { cursor: grabbing; }
-	.anchor-dot { box-sizing: border-box; width: 8px; height: 8px; border: 1px solid var(--scene-ink); border-radius: 50%; background: var(--scene-toolbar-bg); }
+	.anchor-dot { box-sizing: border-box; width: 12px; height: 12px; border: 1.5px solid var(--scene-ink); border-radius: 50%; background: var(--scene-toolbar-bg); }
 </style>

@@ -45,12 +45,12 @@
 {/snippet}
 
 <style>
-	.small-adventure { width: 100%; min-width: 0; }
-	.small-adventure :global(.content strong) { font-size: 12px; line-height: 14px; }
-	.small-adventure :global(.meta span) { font-size: 8px; line-height: 10px; }
+	.small-adventure { --ds-media-unit: 1.5px; width: 100%; min-width: 0; }
+	.small-adventure :global(.content strong) { font-size: calc(12 * var(--ds-media-unit, 1px)); line-height: calc(14 * var(--ds-media-unit, 1px)); }
+	.small-adventure :global(.meta span) { font-size: calc(8 * var(--ds-media-unit, 1px)); line-height: calc(10 * var(--ds-media-unit, 1px)); }
 	.small-adventure :global([role="button"]) { cursor: pointer; }
-	.small-adventure :global([role="button"]:focus-visible) { outline: 2px solid currentcolor; outline-offset: 2px; }
-	.adventure-footer { display: flex; gap: 6px; min-width: 0; }
+	.small-adventure :global([role="button"]:focus-visible) { outline: calc(2 * var(--ds-media-unit, 1px)) solid currentcolor; outline-offset: calc(2 * var(--ds-media-unit, 1px)); }
+	.adventure-footer { display: flex; gap: calc(6 * var(--ds-media-unit, 1px)); min-width: 0; }
 	.music { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.count { flex: 0 0 auto; text-align: right; }
 </style>

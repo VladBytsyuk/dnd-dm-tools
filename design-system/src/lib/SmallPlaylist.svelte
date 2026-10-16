@@ -40,10 +40,10 @@
 </div>
 
 <style>
-	.small-playlist { width: 100%; min-width: 0; }
+	.small-playlist { --ds-media-unit: 1.5px; width: 100%; min-width: 0; }
 	.small-playlist :global(.titles) { gap: 0; }
-	.small-playlist :global(.content strong) { font-size: 12px; line-height: 14px; }
-	.small-playlist :global(.content span:not(.title-text)), .small-playlist :global(.meta span) { font-size: 8px; line-height: 10px; }
+	.small-playlist :global(.content strong) { font-size: calc(12 * var(--ds-media-unit, 1px)); line-height: calc(14 * var(--ds-media-unit, 1px)); }
+	.small-playlist :global(.content span:not(.title-text)), .small-playlist :global(.meta span) { font-size: calc(8 * var(--ds-media-unit, 1px)); line-height: calc(10 * var(--ds-media-unit, 1px)); }
 	.small-playlist :global([role="button"]) { cursor: pointer; }
-	.small-playlist :global([role="button"]:focus-visible) { outline: 2px solid currentcolor; outline-offset: 2px; }
+	.small-playlist :global([role="button"]:focus-visible) { outline: calc(2 * var(--ds-media-unit, 1px)) solid currentcolor; outline-offset: calc(2 * var(--ds-media-unit, 1px)); }
 </style>

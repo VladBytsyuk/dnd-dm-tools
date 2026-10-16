@@ -63,9 +63,9 @@ export function saveMediaRecord(state: MediaState, kind: MediaKind, record: Medi
 export function freeScenePosition(scenes: AdventureScene[]): { x: number; y: number } {
 	let x = 0;
 	let y = 0;
-	while (scenes.some((scene) => Math.abs(scene.position.x - x) < 220 && Math.abs(scene.position.y - y) < 100)) {
-		x += 220;
-		if (x >= 660) { x = 0; y += 120; }
+	while (scenes.some((scene) => Math.abs(scene.position.x - x) < 330 && Math.abs(scene.position.y - y) < 150)) {
+		x += 330;
+		if (x >= 990) { x = 0; y += 180; }
 	}
 	return { x, y };
 }

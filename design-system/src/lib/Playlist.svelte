@@ -163,10 +163,10 @@
 				</button>
 				{#if editable}
 					<button class="icon-button drag-handle" type="button" aria-label={`Изменить порядок: ${track.title}`} title="Перетащите или используйте стрелки вверх и вниз" {disabled} onpointerdown={(event) => startDrag(event, track.id)} onpointermove={updateDrag} onpointerup={dropTrack} onpointercancel={cancelDrag} onlostpointercapture={cancelDrag} onkeydown={(event) => handleMoveKey(event, track.id, index)}>
-						<Menu size={16} strokeWidth={2} aria-hidden={true} />
+						<Menu size="calc(16 * var(--ds-media-unit, 1px))" strokeWidth={2} aria-hidden={true} />
 					</button>
 					<button class="icon-button remove" type="button" aria-label={`Удалить трек: ${track.title}`} title="Удалить трек" {disabled} onclick={() => updateTracks(tracks.filter((item) => item.id !== track.id))}>
-						<Trash size={14} strokeWidth={1.5} aria-hidden={true} />
+						<Trash size="calc(14 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} />
 					</button>
 				{/if}
 				{#if draggedId === track.id}<span class="drag-position" aria-hidden="true">{dropIndex === null ? "Отпустите для отмены" : `Позиция ${dropIndex + 1}`}</span>{/if}
@@ -180,13 +180,13 @@
 	</ol>
 	{#if editable}
 		<button class="add-track" type="button" aria-label="Добавить трек" title="Добавить трек" disabled={disabled || !onAddTrack} onclick={onAddTrack}>
-			<Plus size={10} strokeWidth={2} aria-hidden={true} />
+			<Plus size="calc(10 * var(--ds-media-unit, 1px))" strokeWidth={2} aria-hidden={true} />
 		</button>
 	{/if}
 </article>
 
 <style>
-	.playlist {
+	.playlist { --ds-media-unit: 1.5px;
 		--playlist-primary: var(--ds-playlist);
 		--playlist-secondary: var(--ds-playlist-sub);
 		--playlist-track: var(--ds-track);
@@ -194,10 +194,10 @@
 		box-sizing: border-box;
 		display: flex;
 		flex-direction: column;
-		gap: 6px;
+		gap: calc(6 * var(--ds-media-unit, 1px));
 		width: 100%;
 		min-width: 0;
-		padding: 8px;
+		padding: calc(8 * var(--ds-media-unit, 1px));
 		background:
 			linear-gradient(to top right,
 				color-mix(in srgb, var(--playlist-primary) var(--ds-gradient-strength, 20%), transparent),
@@ -214,21 +214,21 @@
 		color: #1f2937;
 	}
 
-	.playlist :global(.full-item-header) { min-height: 36px; gap: 4px; }
-	.playlist :global(.details) { flex: 0 1 88px; }
-	.playlist :global(.full-item-header .russian-name) { font-size: 16px; font-weight: 700; line-height: 20px; }
-	.playlist :global(.full-item-header .info) { font-size: 10px; line-height: 12px; overflow-wrap: anywhere; }
-	.playlist :global(.full-item-header .entity-link), .playlist :global(.full-item-header .source) { font-size: 8px; line-height: 10px; }
+	.playlist :global(.full-item-header) { min-height: calc(36 * var(--ds-media-unit, 1px)); gap: calc(4 * var(--ds-media-unit, 1px)); }
+	.playlist :global(.details) { flex: 0 1 calc(88 * var(--ds-media-unit, 1px)); }
+	.playlist :global(.full-item-header .russian-name) { font-size: calc(16 * var(--ds-media-unit, 1px)); font-weight: 700; line-height: calc(20 * var(--ds-media-unit, 1px)); }
+	.playlist :global(.full-item-header .info) { font-size: calc(10 * var(--ds-media-unit, 1px)); line-height: calc(12 * var(--ds-media-unit, 1px)); overflow-wrap: anywhere; }
+	.playlist :global(.full-item-header .entity-link), .playlist :global(.full-item-header .source) { font-size: calc(8 * var(--ds-media-unit, 1px)); line-height: calc(10 * var(--ds-media-unit, 1px)); }
 
-	ol { position: relative; display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; min-width: 0; }
-	.track-row { position: relative; min-width: 0; border-radius: 8px; transform: translateY(var(--row-offset)); }
+	ol { position: relative; display: flex; flex-direction: column; gap: calc(6 * var(--ds-media-unit, 1px)); margin: 0; padding: 0; list-style: none; min-width: 0; }
+	.track-row { position: relative; min-width: 0; border-radius: calc(8 * var(--ds-media-unit, 1px)); transform: translateY(var(--row-offset)); }
 	.drag-active .track-row { transition: transform 160ms ease; }
-	.drag-active .track-row.dragging { z-index: 2; opacity: 0.85; outline: 2px solid var(--playlist-drop); box-shadow: 0 8px 16px rgb(0 0 0 / 30%); transition: none; }
-	.drag-position { position: absolute; top: -18px; right: 4px; padding: 1px 5px; border: 1px solid var(--playlist-drop); border-radius: 4px; background: var(--ds-full-surface); font: 10px/14px "Golos Text", sans-serif; pointer-events: none; }
-	.drop-slot { position: absolute; left: 0; right: 0; box-sizing: border-box; display: grid; place-items: center; border: 2px dashed var(--playlist-drop); border-radius: 8px; background: color-mix(in srgb, var(--playlist-drop) 12%, transparent); color: inherit; font: 10px/14px "Golos Text", sans-serif; pointer-events: none; transition: top 160ms ease; }
+	.drag-active .track-row.dragging { z-index: 2; opacity: 0.85; outline: calc(2 * var(--ds-media-unit, 1px)) solid var(--playlist-drop); box-shadow: 0 calc(8 * var(--ds-media-unit, 1px)) calc(16 * var(--ds-media-unit, 1px)) rgb(0 0 0 / 30%); transition: none; }
+	.drag-position { position: absolute; top: calc(-18 * var(--ds-media-unit, 1px)); right: calc(4 * var(--ds-media-unit, 1px)); padding: calc(1 * var(--ds-media-unit, 1px)) calc(5 * var(--ds-media-unit, 1px)); border: calc(1 * var(--ds-media-unit, 1px)) solid var(--playlist-drop); border-radius: calc(4 * var(--ds-media-unit, 1px)); background: var(--ds-full-surface); font: calc(10 * var(--ds-media-unit, 1px))/calc(14 * var(--ds-media-unit, 1px)) "Golos Text", sans-serif; pointer-events: none; }
+	.drop-slot { position: absolute; left: 0; right: 0; box-sizing: border-box; display: grid; place-items: center; border: calc(2 * var(--ds-media-unit, 1px)) dashed var(--playlist-drop); border-radius: calc(8 * var(--ds-media-unit, 1px)); background: color-mix(in srgb, var(--playlist-drop) 12%, transparent); color: inherit; font: calc(10 * var(--ds-media-unit, 1px))/calc(14 * var(--ds-media-unit, 1px)) "Golos Text", sans-serif; pointer-events: none; transition: top 160ms ease; }
 	.track-row.just-dropped { animation: drop-track 180ms ease-out; }
 	@keyframes drop-track {
-		from { transform: translateY(var(--settle-offset)); box-shadow: 0 0 0 2px var(--playlist-drop), 0 8px 16px rgb(0 0 0 / 25%); }
+		from { transform: translateY(var(--settle-offset)); box-shadow: 0 0 0 calc(2 * var(--ds-media-unit, 1px)) var(--playlist-drop), 0 calc(8 * var(--ds-media-unit, 1px)) calc(16 * var(--ds-media-unit, 1px)) rgb(0 0 0 / 25%); }
 		to { transform: translateY(0); box-shadow: 0 0 0 0 transparent, 0 0 0 transparent; }
 	}
 	@media (prefers-reduced-motion: reduce) {
@@ -236,20 +236,20 @@
 		.track-row.just-dropped { animation: none; }
 	}
 	.playlist button { all: unset; box-sizing: border-box; color: inherit; cursor: pointer; }
-	.playlist button:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
+	.playlist button:focus-visible { outline: calc(2 * var(--ds-media-unit, 1px)) solid currentcolor; outline-offset: calc(2 * var(--ds-media-unit, 1px)); }
 	.playlist button:disabled { cursor: default; opacity: 0.4; }
-	.playlist button.open-track { display: block; width: 100%; min-width: 0; border-radius: 8px; }
-	.track-row :global(.content) { justify-content: center; padding: 6px 8px; }
+	.playlist button.open-track { display: block; width: 100%; min-width: 0; border-radius: calc(8 * var(--ds-media-unit, 1px)); }
+	.track-row :global(.content) { justify-content: center; padding: calc(6 * var(--ds-media-unit, 1px)) calc(8 * var(--ds-media-unit, 1px)); }
 	.track-row :global(.titles) { gap: 0; }
-	.track-row :global(.content strong) { font-size: 12px; line-height: 14px; }
-	.track-row :global(.content span:not(.title-text)), .track-row :global(.meta span) { font-size: 8px; line-height: 10px; }
-	.track-row :global(.meta) { padding: 6px 8px; }
-	.playlist button.icon-button { position: absolute; display: grid; place-items: center; border-radius: 2px; }
-	.playlist button.drag-handle { top: 0; left: 0; width: 48px; height: 40px; cursor: grab; touch-action: none; }
+	.track-row :global(.content strong) { font-size: calc(12 * var(--ds-media-unit, 1px)); line-height: calc(14 * var(--ds-media-unit, 1px)); }
+	.track-row :global(.content span:not(.title-text)), .track-row :global(.meta span) { font-size: calc(8 * var(--ds-media-unit, 1px)); line-height: calc(10 * var(--ds-media-unit, 1px)); }
+	.track-row :global(.meta) { padding: calc(6 * var(--ds-media-unit, 1px)) calc(8 * var(--ds-media-unit, 1px)); }
+	.playlist button.icon-button { position: absolute; display: grid; place-items: center; border-radius: calc(2 * var(--ds-media-unit, 1px)); }
+	.playlist button.drag-handle { top: 0; left: 0; width: calc(48 * var(--ds-media-unit, 1px)); height: calc(40 * var(--ds-media-unit, 1px)); cursor: grab; touch-action: none; }
 	.playlist button.drag-handle:active { cursor: grabbing; }
-	.playlist button.remove { right: 8px; bottom: 6px; width: 14px; height: 14px; }
+	.playlist button.remove { right: calc(8 * var(--ds-media-unit, 1px)); bottom: calc(6 * var(--ds-media-unit, 1px)); width: calc(14 * var(--ds-media-unit, 1px)); height: calc(14 * var(--ds-media-unit, 1px)); }
 	.playlist button.icon-button:hover:not(:disabled) { background: rgb(255 255 255 / 10%); }
 	.playlist[data-theme="light"] button.icon-button:hover:not(:disabled) { background: rgb(15 23 42 / 8%); }
-	.playlist button.add-track { display: grid; place-items: center; width: 100%; height: 14px; border-radius: 4px; background: color-mix(in srgb, var(--playlist-track) 40%, transparent); box-shadow: 0 2px 2px rgb(0 0 0 / 25%); }
+	.playlist button.add-track { display: grid; place-items: center; width: 100%; height: calc(14 * var(--ds-media-unit, 1px)); border-radius: calc(4 * var(--ds-media-unit, 1px)); background: color-mix(in srgb, var(--playlist-track) 40%, transparent); box-shadow: 0 calc(2 * var(--ds-media-unit, 1px)) calc(2 * var(--ds-media-unit, 1px)) rgb(0 0 0 / 25%); }
 	.playlist button.add-track:hover:not(:disabled) { background: color-mix(in srgb, var(--playlist-track) 55%, transparent); }
 </style>

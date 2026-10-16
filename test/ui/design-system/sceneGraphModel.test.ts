@@ -30,12 +30,12 @@ describe("scene graph changes", () => {
 
 	it("separates parallel and reverse arrows without offsetting their endpoints", () => {
 		expect(sceneLinkOffsets([{ fromSceneId: "a", toSceneId: "b" }])).toEqual([0]);
-		expect(sceneLinkOffsets([{ fromSceneId: "a", toSceneId: "b" }, { fromSceneId: "a", toSceneId: "b" }])).toEqual([-24, 24]);
-		expect(sceneLinkOffsets([{ fromSceneId: "a", toSceneId: "b" }, { fromSceneId: "b", toSceneId: "a", fromSide: "top", toSide: "bottom" }])).toEqual([-24, -24]);
-		expect(sceneBoundaryPoint(98, -3, "top")).toEqual({ x: 98, y: 0 });
-		expect(sceneBoundaryPoint(199, 32, "right")).toEqual({ x: 196, y: 32 });
-		expect(sceneBoundaryPoint(98, 67, "bottom")).toEqual({ x: 98, y: 64 });
-		expect(sceneBoundaryPoint(-3, 32, "left")).toEqual({ x: 0, y: 32 });
+		expect(sceneLinkOffsets([{ fromSceneId: "a", toSceneId: "b" }, { fromSceneId: "a", toSceneId: "b" }])).toEqual([-36, 36]);
+		expect(sceneLinkOffsets([{ fromSceneId: "a", toSceneId: "b" }, { fromSceneId: "b", toSceneId: "a", fromSide: "top", toSide: "bottom" }])).toEqual([-36, -36]);
+		expect(sceneBoundaryPoint(147, -4.5, "top")).toEqual({ x: 147, y: 0 });
+		expect(sceneBoundaryPoint(298.5, 48, "right")).toEqual({ x: 294, y: 48 });
+		expect(sceneBoundaryPoint(147, 100.5, "bottom")).toEqual({ x: 147, y: 96 });
+		expect(sceneBoundaryPoint(-4.5, 48, "left")).toEqual({ x: 0, y: 48 });
 	});
 
 	it("moves either endpoint or only the side without moving cards or other links", () => {
@@ -96,9 +96,9 @@ describe("scene graph changes", () => {
 	it("adds independent scenes and branches without overlapping or moving existing cards", () => {
 		const initial: SceneGraphData = { nodes: [first], links: [] };
 		const branch = addSceneNote(initial, note("Пещера"), "a", { x: 0, y: 0 }, "b");
-		expect(branch.nodes[1].position).toEqual({ x: 100, y: 170 });
+		expect(branch.nodes[1].position).toEqual({ x: 100, y: 230 });
 		const secondBranch = addSceneNote(branch, note("Храм"), "a", { x: 0, y: 0 }, "c");
-		expect(secondBranch.nodes[2].position).toEqual({ x: 320, y: 170 });
+		expect(secondBranch.nodes[2].position).toEqual({ x: 430, y: 230 });
 		expect(secondBranch.nodes[0]).toBe(first);
 		expect(secondBranch.links).toEqual([expect.objectContaining({ fromSceneId: "a", toSceneId: "b" }), expect.objectContaining({ fromSceneId: "a", toSceneId: "c" })]);
 		const independent = addSceneNote(secondBranch, note("Зал"), null, { x: 100, y: 50 }, "d");
@@ -137,7 +137,7 @@ describe("scene graph changes", () => {
 	});
 
 	it("finds free space on either side of a crowded origin", () => {
-		const nodes = [-2, -1, 0, 1, 2].map((column) => ({ ...first, id: String(column), position: { x: column * 220, y: 0 } }));
-		expect(findScenePosition(nodes, { x: 0, y: 0 })).toEqual({ x: 660, y: 0 });
+		const nodes = [-2, -1, 0, 1, 2].map((column) => ({ ...first, id: String(column), position: { x: column * 330, y: 0 } }));
+		expect(findScenePosition(nodes, { x: 0, y: 0 })).toEqual({ x: 990, y: 0 });
 	});
 });

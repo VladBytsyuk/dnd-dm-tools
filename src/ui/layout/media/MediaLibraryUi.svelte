@@ -351,7 +351,7 @@
 	.error { color: var(--text-error); font-size: 12px; margin: 4px 8px; overflow-wrap: anywhere; }
 	.empty { color: var(--text-muted); padding: 8px; margin: 0; font-size: 12px; }
 	.picker-overlay, .modal-overlay { position: absolute; inset: 0; z-index: 50; background: rgb(0 0 0 / 35%); display: flex; align-items: flex-start; justify-content: center; padding: 50px 8px 8px; }
-	.picker-panel { position: relative; width: min(360px, 100%); min-width: 0; }
+	.picker-panel { --ds-media-unit: 1.5px; position: relative; width: min(540px, 100%); min-width: 0; }
 	.picker-panel :global(.reference-picker) { width: 100%; }
 	.modal-overlay { align-items: center; padding: 8px; }
 	.leave-dialog { padding: 16px; border: 1px solid var(--background-modifier-border); border-radius: 8px; background: var(--background-primary); max-width: 100%; }

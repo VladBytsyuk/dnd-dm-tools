@@ -48,11 +48,11 @@
 		display: block;
 		width: 100%;
 		min-width: 0;
-		height: 24px;
+		height: calc(24 * var(--ds-media-unit, 1px));
 		margin: 0;
 		padding: 0;
 		appearance: none;
-		background: linear-gradient(to right, var(--progress-color) var(--progress), var(--progress-unplayed) var(--progress)) center / 100% 2px no-repeat;
+		background: linear-gradient(to right, var(--progress-color) var(--progress), var(--progress-unplayed) var(--progress)) center / 100% calc(2 * var(--ds-media-unit, 1px)) no-repeat;
 		cursor: pointer;
 	}
 
@@ -63,14 +63,14 @@
 	}
 
 	.progress-bar::-webkit-slider-runnable-track {
-		height: 2px;
+		height: calc(2 * var(--ds-media-unit, 1px));
 		border: 0;
 		padding: 0;
 		background: transparent;
 	}
 
 	.progress-bar::-moz-range-track {
-		height: 2px;
+		height: calc(2 * var(--ds-media-unit, 1px));
 		border: 0;
 		padding: 0;
 		background: transparent;
@@ -79,9 +79,9 @@
 	.progress-bar::-webkit-slider-thumb {
 		position: relative;
 		top: 0;
-		width: 4px;
-		height: 4px;
-		margin-top: -1px;
+		width: calc(4 * var(--ds-media-unit, 1px));
+		height: calc(4 * var(--ds-media-unit, 1px));
+		margin-top: calc(-1 * var(--ds-media-unit, 1px));
 		padding: 0;
 		border: 0;
 		border-radius: 50%;
@@ -93,8 +93,8 @@
 	}
 
 	.progress-bar::-moz-range-thumb {
-		width: 4px;
-		height: 4px;
+		width: calc(4 * var(--ds-media-unit, 1px));
+		height: calc(4 * var(--ds-media-unit, 1px));
 		margin: 0;
 		padding: 0;
 		border: 0;
@@ -120,11 +120,11 @@
 	}
 
 	.progress-bar:focus-visible::-webkit-slider-thumb {
-		box-shadow: 0 0 0 5px var(--progress-focus);
+		box-shadow: 0 0 0 calc(5 * var(--ds-media-unit, 1px)) var(--progress-focus);
 	}
 
 	.progress-bar:focus-visible::-moz-range-thumb {
-		box-shadow: 0 0 0 5px var(--progress-focus);
+		box-shadow: 0 0 0 calc(5 * var(--ds-media-unit, 1px)) var(--progress-focus);
 	}
 
 	.progress-bar:disabled {

@@ -81,9 +81,9 @@
 	{#if !panelOnly}
 	<div class="picker-controls">
 		<button class="picker-trigger" type="button" bind:this={trigger} aria-label={label} aria-haspopup="listbox" aria-expanded={open} aria-controls={`${id}-list`} title={value ? currentLabel : undefined} onclick={() => open ? close() : show()} onkeydown={(event) => { if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); void show(event.key === "ArrowUp"); } else if (event.key === "Escape" && open) close(); }}>
-			<span>{value ? currentLabel : placeholder}</span><ChevronDown size={12} aria-hidden={true} />
+			<span>{value ? currentLabel : placeholder}</span><ChevronDown size="calc(12 * var(--ds-media-unit, 1px))" aria-hidden={true} />
 		</button>
-		{#if value !== null}<button class="clear" type="button" aria-label={`Убрать: ${label}`} title={`Убрать: ${label}`} onclick={() => choose(null)}><X size={12} aria-hidden={true} /></button>{/if}
+		{#if value !== null}<button class="clear" type="button" aria-label={`Убрать: ${label}`} title={`Убрать: ${label}`} onclick={() => choose(null)}><X size="calc(12 * var(--ds-media-unit, 1px))" aria-hidden={true} /></button>{/if}
 	</div>
 	{/if}
 	{#if open}
@@ -100,27 +100,27 @@
 </div>
 
 <style>
-	.reference-picker { position: relative; min-width: 0; max-width: 100%; color: #fff; font: 12px/15px "Golos Text", sans-serif; text-align: left; }
+	.reference-picker { position: relative; min-width: 0; max-width: 100%; color: #fff; font: calc(12 * var(--ds-media-unit, 1px))/calc(15 * var(--ds-media-unit, 1px)) "Golos Text", sans-serif; text-align: left; }
 	.reference-picker[data-theme="light"] { color: #1f2937; }
-	.picker-controls { display: flex; align-items: center; gap: 2px; min-width: 0; }
-	.reference-picker button { all: unset; box-sizing: border-box; cursor: pointer; border-radius: 4px; }
-	.reference-picker .picker-trigger { display: flex; flex: 1; align-items: center; justify-content: space-between; gap: 4px; min-width: 0; padding: 3px 4px; background: rgb(212 212 212 / 20%); }
+	.picker-controls { display: flex; align-items: center; gap: calc(2 * var(--ds-media-unit, 1px)); min-width: 0; }
+	.reference-picker button { all: unset; box-sizing: border-box; cursor: pointer; border-radius: calc(4 * var(--ds-media-unit, 1px)); }
+	.reference-picker .picker-trigger { display: flex; flex: 1; align-items: center; justify-content: space-between; gap: calc(4 * var(--ds-media-unit, 1px)); min-width: 0; padding: calc(3 * var(--ds-media-unit, 1px)) calc(4 * var(--ds-media-unit, 1px)); background: rgb(212 212 212 / 20%); }
 	.picker-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 	.picker-trigger :global(svg) { flex: 0 0 auto; }
-	.reference-picker .clear { display: grid; flex: 0 0 20px; width: 20px; height: 20px; place-items: center; }
+	.reference-picker .clear { display: grid; flex: 0 0 calc(20 * var(--ds-media-unit, 1px)); width: calc(20 * var(--ds-media-unit, 1px)); height: calc(20 * var(--ds-media-unit, 1px)); place-items: center; }
 	.reference-picker button:hover { background: rgb(212 212 212 / 25%); }
-	.reference-picker button:focus-visible, .reference-picker input:focus-visible { outline: 2px solid currentcolor; outline-offset: 1px; }
-	.picker-panel { position: absolute; left: 0; top: calc(100% + 4px); z-index: 10; box-sizing: border-box; width: max(100%, 240px); max-width: min(320px, calc(100vw - 32px)); padding: 6px; border: 1px solid rgb(255 255 255 / 25%); border-radius: 6px; background: #303030; box-shadow: 0 4px 12px rgb(0 0 0 / 35%); }
+	.reference-picker button:focus-visible, .reference-picker input:focus-visible { outline: calc(2 * var(--ds-media-unit, 1px)) solid currentcolor; outline-offset: calc(1 * var(--ds-media-unit, 1px)); }
+	.picker-panel { position: absolute; left: 0; top: calc(100% + calc(4 * var(--ds-media-unit, 1px))); z-index: 10; box-sizing: border-box; width: max(100%, calc(240 * var(--ds-media-unit, 1px))); max-width: min(calc(320 * var(--ds-media-unit, 1px)), calc(100vw - calc(32 * var(--ds-media-unit, 1px)))); padding: calc(6 * var(--ds-media-unit, 1px)); border: calc(1 * var(--ds-media-unit, 1px)) solid rgb(255 255 255 / 25%); border-radius: calc(6 * var(--ds-media-unit, 1px)); background: #303030; box-shadow: 0 calc(4 * var(--ds-media-unit, 1px)) calc(12 * var(--ds-media-unit, 1px)) rgb(0 0 0 / 35%); }
 	.reference-picker[data-align="end"] .picker-panel { left: auto; right: 0; }
 	.reference-picker.panel-only .picker-panel { position: static; display: flex; flex-direction: column; width: 100%; max-width: 100%; max-height: var(--reference-picker-max-height, none); }
 	.reference-picker.panel-only .picker-panel input { flex: 0 0 auto; }
 	.reference-picker.panel-only .options { min-height: 0; }
 	.reference-picker[data-theme="light"] .picker-panel { background: #fff; border-color: rgb(31 41 55 / 25%); }
-	.reference-picker input { box-sizing: border-box; width: 100%; min-width: 0; padding: 5px; border: 1px solid rgb(127 127 127 / 60%); border-radius: 3px; background: transparent; color: inherit; font: inherit; }
+	.reference-picker input { box-sizing: border-box; width: 100%; min-width: 0; padding: calc(5 * var(--ds-media-unit, 1px)); border: calc(1 * var(--ds-media-unit, 1px)) solid rgb(127 127 127 / 60%); border-radius: calc(3 * var(--ds-media-unit, 1px)); background: transparent; color: inherit; font: inherit; }
 	.reference-picker input::placeholder { color: inherit; opacity: 0.6; }
-	.options { display: flex; flex-direction: column; gap: 2px; max-height: 200px; overflow-y: auto; margin-top: 4px; }
-	.reference-picker .option { flex: 0 0 auto; padding: 5px; overflow-wrap: anywhere; }
+	.options { display: flex; flex-direction: column; gap: calc(2 * var(--ds-media-unit, 1px)); max-height: calc(200 * var(--ds-media-unit, 1px)); overflow-y: auto; margin-top: calc(4 * var(--ds-media-unit, 1px)); }
+	.reference-picker .option { flex: 0 0 auto; padding: calc(5 * var(--ds-media-unit, 1px)); overflow-wrap: anywhere; }
 	.reference-picker .option.highlighted { background: rgb(127 127 127 / 30%); }
 	.option[aria-selected="true"] { font-weight: 700; }
-	.empty { margin: 6px 0 2px; opacity: 0.7; }
+	.empty { margin: calc(6 * var(--ds-media-unit, 1px)) 0 calc(2 * var(--ds-media-unit, 1px)); opacity: 0.7; }
 </style>
