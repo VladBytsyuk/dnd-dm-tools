@@ -1,6 +1,6 @@
 <script lang="ts" generics="F extends Filters">
     import { onMount } from "svelte";
-    import { Check, X } from "lucide-svelte";
+    import { X } from "lucide-svelte";
     import { Chip as DsChip } from "@dnd-dm-tools/design-system";
     import { theme as appTheme, Theme } from "src/ui/theme";
     import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
@@ -130,7 +130,7 @@
         </div>
         <footer class="filters-screen-footer">
             <button type="button" class="filters-screen-apply" class:has-changes={hasChanges} style:--filters-accent={color} onclick={handleApply}>
-                <DsChip text="Применить" icon={Check} background={color} theme={dsTheme} />
+                <DsChip text="Применить" background={color} theme={dsTheme} />
             </button>
         </footer>
     </div>
@@ -254,7 +254,6 @@
         width: 100%;
         min-height: 32px;
     }
-    .filters-screen-apply :global(.icon-wrapper) { align-self: center; }
     .filters-screen-footer .filters-screen-apply.has-changes :global(.chip) {
         background: var(--filters-accent);
         color: var(--text-on-accent, #fff);

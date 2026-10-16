@@ -17,7 +17,7 @@
     const dsTheme = $derived($appTheme === Theme.Dark ? "dark" : "light");
 
     function initiallyExpanded() {
-        return redesignEnabled && selected.length > 0;
+        return redesignEnabled;
     }
 
     let isExpanded = $state(initiallyExpanded());

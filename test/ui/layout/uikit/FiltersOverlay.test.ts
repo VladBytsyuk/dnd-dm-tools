@@ -60,12 +60,14 @@ describe("redesigned filters", () => {
 		}
 	});
 
-	it("expands selected groups and edits a draft until Apply, including numeric zero", async () => {
+	it("opens all groups by default and edits a draft until Apply, including numeric zero", async () => {
 		const test = overlay();
 		expect(screen.getByText("Источник", { selector: "summary" }).closest("details")?.open).toBe(true);
 		const level = screen.getByText("Уровень", { selector: "summary" });
-		expect(level.closest("details")?.open).toBe(false);
+		expect(level.closest("details")?.open).toBe(true);
 		await test.user.click(screen.getByRole("button", { name: "Бестиарий", exact: true }));
+		await test.user.click(level);
+		expect(level.closest("details")?.open).toBe(false);
 		await test.user.click(level);
 		await test.user.click(screen.getByRole("button", { name: "0", exact: true }));
 		expect(screen.getByRole("button", { name: "0", exact: true }).getAttribute("aria-pressed")).toBe("true");
@@ -124,8 +126,8 @@ describe("filters in the list panel", () => {
 		expect(test.container.querySelector(".side-panel-main")?.contains(screen.getByRole("dialog"))).toBe(true);
 		expect(test.container.querySelector<HTMLElement>(".side-panel-toolbar")?.inert).toBe(true);
 		expect(test.container.querySelector<HTMLElement>(".side-panel-view")?.inert).toBe(true);
-		await test.user.click(screen.getByText("Источник", { selector: "summary" }));
 		await test.user.click(screen.getByRole("button", { name: "Бестиарий", exact: true }));
+		await test.user.click(screen.getByText("Источник", { selector: "summary" }));
 		expect(test.repository.getFilteredSmallItems).toHaveBeenCalledOnce();
 		await test.user.keyboard("{Escape}");
 		await waitFor(() => expect(document.activeElement).toBe(trigger));
@@ -133,8 +135,7 @@ describe("filters in the list panel", () => {
 		expect(list.scrollTop).toBe(145);
 		expect(test.container.querySelector<HTMLElement>(".side-panel-view")?.inert).toBe(false);
 		await test.user.click(trigger);
-		expect(screen.getByText("Источник", { selector: "summary" }).closest("details")?.open).toBe(false);
-		await test.user.click(screen.getByText("Источник", { selector: "summary" }));
+		expect(screen.getByText("Источник", { selector: "summary" }).closest("details")?.open).toBe(true);
 		const source = screen.getByRole("button", { name: "Бестиарий", exact: true });
 		expect(source.getAttribute("aria-pressed")).toBe("false");
 		await test.user.click(source);
