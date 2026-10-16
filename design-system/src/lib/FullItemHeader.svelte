@@ -22,6 +22,7 @@
 		badgeInputType?: "text" | "number";
 		info?: string;
 		infoContent?: Snippet;
+		actions?: Snippet;
 		source?: FullItemSource;
 		sourceSuffix?: string;
 		wrapRussianName?: boolean;
@@ -40,6 +41,7 @@
 		badgeInputType = "text",
 		info = $bindable(),
 		infoContent,
+		actions,
 		source = $bindable(),
 		sourceSuffix = "",
 		wrapRussianName = false,
@@ -124,7 +126,7 @@
 					<span class="info">{info}</span>
 				{/if}
 			{/if}
-			{#if source}
+			{#if source && (editable || source.shortName)}
 				{#if editable}
 					<span class="source-edit">
 						<input class="source" bind:value={source.shortName} placeholder="PHB" aria-label="Краткое название источника" />
@@ -142,6 +144,7 @@
 			{/if}
 		</div>
 	{/if}
+	{#if actions}<div class="actions">{@render actions()}</div>{/if}
 </header>
 
 <style>
@@ -159,6 +162,7 @@
 	.names, .details { display: flex; flex-direction: column; min-width: 0; }
 	.names { flex: 1 1 auto; gap: 2px; }
 	.details { flex: 0 1 auto; align-items: end; justify-content: space-between; text-align: right; }
+	.actions { display: flex; flex: 0 0 auto; align-items: start; gap: 4px; }
 	.source-edit { display: inline-flex; align-items: baseline; min-width: 0; }
 	.source-edit input { min-width: 0; }
 	.name, .entity-link, .source {

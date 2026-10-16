@@ -2,12 +2,12 @@
 	import { Notice, type TFile } from "obsidian";
 	import { onMount } from "svelte";
 	import type DndStatblockPlugin from "src/main";
-	import type { MediaState, Playlist } from "src/domain/models/media/MediaState";
+	import { toLegacyMedia, applyLegacyMedia, type LegacyMediaState as MediaState, type LegacyPlaylist as Playlist } from "src/domain/models/media/LegacyMedia";
 	import { writeTextToClipboard, getMarkdownCodeBlockFromClipboard } from "src/data/clipboard";
 	import { exportPlaylistSnapshot, importPlaylistSnapshot } from "src/domain/models/media/MediaSnapshot";
 
 	let { plugin }: { plugin: DndStatblockPlugin } = $props();
-	function initialMedia() { return plugin.getMediaState(); }
+	function initialMedia() { return toLegacyMedia(plugin.getMediaState()); }
 	function initialPlayback() { return plugin.getMediaPlayback().getSnapshot(); }
 	let media = $state<MediaState>(initialMedia());
 	let playback = $state(initialPlayback());
@@ -30,7 +30,7 @@
 	});
 
 	onMount(() => {
-		const unMedia = plugin.subscribeMedia(() => { media = plugin.getMediaState(); });
+		const unMedia = plugin.subscribeMedia(() => { media = toLegacyMedia(plugin.getMediaState()); });
 		const unPlayback = plugin.getMediaPlayback().subscribe(() => { playback = plugin.getMediaPlayback().getSnapshot(); });
 		const onFiles = () => { fileVersion += 1; };
 		const created = plugin.app.vault.on("create", onFiles);
@@ -40,7 +40,7 @@
 	});
 
 	async function change(update: (state: MediaState) => void): Promise<boolean> {
-		try { await plugin.updateMedia(update); return true; } catch (error) { showError(error); return false; }
+		try { const before = toLegacyMedia(plugin.getMediaState()); const next = structuredClone(before); update(next); await plugin.updateMedia((state) => applyLegacyMedia(state, before, next)); return true; } catch (error) { showError(error); return false; }
 	}
 	async function play(action: () => Promise<void> | void) {
 		try { await action(); } catch (error) { showError(error); }
@@ -84,7 +84,7 @@
 	}
 	async function exportPlaylist() {
 		try {
-			await writeTextToClipboard(`\`\`\`playlist\n${exportPlaylistSnapshot(media, playlistId)}\n\`\`\``);
+			await writeTextToClipboard(`\`\`\`playlist\n${exportPlaylistSnapshot(plugin.getMediaState(), playlistId)}\n\`\`\``);
 			new Notice("Блок playlist скопирован.");
 		} catch (error) { showError(error); }
 	}
@@ -92,8 +92,8 @@
 		try {
 			const block = await getMarkdownCodeBlockFromClipboard<unknown>("playlist");
 			if (!block) throw new Error("В буфере обмена нет блока playlist.");
-			const result = importPlaylistSnapshot(media, JSON.stringify(block), () => crypto.randomUUID(), (path) => !!plugin.app.vault.getFileByPath(path));
-			if (!(await change((state) => Object.assign(state, result.state)))) return;
+			const result = importPlaylistSnapshot(plugin.getMediaState(), JSON.stringify(block), () => crypto.randomUUID(), (path) => !!plugin.app.vault.getFileByPath(path));
+			await plugin.updateMedia((state) => Object.assign(state, result.state));
 			playlistId = result.importedId;
 			new Notice(result.missingPaths.length ? `Импортировано. Отсутствуют файлы: ${result.missingPaths.join(", ")}` : "Плейлист импортирован.");
 		} catch (error) { showError(error); }
@@ -109,7 +109,7 @@
 			<button onclick={() => play(() => plugin.getMediaPlayback().previous())} disabled={!playback.itemId} aria-label="Предыдущий">◀◀</button>
 			<button onclick={() => play(() => playback.playing ? plugin.getMediaPlayback().pause() : playback.itemId ? plugin.getMediaPlayback().resume() : playlistId ? plugin.getMediaPlayback().play(playlistId) : undefined)} aria-label={playback.playing ? "Пауза" : "Воспроизвести"}>{playback.playing ? "Ⅱ" : "▶"}</button>
 			<button onclick={() => play(() => plugin.getMediaPlayback().next())} disabled={!playback.itemId} aria-label="Следующий">▶▶</button>
-			<button onclick={() => play(() => plugin.getMediaPlayback().stop())} disabled={!playback.itemId} aria-label="Остановить">■</button>
+			<button onclick={() => play(() => plugin.getMediaPlayback().clear())} disabled={!playback.itemId} aria-label="Остановить">■</button>
 		</div>
 		<label><input type="checkbox" checked={playback.manualCombat} onchange={(event) => play(() => plugin.getMediaPlayback().setManualCombat(event.currentTarget.checked))} /> Боевой режим вручную</label>
 		<label>Громкость музыки <input type="range" min="0" max="1" step="0.01" value={media.musicVolume} oninput={(event) => change((state) => { state.musicVolume = Number(event.currentTarget.value); })} /></label>

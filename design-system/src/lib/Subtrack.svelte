@@ -15,6 +15,7 @@
 		currentTime?: number;
 		duration?: number;
 		disabled?: boolean;
+		playbackDisabled?: boolean;
 		theme?: "dark" | "light";
 		onPlayingChange?: (playing: boolean) => void;
 		onSeek?: (time: number) => void;
@@ -29,6 +30,7 @@
 		currentTime = $bindable(0),
 		duration = 0,
 		disabled = false,
+		playbackDisabled = false,
 		theme = "dark",
 		onPlayingChange,
 		onSeek,
@@ -68,14 +70,14 @@
 	{#if fileName}
 		<div class="content">
 			<div class="file-row">
-				<button class="icon-button" type="button" aria-label={`${playing ? "Остановить" : "Воспроизвести"}: ${fileName}`} title={playing ? "Остановить" : "Воспроизвести"} {disabled} onclick={togglePlayback}>
+				<button class="icon-button" type="button" aria-label={`${playing ? "Остановить" : "Воспроизвести"}: ${fileName}`} title={playing ? "Остановить" : "Воспроизвести"} disabled={disabled || playbackDisabled} onclick={togglePlayback}>
 					{#if playing}<Square size={20} strokeWidth={2} aria-hidden={true} />{:else}<Play size={20} strokeWidth={2} aria-hidden={true} />{/if}
 				</button>
 				<span class="file-name" title={fileName}>{fileName}</span>
 				<span class="time">{formatTime(elapsed)} / {formatTime(total)}</span>
 			</div>
 			<div class="progress">
-				<ProgressBar value={progress} onValueChange={seek} disabled={disabled || total === 0} ariaLabel={`Позиция воспроизведения: ${fileName}`} {theme} />
+				<ProgressBar value={progress} onValueChange={seek} disabled={disabled || playbackDisabled || total === 0} ariaLabel={`Позиция воспроизведения: ${fileName}`} {theme} />
 			</div>
 		</div>
 	{:else}

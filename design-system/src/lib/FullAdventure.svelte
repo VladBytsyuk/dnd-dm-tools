@@ -6,6 +6,7 @@
 	import SmallPlaylist from "./SmallPlaylist.svelte";
 	import ReferencePicker from "./ReferencePicker.svelte";
 	import SceneGraph from "./SceneGraph.svelte";
+	import Plus from "lucide-svelte/icons/plus";
 	import type { SceneGraphNode, SceneGraphLink, SceneGraphNote, SceneGraphData } from "./sceneGraphModel";
 
 	export type FullAdventurePlaylist = { id: string } & Omit<ComponentProps<typeof SmallPlaylist>, "theme" | "onclick">;
@@ -34,13 +35,16 @@
 		onPlaylistChange?: (playlist: FullAdventurePlaylist | null) => void;
 		onGraphChange?: (graph: SceneGraphData) => void;
 		onSceneSelect?: (id: string | null) => void;
+		onSceneOpen?: (id: string) => void;
+		onCreateScene?: () => void;
+		createSceneDisabled?: boolean;
 		onCopyText?: (text: string) => void;
 	};
 	let {
 		russianName = $bindable(""), entityLink = $bindable(""), campaignName = $bindable(""), source = $bindable<FullItemSource | undefined>(),
 		notePath = $bindable<string | null>(null), playlist = $bindable<FullAdventurePlaylist | null>(null), nodes = $bindable<SceneGraphNode[]>([]), links = $bindable<SceneGraphLink[]>([]),
 		availableNotes = [], availablePlaylists = [], availableSceneNotes = [], entities = [], editable = false, theme = "dark", graphHeight = 400,
-		onOpenNote, onPlaylistClick, onEntityClick, onNoteChange, onPlaylistChange, onGraphChange, onSceneSelect, onCopyText,
+		onOpenNote, onPlaylistClick, onEntityClick, onNoteChange, onPlaylistChange, onGraphChange, onSceneSelect, onSceneOpen, onCreateScene, createSceneDisabled = false, onCopyText,
 	}: Props = $props();
 	let uniqueEntities = $derived.by(() => {
 		const seen = new Set<string>();
@@ -50,6 +54,11 @@
 	function changePlaylist(id: string | null) {
 		playlist = availablePlaylists.find((item) => item.id === id) ?? null;
 		onPlaylistChange?.(playlist);
+	}
+	function changeGraph(graph: SceneGraphData) {
+		nodes = graph.nodes;
+		links = graph.links;
+		onGraphChange?.(graph);
 	}
 </script>
 
@@ -68,7 +77,8 @@
 		<SmallPlaylist {...playlist} {theme} onclick={onPlaylistClick ? () => onPlaylistClick?.(playlist!.id) : undefined} />
 	{/if}
 	<h2>Сцены</h2>
-	<SceneGraph bind:nodes bind:links availableNotes={availableSceneNotes} height={graphHeight} onChange={onGraphChange} {onSceneSelect} {editable} {theme} />
+	<SceneGraph {nodes} {links} availableNotes={availableSceneNotes} height={graphHeight} onChange={changeGraph} {onSceneSelect} {onSceneOpen} showAddScene={!onCreateScene} {editable} {theme} />
+	{#if editable && onCreateScene}<button class="create-scene" type="button" disabled={createSceneDisabled} onclick={onCreateScene}><Plus size={14} aria-hidden={true} />Создать сцену</button>{/if}
 	<h2>Контент приключения</h2>
 	{#if uniqueEntities.length}
 		<ul class="adventure-content">
@@ -112,5 +122,8 @@
 	.entity-card[role="button"] { cursor: pointer; }
 	.entity-card:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
 	.empty { margin: 0; opacity: 0.7; font-size: 12px; line-height: 15px; }
+	.create-scene { display: inline-flex; align-self: flex-start; align-items: center; gap: 4px; min-height: 26px; padding: 4px 8px; border: 1px solid currentcolor; border-radius: 4px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+	.create-scene:disabled { opacity: 0.4; cursor: default; }
+	.create-scene:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
 	@container full-adventure (max-width: 527px) { .adventure-content { grid-template-columns: minmax(0, 1fr); } }
 </style>

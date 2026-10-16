@@ -14,6 +14,8 @@ export interface PanelHost {
 	onDetach?(): void;
 	isToolbarVisible?(): boolean;
 	onBeforeClose?(): Promise<boolean>;
+	/** Returns false when navigation was cancelled; the cached panel owns its history. */
+	openItem?(item: BaseItem): Promise<boolean>;
 	getKey(): PanelKey;
 	getRibbonIconName(): string;
 	getTitle(): string;

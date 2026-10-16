@@ -13,6 +13,7 @@
 	import { getPanelTypeColor, getRedesignPanelTypeColor } from "../uikit/PanelTypeColor";
 	import OmniPanelContent from "./OmniPanelContent.svelte";
 	import OmniSearchResult from "./OmniSearchResult.svelte";
+	import GlobalPlayerUi from "../media/GlobalPlayerUi.svelte";
 	import {
 		getTabInsertionPosition,
 		normalizeTabInsertionPosition,
@@ -36,6 +37,7 @@
 		panels,
 		redesignEnabled = false,
 		mediaPlayback,
+		onMusicVolumeChange,
 		initialWorkspace,
 		search,
 		openResult,
@@ -47,6 +49,7 @@
 		panels: PanelSummary[];
 		redesignEnabled?: boolean;
 		mediaPlayback: MediaPlaybackService;
+		onMusicVolumeChange: (volume: number) => Promise<void>;
 		initialWorkspace: AssistantWorkspaceState;
 		search: (query: string) => Promise<PanelSearchResult[]>;
 		openResult: (result: PanelSearchResult) => Promise<void>;
@@ -376,7 +379,9 @@
 		</div>
 	</div>
 
-	{#if playback.itemId}
+	{#if redesignEnabled}
+		<GlobalPlayerUi playback={mediaPlayback} onVolumeChange={onMusicVolumeChange} />
+	{:else if playback.itemId}
 		<div class="now-playing" aria-label="Сейчас играет">
 			<span class="now-playing__title">♪ {playback.title ?? "Аудио"}{playback.combatMode ? " · бой" : ""}</span>
 			<button type="button" aria-label={playback.playing ? "Пауза" : "Продолжить"} onclick={() => transport(() => playback.playing ? mediaPlayback.pause() : mediaPlayback.resume())}>{playback.playing ? "Ⅱ" : "▶"}</button>

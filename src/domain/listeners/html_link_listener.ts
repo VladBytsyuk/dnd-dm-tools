@@ -1,5 +1,7 @@
 // ---- public ----
 export interface HtmlLinkListener {
+	onMediaClick?: (url: string) => Promise<void>;
+	isMediaLinkEnabled?: () => boolean;
     onBeastClick: (url: string) => Promise<void>;
     onSpellClick: (url: string) => Promise<void>;
     onWeaponClick: (url: string) => Promise<void>;
@@ -51,6 +53,7 @@ const DND_ENTITY_LINK_HREFS = [
     '/character-sheets/',
     '/items/magic/',
     '/items/',
+    '/track/', '/playlist/', '/scene/', '/adventure/',
 ] as const;
 
 export interface DndEntityLinkListener {
@@ -64,6 +67,8 @@ function LinkListener(href: string, onClick: (url: string) => Promise<void>): Dn
 
 function getDndEntityLinkListeners(htmlLinkListener: HtmlLinkListener): DndEntityLinkListener[] {
     return [
+        ...(htmlLinkListener.onMediaClick && (htmlLinkListener.isMediaLinkEnabled?.() ?? false)
+            ? ['/track/', '/playlist/', '/scene/', '/adventure/'].map((prefix) => LinkListener(prefix, htmlLinkListener.onMediaClick!)) : []),
         LinkListener('/bestiary/', htmlLinkListener.onBeastClick),
         LinkListener('/spells/', htmlLinkListener.onSpellClick),
         LinkListener('/screens/', htmlLinkListener.onScreenItemClick),

@@ -2,6 +2,7 @@
 	import "./colors.css";
 	import FullItemHeader, { type FullItemSource } from "./FullItemHeader.svelte";
 	import Subtrack from "./Subtrack.svelte";
+	import Repeat from "lucide-svelte/icons/repeat";
 
 	export type TrackVariant = "normal" | "combat";
 	export type TrackAudio = {
@@ -18,14 +19,17 @@
 		normal?: TrackAudio;
 		combat?: TrackAudio;
 		playingVariant?: TrackVariant | null;
+		loop?: boolean;
 		theme?: "dark" | "light";
 		disabled?: boolean;
+		playbackDisabled?: boolean;
 		editable?: boolean;
 		onCopyText?: (text: string) => void;
 		onPlayingVariantChange?: (variant: TrackVariant | null) => void;
 		onSeek?: (variant: TrackVariant, time: number) => void;
 		onAddFile?: (variant: TrackVariant) => void;
 		onRemoveFile?: (variant: TrackVariant) => void;
+		onLoopChange?: (loop: boolean) => void;
 	};
 
 	let {
@@ -36,14 +40,17 @@
 		normal = $bindable<TrackAudio | undefined>(),
 		combat = $bindable<TrackAudio | undefined>(),
 		playingVariant = $bindable<TrackVariant | null>(null),
+		loop = $bindable(true),
 		theme = "dark",
 		disabled = false,
+		playbackDisabled = false,
 		editable = false,
 		onCopyText,
 		onPlayingVariantChange,
 		onSeek,
 		onAddFile,
 		onRemoveFile,
+		onLoopChange,
 	}: Props = $props();
 
 	function changePlayback(variant: TrackVariant, playing: boolean) {
@@ -58,13 +65,19 @@
 	}
 
 	function removeFile(variant: TrackVariant) {
-		if (playingVariant === variant) changePlayback(variant, false);
+		if (!editable) return;
+		if (!playbackDisabled && playingVariant === variant) changePlayback(variant, false);
 		onRemoveFile?.(variant);
+	}
+
+	function toggleLoop() {
+		loop = !loop;
+		onLoopChange?.(loop);
 	}
 </script>
 
 <article class="track" data-theme={theme} aria-label={russianName}>
-	<FullItemHeader bind:russianName englishName="" showEnglishName={false} bind:entityLink bind:info={atmosphere} bind:source onCopy={onCopyText} {editable} {theme} />
+	<FullItemHeader bind:russianName englishName="" showEnglishName={false} bind:entityLink bind:info={atmosphere} bind:source onCopy={onCopyText} actions={editable ? headerActions : undefined} {editable} {theme} />
 	<Subtrack
 		title="Основной"
 		fileName={normal?.fileName}
@@ -73,10 +86,11 @@
 		playing={playingVariant === "normal"}
 		onPlayingChange={(playing) => changePlayback("normal", playing)}
 		onSeek={(time) => seek("normal", time)}
-		onAdd={onAddFile ? () => onAddFile?.("normal") : undefined}
-		onRemove={onRemoveFile ? () => removeFile("normal") : undefined}
+		onAdd={editable && onAddFile ? () => onAddFile?.("normal") : undefined}
+		onRemove={editable && onRemoveFile ? () => removeFile("normal") : undefined}
 		{theme}
 		{disabled}
+		{playbackDisabled}
 	/>
 	<Subtrack
 		title="Боевой"
@@ -86,12 +100,17 @@
 		playing={playingVariant === "combat"}
 		onPlayingChange={(playing) => changePlayback("combat", playing)}
 		onSeek={(time) => seek("combat", time)}
-		onAdd={onAddFile ? () => onAddFile?.("combat") : undefined}
-		onRemove={onRemoveFile ? () => removeFile("combat") : undefined}
+		onAdd={editable && onAddFile ? () => onAddFile?.("combat") : undefined}
+		onRemove={editable && onRemoveFile ? () => removeFile("combat") : undefined}
 		{theme}
 		{disabled}
+		{playbackDisabled}
 	/>
 </article>
+
+{#snippet headerActions()}
+	{#if editable}<button class="header-action" type="button" aria-label="Повторять трек" title="Повторять трек" aria-pressed={loop} onclick={toggleLoop}><Repeat size={16} aria-hidden={true} /></button>{/if}
+{/snippet}
 
 <style>
 	.track {
@@ -121,4 +140,9 @@
 	.track :global(.full-item-header .russian-name) { font-size: 16px; font-weight: 700; line-height: 20px; }
 	.track :global(.full-item-header .info) { font-size: 10px; line-height: 12px; overflow-wrap: anywhere; }
 	.track :global(.full-item-header .entity-link), .track :global(.full-item-header .source) { font-size: 8px; line-height: 10px; }
+	.header-action { display: grid; place-items: center; width: 24px; height: 24px; padding: 2px; border: 0; border-radius: 4px; background: rgb(127 127 127 / 20%); color: inherit; cursor: pointer; }
+	.header-action:hover:not(:disabled) { background: rgb(127 127 127 / 35%); }
+	.header-action:disabled { opacity: 0.4; cursor: default; }
+	.header-action:focus-visible { outline: 2px solid currentcolor; outline-offset: 2px; }
+	.header-action[aria-pressed="true"] { background: rgb(127 127 127 / 45%); }
 </style>

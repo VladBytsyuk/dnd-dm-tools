@@ -41,6 +41,7 @@
 
 <style>
 	.progress-bar {
+		all: unset;
 		--progress-color: #d9d9d9;
 		--progress-unplayed: rgb(217 217 217 / 50%);
 		--progress-focus: rgb(217 217 217 / 30%);
@@ -63,31 +64,44 @@
 
 	.progress-bar::-webkit-slider-runnable-track {
 		height: 2px;
+		border: 0;
+		padding: 0;
 		background: transparent;
 	}
 
 	.progress-bar::-moz-range-track {
 		height: 2px;
+		border: 0;
+		padding: 0;
 		background: transparent;
 	}
 
 	.progress-bar::-webkit-slider-thumb {
+		position: relative;
+		top: 0;
 		width: 4px;
 		height: 4px;
 		margin-top: -1px;
+		padding: 0;
 		border: 0;
 		border-radius: 50%;
 		appearance: none;
 		background: var(--progress-color);
+		box-shadow: none;
+		transform: none;
 		transition: transform 120ms ease;
 	}
 
 	.progress-bar::-moz-range-thumb {
 		width: 4px;
 		height: 4px;
+		margin: 0;
+		padding: 0;
 		border: 0;
 		border-radius: 50%;
 		background: var(--progress-color);
+		box-shadow: none;
+		transform: none;
 		transition: transform 120ms ease;
 	}
 

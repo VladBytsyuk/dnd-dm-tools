@@ -61,6 +61,7 @@ import { PluginUpdateService } from './data/services/PluginUpdateService';
 import { MediaPlaybackService } from './data/services/MediaPlaybackService';
 import { updateVaultFilePath, type MediaState } from './domain/models/media/MediaState';
 import { PlayerPanel, AdventuresPanel } from './ui/components/sidepanel/MediaPanels';
+import { mediaItems, mediaPanel } from './domain/models/media/MediaLibrary';
 
 export type OwlbearRuntimeStatus = {
 	cloudflared: CloudflaredInstallStatus;
@@ -107,18 +108,23 @@ export default class DndStatblockPlugin extends Plugin {
 	private mediaPlayback: MediaPlaybackService;
 	private readonly mediaListeners = new Set<() => void>();
 	private settingsSaveQueue: Promise<void> = Promise.resolve();
+	private mediaUpdateQueue: Promise<void> = Promise.resolve();
 
 	#uiEventListener: IUiEventListener;
 
 	// ---- callbacks ----
 	async onload() {
 		const loadResult = loadPluginSettings(await this.loadData());
+		if (loadResult.legacyMediaBackup !== undefined) {
+			const backupPath = `${this.manifest.dir ?? `${this.app.vault.configDir}/plugins/${this.manifest.id}`}/media-v5-backup.json`;
+			if (!(await this.app.vault.adapter.exists(backupPath))) await this.app.vault.adapter.write(backupPath, JSON.stringify(loadResult.legacyMediaBackup, null, 2));
+		}
 		this.settings = loadResult.settings;
-		this.mediaPlayback = new MediaPlaybackService(this.app, () => this.settings.media);
+		this.mediaPlayback = new MediaPlaybackService(this.app, () => this.settings.media, () => this.settings.redesignEnabled, (error) => new Notice(error.message));
 		this.assistantWorkspace = this.settings.workspace;
 		this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
 			const tracked = this.settings.media.audioFiles.some((audio) => audio.path === oldPath || audio.path.startsWith(`${oldPath}/`))
-				|| this.settings.media.adventures.some((adventure) => adventure.scenes.some((scene) => scene.path === oldPath || scene.path.startsWith(`${oldPath}/`)));
+				|| this.settings.media.adventures.some((adventure) => [adventure.notePath, ...adventure.scenes.map((scene) => scene.notePath)].some((path) => path && (path === oldPath || path.startsWith(`${oldPath}/`))));
 			if (!tracked) return;
 			void this.updateMedia((media) => Object.assign(media, updateVaultFilePath(media, oldPath, file.path))).catch((error) => {
 				new Notice(error instanceof Error ? error.message : "Не удалось обновить путь файла.");
@@ -179,12 +185,18 @@ export default class DndStatblockPlugin extends Plugin {
 		this.mediaPlayback.onMediaChanged();
 		for (const listener of this.mediaListeners) listener();
 	}
-	async updateMedia(change: (media: MediaState) => void): Promise<void> {
-		const media = structuredClone(this.settings.media);
-		change(media);
-		this.settings = { ...this.settings, media };
-		this.notifyMedia();
-		await this.persistSettings();
+	updateMedia(change: (media: MediaState) => void): Promise<void> {
+		const operation = this.mediaUpdateQueue.catch(() => {}).then(async () => {
+			const previous = this.settings.media;
+			const media = structuredClone(previous);
+			change(media);
+			this.settings = { ...this.settings, media };
+			try { await this.persistSettings(); }
+			catch (error) { if (this.settings.media === media) this.settings = { ...this.settings, media: previous }; throw error; }
+			this.notifyMedia();
+		});
+		this.mediaUpdateQueue = operation;
+		return operation;
 	}
 	private persistSettings(): Promise<void> {
 		this.settingsSaveQueue = this.settingsSaveQueue.catch(() => {}).then(() => this.saveData(this.settings));
@@ -194,15 +206,30 @@ export default class DndStatblockPlugin extends Plugin {
 		const adventure = this.settings.media.adventures.find((item) => item.id === adventureId);
 		const scene = adventure?.scenes.find((item) => item.id === sceneId);
 		if (!adventure || !scene) throw new Error("Сцена не найдена.");
-		const file = this.app.vault.getFileByPath(scene.path);
-		if (!file) throw new Error(`Файл сцены не найден: ${scene.path}`);
+		const file = scene.notePath ? this.app.vault.getFileByPath(scene.notePath) : null;
+		if (!this.settings.redesignEnabled && !file) throw new Error(`Файл сцены не найден: ${scene.notePath ?? scene.name}`);
 		await this.updateMedia((media) => {
 			media.activeAdventureId = adventureId;
 			media.activeSceneId = sceneId;
 		});
+		if (!this.settings.redesignEnabled && file) await this.app.workspace.getLeaf("tab").openFile(file);
+		if (this.settings.redesignEnabled) { await this.mediaPlayback.followScene(adventureId, sceneId); return; }
+		const playlist = this.settings.media.playlists.find((entry) => entry.id === adventure.playlistId);
+		const item = playlist?.items.find((entry) => entry.trackId === scene.trackId);
+		if (playlist && item) await this.mediaPlayback.play(playlist.id, item.id);
+		else if (scene.trackId) await this.mediaPlayback.playTrack(scene.trackId);
+		else if (!this.settings.redesignEnabled) this.mediaPlayback.clear();
+	}
+
+	async openMediaUrl(url: string): Promise<void> {
+		if (!this.settings.redesignEnabled) return;
+		const item = mediaItems(this.settings.media).find((entry) => entry.url === url);
+		if (item) await this.panelManager.openItem(mediaPanel(item.mediaRoute.kind), item);
+	}
+	async openMediaNote(path: string): Promise<void> {
+		const file = this.app.vault.getFileByPath(path);
+		if (!file) throw new Error(`Заметка не найдена: ${path}`);
 		await this.app.workspace.getLeaf("tab").openFile(file);
-		if (scene.playlistId && scene.itemId) await this.mediaPlayback.play(scene.playlistId, scene.itemId);
-		else this.mediaPlayback.stop();
 	}
 
 	getPluginUpdateService(): PluginUpdateService { return this.pluginUpdateService; }
@@ -220,7 +247,7 @@ export default class DndStatblockPlugin extends Plugin {
 		this.settings = {
 			...this.settings,
 			...patch,
-			schemaVersion: 5,
+			schemaVersion: 6,
 		};
 		this.assistantWorkspace = this.settings.workspace;
 		await this.persistSettings();
@@ -628,6 +655,8 @@ export default class DndStatblockPlugin extends Plugin {
 			() => this.dmScreenFeature,
 			(source, name) => this.publishOwlbearPreviewFromImage(source, name),
 		);
+		this.#uiEventListener.onMediaClick = (url) => this.openMediaUrl(url);
+		this.#uiEventListener.isMediaLinkEnabled = () => this.settings.redesignEnabled;
 
 		this.bestiaryFeature = new BestiaryFeature(this, this.#database, this.#uiEventListener);
 		this.spellbookFeature = new SpellbookFeature(this, this.#database, this.#uiEventListener);

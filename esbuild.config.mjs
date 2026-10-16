@@ -82,7 +82,7 @@ const context = await esbuild.context({
 	plugins: [
 		esbuildSvelte({
 			compilerOptions: { css: 'injected' },
-			preprocess: sveltePreprocess(),
+			preprocess: sveltePreprocess({ typescript: { compilerOptions: { rootDir: process.cwd(), target: "ES2022" } } }),
 		}),
 		embedObsidianCss,
 	],

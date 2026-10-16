@@ -5,7 +5,7 @@
 	import Maximize from "lucide-svelte/icons/maximize";
 	import Trash from "lucide-svelte/icons/trash-2";
 
-	let { editable, canDelete, onAdd, onDelete }: { editable: boolean; canDelete: boolean; onAdd: (anchor: HTMLButtonElement) => void; onDelete: () => void } = $props();
+	let { editable, showAddScene = true, canDelete, onAdd, onDelete }: { editable: boolean; showAddScene?: boolean; canDelete: boolean; onAdd: (anchor: HTMLButtonElement) => void; onDelete: () => void } = $props();
 	const flow = useSvelteFlow();
 	export function toFlowPosition(point: { x: number; y: number }) { return flow.screenToFlowPosition(point); }
 	export function revealNode(id: string, bounds: { left: number; top: number; right: number; bottom: number }) {
@@ -21,7 +21,7 @@
 {#if editable}
 <Panel position="top-left">
 	<div class="toolbar">
-		<button type="button" class="add-scene" onclick={(event) => onAdd(event.currentTarget)}><Plus size={14} aria-hidden={true} />Добавить сцену</button>
+		{#if showAddScene}<button type="button" class="add-scene" onclick={(event) => onAdd(event.currentTarget)}><Plus size={14} aria-hidden={true} />Добавить сцену</button>{/if}
 		<button type="button" aria-label="Удалить выделенное" title="Удалить выделенное" disabled={!canDelete} onclick={onDelete}><Trash size={14} aria-hidden={true} /></button>
 	</div>
 </Panel>

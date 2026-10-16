@@ -89,6 +89,7 @@ export class PanelManager {
 
 	isRedesignEnabled(): boolean { return this.plugin.getSettings().redesignEnabled; }
 	getMediaPlayback(): MediaPlaybackService { return this.plugin.getMediaPlayback(); }
+	setMusicVolume(volume: number): Promise<void> { return this.plugin.updateMedia((media) => { media.musicVolume = volume; }); }
 
 	private isPanelAvailable(key: PanelKey): boolean {
 		return key !== "classes" || !this.isRedesignEnabled();
@@ -123,8 +124,13 @@ export class PanelManager {
 	async openItem(key: PanelKey, item?: BaseItem): Promise<void> {
 		if (!this.isPanelAvailable(key)) return;
 		if (item) {
-			this.panelSessions.discard(key);
-			this.currentItems.set(key, item);
+			const panel = this.panels.get(key);
+			if (panel?.openItem && this.isRedesignEnabled()) {
+				if (!(await panel.openItem(item))) return;
+			} else {
+				this.panelSessions.discard(key);
+				this.currentItems.set(key, item);
+			}
 		}
 		await this.openPanel(key);
 	}
@@ -133,6 +139,14 @@ export class PanelManager {
 		if (!this.isPanelAvailable(key)) return;
 		const item = await this.panels.get(key)?.resolveItem(url);
 		if (item) await this.openItem(key, item);
+	}
+
+	async resolveEntity(url: string): Promise<PanelSearchResult | null> {
+		const prefixes: [string, PanelKey][] = [["/items/magic/", "artifactory"], ["/items/", "equipment"], ["/bestiary/", "bestiary"], ["/spells/", "spellbook"], ["/weapons/", "arsenal"], ["/armors/", "armory"], ["/backgrounds/", "backgrounds"], ["/feats/", "feats"], ["/races/", "races"], ["/classes/", "classes"], ["/screens/", "dm-screen"], ["/character-sheets/", "character-sheets"], ["/track/", "player"], ["/playlist/", "player"], ["/scene/", "adventures"], ["/adventure/", "adventures"]];
+		const panelKey = prefixes.find(([prefix]) => url.startsWith(prefix))?.[1];
+		if (!panelKey || !this.isPanelAvailable(panelKey)) return null;
+		const item = await this.panels.get(panelKey)?.resolveItem(url);
+		return item ? { panelKey, url: item.url, title: item.name.rus || item.name.eng, subtitle: "", item } : null;
 	}
 
 	async search(query: string): Promise<PanelSearchResult[]> {
@@ -249,6 +263,7 @@ class AssistantItemView extends ItemView {
 				initialWorkspace: this.manager.getVisibleWorkspace(),
 				redesignEnabled: this.manager.isRedesignEnabled(),
 				mediaPlayback: this.manager.getMediaPlayback(),
+				onMusicVolumeChange: (volume: number) => this.manager.setMusicVolume(volume),
 				search: (query: string) => this.manager.search(query),
 				openResult: (result: PanelSearchResult) => this.manager.openSearchResult(result),
 				mountPanel: (key: PanelKey, element: Element) => this.manager.mountPanel(key, element),

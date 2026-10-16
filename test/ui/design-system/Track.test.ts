@@ -45,7 +45,7 @@ describe("Track", () => {
 		const onPlayingVariantChange = vi.fn();
 		render(Track, {
 			...names, normal: { fileName: "normal.mp3", duration: 200 }, playingVariant: "normal",
-			onSeek, onAddFile, onRemoveFile, onPlayingVariantChange,
+			onSeek, onAddFile, onRemoveFile, editable: true, onPlayingVariantChange,
 		});
 
 		await fireEvent.input(screen.getByRole("slider", { name: "Позиция воспроизведения: normal.mp3" }), { target: { value: "50" } });

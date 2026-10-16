@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Snippet } from "svelte";
+	import { Plus } from "lucide-svelte";
 	import type { BaseItem } from "src/domain/models/common/BaseItem";
 	import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
 	import { getPanelTypeColor, getRedesignPanelTypeColor } from "../PanelTypeColor";
@@ -10,7 +12,10 @@
 		groupTitle: string;
 		items: BaseItem[];
 		onItemClick: (item: BaseItem) => void;
-		SmallItemSlot: any;
+		SmallItemSlot?: any;
+		itemContent?: Snippet<[BaseItem]>;
+		onAdd?: () => void;
+		color?: string;
 		redesignEnabled?: boolean;
 		isFavorite?: (url: string) => boolean;
 		isOpen?: boolean;
@@ -19,8 +24,8 @@
 		onLoadMore?: () => void;
 	}
 
-	let { panelKey, groupTitle, items, onItemClick, SmallItemSlot, redesignEnabled = false, isFavorite, isOpen = true, onOpenChange, showLoadMore = false, onLoadMore }: Props = $props();
-	const groupColor = $derived(redesignEnabled ? getRedesignPanelTypeColor(panelKey) : getPanelTypeColor(panelKey));
+	let { panelKey, groupTitle, items, onItemClick, SmallItemSlot, itemContent, onAdd, color, redesignEnabled = false, isFavorite, isOpen = true, onOpenChange, showLoadMore = false, onLoadMore }: Props = $props();
+	const groupColor = $derived(color ?? (redesignEnabled ? getRedesignPanelTypeColor(panelKey) : getPanelTypeColor(panelKey)));
 
 	function observeEnd(node: HTMLElement) {
 		const observer = new IntersectionObserver((entries) => {
@@ -44,11 +49,12 @@
 	style={`--item-group-color: ${groupColor}; --item-group-hover-color: color-mix(in srgb, ${groupColor} 85%, white)`}
 >
 	<details open={isOpen}>
-		<summary class="item-group__title" onclick={toggleGroup}>{groupTitle}</summary>
+		<summary class="item-group__title" onclick={toggleGroup}>{groupTitle}{#if onAdd}<button class="group-add" type="button" aria-label={`Добавить: ${groupTitle}`} onclick={(event) => { event.preventDefault(); event.stopPropagation(); onAdd?.(); }} onkeydown={(event) => event.stopPropagation()}><Plus size={16} aria-hidden={true} /></button>{/if}</summary>
 		<div class="item-group__grid">
 		{#each items as item (item.url)}
 				<div class:manual-item={item.origin === "manual"}>
-					{#if redesignEnabled}
+					{#if itemContent}{@render itemContent(item)}
+					{:else if redesignEnabled}
 						<RedesignedSmallItem {panelKey} smallItem={item} favorite={isFavorite?.(item.url) ?? false} onItemClick={() => onItemClick(item)} />
 					{:else}
 						<PanelTypeTint {panelKey}><SmallItemSlot smallItem={item} onItemClick={() => onItemClick(item)} /></PanelTypeTint>
@@ -63,6 +69,8 @@
 </div>
 
 <style>
+	.group-add { all: unset; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: 24px; height: 24px; cursor: pointer; }
+	.group-add:focus-visible { outline: 2px solid currentcolor; }
 	.item-group {
 		margin: 0;
 	}

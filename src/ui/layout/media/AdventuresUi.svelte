@@ -2,13 +2,13 @@
 	import { Notice } from "obsidian";
 	import { onMount } from "svelte";
 	import type DndStatblockPlugin from "src/main";
-	import type { Adventure, MediaState } from "src/domain/models/media/MediaState";
+	import { toLegacyMedia, applyLegacyMedia, type LegacyAdventure as Adventure, type LegacyMediaState as MediaState } from "src/domain/models/media/LegacyMedia";
 	import { writeTextToClipboard, getMarkdownCodeBlockFromClipboard } from "src/data/clipboard";
 	import { exportAdventureSnapshot, importAdventureSnapshot } from "src/domain/models/media/MediaSnapshot";
 	import SceneGraph from "./SceneGraph.svelte";
 
 	let { plugin }: { plugin: DndStatblockPlugin } = $props();
-	function initialMedia() { return plugin.getMediaState(); }
+	function initialMedia() { return toLegacyMedia(plugin.getMediaState()); }
 	let media = $state<MediaState>(initialMedia());
 	let adventureId = $state("");
 	let newName = $state("");
@@ -35,7 +35,7 @@
 		if (!media.adventures.some((item) => item.id === adventureId)) adventureId = media.adventures[0]?.id ?? "";
 	});
 	onMount(() => {
-		const unMedia = plugin.subscribeMedia(() => { media = plugin.getMediaState(); });
+		const unMedia = plugin.subscribeMedia(() => { media = toLegacyMedia(plugin.getMediaState()); });
 		const refresh = () => { fileVersion += 1; };
 		const created = plugin.app.vault.on("create", refresh);
 		const renamed = plugin.app.vault.on("rename", refresh);
@@ -44,7 +44,7 @@
 	});
 	function errorMessage(error: unknown) { new Notice(error instanceof Error ? error.message : String(error)); }
 	async function change(update: (state: MediaState) => void): Promise<boolean> {
-		try { await plugin.updateMedia(update); return true; } catch (error) { errorMessage(error); return false; }
+		try { const before = toLegacyMedia(plugin.getMediaState()); const next = structuredClone(before); update(next); await plugin.updateMedia((state) => applyLegacyMedia(state, before, next)); return true; } catch (error) { errorMessage(error); return false; }
 	}
 	function createAdventure() {
 		const name = newName.trim();
@@ -57,7 +57,7 @@
 		void change((state) => state.adventures.find((item) => item.id === adventureId)?.scenes.push({ id: crypto.randomUUID(), path: scenePath, playlistId: null, itemId: null })).then((ok) => { if (ok) scenePath = ""; });
 	}
 	function removeScene(sceneId: string) {
-		if (media.activeAdventureId === adventureId && media.activeSceneId === sceneId) plugin.getMediaPlayback().stop();
+		if (media.activeAdventureId === adventureId && media.activeSceneId === sceneId) plugin.getMediaPlayback().clear();
 		void change((state) => {
 			const target = state.adventures.find((item) => item.id === adventureId);
 			if (!target) return;
@@ -80,15 +80,15 @@
 		return media.audioFiles.find((audio) => audio.id === item?.normalAudioId)?.alias ?? "Элемент";
 	}
 	async function exportAdventure() {
-		try { await writeTextToClipboard(`\`\`\`adventure\n${exportAdventureSnapshot(media, adventureId)}\n\`\`\``); new Notice("Блок adventure скопирован."); }
+		try { await writeTextToClipboard(`\`\`\`adventure\n${exportAdventureSnapshot(plugin.getMediaState(), adventureId)}\n\`\`\``); new Notice("Блок adventure скопирован."); }
 		catch (error) { errorMessage(error); }
 	}
 	async function importAdventure() {
 		try {
 			const block = await getMarkdownCodeBlockFromClipboard<unknown>("adventure");
 			if (!block) throw new Error("В буфере обмена нет блока adventure.");
-			const result = importAdventureSnapshot(media, JSON.stringify(block), () => crypto.randomUUID(), (path) => !!plugin.app.vault.getFileByPath(path));
-			if (!(await change((state) => Object.assign(state, result.state)))) return;
+			const result = importAdventureSnapshot(plugin.getMediaState(), JSON.stringify(block), () => crypto.randomUUID(), (path) => !!plugin.app.vault.getFileByPath(path));
+			await plugin.updateMedia((state) => Object.assign(state, result.state));
 			adventureId = result.importedId;
 			new Notice(result.missingPaths.length ? `Импортировано. Отсутствуют файлы: ${result.missingPaths.join(", ")}` : "Приключение импортировано.");
 		} catch (error) { errorMessage(error); }
@@ -101,11 +101,11 @@
 	<div class="row"><input placeholder="Название приключения" bind:value={newName} /><button onclick={createAdventure} disabled={!newName.trim()}>Создать</button></div>
 	<select aria-label="Приключение" bind:value={adventureId}><option value="">Выберите приключение</option>{#each media.adventures as option (option.id)}<option value={option.id}>{option.name}</option>{/each}</select>
 	{#if adventure}
-		<div class="row"><input aria-label="Название приключения" value={adventure.name} onchange={(event) => change((state) => { const target = state.adventures.find((item) => item.id === adventureId); if (target) target.name = event.currentTarget.value.trim() || target.name; })} /><button onclick={() => { if (media.activeAdventureId === adventureId) plugin.getMediaPlayback().stop(); void change((state) => { state.adventures = state.adventures.filter((item) => item.id !== adventureId); if (state.activeAdventureId === adventureId) { state.activeAdventureId = null; state.activeSceneId = null; } }); }}>Удалить</button></div>
+		<div class="row"><input aria-label="Название приключения" value={adventure.name} onchange={(event) => change((state) => { const target = state.adventures.find((item) => item.id === adventureId); if (target) target.name = event.currentTarget.value.trim() || target.name; })} /><button onclick={() => { if (media.activeAdventureId === adventureId) plugin.getMediaPlayback().clear(); void change((state) => { state.adventures = state.adventures.filter((item) => item.id !== adventureId); if (state.activeAdventureId === adventureId) { state.activeAdventureId = null; state.activeSceneId = null; } }); }}>Удалить</button></div>
 		<section>
 			<h3>Плейлисты приключения</h3>
 			{#each media.playlists as list (list.id)}
-				<label><input type="checkbox" checked={adventure.playlistIds.includes(list.id)} onchange={(event) => change((state) => { const target = state.adventures.find((item) => item.id === adventureId); if (!target) return; if (event.currentTarget.checked) target.playlistIds.push(list.id); else { target.playlistIds = target.playlistIds.filter((id) => id !== list.id); for (const scene of target.scenes) if (scene.playlistId === list.id) { scene.playlistId = null; scene.itemId = null; } } })} /> {list.name}</label>
+				<label><input type="checkbox" checked={adventure.playlistIds.includes(list.id)} onchange={(event) => change((state) => { const target = state.adventures.find((item) => item.id === adventureId); if (!target) return; if (event.currentTarget.checked) target.playlistIds = [list.id]; else { target.playlistIds = target.playlistIds.filter((id) => id !== list.id); for (const scene of target.scenes) if (scene.playlistId === list.id) { scene.playlistId = null; scene.itemId = null; } } })} /> {list.name}</label>
 			{/each}
 		</section>
 		<section>
@@ -123,10 +123,10 @@
 		<section>
 			<h3>Связи сцен</h3>
 			<div class="row"><select aria-label="Из сцены" bind:value={fromSceneId}><option value="">Из сцены</option>{#each adventure.scenes as scene (scene.id)}<option value={scene.id}>{sceneName(scene.id)}</option>{/each}</select><span>→</span><select aria-label="В сцену" bind:value={toSceneId}><option value="">В сцену</option>{#each adventure.scenes as scene (scene.id)}<option value={scene.id}>{sceneName(scene.id)}</option>{/each}</select><button onclick={addLink} disabled={!fromSceneId || !toSceneId}>Связать</button></div>
-			{#each adventure.links as link (`${link.fromSceneId}:${link.toSceneId}`)}<div class="row"><span>{sceneName(link.fromSceneId)} → {sceneName(link.toSceneId)}</span><button onclick={() => change((state) => { const target = state.adventures.find((item) => item.id === adventureId); if (target) target.links = target.links.filter((entry) => entry.fromSceneId !== link.fromSceneId || entry.toSceneId !== link.toSceneId); })} aria-label="Удалить связь">×</button></div>{/each}
+			{#each adventure.links as link (link.id ?? `${link.fromSceneId}:${link.toSceneId}`)}<div class="row"><span>{sceneName(link.fromSceneId)} → {sceneName(link.toSceneId)}</span><button onclick={() => change((state) => { const target = state.adventures.find((item) => item.id === adventureId); if (target) target.links = target.links.filter((entry) => entry.fromSceneId !== link.fromSceneId || entry.toSceneId !== link.toSceneId); })} aria-label="Удалить связь">×</button></div>{/each}
 		</section>
 		<section><h3>Граф</h3><SceneGraph scenes={graphScenes} links={adventure.links} activeSceneId={media.activeAdventureId === adventureId ? media.activeSceneId : null} onSelect={(id) => { void activate(id); }} /></section>
-		{#if activeScene}<section><h3>Текущая сцена: {sceneName(activeScene.id)}</h3><div class="row">{#each outgoing as link (`${link.fromSceneId}:${link.toSceneId}`)}<button onclick={() => activate(link.toSceneId)}>→ {sceneName(link.toSceneId)}</button>{/each}</div></section>{/if}
+		{#if activeScene}<section><h3>Текущая сцена: {sceneName(activeScene.id)}</h3><div class="row">{#each outgoing as link (link.id ?? `${link.fromSceneId}:${link.toSceneId}`)}<button onclick={() => activate(link.toSceneId)}>→ {sceneName(link.toSceneId)}</button>{/each}</div></section>{/if}
 	{/if}
 </div>
 

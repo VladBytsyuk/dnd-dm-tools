@@ -142,4 +142,25 @@ describe("FullAdventure", () => {
 		expect(screen.getAllByRole("listitem")).toHaveLength(1);
 		expect(screen.getByRole("button", { name: "Открыть: Гроза свежевателей" })).toBeTruthy();
 	});
+	it("opens scene cards only in view mode and places creation immediately after the graph", async () => {
+		const onSceneOpen = vi.fn(), onCreateScene = vi.fn();
+		const nodes = [{ id: "a", note: { title: "Без заметки" }, position: { x: 0, y: 0 } }, { id: "b", note: { title: "Другая сцена" }, position: { x: 220, y: 0 } }];
+		const { container, rerender } = render(FullAdventure, { ...names, nodes, onSceneOpen, onCreateScene });
+		const graph = screen.getByRole("application", { name: "Редактор сцен" });
+		expect(screen.queryByRole("button", { name: "Создать сцену" })).toBeNull();
+		await fireEvent.click(container.querySelector('.svelte-flow__node[data-id="a"]')!);
+		expect(onSceneOpen).toHaveBeenCalledWith("a");
+		await rerender({ editable: true });
+		const createButton = screen.getByRole("button", { name: "Создать сцену" }) as HTMLButtonElement;
+		expect(graph.nextElementSibling).toBe(createButton);
+		expect(createButton.disabled).toBe(false);
+		await fireEvent.click(container.querySelector('.svelte-flow__node[data-id="b"]')!);
+		expect(onSceneOpen).toHaveBeenCalledTimes(1);
+		expect(screen.queryByRole("button", { name: "Добавить сцену", exact: true })).toBeNull();
+		await fireEvent.click(screen.getByRole("button", { name: "Создать сцену" }));
+		expect(onCreateScene).toHaveBeenCalledOnce();
+		await rerender({ editable: false });
+		expect(screen.queryByRole("button", { name: "Создать сцену" })).toBeNull();
+	});
+
 });

@@ -13,7 +13,7 @@ describe("PluginSettings", () => {
 			],
 		});
 
-		expect(result.settings.schemaVersion).toBe(5);
+		expect(result.settings.schemaVersion).toBe(6);
 		expect(result.settings.media.playlists).toEqual([]);
 		expect(result.settings.redesignEnabled).toBe(false);
 		expect(result.settings.workspace.layout).toBe("vertical-split");
@@ -111,7 +111,15 @@ describe("PluginSettings", () => {
 			},
 		});
 		expect(result.settings.workspace.tiles[0]).toEqual({ tabs: ["player", "adventures"], activeTab: "adventures" });
-		expect(result.settings.media.playlists[0].items[0].loop).toBe(true);
+		expect(result.settings.media.tracks[0].loop).toBe(true);
 		expect(result.settings.media.musicVolume).toBe(0.5);
 	});
+	it("requests a raw media backup once when migrating settings version five", () => {
+		const raw = { audioFiles: [], playlists: [], adventures: [], musicVolume: 0.2, effectsVolume: 0.4 };
+		const migrated = loadPluginSettings({ schemaVersion: 5, media: raw });
+		expect(migrated.legacyMediaBackup).toEqual(raw);
+		expect(loadPluginSettings(migrated.settings).legacyMediaBackup).toBeUndefined();
+		expect(migrated.settings.schemaVersion).toBe(6);
+	});
+
 });

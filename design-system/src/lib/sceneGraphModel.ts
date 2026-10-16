@@ -1,7 +1,7 @@
 import type { ComponentProps } from "svelte";
 import type SmallScene from "./SmallScene.svelte";
 
-export type SceneGraphNote = { path: string } & Omit<ComponentProps<typeof SmallScene>, "theme" | "state" | "onclick">;
+export type SceneGraphNote = { path?: string } & Omit<ComponentProps<typeof SmallScene>, "theme" | "state" | "onclick">;
 export type SceneGraphNode = { id: string; note: SceneGraphNote; position: { x: number; y: number } };
 export type SceneGraphSide = "top" | "right" | "bottom" | "left";
 /** Missing sides keep existing graphs connected from bottom to top. */
@@ -84,7 +84,7 @@ export function findScenePosition(nodes: SceneGraphNode[], origin: SceneGraphNod
 export function addSceneNote(graph: SceneGraphData, note: SceneGraphNote, fromId: string | null, origin: SceneGraphNode["position"], newId: string): SceneGraphData {
 	const from = graph.nodes.find((node) => node.id === fromId);
 	if (fromId !== null && !from) return graph;
-	const existing = graph.nodes.find((node) => node.note.path === note.path);
+	const existing = note.path ? graph.nodes.find((node) => node.note.path === note.path) : undefined;
 	if (existing && (fromId === null || existing.id === fromId)) return graph;
 	const target = existing ?? { id: newId, note, position: findScenePosition(graph.nodes, from ? { x: from.position.x, y: from.position.y + 120 } : origin) };
 	return {
