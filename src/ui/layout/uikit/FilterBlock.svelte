@@ -41,7 +41,7 @@
                         text={String(option)}
                         active={isSelected(option)}
                         icon={isSelected(option) ? Check : undefined}
-                        background={color}
+                        background={isSelected(option) ? color : undefined}
                         theme={dsTheme}
                     />
                 </button>
