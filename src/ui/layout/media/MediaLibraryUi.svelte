@@ -267,7 +267,7 @@
 </script>
 
 <div class="media-library" data-theme={theme}>
-	<UiSearchToolbar redesignEnabled onbackclick={route ? () => void navigation.back() : undefined} onvaluechange={(value) => query = value} isvaluechangable={() => !route}
+	<UiSearchToolbar onbackclick={route ? () => void navigation.back() : undefined} onvaluechange={(value) => query = value} isvaluechangable={() => !route}
 		onaddclick={!route && panel === "adventures" ? () => void create("adventure") : undefined}
 		onplayclick={record && route?.kind === "track" ? () => void action(() => plugin.getMediaPlayback().playTrack(record!.id)) : record && route?.kind === "playlist" ? () => void action(() => plugin.getMediaPlayback().play(record!.id)) : undefined}
 		playDisabled={editing || (route?.kind === "track" ? !track?.normalAudioId && !track?.combatAudioId : route?.kind === "playlist" ? !playlist?.items.length : false)}
@@ -278,10 +278,10 @@
 		{#if error}<p class="error" role="alert">{error}</p>{/if}
 		{#if !route}
 			{#if panel === "player"}
-				<UiItemGroup panelKey="player" groupTitle="Плейлисты" items={matching.filter((item) => item.mediaRoute.kind === "playlist")} onItemClick={(item) => void open(item as MediaItem)} itemContent={listCard} onAdd={() => void create("playlist")} color="var(--ds-playlist)" redesignEnabled isOpen={groupsOpen.playlists ?? true} onOpenChange={(value) => groupsOpen.playlists = value} />
-				<UiItemGroup panelKey="player" groupTitle="Треки" items={matching.filter((item) => item.mediaRoute.kind === "track")} onItemClick={(item) => void open(item as MediaItem)} itemContent={listCard} onAdd={() => void create("track")} color="var(--ds-track)" redesignEnabled isOpen={groupsOpen.tracks ?? true} onOpenChange={(value) => groupsOpen.tracks = value} />
+				<UiItemGroup panelKey="player" groupTitle="Плейлисты" items={matching.filter((item) => item.mediaRoute.kind === "playlist")} onItemClick={(item) => void open(item as MediaItem)} itemContent={listCard} onAdd={() => void create("playlist")} color="var(--ds-playlist)" isOpen={groupsOpen.playlists ?? true} onOpenChange={(value) => groupsOpen.playlists = value} />
+				<UiItemGroup panelKey="player" groupTitle="Треки" items={matching.filter((item) => item.mediaRoute.kind === "track")} onItemClick={(item) => void open(item as MediaItem)} itemContent={listCard} onAdd={() => void create("track")} color="var(--ds-track)" isOpen={groupsOpen.tracks ?? true} onOpenChange={(value) => groupsOpen.tracks = value} />
 			{:else}
-				{#each campaigns as [campaign, items] (campaign)}<UiItemGroup panelKey="adventures" groupTitle={campaign || "Без кампании"} {items} onItemClick={(item) => void open(item as MediaItem)} itemContent={listCard} color="var(--ds-adventure)" redesignEnabled isOpen={groupsOpen[campaign] ?? true} onOpenChange={(value) => groupsOpen[campaign] = value} />{/each}
+				{#each campaigns as [campaign, items] (campaign)}<UiItemGroup panelKey="adventures" groupTitle={campaign || "Без кампании"} {items} onItemClick={(item) => void open(item as MediaItem)} itemContent={listCard} color="var(--ds-adventure)" isOpen={groupsOpen[campaign] ?? true} onOpenChange={(value) => groupsOpen[campaign] = value} />{/each}
 				{#if !campaigns.length}<p class="empty">{query ? "Ничего не найдено" : "Приключения пока не добавлены"}</p>{/if}
 			{/if}
 		{:else if !record}<p class="empty">Запись не найдена</p>

@@ -4,6 +4,7 @@ import builtins from "builtin-modules";
 import esbuildSvelte from 'esbuild-svelte';
 import { sveltePreprocess } from 'svelte-preprocess';
 import { readFile, writeFile, rm } from 'node:fs/promises';
+import { svelteFlowCompatibility } from './scripts/svelte-flow-compat.mjs';
 
 const embeddedCssMarker = "/* DND_DM_TOOLS_BUNDLED_CSS */";
 
@@ -80,6 +81,7 @@ const context = await esbuild.context({
 	outfile: "main.js",
 	minify: prod,
 	plugins: [
+		svelteFlowCompatibility(),
 		esbuildSvelte({
 			compilerOptions: { css: 'injected' },
 			preprocess: sveltePreprocess({ typescript: { compilerOptions: { rootDir: process.cwd(), target: "ES2022" } } }),

@@ -16,17 +16,16 @@
         onApply: (filters: F) => void;
         onClose: () => void;
         panelKey?: PanelKey;
-        redesignEnabled?: boolean;
     }
 
-    let { fullFilters, initialFilters, filterConfig, onApply, onClose, panelKey = "bestiary", redesignEnabled = false }: Props<F> = $props();
+    let { fullFilters, initialFilters, filterConfig, onApply, onClose, panelKey = "bestiary" }: Props<F> = $props();
     const color = $derived(getRedesignPanelTypeColor(panelKey));
     const dsTheme = $derived($appTheme === Theme.Dark ? "dark" : "light");
     let screen = $state<HTMLDivElement>();
     let closeButton = $state<HTMLButtonElement>();
 
     onMount(() => {
-        if (redesignEnabled) closeButton?.focus({ preventScroll: true });
+        closeButton?.focus({ preventScroll: true });
     });
 
     function onScreenKeydown(event: KeyboardEvent) {
@@ -96,12 +95,6 @@
         onApply(currentFilters);
         onClose();
     }
-
-    function handleBackdropClick(event: MouseEvent) {
-        if (event.target === event.currentTarget) {
-            onClose();
-        }
-    }
 </script>
 
 {#snippet filterGroups()}
@@ -111,13 +104,11 @@
             options={fullFilters[config.key] as (string | number)[]}
             selected={currentFilters[config.key] as (string | number)[]}
             onToggle={(value) => toggleFilter(config.key, value)}
-            {redesignEnabled}
             {color}
         />
     {/each}
 {/snippet}
 
-{#if redesignEnabled}
 <div class="filters-screen-backdrop">
     <button type="button" class="filters-screen-dismiss" tabindex="-1" aria-label="Закрыть фильтры без применения" onclick={onClose}></button>
     <div class="filters-screen" role="dialog" aria-label="Фильтры" tabindex="-1" bind:this={screen} onkeydown={onScreenKeydown}>
@@ -135,28 +126,6 @@
         </footer>
     </div>
 </div>
-{:else}
-<div class="filters-overlay-backdrop" onclick={handleBackdropClick} role="button" tabindex="0" onkeydown={(e) => e.key === 'Escape' && onClose()}>
-    <div class="filters-overlay">
-        <div class="filters-header">
-            <h2>Фильтры</h2>
-            <button class="close-button" onclick={onClose}>✕</button>
-        </div>
-        <div class="filters-body">
-            {@render filterGroups()}
-        </div>
-        <div class="filters-footer">
-            <button
-                class="submit-button"
-                class:mod-cta={hasChanges}
-                onclick={handleApply}
-            >
-                Применить
-            </button>
-        </div>
-    </div>
-</div>
-{/if}
 
 <style>
     .filters-screen-backdrop {
@@ -260,73 +229,4 @@
     }
     .filters-screen-apply:focus-visible { outline: 2px solid var(--filters-accent); outline-offset: 2px; }
 
-    .filters-overlay-backdrop {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: var(--dnd-ui-pattern-overlay-bg);
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-        z-index: 100;
-        padding-top: var(--dnd-ui-space-20);
-    }
-
-    .filters-overlay {
-        background-color: var(--background-primary);
-        border-radius: var(--dnd-ui-radius-lg);
-        box-shadow: var(--dnd-ui-pattern-modal-shadow);
-        max-width: 600px;
-        width: 90%;
-        height: 300px;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .filters-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: var(--dnd-ui-space-16) var(--dnd-ui-space-20);
-        border-bottom: 1px solid var(--dnd-ui-border-subtle);
-    }
-
-    .filters-header h2 {
-        margin: 0;
-        font-size: var(--dnd-ui-font-size-xl);
-    }
-
-    .close-button {
-        background: none;
-        border: none;
-        font-size: 1.5em;
-        cursor: pointer;
-        color: var(--dnd-ui-text-muted);
-        padding: 0;
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .close-button:hover {
-        color: var(--dnd-ui-text-primary);
-    }
-
-    .filters-body {
-        padding: var(--dnd-ui-space-20);
-        overflow-y: auto;
-        flex: 1;
-        min-height: 0;
-    }
-
-    .filters-footer {
-        padding: var(--dnd-ui-space-16) var(--dnd-ui-space-20);
-        border-top: 1px solid var(--dnd-ui-border-subtle);
-        display: flex;
-        justify-content: flex-end;
-    }
 </style>

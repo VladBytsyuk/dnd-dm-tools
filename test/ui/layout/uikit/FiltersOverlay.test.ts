@@ -11,14 +11,14 @@ afterEach(cleanup);
 const fullFilters = { sources: ["Книга игрока", "Бестиарий"], levels: [0, 1, 2] };
 const filterConfig = [{ key: "sources", label: "Источник" }, { key: "levels", label: "Уровень" }];
 
-function overlay(redesignEnabled = true) {
+function overlay() {
 	const initialFilters = { sources: ["Книга игрока"], levels: [] };
 	const onApply = vi.fn(), onClose = vi.fn();
-	const view = render(FiltersOverlay, { fullFilters, initialFilters, filterConfig, redesignEnabled, panelKey: "spellbook", onApply, onClose });
+	const view = render(FiltersOverlay, { fullFilters, initialFilters, filterConfig, panelKey: "spellbook", onApply, onClose });
 	return { ...view, initialFilters, onApply, onClose, user: userEvent.setup() };
 }
 
-function panel(redesignEnabled = true) {
+function panel() {
 	const repository = {
 		createEmptyFullItem: () => undefined,
 		getAllFilters: vi.fn().mockResolvedValue(fullFilters),
@@ -26,10 +26,10 @@ function panel(redesignEnabled = true) {
 		groupItems: vi.fn().mockResolvedValue([]),
 	};
 	const view = render(BaseSidePanelUi, {
-		panelKey: "spellbook", redesignEnabled, repository,
+		panelKey: "spellbook", repository,
 		initialFilters: { sources: [], levels: [] }, filterConfig,
 		groupTitleBuilder: (group: { sort: string }) => group.sort,
-		uiEventListener: {}, FullItemSlot: undefined, SmallItemSlot: undefined,
+		uiEventListener: {},
 	});
 	return { ...view, repository, user: userEvent.setup() };
 }
@@ -102,17 +102,6 @@ describe("redesigned filters", () => {
 		expect(document.activeElement).toBe(close);
 	});
 
-	it("preserves the legacy modal and initially collapsed groups", async () => {
-		const test = overlay(false);
-		expect(screen.queryByRole("dialog")).toBeNull();
-		expect(test.container.querySelector(".filters-overlay")).toBeTruthy();
-		const group = screen.getByRole("button", { name: "> Источник", exact: true });
-		expect(group.getAttribute("aria-expanded")).toBe("false");
-		await test.user.click(group);
-		await test.user.click(screen.getByRole("button", { name: "Бестиарий", exact: true }));
-		await test.user.click(screen.getByRole("button", { name: "Применить" }));
-		expect(test.onApply).toHaveBeenCalledWith({ sources: ["Книга игрока", "Бестиарий"], levels: [] });
-	});
 });
 
 describe("filters in the list panel", () => {
@@ -155,11 +144,11 @@ describe("filters in the list panel", () => {
 		};
 		const labels: Record<string, string> = { STRENGTH: "Сила", DEXTERITY: "Ловкость" };
 		render(BaseSidePanelUi, {
-			panelKey: "races", redesignEnabled: true, repository,
+			panelKey: "races", repository,
 			initialFilters: { abilities: ["STRENGTH"] }, filterConfig: [{ key: "abilities", label: "Способности" }],
 			filterDisplayTransform: (filters: { abilities: string[] }) => ({ abilities: filters.abilities.map((key) => labels[key]) }),
 			filterApplyTransform: (filters: { abilities: string[] }) => ({ abilities: filters.abilities.map((label) => Object.keys(labels).find((key) => labels[key] === label)) }),
-			groupTitleBuilder: () => "", uiEventListener: {}, FullItemSlot: undefined, SmallItemSlot: undefined,
+			groupTitleBuilder: () => "", uiEventListener: {},
 		});
 		await fireEvent.click(screen.getByRole("button", { name: "Фильтры", exact: true }));
 		await fireEvent.click(await screen.findByRole("button", { name: "Ловкость", exact: true }));

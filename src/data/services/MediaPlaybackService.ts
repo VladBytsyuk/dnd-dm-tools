@@ -1,9 +1,7 @@
 import type { App } from 'obsidian';
-import type { AudioAsset, MediaState, Playlist } from '../../domain/models/media/MediaState';
+import type { AudioAsset, MediaState, MediaTrack, Playlist, PlaylistItem } from '../../domain/models/media/MediaState';
 
 type Variant = 'normal' | 'combat';
-type PlayableItem = { id: string; trackId?: string; normalAudioId?: string; combatAudioId?: string | null; loop?: boolean };
-type PlayableTrack = { id: string; name: string; normalAudioId: string | null; combatAudioId: string | null; loop: boolean };
 type Selection = { playlistId: string | null; itemId: string | null; trackId: string | null };
 
 export interface PlaybackSnapshot {
@@ -40,7 +38,6 @@ export class MediaPlaybackService {
 	private selection: Selection = { playlistId: null, itemId: null, trackId: null };
 	private paused = false;
 	private stopped = false;
-	private manualCombat = false;
 	private manualOverride: boolean | null = null;
 	private trackerCombat = false;
 	private playingVariant: Variant = 'normal';
@@ -53,7 +50,6 @@ export class MediaPlaybackService {
 	constructor(
 		private readonly app: App,
 		private readonly getMediaState: () => MediaState,
-		private readonly isRedesignEnabled: () => boolean = () => false,
 		private readonly onError: (error: Error) => void = () => {},
 	) {}
 
@@ -63,18 +59,17 @@ export class MediaPlaybackService {
 		const track = this.getTrack(this.selection.trackId);
 		const asset = this.getSelectedAsset();
 		const index = playlist?.items.findIndex((entry) => entry.id === item?.id) ?? -1;
-		const nextItem = index >= 0 ? playlist?.items[index + 1] as PlayableItem | undefined : undefined;
+		const nextItem = index >= 0 ? playlist?.items[index + 1] : undefined;
 		const nextTrack = nextItem?.trackId ? this.getTrack(nextItem.trackId) : undefined;
-		const nextAsset = nextItem?.normalAudioId ? this.findAsset(nextItem.normalAudioId) : undefined;
 		return {
 			...this.selection,
 			playlistName: playlist?.name ?? null,
-			nextTrackName: nextTrack?.name ?? nextAsset?.alias ?? null,
+			nextTrackName: nextTrack?.name ?? null,
 			hasPrevious: index > 0,
 			playing: !!this.music && !this.paused && !this.stopped && !this.music.ended,
 			paused: !!this.music && this.paused,
 			combatMode: this.combatMode(),
-			manualCombat: this.isRedesignEnabled() ? this.manualOverride === true : this.manualCombat,
+			manualCombat: this.manualOverride === true,
 			trackerCombat: this.trackerCombat,
 			playingVariant: this.playingVariant,
 			title: track?.name ?? asset?.alias ?? (asset ? asset.path.split('/').pop() ?? asset.path : null),
@@ -94,22 +89,20 @@ export class MediaPlaybackService {
 		this.assertActive();
 		const playlist = this.getMediaState().playlists.find((entry) => entry.id === playlistId);
 		if (!playlist) throw new Error('Плейлист не найден');
-		const item = (itemId ? playlist.items.find((entry) => entry.id === itemId) : playlist.items[0]) as PlayableItem | undefined;
+		const item = itemId ? playlist.items.find((entry) => entry.id === itemId) : playlist.items[0];
 		if (!item) throw new Error('Элемент плейлиста не найден');
-		await this.replaceMusic({ playlistId, itemId: item.id, trackId: item.trackId ?? null }, false, false);
+		await this.replaceMusic({ playlistId, itemId: item.id, trackId: item.trackId }, false, false);
 	}
 
 	async playTrack(trackId: string, variant?: Variant): Promise<void> {
 		this.assertActive();
 		if (!this.getTrack(trackId)) throw new Error('Трек не найден');
 		const oldOverride = this.manualOverride;
-		const oldManual = this.manualCombat;
 		if (variant) {
 			this.manualOverride = variant === 'combat';
-			this.manualCombat = variant === 'combat';
 		}
 		try { await this.replaceMusic({ playlistId: null, itemId: null, trackId }, false, false); }
-		catch (error) { this.manualOverride = oldOverride; this.manualCombat = oldManual; this.emit(); throw error; }
+		catch (error) { this.manualOverride = oldOverride; this.emit(); throw error; }
 	}
 
 	/** Following a scene never starts a paused, stopped or empty player. */
@@ -157,10 +150,6 @@ export class MediaPlaybackService {
 	}
 
 	stop(): void {
-		if (!this.isRedesignEnabled()) {
-			this.clear();
-			return;
-		}
 		this.revision++;
 		this.finishFade();
 		this.music?.pause();
@@ -209,13 +198,10 @@ export class MediaPlaybackService {
 
 	async setManualCombat(value: boolean): Promise<void> {
 		this.assertActive();
-		const oldManual = this.manualCombat;
 		const oldOverride = this.manualOverride;
-		this.manualCombat = value;
-		this.manualOverride = this.isRedesignEnabled() ? value : null;
+		this.manualOverride = value;
 		try { await this.refreshSelectedSource(); }
 		catch (error) {
-			this.manualCombat = oldManual;
 			this.manualOverride = oldOverride;
 			this.emit();
 			throw error;
@@ -229,7 +215,7 @@ export class MediaPlaybackService {
 		const oldTracker = this.trackerCombat;
 		const oldOverride = this.manualOverride;
 		this.trackerCombat = value;
-		if (this.isRedesignEnabled()) this.manualOverride = null;
+		this.manualOverride = null;
 		try { await this.refreshSelectedSource(); }
 		catch (error) {
 			this.trackerCombat = oldTracker;
@@ -295,8 +281,8 @@ export class MediaPlaybackService {
 		const playlist = this.getSelectedPlaylist();
 		if (!playlist) throw new Error('Плейлист не выбран');
 		const index = playlist.items.findIndex((item) => item.id === this.selection.itemId);
-		const item = playlist.items[index + direction] as PlayableItem | undefined;
-		if (item) await this.replaceMusic({ playlistId: playlist.id, itemId: item.id, trackId: item.trackId ?? null }, false, false);
+		const item = playlist.items[index + direction];
+		if (item) await this.replaceMusic({ playlistId: playlist.id, itemId: item.id, trackId: item.trackId }, false, false);
 	}
 
 	private async refreshSelectedSource(): Promise<void> {
@@ -356,14 +342,9 @@ export class MediaPlaybackService {
 				if (this.music !== audio || audio.loop) return;
 				const playlist = this.getSelectedPlaylist();
 				const index = playlist?.items.findIndex((entry) => entry.id === this.selection.itemId) ?? -1;
-				if (this.isRedesignEnabled() && playlist && index >= 0 && index < playlist.items.length - 1) {
+				if (playlist && index >= 0 && index < playlist.items.length - 1) {
 					void this.next().catch((error) => { this.stop(); this.report(error); });
-				} else if (this.isRedesignEnabled()) this.stop();
-				else {
-					this.releaseMusic(audio);
-					this.music = null;
-					this.emit();
-				}
+				} else this.stop();
 			}],
 		];
 		for (const [name, listener] of events) audio.addEventListener(name, listener);
@@ -409,12 +390,12 @@ export class MediaPlaybackService {
 		return this.getMediaState().playlists.find((entry) => entry.id === this.selection.playlistId);
 	}
 
-	private getSelectedItem(): PlayableItem | undefined {
-		return this.getSelectedPlaylist()?.items.find((entry) => entry.id === this.selection.itemId) as PlayableItem | undefined;
+	private getSelectedItem(): PlaylistItem | undefined {
+		return this.getSelectedPlaylist()?.items.find((entry) => entry.id === this.selection.itemId);
 	}
 
-	private getTrack(trackId: string | null): PlayableTrack | undefined {
-		return (this.getMediaState() as MediaState & { tracks?: PlayableTrack[] }).tracks?.find((track) => track.id === trackId);
+	private getTrack(trackId: string | null): MediaTrack | undefined {
+		return this.getMediaState().tracks.find((track) => track.id === trackId);
 	}
 
 	private getSelectedAsset(): AudioAsset | undefined {
@@ -423,20 +404,20 @@ export class MediaPlaybackService {
 
 	private resolveSource(selection: Selection): { asset: AudioAsset; loop: boolean; variant: Variant } {
 		const item = selection.playlistId
-			? this.getMediaState().playlists.find((playlist) => playlist.id === selection.playlistId)?.items.find((entry) => entry.id === selection.itemId) as PlayableItem | undefined
+			? this.getMediaState().playlists.find((playlist) => playlist.id === selection.playlistId)?.items.find((entry) => entry.id === selection.itemId)
 			: undefined;
 		if (selection.playlistId && !item) throw new Error('Элемент плейлиста не найден');
 		const track = this.getTrack(selection.trackId ?? item?.trackId ?? null);
 		if ((selection.trackId || item?.trackId) && !track) throw new Error('Трек не найден');
-		const normalId = track?.normalAudioId ?? item?.normalAudioId;
-		const combatId = track?.combatAudioId ?? item?.combatAudioId;
+		const normalId = track?.normalAudioId;
+		const combatId = track?.combatAudioId;
 		const normal = this.findAsset(normalId ?? null);
 		if (this.combatMode() && combatId) {
 			const combat = this.findAsset(combatId);
-			if (combat && this.app.vault.getFileByPath(combat.path)) return { asset: combat, loop: track?.loop ?? item?.loop ?? true, variant: 'combat' };
+			if (combat && this.app.vault.getFileByPath(combat.path)) return { asset: combat, loop: track?.loop ?? true, variant: 'combat' };
 		}
 		if (!normal) throw new Error('Обычный звуковой файл не найден');
-		return { asset: normal, loop: track?.loop ?? item?.loop ?? true, variant: 'normal' };
+		return { asset: normal, loop: track?.loop ?? true, variant: 'normal' };
 	}
 
 	private findAsset(id: string | null): AudioAsset | undefined {
@@ -450,7 +431,7 @@ export class MediaPlaybackService {
 	}
 
 	private combatMode(): boolean {
-		return this.isRedesignEnabled() ? this.manualOverride ?? this.trackerCombat : this.manualCombat || this.trackerCombat;
+		return this.manualOverride ?? this.trackerCombat;
 	}
 
 	private musicVolume(): number {

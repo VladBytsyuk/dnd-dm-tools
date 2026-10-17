@@ -6,11 +6,10 @@
 		type AssistantWorkspaceState,
 		type PanelKey,
 	} from "src/domain/models/assistant/AssistantWorkspace";
-	import { Notice, setIcon, type IconName } from "obsidian";
-	import { onMount } from "svelte";
+	import { setIcon, type IconName } from "obsidian";
 	import type { MediaPlaybackService } from "src/data/services/MediaPlaybackService";
 	import type { PanelSearchResult } from "src/ui/components/sidepanel/PanelHost";
-	import { getPanelTypeColor, getRedesignPanelTypeColor } from "../uikit/PanelTypeColor";
+	import { getRedesignPanelTypeColor } from "../uikit/PanelTypeColor";
 	import OmniPanelContent from "./OmniPanelContent.svelte";
 	import OmniSearchResult from "./OmniSearchResult.svelte";
 	import GlobalPlayerUi from "../media/GlobalPlayerUi.svelte";
@@ -35,7 +34,6 @@
 
 	let {
 		panels,
-		redesignEnabled = false,
 		mediaPlayback,
 		onMusicVolumeChange,
 		initialWorkspace,
@@ -47,7 +45,6 @@
 		saveWorkspace,
 	}: {
 		panels: PanelSummary[];
-		redesignEnabled?: boolean;
 		mediaPlayback: MediaPlaybackService;
 		onMusicVolumeChange: (volume: number) => Promise<void>;
 		initialWorkspace: AssistantWorkspaceState;
@@ -62,17 +59,10 @@
 	function getInitialWorkspace() {
 		return initialWorkspace;
 	}
-	function getInitialPlayback() { return mediaPlayback.getSnapshot(); }
-
 	let workspace = $state(getInitialWorkspace());
-	let playback = $state(getInitialPlayback());
-	onMount(() => mediaPlayback.subscribe(() => { playback = mediaPlayback.getSnapshot(); }));
-	async function transport(action: () => Promise<void> | void) {
-		try { await action(); } catch (error) { new Notice(error instanceof Error ? error.message : "Не удалось воспроизвести аудио."); }
-	}
 	let query = $state("");
 	let results = $state<PanelSearchResult[]>([]);
-	const favoriteResults = $derived(redesignEnabled ? results.filter((result) => result.favorite) : []);
+	const favoriteResults = $derived(results.filter((result) => result.favorite));
 	let draggedTab = $state<DraggedTab | null>(null);
 	let dropIndicator = $state<DropIndicator | null>(null);
 	let tilesElement: HTMLElement;
@@ -146,7 +136,7 @@
 
 	function openPanel(key: PanelKey) {
 		activateOrOpenAssistantPanel(workspace, key);
-		if (redesignEnabled && key === "initiative-tracker") {
+		if (key === "initiative-tracker") {
 			const tabs = workspace.tiles[workspace.focusedTile].tabs;
 			tabs.splice(tabs.indexOf(key), 1);
 			tabs.unshift(key);
@@ -341,7 +331,7 @@
 				<div
 					class="omni-toolbar__icon"
 					class:active={isPanelOpen(panel.key)}
-					style={`--panel-type-color: ${redesignEnabled ? getRedesignPanelTypeColor(panel.key) : getPanelTypeColor(panel.key)}`}
+					style={`--panel-type-color: ${getRedesignPanelTypeColor(panel.key)}`}
 					style:color={isPanelOpen(panel.key)
 						? "var(--panel-type-color)"
 						: "var(--dnd-ui-text-secondary)"}
@@ -379,33 +369,23 @@
 		</div>
 	</div>
 
-	{#if redesignEnabled}
-		<GlobalPlayerUi playback={mediaPlayback} onVolumeChange={onMusicVolumeChange} />
-	{:else if playback.itemId}
-		<div class="now-playing" aria-label="Сейчас играет">
-			<span class="now-playing__title">♪ {playback.title ?? "Аудио"}{playback.combatMode ? " · бой" : ""}</span>
-			<button type="button" aria-label={playback.playing ? "Пауза" : "Продолжить"} onclick={() => transport(() => playback.playing ? mediaPlayback.pause() : mediaPlayback.resume())}>{playback.playing ? "Ⅱ" : "▶"}</button>
-			<button type="button" aria-label="Следующий элемент" onclick={() => transport(() => mediaPlayback.next())}>⏭</button>
-			<button type="button" aria-label="Остановить" onclick={() => transport(() => mediaPlayback.stop())}>■</button>
-		</div>
-	{/if}
+	<GlobalPlayerUi playback={mediaPlayback} onVolumeChange={onMusicVolumeChange} />
 
 	{#if results.length}
-		<div class="omni-search-results" class:is-redesigned={redesignEnabled} aria-label="Результаты поиска">
+		<div class="omni-search-results is-redesigned" aria-label="Результаты поиска">
 			{#if favoriteResults.length}
 				<h3 class="omni-search-results__heading">Избранное</h3>
 				{#each favoriteResults as result (`favorite:${result.panelKey}:${result.url}`)}
-					<div class="omni-search-results__item" class:is-redesigned={redesignEnabled && result.panelKey !== "character-sheets"}>
-						<OmniSearchResult {result} {redesignEnabled} onSelect={() => selectResult(result)} />
+					<div class="omni-search-results__item" class:is-redesigned={result.panelKey !== "character-sheets"}>
+						<OmniSearchResult {result} onSelect={() => selectResult(result)} />
 					</div>
 				{/each}
 				<h3 class="omni-search-results__heading">Все результаты</h3>
 			{/if}
 			{#each results as result (`${result.panelKey}:${result.url}`)}
-				<div class="omni-search-results__item" class:is-redesigned={redesignEnabled && result.panelKey !== "character-sheets"}>
+				<div class="omni-search-results__item" class:is-redesigned={result.panelKey !== "character-sheets"}>
 					<OmniSearchResult
 						{result}
-						{redesignEnabled}
 						onSelect={() => selectResult(result)}
 					/>
 				</div>
@@ -493,7 +473,7 @@
 									tabIndex === tile.tabs.length - 1
 								}
 								class="tab"
-				style={`--panel-type-color: ${redesignEnabled ? getRedesignPanelTypeColor(key) : getPanelTypeColor(key)}`}
+				style={`--panel-type-color: ${getRedesignPanelTypeColor(key)}`}
 								role="group"
 								aria-label={panelByKey.get(key)?.title ?? key}
 								draggable="true"
@@ -571,9 +551,6 @@
 </div>
 
 <style>
-	.now-playing { display: flex; align-items: center; gap: 4px; padding: 4px 8px; background: var(--background-secondary); border-bottom: 1px solid var(--background-modifier-border); }
-	.now-playing__title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
-	.now-playing button { border: 0; background: transparent; color: var(--text-normal); cursor: pointer; min-width: 28px; min-height: 28px; }
 	.omni,
 	.tiles,
 	.tile,

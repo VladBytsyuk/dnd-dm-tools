@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MediaPlaybackService } from 'src/data/services/MediaPlaybackService';
-import { createMediaAdventure, createMediaScene, type MediaState } from 'src/domain/models/media/MediaState';
+import { createDefaultMediaState, createMediaAdventure, createMediaScene, type MediaState } from 'src/domain/models/media/MediaState';
 
 class FakeAudio {
 	static instances: FakeAudio[] = [];
@@ -42,33 +42,29 @@ class FakeAudio {
 
 function makeState(): MediaState {
 	return {
+		...createDefaultMediaState(),
 		audioFiles: [
 			{ id: 'calm', path: 'Audio/calm.mp3', alias: 'Таверна' },
 			{ id: 'battle', path: 'Audio/battle.mp3', alias: 'Бой' },
 			{ id: 'next', path: 'Audio/next.mp3', alias: 'Дорога' },
 			{ id: 'effect', path: 'Audio/effect.mp3', alias: 'Дверь' },
 		],
-		playlists: [{ id: 'list', name: 'Сессия', items: [
-			{ id: 'one', normalAudioId: 'calm', combatAudioId: 'battle', loop: true },
-			{ id: 'two', normalAudioId: 'next', combatAudioId: null, loop: false },
-		] }],
-		adventures: [], musicVolume: 0.6, effectsVolume: 0.3,
-		activeAdventureId: null, activeSceneId: null,
-	} as unknown as MediaState;
-}
-
-function makeRedesignedState(): MediaState {
-	const state = makeState();
-	return {
-		...state,
 		tracks: [
-			{ id: 'track-one', name: 'Таверна', url: '/track/track-one', atmosphere: '', normalAudioId: 'calm', combatAudioId: 'battle', loop: false },
+			{ id: 'track-one', name: 'Таверна', url: '/track/track-one', atmosphere: '', normalAudioId: 'calm', combatAudioId: 'battle', loop: true },
 			{ id: 'track-two', name: 'Дорога', url: '/track/track-two', atmosphere: '', normalAudioId: 'next', combatAudioId: null, loop: false },
 		],
 		playlists: [{ id: 'list', name: 'Сессия', url: '/playlist/list', atmosphere: '', items: [
 			{ id: 'one', trackId: 'track-one' }, { id: 'two', trackId: 'track-two' },
 		] }],
-	} as unknown as MediaState;
+		adventures: [], musicVolume: 0.6, effectsVolume: 0.3,
+		activeAdventureId: null, activeSceneId: null,
+	};
+}
+
+function makeNonLoopingState(): MediaState {
+	const state = makeState();
+	state.tracks[0].loop = false;
+	return state;
 }
 
 function makeService(state: MediaState): MediaPlaybackService {
@@ -112,17 +108,16 @@ describe('MediaPlaybackService', () => {
 		FakeAudio.instances[1].end();
 		expect(service.getSnapshot().playing).toBe(false);
 		await service.resume();
-		expect(FakeAudio.instances[2].src).toContain('next.mp3');
+		expect(FakeAudio.instances).toHaveLength(2);
+		expect(FakeAudio.instances[1].src).toContain('next.mp3');
 		service.dispose();
 	});
 
-	it('uses the combat source for tracker combat and restores manual selection', async () => {
+	it('uses the combat source while tracker combat is active', async () => {
 		const service = makeService(makeState());
 		await service.play('list');
-		await service.setManualCombat(true);
-		expect(FakeAudio.instances[1].src).toContain('battle.mp3');
 		await service.setTrackerCombat(true);
-		await service.setManualCombat(false);
+		expect(FakeAudio.instances[1].src).toContain('battle.mp3');
 		expect(service.getSnapshot()).toMatchObject({ combatMode: true, manualCombat: false });
 		await service.setTrackerCombat(false);
 		expect(FakeAudio.instances.at(-1)?.src).toContain('calm.mp3');
@@ -164,30 +159,29 @@ describe('MediaPlaybackService', () => {
 		service.dispose();
 	});
 
-	it('reports redesigned timeline and automatically advances non-looping tracks', async () => {
-		const service = makeService(makeRedesignedState());
-		const redesigned = new MediaPlaybackService((service as any).app, (service as any).getMediaState, () => true);
+	it('reports the timeline and automatically advances non-looping tracks', async () => {
+		const service = makeService(makeNonLoopingState());
 		const updates = vi.fn();
-		redesigned.subscribe(updates);
-		await redesigned.play('list');
+		service.subscribe(updates);
+		await service.play('list');
 		const first = FakeAudio.instances[0];
 		first.currentTime = 34;
 		first.emit('timeupdate');
-		expect(redesigned.getSnapshot()).toMatchObject({ trackId: 'track-one', playlistName: 'Сессия', nextTrackName: 'Дорога', hasPrevious: false, currentTime: 34, duration: 120 });
+		expect(service.getSnapshot()).toMatchObject({ trackId: 'track-one', playlistName: 'Сессия', nextTrackName: 'Дорога', hasPrevious: false, currentTime: 34, duration: 120 });
 		expect(updates).toHaveBeenCalled();
 		first.end();
-		await vi.waitFor(() => expect(redesigned.getSnapshot()).toMatchObject({ itemId: 'two', trackId: 'track-two', hasPrevious: true, playing: true }));
+		await vi.waitFor(() => expect(service.getSnapshot()).toMatchObject({ itemId: 'two', trackId: 'track-two', hasPrevious: true, playing: true }));
 		FakeAudio.instances[1].end();
-		expect(redesigned.getSnapshot()).toMatchObject({ itemId: 'two', playing: false, paused: false, currentTime: 0 });
-		await redesigned.resume();
-		expect(redesigned.getSnapshot().playing).toBe(true);
-		redesigned.dispose();
+		expect(service.getSnapshot()).toMatchObject({ itemId: 'two', playing: false, paused: false, currentTime: 0 });
+		await service.resume();
+		expect(service.getSnapshot().playing).toBe(true);
+		service.dispose();
 	});
 
-	it('seeks, mutes, sets volume, and retains selection after stop in redesigned mode', async () => {
-		const state = makeRedesignedState();
+	it('seeks, mutes, sets volume, and retains selection after stop', async () => {
+		const state = makeNonLoopingState();
 		const app = { vault: { getFileByPath: (path: string) => ({ path }), getResourcePath: (file: { path: string }) => file.path } };
-		const service = new MediaPlaybackService(app as any, () => state, () => true);
+		const service = new MediaPlaybackService(app as any, () => state);
 		await service.playTrack('track-one');
 		service.seek(200);
 		expect(service.getSnapshot().currentTime).toBe(120);
@@ -202,9 +196,9 @@ describe('MediaPlaybackService', () => {
 	});
 
 	it('lets manual mode override combat until tracker changes and preserves position on variant switch', async () => {
-		const state = makeRedesignedState();
+		const state = makeNonLoopingState();
 		const app = { vault: { getFileByPath: (path: string) => ({ path }), getResourcePath: (file: { path: string }) => file.path } };
-		const service = new MediaPlaybackService(app as any, () => state, () => true);
+		const service = new MediaPlaybackService(app as any, () => state);
 		await service.playTrack('track-one', 'combat');
 		FakeAudio.instances[0].currentTime = 60;
 		await service.setTrackerCombat(true);
@@ -217,12 +211,12 @@ describe('MediaPlaybackService', () => {
 		service.dispose();
 	});
 	it('follows scene music only while playing, retains playlist context and does not restart the same track', async () => {
-		const state = makeRedesignedState();
+		const state = makeNonLoopingState();
 		const adventure = createMediaAdventure("Поход", "quest"); adventure.playlistId = "list";
 		adventure.scenes = [createMediaScene("Первая", "first"), createMediaScene("Следующая", "second"), createMediaScene("Тихая", "silent")];
 		adventure.scenes[0].trackId = "track-one"; adventure.scenes[1].trackId = "track-two"; state.adventures = [adventure];
 		const app = { vault: { getFileByPath: (path: string) => ({ path }), getResourcePath: (file: { path: string }) => file.path } };
-		const service = new MediaPlaybackService(app as any, () => state, () => true);
+		const service = new MediaPlaybackService(app as any, () => state);
 		await service.followScene("quest", "first"); expect(FakeAudio.instances).toHaveLength(0);
 		await service.playTrack("track-one"); service.pause();
 		await service.followScene("quest", "second"); expect(FakeAudio.instances).toHaveLength(1);
@@ -233,9 +227,9 @@ describe('MediaPlaybackService', () => {
 		service.clear(); expect(service.getSnapshot()).toMatchObject({ trackId: null, playlistId: null }); service.dispose();
 	});
 	it('plays a combat-only file explicitly and keeps the previous mode when another play fails', async () => {
-		const state = makeRedesignedState(); state.tracks[0].normalAudioId = null; state.tracks[1].normalAudioId = null;
+		const state = makeNonLoopingState(); state.tracks[0].normalAudioId = null; state.tracks[1].normalAudioId = null;
 		const app = { vault: { getFileByPath: (path: string) => ({ path }), getResourcePath: (file: { path: string }) => file.path } };
-		const service = new MediaPlaybackService(app as any, () => state, () => true);
+		const service = new MediaPlaybackService(app as any, () => state);
 		await service.playTrack("track-one", "combat");
 		expect(service.getSnapshot()).toMatchObject({ playing: true, playingVariant: "combat", combatMode: true });
 		await expect(service.playTrack("track-two", "normal")).rejects.toThrow();

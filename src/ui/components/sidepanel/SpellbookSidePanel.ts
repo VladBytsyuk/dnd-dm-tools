@@ -4,8 +4,6 @@ import type { SpellbookFilters } from "src/domain/models/spell/SpellbookFilters"
 import { BaseSidePanel } from "./BaseSidePanel";
 import type { SmallSpell } from "src/domain/models/spell/SmallSpell";
 import BaseSidePanelUi from "src/ui/layout/uikit/BaseSidePanelUi.svelte";
-import SpellFullUi from "src/ui/layout/spell/SpellFullUi.svelte";
-import SpellSmallUi from "src/ui/layout/spell/SpellSmallUi.svelte";
 import { emptyFilters } from "src/domain/models/common/Filters";
 import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
@@ -26,15 +24,12 @@ export class SpellBookSidePanel extends BaseSidePanel<SmallSpell, FullSpell, Spe
             target: element,
             props: {
                 panelKey: this.getKey(),
-                redesignEnabled: this.plugin.getSettings().redesignEnabled,
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<SpellbookFilters>(['schools', 'levels', 'classes', 'sources']),
                 repository: this.repository,
                 uiEventListener: this.uiEventListener,
                 filterConfig,
                 groupTitleBuilder: (group: { sort: string }) => group.sort !== "0" ? `Круг ${group.sort}` : "Заговоры",
-                FullItemSlot: SpellFullUi,
-                SmallItemSlot: SpellSmallUi,
                 paginated: true,
                 pageSize: 50,
             },

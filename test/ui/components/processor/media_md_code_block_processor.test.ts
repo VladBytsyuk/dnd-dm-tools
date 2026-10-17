@@ -10,7 +10,7 @@ vi.mock("svelte", async (importOriginal) => ({ ...await importOriginal<typeof im
 beforeEach(() => vi.clearAllMocks());
 function setup() {
 	const handlers = new Map<string, (source: string, element: HTMLElement, context: { addChild: (child: MarkdownRenderChild) => void }) => void>();
-	const plugin = { getSettings: () => ({ redesignEnabled: true }), registerMarkdownCodeBlockProcessor: vi.fn((kind: string, handler: any) => handlers.set(kind, handler)) };
+	const plugin = { registerMarkdownCodeBlockProcessor: vi.fn((kind: string, handler: any) => handlers.set(kind, handler)) };
 	registerMediaMdCodeBlockProcessors(plugin as any);
 	return { plugin, handlers };
 }

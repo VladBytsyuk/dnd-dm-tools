@@ -2,6 +2,19 @@ import { describe, expect, it } from "vitest";
 import { loadPluginSettings } from "src/domain/models/settings/PluginSettings";
 
 describe("PluginSettings", () => {
+	it.each([true, false, undefined])("ignores the obsolete design toggle (%s) and preserves supported settings", (redesignEnabled) => {
+		const settings = loadPluginSettings(null).settings;
+		settings.workspace.tiles[0].tabs = ["bestiary", "player"];
+		settings.workspace.tiles[0].activeTab = "player";
+		settings.media.musicVolume = 0.4;
+		settings.owlbearSync = { enabled: true, port: 43125, authToken: "a".repeat(43) };
+		const result = loadPluginSettings({ ...settings, redesignEnabled });
+
+		expect(result.settings).toEqual(settings);
+		expect(result.settings).not.toHaveProperty("redesignEnabled");
+		expect(JSON.parse(JSON.stringify(result.settings))).not.toHaveProperty("redesignEnabled");
+	});
+
 	it("migrates legacy assistant workspace data into the settings envelope", () => {
 		const result = loadPluginSettings({
 			layout: "vertical-split",
@@ -15,7 +28,7 @@ describe("PluginSettings", () => {
 
 		expect(result.settings.schemaVersion).toBe(6);
 		expect(result.settings.media.playlists).toEqual([]);
-		expect(result.settings.redesignEnabled).toBe(false);
+		expect(result.settings).not.toHaveProperty("redesignEnabled");
 		expect(result.settings.workspace.layout).toBe("vertical-split");
 		expect(result.settings.workspace.tiles[0].tabs).toEqual(["bestiary"]);
 		expect(result.settings.workspace.tiles[1].tabs).toEqual(["spellbook"]);

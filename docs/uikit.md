@@ -2,7 +2,7 @@
 
 The UIKit is the plugin-local collection of existing Svelte components. Its purpose is to reduce duplicated UI logic, keep list/detail behavior consistent across features, and centralize shared styling through semantic tokens.
 
-The independent `design-system` workspace is currently an empty package scaffold. Existing UIKit components and tokens have not been migrated. New framework-agnostic primitives should be added to that package with a public export and Storybook story; repository-, domain-, or Obsidian-dependent compositions remain here.
+The `design-system` workspace provides the shared visual components. Plugin adapters in `src/ui/design-system/` connect those components to domain models and Obsidian services. This is the only supported design; the former interface toggle and its alternate components have been removed.
 
 See also [UI Layer](./ui-layer.md).
 
@@ -10,19 +10,9 @@ See also [UI Layer](./ui-layer.md).
 
 ```
 src/ui/layout/uikit/
-├── atoms/
-│   ├── UiCopyableText.svelte
-│   └── UiSourceBadge.svelte
-├── molecules/
-│   ├── UiContentSection.svelte
-│   ├── UiImageGallery.svelte
-│   ├── UiItemMetaRow.svelte
-│   └── UiPropertyGrid.svelte
 ├── organisms/
-│   ├── UiDetailCard.svelte
-│   ├── UiDetailHeader.svelte
+│   ├── UiCollapsibleGroup.svelte
 │   ├── UiEmptyState.svelte
-│   ├── UiItemCard.svelte
 │   ├── UiItemGroup.svelte
 │   └── UiSearchToolbar.svelte
 ├── AutocompleteInput.svelte
@@ -30,43 +20,27 @@ src/ui/layout/uikit/
 ├── FilterBlock.svelte
 ├── FiltersOverlay.svelte
 ├── HtmlBlock.svelte
-└── IconButton.svelte
+├── PanelTypeColor.ts
+└── PanelTypeTint.svelte
 ```
 
 ## Component Roles
 
-### Atoms
-
-Small reusable primitives with focused behavior and minimal layout responsibility.
-
-- `UiCopyableText.svelte` renders copyable text with shared interaction behavior.
-- `UiSourceBadge.svelte` renders source labels with shared styling.
-
-### Molecules
-
-Reusable composed sections that are still presentation-focused.
-
-- `UiItemMetaRow.svelte` renders shared type/source metadata rows.
-- `UiPropertyGrid.svelte` renders compact detail facts in a reusable grid.
-- `UiContentSection.svelte` renders named body sections.
-- `UiImageGallery.svelte` renders detail-view image browsing and expansion.
-
 ### Organisms
+
+Entity cards are rendered by `RedesignedSmallItem` and `RedesignedFullItem`, using the design-system components.
 
 Reusable high-level UI blocks used directly by feature screens.
 
-- `UiItemCard.svelte` is the standard small-item/list card.
 - `UiItemGroup.svelte` renders grouped small items in collapsible sections.
 - `UiSearchToolbar.svelte` renders the shared search/action row for feature panels.
 - `UiEmptyState.svelte` renders empty list and empty search states.
-- `UiDetailHeader.svelte` renders shared detail-page title, source, metadata, links, and images.
-- `UiDetailCard.svelte` renders the shared detail-page body container.
 
 ### Shared Shell and Utilities
 
 - `BaseSidePanelUi.svelte` is the generic browser shell for most repository-backed Assistant panels.
 - `FiltersOverlay.svelte` and `FilterBlock.svelte` provide shared filter UI.
-- `AutocompleteInput.svelte`, `HtmlBlock.svelte`, and `IconButton.svelte` are reusable support components used by multiple features.
+- `AutocompleteInput.svelte`, `HtmlBlock.svelte`, and `PanelTypeTint.svelte` are reusable support components used by multiple features.
 
 ## BaseSidePanelUi Contract
 
@@ -74,14 +48,13 @@ Reusable high-level UI blocks used directly by feature screens.
 
 It expects:
 
+- `panelKey`
 - `initialFullItem`
 - `initialFilters`
 - `uiEventListener`
 - `repository`
 - `filterConfig`
 - `groupTitleBuilder`
-- `FullItemSlot`
-- `SmallItemSlot`
 - optional `filterDisplayTransform`
 - optional `filterApplyTransform`
 
@@ -129,10 +102,7 @@ Pattern tokens define shared UI structures built on top of the foundation tokens
 
 - `--dnd-ui-pattern-list-item-*`
 - `--dnd-ui-pattern-group-*`
-- `--dnd-ui-pattern-card-*`
-- `--dnd-ui-pattern-badge-*`
 - `--dnd-ui-pattern-input-*`
-- `--dnd-ui-pattern-overlay-*`
 - `--dnd-ui-pattern-modal-*`
 - `--dnd-ui-pattern-table-*`
 
@@ -146,10 +116,10 @@ Pattern tokens define shared UI structures built on top of the foundation tokens
 
 For new or refactored UI:
 
-- small entity list items should compose `UiItemCard`
+- small entity list items use `RedesignedSmallItem`
 - grouped feature-panel lists should compose `UiItemGroup`
 - standard repository-backed Assistant panels should compose `BaseSidePanelUi.svelte`
-- detail pages should compose `UiDetailHeader`, `UiDetailCard`, `UiPropertyGrid`, and `UiContentSection`
+- entity detail pages use `RedesignedFullItem`
 - rich HTML body fragments should use `HtmlBlock.svelte`
 
 Feature-local Svelte components should mostly adapt data into shared UIKit components, not reimplement shared chrome.
@@ -161,3 +131,7 @@ Feature-local Svelte components should mostly adapt data into shared UIKit compo
 - Do not build a feature-local browser shell if `BaseSidePanelUi.svelte` can cover the behavior.
 - Use feature-specific styling only for domain-specific visuals, not for generic list/detail chrome.
 - Do not capture props into top-level constants or `$state(...)` initializers in a way that triggers Svelte 5 `state_referenced_locally` warnings.
+
+## Settings Compatibility
+
+Previously saved `redesignEnabled` values are ignored and omitted from the next settings write. Settings schema version 6 and media migrations are unchanged. Classes remain hidden in the Assistant, while `dnd-class` Markdown cards and the specialized character-sheet interface remain supported.

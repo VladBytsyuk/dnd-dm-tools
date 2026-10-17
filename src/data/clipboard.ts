@@ -190,16 +190,6 @@ export async function getActionEntityFromClipboard(): Promise<ClipboardActionEnt
 }
 
 // ---- Get from clipboard ----
-export async function getMonsterFromClipboard(ignoreNotice: boolean = false): Promise<FullMonster | undefined> {
-    const monster = await getFromClipboard<FullMonster>("statblock");
-    if (monster) {
-        return monster;
-    } else {
-        if (!ignoreNotice) new Notice(`Не удалось прочитать существо из буфера обмена`);   
-        return undefined;
-    }
-}
-
 export async function getEncounterParticipantFromClipboard(ignoreNotice: boolean = false): Promise<EncounterParticipant | undefined> {
     try {
         const clipboard = await readTextFromClipboard();

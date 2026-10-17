@@ -25,14 +25,9 @@ export abstract class BaseMdCodeBlockProcessor<
     /** Returns the name of the code block this processor handles */
     abstract getCodeBlockName(): string;
     
-    /** Returns the Svelte component to render for this item type */
-    abstract getUi(): Component<{ 
-        currentItem: FT, 
-        uiEventListener: IUiEventListener,
-    }, any, any>
-
-    protected getRedesignedUi(): { component: Component<any, any, any>; props?: Record<string, unknown> } | undefined {
-        return undefined;
+    /** Returns the component for specialized code blocks. */
+    getUi(): Component<any, any, any> {
+        return RedesignedMarkdownCard;
     }
 
     /**
@@ -45,7 +40,7 @@ export abstract class BaseMdCodeBlockProcessor<
     ) {
         plugin.registerMarkdownCodeBlockProcessor(
             this.getCodeBlockName(), 
-            (source, el) => this.mdCodeBlockProcessor(source, el, repository, uiEventListener, plugin),
+            (source, el) => this.mdCodeBlockProcessor(source, el, repository, uiEventListener),
         );
     }
 
@@ -58,7 +53,6 @@ export abstract class BaseMdCodeBlockProcessor<
         el: HTMLElement,
         repository: Repository<ST, FT, F>,
         uiEventListener: IUiEventListener,
-        plugin: DndStatblockPlugin,
     ) {
         try {
             const parameters = parseYaml(source);
@@ -81,15 +75,12 @@ export abstract class BaseMdCodeBlockProcessor<
             }
 
             const panelKey = panelKeyForCodeBlock(this.getCodeBlockName());
-            const redesigned = plugin.getSettings().redesignEnabled && Boolean(panelKey);
-            const customRedesignedUi = redesigned ? this.getRedesignedUi() : undefined;
-            const component = customRedesignedUi?.component ?? (redesigned ? RedesignedMarkdownCard : this.getUi());
-            mount(component, {
+            mount(this.getUi(), {
                 target: el,
                 props: {
                     currentItem: item,
                     uiEventListener: uiEventListener,
-                    ...(customRedesignedUi?.props ?? (redesigned ? { panelKey } : {})),
+                    ...(panelKey ? { panelKey } : {}),
                 },
             });
         } catch (error) {

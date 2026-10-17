@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { updateVaultFilePath, loadMediaState, createMediaTrack, createMediaScene } from "src/domain/models/media/MediaState";
 import { sampleMedia, legacyMedia } from "../../../fixtures/media";
-import { applyLegacyMedia, toLegacyMedia } from "src/domain/models/media/LegacyMedia";
 import { saveMediaRecord, removeMediaRecord } from "src/domain/models/media/MediaLibrary";
 
 describe("media library migration and ownership", () => {
@@ -30,16 +29,6 @@ describe("media library migration and ownership", () => {
 		expect(moved.adventures[0].scenes[0]).toMatchObject({ id: "start", name: "Start", notePath: "New/Start.md" });
 		expect(media.adventures[0].scenes[0].notePath).toBe("Scenes/Start.md");
 		expect(updateVaultFilePath(media, "Audio", "Music").audioFiles[0].path).toBe("Music/calm.mp3");
-	});
-	it("keeps canonical metadata and standalone tracks when editing the legacy projection", () => {
-		const state = sampleMedia(); state.tracks[0].atmosphere = "тихая"; state.adventures[0].campaignName = "Кампания";
-		const before = toLegacyMedia(state), next = structuredClone(before);
-		next.playlists[0].name = "Новое"; next.playlists[0].items[0].loop = false;
-		applyLegacyMedia(state, before, next);
-		expect(state.tracks[0]).toMatchObject({ atmosphere: "тихая", loop: false });
-		expect(state.adventures[0].campaignName).toBe("Кампания");
-		expect(state.adventures[0].scenes[0].trackId).toBe(state.playlists[1].items[0].trackId);
-		expect(state.tracks).toHaveLength(3);
 	});
 	it("requires a scene parent and transfers the scene without keeping old arrows", () => {
 		const state = sampleMedia(), value = structuredClone(state.adventures[0].scenes[0]);

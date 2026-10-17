@@ -26,7 +26,7 @@ function setup(panel: "player" | "adventures" = "player") {
 	function emit(patch: object) { snapshot = { ...snapshot, ...patch }; playbackListeners.forEach((fn) => fn()); }
 	const files = ["Scenes/Start.md", "Scenes/End.md", "Audio/calm.mp3", "Audio/battle.mp3"].map((path) => ({ path, extension: path.split('.').at(-1), basename: path.split('/').at(-1) }));
 	const plugin = {
-		getMediaState: () => state, getSettings: () => ({ redesignEnabled: true }), getMediaPlayback: () => playback,
+		getMediaState: () => state, getMediaPlayback: () => playback,
 		subscribeMedia: (fn: () => void) => { mediaListeners.add(fn); return () => mediaListeners.delete(fn); },
 		updateMedia: vi.fn(async (change: (state: any) => void) => { const next = structuredClone(state); change(next); state = next; mediaListeners.forEach((fn) => fn()); }),
 		activateScene: vi.fn(async () => {}), openMediaNote: vi.fn(async () => {}), openMediaUrl: vi.fn(async () => {}),

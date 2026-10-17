@@ -4,8 +4,7 @@
 	import UiCollapsibleGroup from "./UiCollapsibleGroup.svelte";
 	import type { BaseItem } from "src/domain/models/common/BaseItem";
 	import type { PanelKey } from "src/domain/models/assistant/AssistantWorkspace";
-	import { getPanelTypeColor, getRedesignPanelTypeColor } from "../PanelTypeColor";
-	import PanelTypeTint from "../PanelTypeTint.svelte";
+	import { getRedesignPanelTypeColor } from "../PanelTypeColor";
 	import RedesignedSmallItem from "src/ui/design-system/RedesignedSmallItem.svelte";
 
 	interface Props {
@@ -13,11 +12,9 @@
 		groupTitle: string;
 		items: BaseItem[];
 		onItemClick: (item: BaseItem) => void;
-		SmallItemSlot?: any;
 		itemContent?: Snippet<[BaseItem]>;
 		onAdd?: () => void;
 		color?: string;
-		redesignEnabled?: boolean;
 		isFavorite?: (url: string) => boolean;
 		isOpen?: boolean;
 		onOpenChange?: (open: boolean) => void;
@@ -25,9 +22,8 @@
 		onLoadMore?: () => void;
 	}
 
-	let { panelKey, groupTitle, items, onItemClick, SmallItemSlot, itemContent, onAdd, color, redesignEnabled = false, isFavorite, isOpen = $bindable(true), onOpenChange, showLoadMore = false, onLoadMore }: Props = $props();
-	const groupColor = $derived(color ?? (redesignEnabled ? getRedesignPanelTypeColor(panelKey) : getPanelTypeColor(panelKey)));
-
+	let { panelKey, groupTitle, items, onItemClick, itemContent, onAdd, color, isFavorite, isOpen = $bindable(true), onOpenChange, showLoadMore = false, onLoadMore }: Props = $props();
+	const groupColor = $derived(color ?? getRedesignPanelTypeColor(panelKey));
 	function observeEnd(node: HTMLElement) {
 		const observer = new IntersectionObserver((entries) => {
 			if (entries.some((entry) => entry.isIntersecting)) onLoadMore?.();
@@ -46,10 +42,8 @@
 		{#each items as item (item.url)}
 			<div class:manual-item={item.origin === "manual"}>
 				{#if itemContent}{@render itemContent(item)}
-				{:else if redesignEnabled}
-					<RedesignedSmallItem {panelKey} smallItem={item} favorite={isFavorite?.(item.url) ?? false} onItemClick={() => onItemClick(item)} />
 				{:else}
-					<PanelTypeTint {panelKey}><SmallItemSlot smallItem={item} onItemClick={() => onItemClick(item)} /></PanelTypeTint>
+					<RedesignedSmallItem {panelKey} smallItem={item} favorite={isFavorite?.(item.url) ?? false} onItemClick={() => onItemClick(item)} />
 				{/if}
 			</div>
 		{/each}

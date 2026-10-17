@@ -70,9 +70,7 @@ export class PanelManager {
 	}
 
 	getPanelSummaries() {
-		const keys = this.isRedesignEnabled()
-			? ["initiative-tracker" as const, ...PANEL_KEYS.filter((key) => key !== "initiative-tracker")]
-			: PANEL_KEYS;
+		const keys = ["initiative-tracker" as const, ...PANEL_KEYS.filter((key) => key !== "initiative-tracker")];
 		return keys.map((key) => this.panels.get(key))
 			.filter((panel): panel is PanelHost => panel !== undefined && this.isPanelAvailable(panel.getKey()))
 			.map((panel) => ({
@@ -87,17 +85,15 @@ export class PanelManager {
 		return this.getPersistedWorkspace();
 	}
 
-	isRedesignEnabled(): boolean { return this.plugin.getSettings().redesignEnabled; }
 	getMediaPlayback(): MediaPlaybackService { return this.plugin.getMediaPlayback(); }
 	setMusicVolume(volume: number): Promise<void> { return this.plugin.updateMedia((media) => { media.musicVolume = volume; }); }
 
 	private isPanelAvailable(key: PanelKey): boolean {
-		return key !== "classes" || !this.isRedesignEnabled();
+		return key !== "classes";
 	}
 
 	getVisibleWorkspace(): AssistantWorkspaceState {
 		const workspace = createAssistantWorkspaceSnapshot(this.getWorkspace());
-		if (!this.isRedesignEnabled()) return workspace;
 		for (const tile of workspace.tiles) {
 			const index = tile.tabs.indexOf("classes");
 			if (index >= 0) {
@@ -125,7 +121,7 @@ export class PanelManager {
 		if (!this.isPanelAvailable(key)) return;
 		if (item) {
 			const panel = this.panels.get(key);
-			if (panel?.openItem && this.isRedesignEnabled()) {
+			if (panel?.openItem) {
 				if (!(await panel.openItem(item))) return;
 			} else {
 				this.panelSessions.discard(key);
@@ -261,7 +257,6 @@ class AssistantItemView extends ItemView {
 			props: {
 				panels: this.manager.getPanelSummaries(),
 				initialWorkspace: this.manager.getVisibleWorkspace(),
-				redesignEnabled: this.manager.isRedesignEnabled(),
 				mediaPlayback: this.manager.getMediaPlayback(),
 				onMusicVolumeChange: (volume: number) => this.manager.setMusicVolume(volume),
 				search: (query: string) => this.manager.search(query),

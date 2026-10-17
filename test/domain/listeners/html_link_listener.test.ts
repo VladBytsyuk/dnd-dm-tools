@@ -24,12 +24,9 @@ describe('html_link_listener', () => {
         document.body.removeChild(mockNode);
     });
 
-    it('opens media links only while the redesigned interface is enabled', async () => {
+    it('opens media links when a media handler is registered', async () => {
         const onMediaClick = vi.fn(async () => {});
         mockHtmlLinkListener.onMediaClick = onMediaClick;
-        mockHtmlLinkListener.isMediaLinkEnabled = () => false;
-        expect(resolveDndEntityLink(mockHtmlLinkListener, '/track/music')).toBeNull();
-        mockHtmlLinkListener.isMediaLinkEnabled = () => true;
         for (const url of ['/track/music', '/playlist/list', '/scene/start', '/adventure/quest']) {
             await resolveDndEntityLink(mockHtmlLinkListener, url);
             expect(onMediaClick).toHaveBeenLastCalledWith(url);

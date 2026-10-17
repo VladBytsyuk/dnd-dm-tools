@@ -120,7 +120,7 @@ export default class DndStatblockPlugin extends Plugin {
 			if (!(await this.app.vault.adapter.exists(backupPath))) await this.app.vault.adapter.write(backupPath, JSON.stringify(loadResult.legacyMediaBackup, null, 2));
 		}
 		this.settings = loadResult.settings;
-		this.mediaPlayback = new MediaPlaybackService(this.app, () => this.settings.media, () => this.settings.redesignEnabled, (error) => new Notice(error.message));
+		this.mediaPlayback = new MediaPlaybackService(this.app, () => this.settings.media, (error) => new Notice(error.message));
 		this.assistantWorkspace = this.settings.workspace;
 		this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
 			const tracked = this.settings.media.audioFiles.some((audio) => audio.path === oldPath || audio.path.startsWith(`${oldPath}/`))
@@ -206,23 +206,14 @@ export default class DndStatblockPlugin extends Plugin {
 		const adventure = this.settings.media.adventures.find((item) => item.id === adventureId);
 		const scene = adventure?.scenes.find((item) => item.id === sceneId);
 		if (!adventure || !scene) throw new Error("Сцена не найдена.");
-		const file = scene.notePath ? this.app.vault.getFileByPath(scene.notePath) : null;
-		if (!this.settings.redesignEnabled && !file) throw new Error(`Файл сцены не найден: ${scene.notePath ?? scene.name}`);
 		await this.updateMedia((media) => {
 			media.activeAdventureId = adventureId;
 			media.activeSceneId = sceneId;
 		});
-		if (!this.settings.redesignEnabled && file) await this.app.workspace.getLeaf("tab").openFile(file);
-		if (this.settings.redesignEnabled) { await this.mediaPlayback.followScene(adventureId, sceneId); return; }
-		const playlist = this.settings.media.playlists.find((entry) => entry.id === adventure.playlistId);
-		const item = playlist?.items.find((entry) => entry.trackId === scene.trackId);
-		if (playlist && item) await this.mediaPlayback.play(playlist.id, item.id);
-		else if (scene.trackId) await this.mediaPlayback.playTrack(scene.trackId);
-		else if (!this.settings.redesignEnabled) this.mediaPlayback.clear();
+		await this.mediaPlayback.followScene(adventureId, sceneId);
 	}
 
 	async openMediaUrl(url: string): Promise<void> {
-		if (!this.settings.redesignEnabled) return;
 		const item = mediaItems(this.settings.media).find((entry) => entry.url === url);
 		if (item) await this.panelManager.openItem(mediaPanel(item.mediaRoute.kind), item);
 	}
@@ -656,7 +647,6 @@ export default class DndStatblockPlugin extends Plugin {
 			(source, name) => this.publishOwlbearPreviewFromImage(source, name),
 		);
 		this.#uiEventListener.onMediaClick = (url) => this.openMediaUrl(url);
-		this.#uiEventListener.isMediaLinkEnabled = () => this.settings.redesignEnabled;
 
 		this.bestiaryFeature = new BestiaryFeature(this, this.#database, this.#uiEventListener);
 		this.spellbookFeature = new SpellbookFeature(this, this.#database, this.#uiEventListener);
