@@ -560,7 +560,7 @@
 	}
 	.omni {
 		display: grid;
-		grid-template-rows: auto minmax(0, 1fr);
+		grid-template-rows: auto auto minmax(0, 1fr);
 		align-self: stretch;
 		width: 100%;
 		max-width: 100%;
@@ -599,7 +599,7 @@
 	}
 	.omni-search-results {
 		z-index: 20;
-		grid-row: 2;
+		grid-row: 3;
 		grid-column: 1;
 		min-height: 0;
 		display: grid !important;
@@ -714,7 +714,7 @@
 		}
 	}
 	.tiles {
-		grid-row: 2;
+		grid-row: 3;
 		grid-column: 1;
 		display: grid;
 		grid-template-rows: minmax(0, 1fr);
