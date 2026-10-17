@@ -317,7 +317,7 @@
 </script>
 
 <div class="omni">
-	<div class="omni-toolbar" role="toolbar" aria-label="Панель Помощника ДМа">
+	<div class="omni-toolbar dnd-ui" role="toolbar" aria-label="Панель Помощника ДМа">
 		<div class="omni-toolbar__search">
 			<input
 				type="search"
@@ -372,7 +372,7 @@
 	<GlobalPlayerUi playback={mediaPlayback} onVolumeChange={onMusicVolumeChange} />
 
 	{#if results.length}
-		<div class="omni-search-results is-redesigned" aria-label="Результаты поиска">
+		<div class="omni-search-results is-redesigned dnd-ui" aria-label="Результаты поиска">
 			{#if favoriteResults.length}
 				<h3 class="omni-search-results__heading">Избранное</h3>
 				{#each favoriteResults as result (`favorite:${result.panelKey}:${result.url}`)}
@@ -433,7 +433,7 @@
 					ondrop={(event) => onDrop(event, tileIndex)}
 				>
 					<div
-						class="tabs"
+						class="tabs dnd-ui"
 						class:drop-target={dropIndicator?.tileIndex === tileIndex}
 						class:drop-empty={
 							dropIndicator?.tileIndex === tileIndex &&
@@ -535,7 +535,7 @@
 								</div>
 							{/each}
 						{:else}
-							<div class="empty">
+							<div class="empty dnd-ui">
 								<strong>Откройте панель</strong>
 								<span
 									>Выберите раздел в верхней части Помощника

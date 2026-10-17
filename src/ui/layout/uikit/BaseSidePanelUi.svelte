@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, tick } from "svelte";
-	import { Notice } from "obsidian";
+	import { PluginNotice as Notice } from "src/ui/PluginNotice";
 	import FiltersOverlay from "./FiltersOverlay.svelte";
 	import type { BaseItem } from "src/domain/models/common/BaseItem";
 	import type { Group, Repository } from "src/domain/repositories/Repository";

@@ -4,7 +4,7 @@ import type { OwlbearEncounterSnapshot } from "src/domain/models/owlbear/Owlbear
 import type DndStatblockPlugin from "src/main";
 import InitiativeTracker from "src/ui/layout/tracker/InitiativeTracker.svelte";
 import { mount } from "svelte";
-import { Notice } from "obsidian";
+import { PluginNotice as Notice } from "src/ui/PluginNotice";
 import type { PanelHost, PanelSearchResult } from "./PanelHost";
 
 export const INITIATIVE_TRACKER_DETACH_EVENT = "dnd-dm-tools:initiative-tracker-detach";

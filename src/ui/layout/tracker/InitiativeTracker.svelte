@@ -19,7 +19,7 @@
 		getEncounterFromClipboard,
 		getEncounterParticipantFromClipboard,
 	} from "src/data/clipboard";
-	import { Notice } from "obsidian";
+	import { PluginNotice as Notice } from "src/ui/PluginNotice";
 	import { onDestroy } from "svelte";
 	import {
 		assertOwlbearImageDataUrlSize,

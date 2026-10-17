@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Notice } from "obsidian";
+	import { PluginNotice as Notice } from "src/ui/PluginNotice";
 	import {
 		FullStatblock, FullSpell, FullWeapon, FullArmor, FullEquipment, FullArtifact,
 		FullFeat, FullBackground, FullRace, FullClass,

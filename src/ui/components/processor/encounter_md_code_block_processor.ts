@@ -29,6 +29,7 @@ async function encounterMdCodeBlockProcessor(
     uiEventListener: IUiEventListener,
     context: MarkdownPostProcessorContext,
 ) {
+    el.classList.add("dnd-ui");
     el.replaceChildren();
     try {
         const encounter = parseYaml(source) as Encounter;

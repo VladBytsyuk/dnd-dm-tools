@@ -1,4 +1,5 @@
-import { FileSystemAdapter, Notice, Platform, Plugin, TFile, type Menu } from 'obsidian';
+import { FileSystemAdapter, Platform, Plugin, TFile, type Menu } from 'obsidian';
+import { PluginNotice as Notice } from "src/ui/PluginNotice";
 import { registerThemeChangeListener } from './ui/theme';
 import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor/encounter_md_code_block_processor';
 import { registerMediaMdCodeBlockProcessors } from './ui/components/processor/media_md_code_block_processor';

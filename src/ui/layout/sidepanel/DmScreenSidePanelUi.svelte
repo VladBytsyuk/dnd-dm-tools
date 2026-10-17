@@ -8,7 +8,7 @@
 	import { TextBlock } from "@dnd-dm-tools/design-system";
 	import { theme as appTheme, Theme } from "src/ui/theme";
 	import { copyDmScreenItem } from "src/data/clipboard";
-	import { Notice } from "obsidian";
+	import { PluginNotice as Notice } from "src/ui/PluginNotice";
 	import { onMount } from "svelte";
 	import type { FavoriteAccess } from "src/domain/repositories/Repository";
 

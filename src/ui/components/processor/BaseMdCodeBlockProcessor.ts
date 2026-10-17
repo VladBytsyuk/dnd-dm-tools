@@ -54,6 +54,7 @@ export abstract class BaseMdCodeBlockProcessor<
         repository: Repository<ST, FT, F>,
         uiEventListener: IUiEventListener,
     ) {
+        if (this.getCodeBlockName() !== "charsheet") el.classList.add("dnd-ui");
         try {
             const parameters = parseYaml(source);
             if (!parameters?.name?.rus) {

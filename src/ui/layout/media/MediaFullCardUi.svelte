@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { Notice } from "obsidian";
+	import { PluginNotice as Notice } from "src/ui/PluginNotice";
 	import { Track, Playlist as PlaylistCard, FullAdventure, FullScene, type FullSceneEntity } from "@dnd-dm-tools/design-system";
 	import type DndStatblockPlugin from "src/main";
 	import type { MediaItem } from "src/domain/models/media/MediaLibrary";

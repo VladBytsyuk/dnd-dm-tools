@@ -16,7 +16,7 @@ Design system tokens
 */
 
 :root {
-    --dnd-ui-font-family-body: "Open Sans", sans-serif;
+    --dnd-ui-font-family-body: "Golos Text", sans-serif;
 
     --dnd-ui-text-primary: var(--text-normal);
     --dnd-ui-text-secondary: var(--text-color);
@@ -110,6 +110,13 @@ Design system tokens
 
     --dnd-ui-pattern-table-bg: var(--dnd-ui-surface-panel);
     --dnd-ui-pattern-table-border: var(--dnd-ui-border-inverse-subtle);
+}
+
+/* Scope typography to plugin UI; settings and LSS hosts do not receive this class.
+   Include descendants so Obsidian form and heading styles cannot switch fonts. */
+.dnd-ui,
+.dnd-ui * {
+    font-family: var(--dnd-ui-font-family-body) !important;
 }
 
 /* Other */

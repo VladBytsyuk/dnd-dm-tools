@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { Notice } from "obsidian";
+	import { PluginNotice as Notice } from "src/ui/PluginNotice";
 	import { Player } from "@dnd-dm-tools/design-system";
 	import { X } from "lucide-svelte";
 	import type { MediaPlaybackService } from "src/data/services/MediaPlaybackService";
@@ -15,7 +15,7 @@
 	}
 </script>
 
-<div class="global-player" aria-label="Общий плеер">
+<div class="global-player dnd-ui" aria-label="Общий плеер">
 	{#if snapshot.trackId || snapshot.itemId}
 		<button class="clear" type="button" aria-label="Очистить плеер" title="Очистить плеер" onclick={() => service.clear()}><X size={14} aria-hidden={true} /></button>
 		<Player trackName={snapshot.title ?? "Трек"} playlistName={snapshot.playlistName ?? undefined} nextTrackName={snapshot.nextTrackName ?? undefined} hasPrevious={snapshot.hasPrevious}

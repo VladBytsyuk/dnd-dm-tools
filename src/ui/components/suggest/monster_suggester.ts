@@ -39,7 +39,7 @@ export class MonsterSuggester extends AbstractInputSuggest<FuzzyMatch<SmallMonst
     }
 
     renderSuggestion(result: FuzzyMatch<SmallMonster>, el: HTMLElement): void {
-        el.addClass("mod-complex");
+        el.addClass("mod-complex", "dnd-ui");
         const content = el.createDiv({
             cls: "suggestion-content"
         });

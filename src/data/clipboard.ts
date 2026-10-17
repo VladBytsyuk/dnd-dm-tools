@@ -1,4 +1,5 @@
-import { Notice, stringifyYaml, parseYaml } from "obsidian";
+import { stringifyYaml, parseYaml } from "obsidian";
+import { PluginNotice as Notice } from "src/ui/PluginNotice";
 import type { Encounter } from "src/domain/models/encounter/Encounter";
 import { mapCharacterSheetToEncounterParticipant, mapMonsterToEncounterParticipant } from "src/domain/mappers";
 import type { FullSpell } from "src/domain/models/spell/FullSpell";

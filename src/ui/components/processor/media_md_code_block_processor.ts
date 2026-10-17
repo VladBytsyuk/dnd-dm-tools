@@ -7,6 +7,7 @@ import MediaMarkdownCardUi from "src/ui/layout/media/MediaMarkdownCardUi.svelte"
 export function registerMediaMdCodeBlockProcessors(plugin: DndStatblockPlugin): void {
 	for (const kind of ["track", "playlist", "scene", "adventure"] as const) {
 		plugin.registerMarkdownCodeBlockProcessor(kind, (source, el, context) => {
+			el.classList.add("dnd-ui");
 			el.replaceChildren();
 			try {
 				const snapshot = parseMediaSnapshot(JSON.stringify(parseYaml(source)));

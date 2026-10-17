@@ -1,5 +1,5 @@
 import { mount } from "svelte";
-import { Notice } from "obsidian";
+import { PluginNotice as Notice } from "src/ui/PluginNotice";
 import type { BaseItem } from "src/domain/models/common/BaseItem";
 import type DndStatblockPlugin from "src/main";
 import OwlbearPreviewUi from "src/ui/layout/owlbear/OwlbearPreviewUi.svelte";

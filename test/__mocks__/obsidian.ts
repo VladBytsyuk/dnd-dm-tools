@@ -79,6 +79,7 @@ export class PluginManifest {
 }
 
 export class Notice {
+  noticeEl = document.createElement("div");
   constructor(public message: string, public timeout?: number) {}
 }
 
