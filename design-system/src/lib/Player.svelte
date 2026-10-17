@@ -18,6 +18,7 @@
 		hasPrevious?: boolean;
 		playing?: boolean;
 		combatMode?: boolean;
+		combatModeLocked?: boolean;
 		muted?: boolean;
 		/** Remembered volume from 0 to 1, preserved while muted. */
 		volume?: number;
@@ -43,6 +44,7 @@
 		hasPrevious = true,
 		playing = $bindable(false),
 		combatMode = $bindable(false),
+		combatModeLocked = false,
 		muted = $bindable(false),
 		volume = $bindable(0.5),
 		currentTime = $bindable(0),
@@ -69,7 +71,11 @@
 	}
 
 	function togglePlayback() { playing = !playing; onPlayingChange?.(playing); }
-	function toggleCombat() { combatMode = !combatMode; onCombatModeChange?.(combatMode); }
+	function toggleCombat() {
+		if (disabled || combatModeLocked) return;
+		combatMode = !combatMode;
+		onCombatModeChange?.(combatMode);
+	}
 	function toggleMute() { muted = !muted; onMutedChange?.(muted); }
 	function changeVolume(value: number) { volume = value / 100; onVolumeChange?.(volume); }
 	function seek(value: number) { currentTime = total * value / 100; onSeek?.(currentTime); }
@@ -95,7 +101,7 @@
 		{/if}
 		<div class="spacer"></div>
 		<div class="sound-controls">
-			<button class="icon-button combat" class:active={combatMode} type="button" aria-label="Боевой режим" aria-pressed={combatMode} title={combatMode ? "Выключить боевой режим" : "Включить боевой режим"} {disabled} onclick={toggleCombat}><Sword size={24} strokeWidth={2} aria-hidden={true} /></button>
+			<button class="icon-button combat" class:active={combatMode} type="button" aria-label="Боевой режим" aria-pressed={combatMode} title={combatModeLocked ? "У трека есть только боевая аудиодорожка" : combatMode ? "Выключить боевой режим" : "Включить боевой режим"} disabled={disabled || combatModeLocked} onclick={toggleCombat}><Sword size={24} strokeWidth={2} aria-hidden={true} /></button>
 			<div class="volume">
 				<button class="icon-button" type="button" aria-label="Звук" aria-pressed={!muted} title={muted ? "Включить звук" : "Выключить звук"} {disabled} onclick={toggleMute}>
 					{#if muted}<VolumeX size={24} strokeWidth={2} aria-hidden={true} />{:else}<Volume2 size={24} strokeWidth={2} aria-hidden={true} />{/if}

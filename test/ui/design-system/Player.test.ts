@@ -72,4 +72,21 @@ describe("Player", () => {
 			expect((control as HTMLButtonElement | HTMLInputElement).disabled).toBe(true);
 		}
 	});
+
+	it("locks only the combat toggle for a combat-only track and unlocks it for the next track", async () => {
+		const onCombatModeChange = vi.fn();
+		const props = { trackName: "Бой", combatMode: true, combatModeLocked: true, onCombatModeChange };
+		const { rerender } = render(Player, props);
+		const combat = screen.getByRole("button", { name: "Боевой режим" }) as HTMLButtonElement;
+		expect(combat.disabled).toBe(true);
+		expect(combat.getAttribute("aria-pressed")).toBe("true");
+		expect((screen.getByRole("button", { name: "Воспроизвести" }) as HTMLButtonElement).disabled).toBe(false);
+		expect((screen.getByRole("button", { name: "Звук" }) as HTMLButtonElement).disabled).toBe(false);
+		await fireEvent.click(combat);
+		expect(onCombatModeChange).not.toHaveBeenCalled();
+		await rerender({ ...props, trackName: "Таверна", combatModeLocked: false });
+		expect(combat.disabled).toBe(false);
+		await fireEvent.click(combat);
+		expect(onCombatModeChange).toHaveBeenCalledWith(false);
+	});
 });

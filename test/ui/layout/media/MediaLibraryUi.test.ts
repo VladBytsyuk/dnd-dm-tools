@@ -21,7 +21,7 @@ afterEach(() => { cleanup(); vi.clearAllMocks(); vi.restoreAllMocks(); });
 function setup(panel: "player" | "adventures" = "player") {
 	let state = sampleMedia();
 	const mediaListeners = new Set<() => void>(), playbackListeners = new Set<() => void>();
-	let snapshot = { playlistId: null, itemId: null, trackId: null, title: null, playlistName: null, nextTrackName: null, hasPrevious: false, playing: false, paused: false, combatMode: false, manualCombat: false, trackerCombat: false, playingVariant: "normal", currentTime: 0, duration: 120, muted: false, volume: 0.6 } as any;
+	let snapshot = { playlistId: null, itemId: null, trackId: null, title: null, playlistName: null, nextTrackName: null, hasPrevious: false, playing: false, paused: false, combatMode: false, combatModeLocked: false, manualCombat: false, trackerCombat: false, playingVariant: "normal", currentTime: 0, duration: 120, muted: false, volume: 0.6 } as any;
 	const playback = { getSnapshot: () => ({ ...snapshot }), subscribe: (fn: () => void) => { playbackListeners.add(fn); return () => playbackListeners.delete(fn); }, play: vi.fn(async () => {}), playTrack: vi.fn(async () => {}), pause: vi.fn(), resume: vi.fn(), stop: vi.fn(() => emit({ playing: false, currentTime: 0 })), clear: vi.fn(() => emit({ trackId: null, itemId: null, playlistId: null })), seek: vi.fn(), setMuted: vi.fn(), setVolume: vi.fn(), setManualCombat: vi.fn(), previous: vi.fn(), next: vi.fn() };
 	function emit(patch: object) { snapshot = { ...snapshot, ...patch }; playbackListeners.forEach((fn) => fn()); }
 	const files = ["Scenes/Start.md", "Scenes/End.md", "Audio/calm.mp3", "Audio/battle.mp3"].map((path) => ({ path, extension: path.split('.').at(-1), basename: path.split('/').at(-1) }));
@@ -259,6 +259,20 @@ describe("integrated media screens", () => {
 		expect(screen.queryByText("Плеер · Ничего не выбрано")).toBeNull();
 		await fireEvent.click(screen.getByRole("button", { name: "Очистить плеер", exact: true }));
 		expect(await screen.findByText("Плеер · Ничего не выбрано")).toBeTruthy();
+	});
+	it("disables the global combat switch until playback selects a track without the combat lock", async () => {
+		const test = setup();
+		test.emit({ trackId: "track", title: "Бой", combatMode: true, combatModeLocked: true });
+		render(GlobalPlayerUi, { playback: test.playback as any, onVolumeChange: vi.fn() });
+		const combat = screen.getByRole("button", { name: "Боевой режим" }) as HTMLButtonElement;
+		expect(combat.disabled).toBe(true);
+		await fireEvent.click(combat);
+		expect(test.playback.setManualCombat).not.toHaveBeenCalled();
+		await act(() => test.emit({ trackId: "next-track", title: "Таверна", combatMode: false, combatModeLocked: false }));
+		expect(combat.disabled).toBe(false);
+		expect(combat.getAttribute("aria-pressed")).toBe("false");
+		await fireEvent.click(combat);
+		expect(test.playback.setManualCombat).toHaveBeenCalledWith(true);
 	});
 });
 

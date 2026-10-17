@@ -14,6 +14,7 @@ export interface PlaybackSnapshot {
 	playing: boolean;
 	paused: boolean;
 	combatMode: boolean;
+	combatModeLocked: boolean;
 	manualCombat: boolean;
 	trackerCombat: boolean;
 	playingVariant: Variant;
@@ -69,6 +70,7 @@ export class MediaPlaybackService {
 			playing: !!this.music && !this.paused && !this.stopped && !this.music.ended,
 			paused: !!this.music && this.paused,
 			combatMode: this.combatMode(),
+			combatModeLocked: this.isCombatOnly(track),
 			manualCombat: this.manualOverride === true,
 			trackerCombat: this.trackerCombat,
 			playingVariant: this.playingVariant,
@@ -96,9 +98,11 @@ export class MediaPlaybackService {
 
 	async playTrack(trackId: string, variant?: Variant): Promise<void> {
 		this.assertActive();
-		if (!this.getTrack(trackId)) throw new Error('Трек не найден');
+		const track = this.getTrack(trackId);
+		if (!track) throw new Error('Трек не найден');
 		const oldOverride = this.manualOverride;
-		if (variant) {
+		const combatLocked = this.isCombatOnly(track) || this.isCombatOnly(this.getTrack(this.selection.trackId));
+		if (variant && !combatLocked) {
 			this.manualOverride = variant === 'combat';
 		}
 		try { await this.replaceMusic({ playlistId: null, itemId: null, trackId }, false, false); }
@@ -198,6 +202,7 @@ export class MediaPlaybackService {
 
 	async setManualCombat(value: boolean): Promise<void> {
 		this.assertActive();
+		if (this.isCombatOnly(this.getTrack(this.selection.trackId))) return;
 		const oldOverride = this.manualOverride;
 		this.manualOverride = value;
 		try { await this.refreshSelectedSource(); }
@@ -215,7 +220,8 @@ export class MediaPlaybackService {
 		const oldTracker = this.trackerCombat;
 		const oldOverride = this.manualOverride;
 		this.trackerCombat = value;
-		this.manualOverride = null;
+		// Preserve the previous mode until the combat-only track is replaced.
+		this.manualOverride = this.isCombatOnly(this.getTrack(this.selection.trackId)) ? oldOverride ?? oldTracker : null;
 		try { await this.refreshSelectedSource(); }
 		catch (error) {
 			this.trackerCombat = oldTracker;
@@ -412,7 +418,7 @@ export class MediaPlaybackService {
 		const normalId = track?.normalAudioId;
 		const combatId = track?.combatAudioId;
 		const normal = this.findAsset(normalId ?? null);
-		if (this.combatMode() && combatId) {
+		if (this.combatMode(track) && combatId) {
 			const combat = this.findAsset(combatId);
 			if (combat && this.app.vault.getFileByPath(combat.path)) return { asset: combat, loop: track?.loop ?? true, variant: 'combat' };
 		}
@@ -430,8 +436,12 @@ export class MediaPlaybackService {
 		return this.app.vault.getResourcePath(file);
 	}
 
-	private combatMode(): boolean {
-		return this.manualOverride ?? this.trackerCombat;
+	private isCombatOnly(track: MediaTrack | undefined): boolean {
+		return !!track?.combatAudioId && !track.normalAudioId;
+	}
+
+	private combatMode(track = this.getTrack(this.selection.trackId)): boolean {
+		return this.isCombatOnly(track) || (this.manualOverride ?? this.trackerCombat);
 	}
 
 	private musicVolume(): number {

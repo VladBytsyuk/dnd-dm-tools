@@ -19,7 +19,7 @@
 	{#if snapshot.trackId || snapshot.itemId}
 		<button class="clear" type="button" aria-label="Очистить плеер" title="Очистить плеер" onclick={() => service.clear()}><X size={14} aria-hidden={true} /></button>
 		<Player trackName={snapshot.title ?? "Трек"} playlistName={snapshot.playlistName ?? undefined} nextTrackName={snapshot.nextTrackName ?? undefined} hasPrevious={snapshot.hasPrevious}
-			playing={snapshot.playing} combatMode={snapshot.combatMode} muted={snapshot.muted} volume={snapshot.volume} currentTime={snapshot.currentTime} duration={snapshot.duration} {theme}
+			playing={snapshot.playing} combatMode={snapshot.combatMode} combatModeLocked={snapshot.combatModeLocked} muted={snapshot.muted} volume={snapshot.volume} currentTime={snapshot.currentTime} duration={snapshot.duration} {theme}
 			onPlayingChange={(playing) => action(() => playing ? service.resume() : service.pause())}
 			onCombatModeChange={(value) => action(() => service.setManualCombat(value))}
 			onMutedChange={(value) => service.setMuted(value)}

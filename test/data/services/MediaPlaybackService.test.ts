@@ -236,4 +236,103 @@ describe('MediaPlaybackService', () => {
 		expect(service.getSnapshot()).toMatchObject({ trackId: "track-one", combatMode: true, playing: true }); service.dispose();
 	});
 
+	it.each([false, true])('locks combat-only tracks and restores the previous manual mode %s', async (combatMode) => {
+		const state = makeState();
+		state.tracks[0].normalAudioId = null;
+		const service = makeService(state);
+		await service.setManualCombat(combatMode);
+		await service.playTrack('track-one', 'combat');
+		expect(service.getSnapshot()).toMatchObject({ combatMode: true, combatModeLocked: true, playingVariant: 'combat' });
+		await service.setManualCombat(false);
+		expect(service.getSnapshot().combatMode).toBe(true);
+		await service.playTrack('track-two', 'normal');
+		expect(service.getSnapshot()).toMatchObject({ combatMode, combatModeLocked: false, playingVariant: 'normal' });
+		service.dispose();
+	});
+
+	it.each([false, true])('preserves the previous tracker mode %s while combat is forced', async (combatMode) => {
+		const state = makeState();
+		state.tracks[0].normalAudioId = null;
+		const service = makeService(state);
+		await service.setTrackerCombat(combatMode);
+		await service.playTrack('track-one');
+		await service.setTrackerCombat(!combatMode);
+		expect(service.getSnapshot()).toMatchObject({ combatMode: true, combatModeLocked: true, trackerCombat: !combatMode });
+		await service.playTrack('track-two');
+		expect(service.getSnapshot()).toMatchObject({ combatMode, combatModeLocked: false });
+		service.dispose();
+	});
+
+	it.each([false, true])('restores mode %s when a playlist automatically leaves a combat-only track', async (combatMode) => {
+		const state = makeNonLoopingState();
+		state.tracks[0].normalAudioId = null;
+		const service = makeService(state);
+		await service.setManualCombat(combatMode);
+		await service.play('list');
+		expect(FakeAudio.instances[0].src).toContain('battle.mp3');
+		expect(service.getSnapshot().combatModeLocked).toBe(true);
+		FakeAudio.instances[0].end();
+		await vi.waitFor(() => expect(service.getSnapshot()).toMatchObject({ itemId: 'two', combatMode, combatModeLocked: false }));
+		await service.previous();
+		expect(service.getSnapshot()).toMatchObject({ itemId: 'one', combatMode: true, combatModeLocked: true });
+		await service.next();
+		expect(service.getSnapshot()).toMatchObject({ itemId: 'two', combatMode, combatModeLocked: false });
+		service.dispose();
+	});
+
+	it('keeps the lock through pause, stop and consecutive combat-only tracks, and restores on clear', async () => {
+		const state = makeState();
+		state.tracks[0].normalAudioId = null;
+		state.tracks.push({ ...state.tracks[0], id: 'track-three' });
+		const service = makeService(state);
+		await service.playTrack('track-one', 'combat');
+		service.pause();
+		expect(service.getSnapshot()).toMatchObject({ paused: true, combatMode: true, combatModeLocked: true });
+		await service.resume();
+		service.stop();
+		expect(service.getSnapshot()).toMatchObject({ playing: false, combatMode: true, combatModeLocked: true });
+		await service.resume();
+		await service.playTrack('track-three', 'combat');
+		expect(service.getSnapshot()).toMatchObject({ trackId: 'track-three', combatMode: true, combatModeLocked: true });
+		service.clear();
+		expect(service.getSnapshot()).toMatchObject({ trackId: null, combatMode: false, combatModeLocked: false });
+		service.dispose();
+	});
+
+	it('restores the prior mode for a dual-variant track after combat-only playback', async () => {
+		const state = makeState();
+		state.tracks[1].normalAudioId = null;
+		state.tracks[1].combatAudioId = 'battle';
+		const service = makeService(state);
+		await service.playTrack('track-two', 'combat');
+		await service.playTrack('track-one');
+		expect(service.getSnapshot()).toMatchObject({ combatMode: false, combatModeLocked: false, playingVariant: 'normal' });
+		expect(FakeAudio.instances.at(-1)?.src).toContain('calm.mp3');
+		service.dispose();
+	});
+
+	it('keeps the current track and mode when the combat-only audio file is missing', async () => {
+		const state = makeState();
+		state.tracks[0].normalAudioId = null;
+		const service = makeService(state);
+		await service.playTrack('track-two');
+		state.audioFiles = state.audioFiles.filter((asset) => asset.id !== 'battle');
+		await expect(service.playTrack('track-one', 'combat')).rejects.toThrow();
+		expect(service.getSnapshot()).toMatchObject({ trackId: 'track-two', playing: true, combatMode: false, combatModeLocked: false });
+		service.dispose();
+	});
+
+	it('updates the combat lock when the selected track gains or loses its normal audio', async () => {
+		const state = makeState();
+		const service = makeService(state);
+		await service.playTrack('track-one');
+		state.tracks[0].normalAudioId = null;
+		service.onMediaChanged();
+		await vi.waitFor(() => expect(service.getSnapshot()).toMatchObject({ combatMode: true, combatModeLocked: true, playingVariant: 'combat' }));
+		state.tracks[0].normalAudioId = 'calm';
+		service.onMediaChanged();
+		await vi.waitFor(() => expect(service.getSnapshot()).toMatchObject({ combatMode: false, combatModeLocked: false, playingVariant: 'normal' }));
+		service.dispose();
+	});
+
 });

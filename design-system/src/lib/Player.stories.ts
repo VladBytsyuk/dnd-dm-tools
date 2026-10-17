@@ -27,6 +27,7 @@ export const Dark: Story = {};
 export const Light: Story = { globals: { backgrounds: { value: "light" } }, args: { theme: "light" } };
 export const Paused: Story = { args: { playing: false } };
 export const CombatAndMuted: Story = { args: { playing: false, combatMode: true, muted: true } };
+export const CombatOnly: Story = { args: { combatMode: true, combatModeLocked: true } };
 export const LightCombatAndMuted: Story = { globals: { backgrounds: { value: "light" } }, args: { theme: "light", playing: false, combatMode: true, muted: true } };
 export const LastTrack: Story = { args: { trackName: "Забытый храм", nextTrackName: undefined, hasPrevious: true } };
 export const WithoutPlaylist: Story = { args: { playlistName: undefined } };
