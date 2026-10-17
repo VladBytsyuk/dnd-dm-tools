@@ -124,12 +124,12 @@ describe('MediaPlaybackService', () => {
 		service.dispose();
 	});
 
-	it('keeps normal music when no combat source exists', async () => {
+	it('locks normal playback when no combat source exists', async () => {
 		const service = makeService(makeState());
 		await service.play('list', 'two');
 		await service.setTrackerCombat(true);
 		expect(FakeAudio.instances).toHaveLength(1);
-		expect(service.getSnapshot().combatMode).toBe(true);
+		expect(service.getSnapshot()).toMatchObject({ combatMode: false, combatModeLocked: true, playingVariant: 'normal' });
 		service.dispose();
 	});
 
@@ -239,6 +239,7 @@ describe('MediaPlaybackService', () => {
 	it.each([false, true])('locks combat-only tracks and restores the previous manual mode %s', async (combatMode) => {
 		const state = makeState();
 		state.tracks[0].normalAudioId = null;
+		state.tracks[1].combatAudioId = 'battle';
 		const service = makeService(state);
 		await service.setManualCombat(combatMode);
 		await service.playTrack('track-one', 'combat');
@@ -246,13 +247,14 @@ describe('MediaPlaybackService', () => {
 		await service.setManualCombat(false);
 		expect(service.getSnapshot().combatMode).toBe(true);
 		await service.playTrack('track-two', 'normal');
-		expect(service.getSnapshot()).toMatchObject({ combatMode, combatModeLocked: false, playingVariant: 'normal' });
+		expect(service.getSnapshot()).toMatchObject({ combatMode, combatModeLocked: false, playingVariant: combatMode ? 'combat' : 'normal' });
 		service.dispose();
 	});
 
 	it.each([false, true])('preserves the previous tracker mode %s while combat is forced', async (combatMode) => {
 		const state = makeState();
 		state.tracks[0].normalAudioId = null;
+		state.tracks[1].combatAudioId = 'battle';
 		const service = makeService(state);
 		await service.setTrackerCombat(combatMode);
 		await service.playTrack('track-one');
@@ -266,6 +268,7 @@ describe('MediaPlaybackService', () => {
 	it.each([false, true])('restores mode %s when a playlist automatically leaves a combat-only track', async (combatMode) => {
 		const state = makeNonLoopingState();
 		state.tracks[0].normalAudioId = null;
+		state.tracks[1].combatAudioId = 'battle';
 		const service = makeService(state);
 		await service.setManualCombat(combatMode);
 		await service.play('list');
@@ -318,7 +321,7 @@ describe('MediaPlaybackService', () => {
 		await service.playTrack('track-two');
 		state.audioFiles = state.audioFiles.filter((asset) => asset.id !== 'battle');
 		await expect(service.playTrack('track-one', 'combat')).rejects.toThrow();
-		expect(service.getSnapshot()).toMatchObject({ trackId: 'track-two', playing: true, combatMode: false, combatModeLocked: false });
+		expect(service.getSnapshot()).toMatchObject({ trackId: 'track-two', playing: true, combatMode: false, combatModeLocked: true });
 		service.dispose();
 	});
 
@@ -332,6 +335,103 @@ describe('MediaPlaybackService', () => {
 		state.tracks[0].normalAudioId = 'calm';
 		service.onMediaChanged();
 		await vi.waitFor(() => expect(service.getSnapshot()).toMatchObject({ combatMode: false, combatModeLocked: false, playingVariant: 'normal' }));
+		service.dispose();
+	});
+
+	it.each([false, true])('locks normal-only tracks without changing the saved manual mode %s', async (combatMode) => {
+		const service = makeService(makeState());
+		await service.setManualCombat(combatMode);
+		await service.playTrack('track-one');
+		await service.playTrack('track-two', 'normal');
+		expect(service.getSnapshot()).toMatchObject({ combatMode: false, combatModeLocked: true, playingVariant: 'normal' });
+		await service.setManualCombat(!combatMode);
+		expect(service.getSnapshot()).toMatchObject({ combatMode: false, combatModeLocked: true });
+		await service.playTrack('track-one', 'normal');
+		expect(service.getSnapshot()).toMatchObject({ combatMode, combatModeLocked: false, playingVariant: combatMode ? 'combat' : 'normal' });
+		expect(FakeAudio.instances.at(-1)?.src).toContain(combatMode ? 'battle.mp3' : 'calm.mp3');
+		service.dispose();
+	});
+
+	it.each([false, true])('preserves the previous tracker mode %s while normal playback is forced', async (combatMode) => {
+		const service = makeService(makeState());
+		await service.setTrackerCombat(combatMode);
+		await service.playTrack('track-two');
+		await service.setTrackerCombat(!combatMode);
+		expect(service.getSnapshot()).toMatchObject({ combatMode: false, combatModeLocked: true, trackerCombat: !combatMode });
+		await service.playTrack('track-one');
+		expect(service.getSnapshot()).toMatchObject({ combatMode, combatModeLocked: false });
+		service.dispose();
+	});
+
+	it.each([false, true])('preserves saved mode %s across mixed normal-only and combat-only playlist tracks', async (combatMode) => {
+		const state = makeState();
+		state.tracks.push({ ...state.tracks[0], id: 'combat-only', normalAudioId: null });
+		state.playlists[0].items = [
+			{ id: 'dual', trackId: 'track-one' },
+			{ id: 'normal', trackId: 'track-two' },
+			{ id: 'combat', trackId: 'combat-only' },
+			{ id: 'normal-again', trackId: 'track-two' },
+			{ id: 'dual-again', trackId: 'track-one' },
+		];
+		const service = makeService(state);
+		await service.setManualCombat(combatMode);
+		await service.play('list');
+		for (const forcedMode of [false, true, false]) {
+			await service.next();
+			expect(service.getSnapshot()).toMatchObject({ combatMode: forcedMode, combatModeLocked: true, playingVariant: forcedMode ? 'combat' : 'normal' });
+		}
+		await service.next();
+		expect(service.getSnapshot()).toMatchObject({ combatMode, combatModeLocked: false, playingVariant: combatMode ? 'combat' : 'normal' });
+		service.dispose();
+	});
+
+	it('restores combat when a playlist automatically leaves a normal-only track', async () => {
+		const state = makeNonLoopingState();
+		state.playlists[0].items.reverse();
+		const service = makeService(state);
+		await service.setManualCombat(true);
+		await service.play('list');
+		expect(service.getSnapshot()).toMatchObject({ combatMode: false, combatModeLocked: true, playingVariant: 'normal' });
+		FakeAudio.instances[0].end();
+		await vi.waitFor(() => expect(service.getSnapshot()).toMatchObject({ trackId: 'track-one', combatMode: true, combatModeLocked: false, playingVariant: 'combat' }));
+		service.dispose();
+	});
+
+	it('keeps normal mode locked through pause and stop and restores combat on clear', async () => {
+		const service = makeService(makeState());
+		await service.setManualCombat(true);
+		await service.playTrack('track-two', 'normal');
+		service.pause();
+		expect(service.getSnapshot()).toMatchObject({ paused: true, combatMode: false, combatModeLocked: true });
+		await service.resume();
+		service.stop();
+		expect(service.getSnapshot()).toMatchObject({ playing: false, combatMode: false, combatModeLocked: true });
+		await service.resume();
+		service.clear();
+		expect(service.getSnapshot()).toMatchObject({ trackId: null, combatMode: true, combatModeLocked: false });
+		service.dispose();
+	});
+
+	it('keeps combat playback and its mode when a normal-only file is missing', async () => {
+		const state = makeState();
+		const service = makeService(state);
+		await service.playTrack('track-one', 'combat');
+		state.audioFiles = state.audioFiles.filter((asset) => asset.id !== 'next');
+		await expect(service.playTrack('track-two', 'normal')).rejects.toThrow();
+		expect(service.getSnapshot()).toMatchObject({ trackId: 'track-one', playing: true, combatMode: true, combatModeLocked: false, playingVariant: 'combat' });
+		service.dispose();
+	});
+
+	it('restores the saved mode after adding combat audio to the selected normal-only track', async () => {
+		const state = makeState();
+		const service = makeService(state);
+		await service.playTrack('track-one', 'combat');
+		state.tracks[0].combatAudioId = null;
+		service.onMediaChanged();
+		await vi.waitFor(() => expect(service.getSnapshot()).toMatchObject({ combatMode: false, combatModeLocked: true, playingVariant: 'normal' }));
+		state.tracks[0].combatAudioId = 'battle';
+		service.onMediaChanged();
+		await vi.waitFor(() => expect(service.getSnapshot()).toMatchObject({ combatMode: true, combatModeLocked: false, playingVariant: 'combat' }));
 		service.dispose();
 	});
 

@@ -70,7 +70,7 @@ export class MediaPlaybackService {
 			playing: !!this.music && !this.paused && !this.stopped && !this.music.ended,
 			paused: !!this.music && this.paused,
 			combatMode: this.combatMode(),
-			combatModeLocked: this.isCombatOnly(track),
+			combatModeLocked: this.isCombatModeLocked(track),
 			manualCombat: this.manualOverride === true,
 			trackerCombat: this.trackerCombat,
 			playingVariant: this.playingVariant,
@@ -101,7 +101,7 @@ export class MediaPlaybackService {
 		const track = this.getTrack(trackId);
 		if (!track) throw new Error('Трек не найден');
 		const oldOverride = this.manualOverride;
-		const combatLocked = this.isCombatOnly(track) || this.isCombatOnly(this.getTrack(this.selection.trackId));
+		const combatLocked = this.isCombatModeLocked(track) || this.isCombatModeLocked(this.getTrack(this.selection.trackId));
 		if (variant && !combatLocked) {
 			this.manualOverride = variant === 'combat';
 		}
@@ -202,7 +202,7 @@ export class MediaPlaybackService {
 
 	async setManualCombat(value: boolean): Promise<void> {
 		this.assertActive();
-		if (this.isCombatOnly(this.getTrack(this.selection.trackId))) return;
+		if (this.isCombatModeLocked(this.getTrack(this.selection.trackId))) return;
 		const oldOverride = this.manualOverride;
 		this.manualOverride = value;
 		try { await this.refreshSelectedSource(); }
@@ -220,8 +220,8 @@ export class MediaPlaybackService {
 		const oldTracker = this.trackerCombat;
 		const oldOverride = this.manualOverride;
 		this.trackerCombat = value;
-		// Preserve the previous mode until the combat-only track is replaced.
-		this.manualOverride = this.isCombatOnly(this.getTrack(this.selection.trackId)) ? oldOverride ?? oldTracker : null;
+		// Preserve the previous mode while the track forces its only available variant.
+		this.manualOverride = this.isCombatModeLocked(this.getTrack(this.selection.trackId)) ? oldOverride ?? oldTracker : null;
 		try { await this.refreshSelectedSource(); }
 		catch (error) {
 			this.trackerCombat = oldTracker;
@@ -436,12 +436,12 @@ export class MediaPlaybackService {
 		return this.app.vault.getResourcePath(file);
 	}
 
-	private isCombatOnly(track: MediaTrack | undefined): boolean {
-		return !!track?.combatAudioId && !track.normalAudioId;
+	private isCombatModeLocked(track: MediaTrack | undefined): boolean {
+		return !!track && (!track.normalAudioId || !track.combatAudioId);
 	}
 
 	private combatMode(track = this.getTrack(this.selection.trackId)): boolean {
-		return this.isCombatOnly(track) || (this.manualOverride ?? this.trackerCombat);
+		return this.isCombatModeLocked(track) ? !!track?.combatAudioId : this.manualOverride ?? this.trackerCombat;
 	}
 
 	private musicVolume(): number {

@@ -73,13 +73,14 @@ describe("Player", () => {
 		}
 	});
 
-	it("locks only the combat toggle for a combat-only track and unlocks it for the next track", async () => {
+	it.each([false, true])("locks only the combat toggle with forced mode %s and unlocks it for the next track", async (combatMode) => {
 		const onCombatModeChange = vi.fn();
-		const props = { trackName: "Бой", combatMode: true, combatModeLocked: true, onCombatModeChange };
+		const props = { trackName: "Музыка", combatMode, combatModeLocked: true, onCombatModeChange };
 		const { rerender } = render(Player, props);
 		const combat = screen.getByRole("button", { name: "Боевой режим" }) as HTMLButtonElement;
 		expect(combat.disabled).toBe(true);
-		expect(combat.getAttribute("aria-pressed")).toBe("true");
+		expect(combat.getAttribute("aria-pressed")).toBe(String(combatMode));
+		expect(combat.title).toBe(combatMode ? "У трека есть только боевая аудиодорожка" : "У трека есть только обычная аудиодорожка");
 		expect((screen.getByRole("button", { name: "Воспроизвести" }) as HTMLButtonElement).disabled).toBe(false);
 		expect((screen.getByRole("button", { name: "Звук" }) as HTMLButtonElement).disabled).toBe(false);
 		await fireEvent.click(combat);
@@ -87,6 +88,6 @@ describe("Player", () => {
 		await rerender({ ...props, trackName: "Таверна", combatModeLocked: false });
 		expect(combat.disabled).toBe(false);
 		await fireEvent.click(combat);
-		expect(onCombatModeChange).toHaveBeenCalledWith(false);
+		expect(onCombatModeChange).toHaveBeenCalledWith(!combatMode);
 	});
 });

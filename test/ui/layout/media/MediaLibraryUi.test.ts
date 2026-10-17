@@ -260,19 +260,19 @@ describe("integrated media screens", () => {
 		await fireEvent.click(screen.getByRole("button", { name: "Очистить плеер", exact: true }));
 		expect(await screen.findByText("Плеер · Ничего не выбрано")).toBeTruthy();
 	});
-	it("disables the global combat switch until playback selects a track without the combat lock", async () => {
+	it.each([false, true])("disables the global combat switch with forced mode %s until the lock is removed", async (combatMode) => {
 		const test = setup();
-		test.emit({ trackId: "track", title: "Бой", combatMode: true, combatModeLocked: true });
+		test.emit({ trackId: "track", title: "Музыка", combatMode, combatModeLocked: true });
 		render(GlobalPlayerUi, { playback: test.playback as any, onVolumeChange: vi.fn() });
 		const combat = screen.getByRole("button", { name: "Боевой режим" }) as HTMLButtonElement;
 		expect(combat.disabled).toBe(true);
 		await fireEvent.click(combat);
 		expect(test.playback.setManualCombat).not.toHaveBeenCalled();
-		await act(() => test.emit({ trackId: "next-track", title: "Таверна", combatMode: false, combatModeLocked: false }));
+		await act(() => test.emit({ trackId: "next-track", title: "Таверна", combatMode: !combatMode, combatModeLocked: false }));
 		expect(combat.disabled).toBe(false);
-		expect(combat.getAttribute("aria-pressed")).toBe("false");
+		expect(combat.getAttribute("aria-pressed")).toBe(String(!combatMode));
 		await fireEvent.click(combat);
-		expect(test.playback.setManualCombat).toHaveBeenCalledWith(true);
+		expect(test.playback.setManualCombat).toHaveBeenCalledWith(combatMode);
 	});
 });
 

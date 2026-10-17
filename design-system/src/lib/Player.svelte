@@ -101,7 +101,7 @@
 		{/if}
 		<div class="spacer"></div>
 		<div class="sound-controls">
-			<button class="icon-button combat" class:active={combatMode} type="button" aria-label="Боевой режим" aria-pressed={combatMode} title={combatModeLocked ? "У трека есть только боевая аудиодорожка" : combatMode ? "Выключить боевой режим" : "Включить боевой режим"} disabled={disabled || combatModeLocked} onclick={toggleCombat}><Sword size={24} strokeWidth={2} aria-hidden={true} /></button>
+			<button class="icon-button combat" class:active={combatMode} type="button" aria-label="Боевой режим" aria-pressed={combatMode} title={combatModeLocked ? (combatMode ? "У трека есть только боевая аудиодорожка" : "У трека есть только обычная аудиодорожка") : combatMode ? "Выключить боевой режим" : "Включить боевой режим"} disabled={disabled || combatModeLocked} onclick={toggleCombat}><Sword size={24} strokeWidth={2} aria-hidden={true} /></button>
 			<div class="volume">
 				<button class="icon-button" type="button" aria-label="Звук" aria-pressed={!muted} title={muted ? "Включить звук" : "Выключить звук"} {disabled} onclick={toggleMute}>
 					{#if muted}<VolumeX size={24} strokeWidth={2} aria-hidden={true} />{:else}<Volume2 size={24} strokeWidth={2} aria-hidden={true} />{/if}
