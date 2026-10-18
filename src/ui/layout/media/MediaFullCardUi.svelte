@@ -8,9 +8,10 @@
 	import { cloneDesignData } from "src/ui/design-system/adapters";
 	import NoteEncountersUi from "./NoteEncountersUi.svelte";
 
-	let { plugin, item, media, entities = [], encounters = [], theme, onOpenMedia, onSceneOpen }: {
+	let { plugin, item, media, entities = [], encounters = [], theme, onOpenMedia, onSceneOpen, playbackSourceId = null }: {
 		plugin: DndStatblockPlugin; item: MediaItem; media: MediaState; entities?: FullSceneEntity[]; encounters?: string[]; theme: "dark" | "light";
 		onOpenMedia?: (url: string) => void | Promise<void>; onSceneOpen?: (id: string) => void;
+		playbackSourceId?: string | null;
 	} = $props();
 	function initialPlayback() { return plugin.getMediaPlayback().getSnapshot(); }
 	let playback = $state(initialPlayback());
@@ -27,6 +28,7 @@
 	const playlist = $derived(displayed as Playlist);
 	const adventure = $derived(displayed as Adventure);
 	const scene = $derived(displayed as AdventureScene);
+	const activeTrack = $derived(playback.sourceId === playbackSourceId && playback.trackId === track.id);
 	const trackOptions = $derived(media.tracks.map((value) => ({ id: value.id, title: value.name, atmosphere: value.atmosphere, source: value.source?.shortName, hasCombat: !!value.combatAudioId })));
 	const playlistOptions = $derived(media.playlists.map((value) => ({ id: value.id, title: value.name, atmosphere: value.atmosphere, source: value.source?.shortName, trackCount: value.items.length })));
 	async function action(work: () => void | Promise<void>) { try { await work(); } catch (error) { new Notice(error instanceof Error ? error.message : String(error)); } }
@@ -40,16 +42,18 @@
 	function openEntity(url: string) { return action(async () => { const entity = await plugin.panelManager.resolveEntity(url); if (entity) await plugin.panelManager.openItem(entity.panelKey, entity.item); }); }
 	function audioView(id: string | null, variant: "normal" | "combat") {
 		const file = media.audioFiles.find((file) => file.id === id); if (!file) return undefined;
-		const active = playback.trackId === track.id && playback.playingVariant === variant;
+		const active = activeTrack && playback.playingVariant === variant;
 		return { fileName: file.path, currentTime: active ? playback.currentTime : 0, duration: active ? playback.duration : 0 };
 	}
 </script>
 
 {#if item.mediaRoute.kind === "track"}
 	<Track russianName={track.name} entityLink={track.url} atmosphere={track.atmosphere} source={track.source} loop={track.loop} {theme}
-		normal={audioView(track.normalAudioId, "normal")} combat={audioView(track.combatAudioId, "combat")} playingVariant={playback.trackId === track.id && playback.playing ? playback.playingVariant : null}
-		onPlayingVariantChange={(variant) => action(() => variant ? plugin.getMediaPlayback().playTrack(track.id, variant) : plugin.getMediaPlayback().stop())}
-		onSeek={(variant, time) => { if (playback.trackId === track.id && playback.playingVariant === variant) plugin.getMediaPlayback().seek(time); }} />
+		normal={audioView(track.normalAudioId, "normal")} combat={audioView(track.combatAudioId, "combat")} playingVariant={activeTrack && playback.playing ? playback.playingVariant : null}
+		onPlayingVariantChange={(variant) => action(() => !variant ? plugin.getMediaPlayback().stop() : playbackSourceId
+			? plugin.getMediaPlayback().playTrackSnapshot(track, media.audioFiles, playbackSourceId, variant)
+			: plugin.getMediaPlayback().playTrack(track.id, variant))}
+		onSeek={(variant, time) => { if (activeTrack && playback.playingVariant === variant) plugin.getMediaPlayback().seek(time); }} />
 	{#each [track.normalAudioId, track.combatAudioId] as id}
 		{@const file = media.audioFiles.find((file) => file.id === id)}
 		{#if file && !fileExists(file.path)}<p class="error">Аудиофайл отсутствует: {file.path}</p>{/if}

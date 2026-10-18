@@ -3,10 +3,12 @@ import type { AudioAsset, MediaState, MediaTrack, Playlist, PlaylistItem } from 
 import { BufferedMusic } from './BufferedMusic';
 
 type Variant = 'normal' | 'combat';
-type Selection = { playlistId: string | null; itemId: string | null; trackId: string | null };
+type TrackSnapshotSource = { id: string; track: MediaTrack; audioFiles: AudioAsset[] };
+type Selection = { playlistId: string | null; itemId: string | null; trackId: string | null; snapshot?: TrackSnapshotSource };
 type MusicSource = { asset: AudioAsset; loop: boolean; variant: Variant };
 
 export interface PlaybackSnapshot {
+	sourceId: string | null;
 	playlistId: string | null;
 	itemId: string | null;
 	trackId: string | null;
@@ -65,7 +67,10 @@ export class MediaPlaybackService {
 		const nextItem = index >= 0 ? playlist?.items[index + 1] : undefined;
 		const nextTrack = nextItem?.trackId ? this.getTrack(nextItem.trackId) : undefined;
 		return {
-			...this.selection,
+			playlistId: this.selection.playlistId,
+			itemId: this.selection.itemId,
+			trackId: this.selection.trackId,
+			sourceId: this.selection.snapshot?.id ?? null,
 			playlistName: playlist?.name ?? null,
 			nextTrackName: nextTrack?.name ?? null,
 			hasPrevious: index > 0,
@@ -99,15 +104,25 @@ export class MediaPlaybackService {
 	}
 
 	async playTrack(trackId: string, variant?: Variant): Promise<void> {
+		await this.startTrack({ playlistId: null, itemId: null, trackId }, variant);
+	}
+
+	/** Play a note's saved track without importing or resolving it through the library. */
+	async playTrackSnapshot(track: MediaTrack, audioFiles: AudioAsset[], sourceId: string, variant?: Variant): Promise<void> {
+		const snapshot = { id: sourceId, track: { ...track }, audioFiles: audioFiles.map((asset) => ({ ...asset })) };
+		await this.startTrack({ playlistId: null, itemId: null, trackId: track.id, snapshot }, variant);
+	}
+
+	private async startTrack(selection: Selection, variant?: Variant): Promise<void> {
 		this.assertActive();
-		const track = this.getTrack(trackId);
+		const track = this.getTrack(selection.trackId, selection);
 		if (!track) throw new Error('Трек не найден');
 		const oldOverride = this.manualOverride;
 		const combatLocked = this.isCombatModeLocked(track) || this.isCombatModeLocked(this.getTrack(this.selection.trackId));
 		if (variant && !combatLocked) {
 			this.manualOverride = variant === 'combat';
 		}
-		try { await this.replaceMusic({ playlistId: null, itemId: null, trackId }, false, false); }
+		try { await this.replaceMusic(selection, false, false); }
 		catch (error) { this.manualOverride = oldOverride; this.emit(); throw error; }
 	}
 
@@ -118,7 +133,7 @@ export class MediaPlaybackService {
 		const state = this.getMediaState();
 		const adventure = state.adventures.find((entry) => entry.id === adventureId);
 		const scene = adventure?.scenes.find((entry) => entry.id === sceneId);
-		if (!scene?.trackId || before.trackId === scene.trackId) return;
+		if (!scene?.trackId || (before.sourceId === null && before.trackId === scene.trackId)) return;
 		const playlist = state.playlists.find((entry) => entry.id === adventure?.playlistId);
 		const item = playlist?.items.find((entry) => entry.trackId === scene.trackId);
 		if (playlist && item) await this.play(playlist.id, item.id);
@@ -415,7 +430,8 @@ export class MediaPlaybackService {
 		return this.getSelectedPlaylist()?.items.find((entry) => entry.id === this.selection.itemId);
 	}
 
-	private getTrack(trackId: string | null): MediaTrack | undefined {
+	private getTrack(trackId: string | null, selection = this.selection): MediaTrack | undefined {
+		if (selection.snapshot) return selection.snapshot.track.id === trackId ? selection.snapshot.track : undefined;
 		return this.getMediaState().tracks.find((track) => track.id === trackId);
 	}
 
@@ -428,21 +444,21 @@ export class MediaPlaybackService {
 			? this.getMediaState().playlists.find((playlist) => playlist.id === selection.playlistId)?.items.find((entry) => entry.id === selection.itemId)
 			: undefined;
 		if (selection.playlistId && !item) throw new Error('Элемент плейлиста не найден');
-		const track = this.getTrack(selection.trackId ?? item?.trackId ?? null);
+		const track = this.getTrack(selection.trackId ?? item?.trackId ?? null, selection);
 		if ((selection.trackId || item?.trackId) && !track) throw new Error('Трек не найден');
 		const normalId = track?.normalAudioId;
 		const combatId = track?.combatAudioId;
-		const normal = this.findAsset(normalId ?? null);
+		const normal = this.findAsset(normalId ?? null, selection);
 		if (this.combatMode(track) && combatId) {
-			const combat = this.findAsset(combatId);
+			const combat = this.findAsset(combatId, selection);
 			if (combat && this.app.vault.getFileByPath(combat.path)) return { asset: combat, loop: track?.loop ?? true, variant: 'combat' };
 		}
 		if (!normal) throw new Error('Обычный звуковой файл не найден');
 		return { asset: normal, loop: track?.loop ?? true, variant: 'normal' };
 	}
 
-	private findAsset(id: string | null): AudioAsset | undefined {
-		return this.getMediaState().audioFiles.find((asset) => asset.id === id);
+	private findAsset(id: string | null, selection?: Selection): AudioAsset | undefined {
+		return (selection?.snapshot?.audioFiles ?? this.getMediaState().audioFiles).find((asset) => asset.id === id);
 	}
 
 	private resourcePath(asset: AudioAsset): string {

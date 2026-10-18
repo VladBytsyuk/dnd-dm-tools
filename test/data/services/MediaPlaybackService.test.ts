@@ -78,10 +78,10 @@ function makeNonLoopingState(): MediaState {
 	return state;
 }
 
-function makeService(state: MediaState): MediaPlaybackService {
+function makeService(state: MediaState, vaultPaths?: string[]): MediaPlaybackService {
 	const app = {
 		vault: {
-			getFileByPath: (path: string) => state.audioFiles.some((asset) => asset.path === path) ? { path } : null,
+			getFileByPath: (path: string) => (vaultPaths ? vaultPaths.includes(path) : state.audioFiles.some((asset) => asset.path === path)) ? { path } : null,
 			getResourcePath: (file: { path: string }) => `app://vault/${file.path}`,
 			readBinary: vi.fn(async (file: { path: string }) => new TextEncoder().encode(`app://vault/${file.path}`).buffer),
 		},
@@ -101,6 +101,108 @@ describe('MediaPlaybackService', () => {
 		vi.useRealTimers();
 		vi.unstubAllGlobals();
 		vi.clearAllMocks();
+	});
+
+	it('plays a snapshot with an empty library and retains it through pause, combat changes and stop', async () => {
+		const saved = makeState();
+		const state = createDefaultMediaState();
+		state.musicVolume = 0.25;
+		const before = structuredClone(state);
+		const service = makeService(state, saved.audioFiles.map((asset) => asset.path));
+		await service.playTrackSnapshot(saved.tracks[0], saved.audioFiles, 'note-one', 'normal');
+		expect(FakeAudio.instances[0].src).toContain('calm.mp3');
+		expect(FakeAudio.instances[0].loop).toBe(true);
+		vi.advanceTimersByTime(500);
+		expect(FakeAudio.instances[0].volume).toBe(0.25);
+		expect(service.getSnapshot()).toMatchObject({ sourceId: 'note-one', title: 'Таверна', playing: true, volume: 0.25 });
+		service.seek(45);
+		service.pause();
+		await service.setManualCombat(true);
+		expect(FakeAudio.instances[1].src).toContain('battle.mp3');
+		expect(service.getSnapshot()).toMatchObject({ sourceId: 'note-one', paused: true, currentTime: 45, playingVariant: 'combat' });
+		await service.resume();
+		await service.setTrackerCombat(true);
+		await service.setTrackerCombat(false);
+		expect(service.getSnapshot()).toMatchObject({ sourceId: 'note-one', playing: true, currentTime: 45, playingVariant: 'normal' });
+		service.stop();
+		await service.resume();
+		expect(service.getSnapshot()).toMatchObject({ sourceId: 'note-one', playing: true, currentTime: 0 });
+		expect(state).toEqual(before);
+		service.clear();
+		expect(service.getSnapshot()).toMatchObject({ sourceId: null, trackId: null });
+		service.dispose();
+	});
+
+	it('keeps snapshot tracks and audio separate from matching library IDs and later edits', async () => {
+		const saved = makeState();
+		const state = makeState();
+		state.tracks[0].name = 'Из библиотеки';
+		state.audioFiles[0].path = 'Audio/library.mp3';
+		const service = makeService(state, [...saved.audioFiles, ...state.audioFiles].map((asset) => asset.path));
+		await service.playTrackSnapshot(saved.tracks[0], saved.audioFiles, 'note-one');
+		saved.tracks[0].name = 'Изменённый снимок';
+		saved.audioFiles[1].path = 'Audio/changed.mp3';
+		state.tracks = [];
+		state.audioFiles = [];
+		service.onMediaChanged();
+		await service.setManualCombat(true);
+		expect(FakeAudio.instances[1].src).toContain('battle.mp3');
+		expect(service.getSnapshot()).toMatchObject({ sourceId: 'note-one', title: 'Таверна', playing: true });
+		state.tracks = makeState().tracks;
+		state.tracks[0].name = 'Из библиотеки';
+		state.audioFiles = makeState().audioFiles;
+		state.audioFiles[0].path = 'Audio/library.mp3';
+		await service.playTrack('track-one', 'normal');
+		expect(FakeAudio.instances.at(-1)!.src).toContain('library.mp3');
+		expect(service.getSnapshot()).toMatchObject({ sourceId: null, title: 'Из библиотеки' });
+		await service.playTrackSnapshot(saved.tracks[0], saved.audioFiles, 'note-two', 'normal');
+		expect(service.getSnapshot()).toMatchObject({ sourceId: 'note-two', title: 'Изменённый снимок' });
+		await service.play('list');
+		expect(service.getSnapshot()).toMatchObject({ sourceId: null, playlistId: 'list', title: 'Из библиотеки' });
+		service.dispose();
+	});
+
+	it('reports missing snapshot files without falling back to the library or replacing current playback', async () => {
+		const state = makeState();
+		const saved = makeState();
+		const service = makeService(state);
+		await service.playTrackSnapshot(saved.tracks[0], saved.audioFiles, 'working-note');
+		saved.audioFiles[0].path = 'Audio/missing.mp3';
+		await expect(service.playTrackSnapshot(saved.tracks[0], saved.audioFiles, 'missing-note')).rejects.toThrow('Аудиофайл отсутствует в хранилище: Audio/missing.mp3');
+		await expect(service.playTrackSnapshot(saved.tracks[0], [], 'invalid-note')).rejects.toThrow('Обычный звуковой файл не найден');
+		expect(service.getSnapshot()).toMatchObject({ sourceId: 'working-note', title: 'Таверна', playing: true });
+		service.dispose();
+	});
+
+	it('does not commit a snapshot source when a newer library track starts during loading', async () => {
+		const state = makeState();
+		const service = makeService(state);
+		let finish!: (audio: BufferedMusic) => void;
+		vi.mocked(BufferedMusic.load).mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+		const pending = service.playTrackSnapshot(state.tracks[0], state.audioFiles, 'loading-note');
+		await vi.waitFor(() => expect(finish).toBeDefined());
+		await service.playTrack('track-two');
+		const stale = new FakeAudio('snapshot');
+		finish(stale as unknown as BufferedMusic);
+		await pending;
+		expect(service.getSnapshot()).toMatchObject({ sourceId: null, trackId: 'track-two', playing: true });
+		expect(stale.load).toHaveBeenCalled();
+		service.dispose();
+	});
+
+	it('follows library scene music even when a snapshot has the same track ID', async () => {
+		const state = makeState();
+		const adventure = createMediaAdventure('Поход', 'quest');
+		const scene = createMediaScene('Первая', 'first');
+		scene.trackId = 'track-one';
+		adventure.scenes = [scene];
+		state.adventures = [adventure];
+		const service = makeService(state);
+		await service.playTrackSnapshot(state.tracks[0], state.audioFiles, 'note-one');
+		await service.followScene('quest', 'first');
+		expect(service.getSnapshot()).toMatchObject({ sourceId: null, trackId: 'track-one', playing: true });
+		expect(FakeAudio.instances).toHaveLength(2);
+		service.dispose();
 	});
 
 	it('plays one looping item, pauses and changes to the next item', async () => {

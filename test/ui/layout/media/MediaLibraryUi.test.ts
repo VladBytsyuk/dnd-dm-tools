@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/svelte";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/svelte";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { get } from "svelte/store";
 import MediaLibraryUi from "src/ui/layout/media/MediaLibraryUi.svelte";
@@ -21,8 +21,8 @@ afterEach(() => { cleanup(); vi.clearAllMocks(); vi.restoreAllMocks(); });
 function setup(panel: "player" | "adventures" = "player") {
 	let state = sampleMedia();
 	const mediaListeners = new Set<() => void>(), playbackListeners = new Set<() => void>();
-	let snapshot = { playlistId: null, itemId: null, trackId: null, title: null, playlistName: null, nextTrackName: null, hasPrevious: false, playing: false, paused: false, combatMode: false, combatModeLocked: false, manualCombat: false, trackerCombat: false, playingVariant: "normal", currentTime: 0, duration: 120, muted: false, volume: 0.6 } as any;
-	const playback = { getSnapshot: () => ({ ...snapshot }), subscribe: (fn: () => void) => { playbackListeners.add(fn); return () => playbackListeners.delete(fn); }, play: vi.fn(async () => {}), playTrack: vi.fn(async () => {}), pause: vi.fn(), resume: vi.fn(), stop: vi.fn(() => emit({ playing: false, currentTime: 0 })), clear: vi.fn(() => emit({ trackId: null, itemId: null, playlistId: null })), seek: vi.fn(), setMuted: vi.fn(), setVolume: vi.fn(), setManualCombat: vi.fn(), previous: vi.fn(), next: vi.fn() };
+	let snapshot = { sourceId: null, playlistId: null, itemId: null, trackId: null, title: null, playlistName: null, nextTrackName: null, hasPrevious: false, playing: false, paused: false, combatMode: false, combatModeLocked: false, manualCombat: false, trackerCombat: false, playingVariant: "normal", currentTime: 0, duration: 120, muted: false, volume: 0.6 } as any;
+	const playback = { getSnapshot: () => ({ ...snapshot }), subscribe: (fn: () => void) => { playbackListeners.add(fn); return () => playbackListeners.delete(fn); }, play: vi.fn(async () => {}), playTrack: vi.fn(async () => {}), playTrackSnapshot: vi.fn(async (..._args: any[]) => {}), pause: vi.fn(), resume: vi.fn(), stop: vi.fn(() => emit({ playing: false, currentTime: 0 })), clear: vi.fn(() => emit({ sourceId: null, trackId: null, itemId: null, playlistId: null })), seek: vi.fn(), setMuted: vi.fn(), setVolume: vi.fn(), setManualCombat: vi.fn(), previous: vi.fn(), next: vi.fn() };
 	function emit(patch: object) { snapshot = { ...snapshot, ...patch }; playbackListeners.forEach((fn) => fn()); }
 	const files = ["Scenes/Start.md", "Scenes/End.md", "Audio/calm.mp3", "Audio/battle.mp3"].map((path) => ({ path, extension: path.split('.').at(-1), basename: path.split('/').at(-1) }));
 	const plugin = {
@@ -85,6 +85,7 @@ describe("integrated media screens", () => {
 		expect(block).toBe(exportMediaMarkdownBlock(test.state(), { kind, id }));
 		const snapshot = parseMediaSnapshot(block.split("\n").slice(1, -1).join("\n"));
 		panel.unmount(); test.plugin.activateScene.mockClear();
+		if (kind === "track") await test.plugin.updateMedia((state) => { state.tracks = []; state.audioFiles = []; });
 		const embedded = render(MediaMarkdownCardUi, { plugin: test.plugin as any, snapshot });
 		const rendered = embedded.container.querySelector(".media-markdown-card > article")!;
 		expect({ name: rendered.getAttribute("aria-label"), className: rendered.className }).toEqual(appearance);
@@ -102,8 +103,39 @@ describe("integrated media screens", () => {
 			expect(test.plugin.openMediaUrl).toHaveBeenCalledWith(test.state().tracks[0].url);
 		} else {
 			await fireEvent.click(screen.getByRole("button", { name: "Воспроизвести: Audio/battle.mp3" }));
-			expect(test.playback.playTrack).toHaveBeenCalledWith(id, "combat");
+			expect(test.playback.playTrackSnapshot).toHaveBeenCalledWith(
+				expect.objectContaining({ id }), expect.arrayContaining([expect.objectContaining({ path: "Audio/battle.mp3" })]), expect.any(String), "combat",
+			);
+			expect(test.playback.playTrack).not.toHaveBeenCalled();
 		}
+	});
+	it("isolates playback indicators between two embedded snapshots and a library track with the same ID", async () => {
+		const test = setup();
+		const track = test.state().tracks[0];
+		const block = exportMediaMarkdownBlock(test.state(), { kind: "track", id: track.id });
+		const snapshot = parseMediaSnapshot(block.split("\n").slice(1, -1).join("\n"));
+		await test.navigation.open({ kind: "track", id: track.id });
+		const library = test.render();
+		const first = render(MediaMarkdownCardUi, { plugin: test.plugin as any, snapshot });
+		const second = render(MediaMarkdownCardUi, { plugin: test.plugin as any, snapshot });
+		await fireEvent.click(within(first.container).getByRole("button", { name: "Воспроизвести: Audio/calm.mp3" }));
+		const firstId = test.playback.playTrackSnapshot.mock.lastCall![2];
+		await act(() => test.emit({ sourceId: firstId, trackId: track.id, playing: true, playingVariant: "normal", currentTime: 30 }));
+		expect(within(first.container).getByRole("button", { name: "Остановить: Audio/calm.mp3" })).toBeTruthy();
+		expect(within(second.container).getByRole("button", { name: "Воспроизвести: Audio/calm.mp3" })).toBeTruthy();
+		expect(within(library.container).getByRole("button", { name: "Воспроизвести: Audio/calm.mp3" })).toBeTruthy();
+		expect(first.container.textContent).toContain("00:30 / 02:00");
+		expect(second.container.textContent).not.toContain("00:30 / 02:00");
+		await fireEvent.click(within(second.container).getByRole("button", { name: "Воспроизвести: Audio/calm.mp3" }));
+		const secondId = test.playback.playTrackSnapshot.mock.lastCall![2];
+		expect(secondId).not.toBe(firstId);
+		await act(() => test.emit({ sourceId: secondId }));
+		expect(within(first.container).getByRole("button", { name: "Воспроизвести: Audio/calm.mp3" })).toBeTruthy();
+		expect(within(second.container).getByRole("button", { name: "Остановить: Audio/calm.mp3" })).toBeTruthy();
+		await act(() => test.emit({ sourceId: null }));
+		expect(within(library.container).getByRole("button", { name: "Остановить: Audio/calm.mp3" })).toBeTruthy();
+		expect(within(second.container).getByRole("button", { name: "Воспроизвести: Audio/calm.mp3" })).toBeTruthy();
+		expect(test.plugin.updateMedia).not.toHaveBeenCalled();
 	});
 	it("renders direct note entities in an embedded scene and opens them through the plugin", async () => {
 		const test = setup("adventures");

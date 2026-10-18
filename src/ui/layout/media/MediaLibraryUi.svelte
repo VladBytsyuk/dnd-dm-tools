@@ -212,7 +212,7 @@
 	function closePicker() { picker = null; void tick().then(() => { if (pickerTrigger?.isConnected) pickerTrigger.focus(); }); }
 	function audioView(id: string | null, variant: "normal" | "combat") {
 		const asset = file(id); if (!asset) return undefined;
-		const active = playback.trackId === record?.id && playback.playingVariant === variant;
+		const active = playback.sourceId === null && playback.trackId === record?.id && playback.playingVariant === variant;
 		return { fileName: asset.path, currentTime: active ? playback.currentTime : 0, duration: active ? playback.duration : 0 };
 	}
 	function chooseFile(path: string | null) {
@@ -292,9 +292,9 @@
 		{:else if route.kind === "track" && track}
 			<Track editable={editing} playbackDisabled={editing} {theme}
 				bind:russianName={track.name} bind:entityLink={track.url} bind:atmosphere={track.atmosphere} bind:source={track.source} bind:loop={track.loop}
-				normal={audioView(track.normalAudioId, "normal")} combat={audioView(track.combatAudioId, "combat")} playingVariant={playback.trackId === track.id && playback.playing ? playback.playingVariant : null}
+				normal={audioView(track.normalAudioId, "normal")} combat={audioView(track.combatAudioId, "combat")} playingVariant={playback.sourceId === null && playback.trackId === track.id && playback.playing ? playback.playingVariant : null}
 				onPlayingVariantChange={(variant) => action(() => variant ? plugin.getMediaPlayback().playTrack(track!.id, variant) : plugin.getMediaPlayback().stop())}
-				onSeek={(variant, time) => { if (playback.trackId === track!.id && playback.playingVariant === variant) plugin.getMediaPlayback().seek(time); }}
+				onSeek={(variant, time) => { if (playback.sourceId === null && playback.trackId === track!.id && playback.playingVariant === variant) plugin.getMediaPlayback().seek(time); }}
 				onAddFile={editing ? showPicker : undefined} onRemoveFile={editing ? (variant) => { track![variant === "normal" ? "normalAudioId" : "combatAudioId"] = null; } : undefined} />
 			{#each [track.normalAudioId, track.combatAudioId] as id}{#if id && file(id) && !audioFiles.includes(file(id)!.path)}<p class="error">Аудиофайл отсутствует: {file(id)!.path}</p>{/if}{/each}
 		{:else if route.kind === "playlist" && playlist}

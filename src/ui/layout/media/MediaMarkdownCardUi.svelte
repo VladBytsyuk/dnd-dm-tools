@@ -9,6 +9,7 @@
 	import MediaFullCardUi from "./MediaFullCardUi.svelte";
 
 	let { plugin, snapshot }: { plugin: DndStatblockPlugin; snapshot: MediaSnapshot } = $props();
+	const playbackSourceId = crypto.randomUUID();
 	const data = $derived(mediaSnapshotState(snapshot));
 	const item = $derived(findMediaItem(data.media, data.route)!);
 	const theme = $derived($appTheme === Theme.Dark ? "dark" : "light");
@@ -47,7 +48,7 @@
 </script>
 
 <div class="media-markdown-card">
-	<MediaFullCardUi {plugin} {item} media={data.media} {entities} {encounters} {theme} />
+	<MediaFullCardUi {plugin} {item} media={data.media} {entities} {encounters} {theme} {playbackSourceId} />
 	{#if error}<p class="error" role="status">{error}</p>{/if}
 </div>
 
