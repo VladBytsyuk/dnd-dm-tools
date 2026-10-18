@@ -81,9 +81,9 @@
 	{#if !panelOnly}
 	<div class="picker-controls">
 		<button class="picker-trigger" type="button" bind:this={trigger} aria-label={label} aria-haspopup="listbox" aria-expanded={open} aria-controls={`${id}-list`} title={value ? currentLabel : undefined} onclick={() => open ? close() : show()} onkeydown={(event) => { if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); void show(event.key === "ArrowUp"); } else if (event.key === "Escape" && open) close(); }}>
-			<span>{value ? currentLabel : placeholder}</span><ChevronDown size="calc(12 * var(--ds-media-unit, 1px))" aria-hidden={true} />
+			<span>{value ? currentLabel : placeholder}</span><ChevronDown size={12} style="width: calc(12 * var(--ds-media-unit, 1px)); height: calc(12 * var(--ds-media-unit, 1px))" aria-hidden={true} />
 		</button>
-		{#if value !== null}<button class="clear" type="button" aria-label={`Убрать: ${label}`} title={`Убрать: ${label}`} onclick={() => choose(null)}><X size="calc(12 * var(--ds-media-unit, 1px))" aria-hidden={true} /></button>{/if}
+		{#if value !== null}<button class="clear" type="button" aria-label={`Убрать: ${label}`} title={`Убрать: ${label}`} onclick={() => choose(null)}><X size={12} style="width: calc(12 * var(--ds-media-unit, 1px)); height: calc(12 * var(--ds-media-unit, 1px))" aria-hidden={true} /></button>{/if}
 	</div>
 	{/if}
 	{#if open}

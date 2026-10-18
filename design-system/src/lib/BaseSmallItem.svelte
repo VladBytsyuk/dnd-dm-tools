@@ -99,7 +99,7 @@
 		<div class="content">
 			{#if title || subtitle}
 			<div class="titles">
-				{#if title}<strong title={title}>{#if favorite}<Star class="favorite-star" size="calc(16 * var(--ds-media-unit, 1px))" fill="currentColor" aria-label="В избранном" />{/if}<span class="title-text">{title}</span></strong>{/if}
+				{#if title}<strong title={title}>{#if favorite}<Star class="favorite-star" size={16} style="width: calc(16 * var(--ds-media-unit, 1px)); height: calc(16 * var(--ds-media-unit, 1px))" fill="currentColor" aria-label="В избранном" />{/if}<span class="title-text">{title}</span></strong>{/if}
 					{#if subtitle}<span title={subtitle}>{subtitle}</span>{/if}
 				</div>
 			{/if}
@@ -113,7 +113,7 @@
 				<div class="meta-icons meta-center">
 					{#each centerIcons as item}
 						{@const MetaIcon = item.icon}
-						<span role="img" aria-label={item.label} title={item.label}><MetaIcon size="calc(14 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} /></span>
+						<span role="img" aria-label={item.label} title={item.label}><MetaIcon size={14} style="width: calc(14 * var(--ds-media-unit, 1px)); height: calc(14 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} /></span>
 					{/each}
 				</div>
 			{/if}
@@ -122,11 +122,11 @@
 				<div class="meta-icons meta-bottom">
 					{#each bottomIcons as item}
 						{@const MetaIcon = item.icon}
-						<span role="img" aria-label={item.label} title={item.label}><MetaIcon size="calc(14 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} /></span>
+						<span role="img" aria-label={item.label} title={item.label}><MetaIcon size={14} style="width: calc(14 * var(--ds-media-unit, 1px)); height: calc(14 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} /></span>
 					{/each}
 				</div>
 			{/if}
-			{#if Icon}<Icon size="calc(16 * var(--ds-media-unit, 1px))" strokeWidth={1} />{/if}
+			{#if Icon}<Icon size={16} style="width: calc(16 * var(--ds-media-unit, 1px)); height: calc(16 * var(--ds-media-unit, 1px))" strokeWidth={1} />{/if}
 		</div>
 	{/if}
 	{#if footer}<div class="footer">{@render footer()}</div>{/if}

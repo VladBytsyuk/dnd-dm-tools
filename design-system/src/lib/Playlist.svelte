@@ -163,10 +163,10 @@
 				</button>
 				{#if editable}
 					<button class="icon-button drag-handle" type="button" aria-label={`Изменить порядок: ${track.title}`} title="Перетащите или используйте стрелки вверх и вниз" {disabled} onpointerdown={(event) => startDrag(event, track.id)} onpointermove={updateDrag} onpointerup={dropTrack} onpointercancel={cancelDrag} onlostpointercapture={cancelDrag} onkeydown={(event) => handleMoveKey(event, track.id, index)}>
-						<Menu size="calc(16 * var(--ds-media-unit, 1px))" strokeWidth={2} aria-hidden={true} />
+						<Menu size={16} style="width: calc(16 * var(--ds-media-unit, 1px)); height: calc(16 * var(--ds-media-unit, 1px))" strokeWidth={2} aria-hidden={true} />
 					</button>
 					<button class="icon-button remove" type="button" aria-label={`Удалить трек: ${track.title}`} title="Удалить трек" {disabled} onclick={() => updateTracks(tracks.filter((item) => item.id !== track.id))}>
-						<Trash size="calc(14 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} />
+						<Trash size={14} style="width: calc(14 * var(--ds-media-unit, 1px)); height: calc(14 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} />
 					</button>
 				{/if}
 				{#if draggedId === track.id}<span class="drag-position" aria-hidden="true">{dropIndex === null ? "Отпустите для отмены" : `Позиция ${dropIndex + 1}`}</span>{/if}
@@ -180,7 +180,7 @@
 	</ol>
 	{#if editable}
 		<button class="add-track" type="button" aria-label="Добавить трек" title="Добавить трек" disabled={disabled || !onAddTrack} onclick={onAddTrack}>
-			<Plus size="calc(10 * var(--ds-media-unit, 1px))" strokeWidth={2} aria-hidden={true} />
+			<Plus size={10} style="width: calc(10 * var(--ds-media-unit, 1px)); height: calc(10 * var(--ds-media-unit, 1px))" strokeWidth={2} aria-hidden={true} />
 		</button>
 	{/if}
 </article>
