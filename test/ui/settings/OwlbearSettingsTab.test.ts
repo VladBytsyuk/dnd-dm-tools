@@ -102,18 +102,14 @@ function renderSettings(enabled = true, failure = false) {
 describe("plugin release settings", () => {
 	it("keeps user features and reconnection while hiding development controls and healthy transport details", async () => {
 		const { plugin } = renderSettings();
-		for (const label of ["Обновления", "Новый интерфейс справочников", "Экспортировать ручные сущности", "Импортировать ручные сущности", "Включить интеграцию", "Ссылка для установки расширения", "Код сопряжения"]) {
+		for (const label of ["Обновления", "Экспортировать ручные сущности", "Импортировать ручные сущности", "Включить интеграцию", "Ссылка для установки расширения", "Код сопряжения"]) {
 			expect(screen.getByText(label)).toBeTruthy();
 		}
-		for (const label of ["Порт", "Путь к dev bundle"]) expect(screen.queryByText(label)).toBeNull();
+		for (const label of ["Интерфейс", "Новый интерфейс справочников", "Порт", "Путь к dev bundle"]) expect(screen.queryByText(label)).toBeNull();
 		expect(document.body.textContent).not.toContain("Публичный host");
 		expect(document.body.textContent).not.toContain("cloudflared");
 		await fireEvent.click(screen.getByRole("button", { name: "Перезапустить подключение" }));
 		await waitFor(() => expect(plugin.restartOwlbearTunnel).toHaveBeenCalledOnce());
-		const toggle = screen.getByText("Новый интерфейс справочников").parentElement!.querySelector("input")!;
-		(toggle as HTMLInputElement).checked = true;
-		await fireEvent.change(toggle);
-		expect(plugin.updateSettings).toHaveBeenCalledWith({ redesignEnabled: true });
 	});
 
 	it("shows only the integration toggle when Owlbear is disabled", () => {

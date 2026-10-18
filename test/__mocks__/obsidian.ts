@@ -1,6 +1,10 @@
 import { parse, stringify } from 'yaml';
 
 export class Component {
+  private children: Component[] = [];
+  load() { this.onload(); }
+  unload() { this.children.forEach((child) => child.unload()); this.children = []; this.onunload(); }
+  addChild<T extends Component>(child: T): T { this.children.push(child); child.load(); return child; }
   onload() {}
   onunload() {}
 }
@@ -8,6 +12,12 @@ export class Component {
 export class MarkdownRenderChild extends Component {
   constructor(public containerEl: HTMLElement) {
     super();
+  }
+}
+
+export class MarkdownRenderer {
+  static async render(_app: unknown, markdown: string, element: HTMLElement, _sourcePath: string, _component: Component): Promise<void> {
+    element.textContent = markdown;
   }
 }
 
@@ -69,6 +79,7 @@ export class PluginManifest {
 }
 
 export class Notice {
+  noticeEl = document.createElement("div");
   constructor(public message: string, public timeout?: number) {}
 }
 

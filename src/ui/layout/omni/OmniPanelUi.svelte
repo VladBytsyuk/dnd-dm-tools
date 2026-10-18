@@ -7,10 +7,12 @@
 		type PanelKey,
 	} from "src/domain/models/assistant/AssistantWorkspace";
 	import { setIcon, type IconName } from "obsidian";
+	import type { MediaPlaybackService } from "src/data/services/MediaPlaybackService";
 	import type { PanelSearchResult } from "src/ui/components/sidepanel/PanelHost";
-	import { getPanelTypeColor, getRedesignPanelTypeColor } from "../uikit/PanelTypeColor";
+	import { getRedesignPanelTypeColor } from "../uikit/PanelTypeColor";
 	import OmniPanelContent from "./OmniPanelContent.svelte";
 	import OmniSearchResult from "./OmniSearchResult.svelte";
+	import GlobalPlayerUi from "../media/GlobalPlayerUi.svelte";
 	import {
 		getTabInsertionPosition,
 		normalizeTabInsertionPosition,
@@ -32,7 +34,8 @@
 
 	let {
 		panels,
-		redesignEnabled = false,
+		mediaPlayback,
+		onMusicVolumeChange,
 		initialWorkspace,
 		search,
 		openResult,
@@ -42,7 +45,8 @@
 		saveWorkspace,
 	}: {
 		panels: PanelSummary[];
-		redesignEnabled?: boolean;
+		mediaPlayback: MediaPlaybackService;
+		onMusicVolumeChange: (volume: number) => Promise<void>;
 		initialWorkspace: AssistantWorkspaceState;
 		search: (query: string) => Promise<PanelSearchResult[]>;
 		openResult: (result: PanelSearchResult) => Promise<void>;
@@ -55,11 +59,10 @@
 	function getInitialWorkspace() {
 		return initialWorkspace;
 	}
-
 	let workspace = $state(getInitialWorkspace());
 	let query = $state("");
 	let results = $state<PanelSearchResult[]>([]);
-	const favoriteResults = $derived(redesignEnabled ? results.filter((result) => result.favorite) : []);
+	const favoriteResults = $derived(results.filter((result) => result.favorite));
 	let draggedTab = $state<DraggedTab | null>(null);
 	let dropIndicator = $state<DropIndicator | null>(null);
 	let tilesElement: HTMLElement;
@@ -133,7 +136,7 @@
 
 	function openPanel(key: PanelKey) {
 		activateOrOpenAssistantPanel(workspace, key);
-		if (redesignEnabled && key === "initiative-tracker") {
+		if (key === "initiative-tracker") {
 			const tabs = workspace.tiles[workspace.focusedTile].tabs;
 			tabs.splice(tabs.indexOf(key), 1);
 			tabs.unshift(key);
@@ -314,7 +317,7 @@
 </script>
 
 <div class="omni">
-	<div class="omni-toolbar" role="toolbar" aria-label="Панель Помощника ДМа">
+	<div class="omni-toolbar dnd-ui" role="toolbar" aria-label="Панель Помощника ДМа">
 		<div class="omni-toolbar__search">
 			<input
 				type="search"
@@ -328,7 +331,7 @@
 				<div
 					class="omni-toolbar__icon"
 					class:active={isPanelOpen(panel.key)}
-					style={`--panel-type-color: ${redesignEnabled ? getRedesignPanelTypeColor(panel.key) : getPanelTypeColor(panel.key)}`}
+					style={`--panel-type-color: ${getRedesignPanelTypeColor(panel.key)}`}
 					style:color={isPanelOpen(panel.key)
 						? "var(--panel-type-color)"
 						: "var(--dnd-ui-text-secondary)"}
@@ -366,22 +369,23 @@
 		</div>
 	</div>
 
+	<GlobalPlayerUi playback={mediaPlayback} onVolumeChange={onMusicVolumeChange} />
+
 	{#if results.length}
-		<div class="omni-search-results" class:is-redesigned={redesignEnabled} aria-label="Результаты поиска">
+		<div class="omni-search-results is-redesigned dnd-ui" aria-label="Результаты поиска">
 			{#if favoriteResults.length}
 				<h3 class="omni-search-results__heading">Избранное</h3>
 				{#each favoriteResults as result (`favorite:${result.panelKey}:${result.url}`)}
-					<div class="omni-search-results__item" class:is-redesigned={redesignEnabled && result.panelKey !== "character-sheets"}>
-						<OmniSearchResult {result} {redesignEnabled} onSelect={() => selectResult(result)} />
+					<div class="omni-search-results__item" class:is-redesigned={result.panelKey !== "character-sheets"}>
+						<OmniSearchResult {result} onSelect={() => selectResult(result)} />
 					</div>
 				{/each}
 				<h3 class="omni-search-results__heading">Все результаты</h3>
 			{/if}
 			{#each results as result (`${result.panelKey}:${result.url}`)}
-				<div class="omni-search-results__item" class:is-redesigned={redesignEnabled && result.panelKey !== "character-sheets"}>
+				<div class="omni-search-results__item" class:is-redesigned={result.panelKey !== "character-sheets"}>
 					<OmniSearchResult
 						{result}
-						{redesignEnabled}
 						onSelect={() => selectResult(result)}
 					/>
 				</div>
@@ -429,7 +433,7 @@
 					ondrop={(event) => onDrop(event, tileIndex)}
 				>
 					<div
-						class="tabs"
+						class="tabs dnd-ui"
 						class:drop-target={dropIndicator?.tileIndex === tileIndex}
 						class:drop-empty={
 							dropIndicator?.tileIndex === tileIndex &&
@@ -469,7 +473,7 @@
 									tabIndex === tile.tabs.length - 1
 								}
 								class="tab"
-				style={`--panel-type-color: ${redesignEnabled ? getRedesignPanelTypeColor(key) : getPanelTypeColor(key)}`}
+				style={`--panel-type-color: ${getRedesignPanelTypeColor(key)}`}
 								role="group"
 								aria-label={panelByKey.get(key)?.title ?? key}
 								draggable="true"
@@ -531,7 +535,7 @@
 								</div>
 							{/each}
 						{:else}
-							<div class="empty">
+							<div class="empty dnd-ui">
 								<strong>Откройте панель</strong>
 								<span
 									>Выберите раздел в верхней части Помощника
@@ -556,7 +560,7 @@
 	}
 	.omni {
 		display: grid;
-		grid-template-rows: auto minmax(0, 1fr);
+		grid-template-rows: auto auto minmax(0, 1fr);
 		align-self: stretch;
 		width: 100%;
 		max-width: 100%;
@@ -595,7 +599,7 @@
 	}
 	.omni-search-results {
 		z-index: 20;
-		grid-row: 2;
+		grid-row: 3;
 		grid-column: 1;
 		min-height: 0;
 		display: grid !important;
@@ -710,7 +714,7 @@
 		}
 	}
 	.tiles {
-		grid-row: 2;
+		grid-row: 3;
 		grid-column: 1;
 		display: grid;
 		grid-template-rows: minmax(0, 1fr);

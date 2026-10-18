@@ -1,4 +1,5 @@
-import { Notice, stringifyYaml, parseYaml } from "obsidian";
+import { stringifyYaml, parseYaml } from "obsidian";
+import { PluginNotice as Notice } from "src/ui/PluginNotice";
 import type { Encounter } from "src/domain/models/encounter/Encounter";
 import { mapCharacterSheetToEncounterParticipant, mapMonsterToEncounterParticipant } from "src/domain/mappers";
 import type { FullSpell } from "src/domain/models/spell/FullSpell";
@@ -190,16 +191,6 @@ export async function getActionEntityFromClipboard(): Promise<ClipboardActionEnt
 }
 
 // ---- Get from clipboard ----
-export async function getMonsterFromClipboard(ignoreNotice: boolean = false): Promise<FullMonster | undefined> {
-    const monster = await getFromClipboard<FullMonster>("statblock");
-    if (monster) {
-        return monster;
-    } else {
-        if (!ignoreNotice) new Notice(`Не удалось прочитать существо из буфера обмена`);   
-        return undefined;
-    }
-}
-
 export async function getEncounterParticipantFromClipboard(ignoreNotice: boolean = false): Promise<EncounterParticipant | undefined> {
     try {
         const clipboard = await readTextFromClipboard();

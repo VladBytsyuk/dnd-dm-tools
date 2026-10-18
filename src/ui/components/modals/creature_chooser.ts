@@ -13,6 +13,7 @@ export class CreatureChooser extends Modal {
         onSubmit: (monster: FullMonster, isTwoColumns: boolean) => void,
     ) {
         super(app);
+        this.modalEl.classList.add("dnd-ui");
 
         let monster: FullMonster | null = null;
         let isTwoColumns = false;

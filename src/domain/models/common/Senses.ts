@@ -12,10 +12,3 @@ export function EmptySenses(): Senses {
         senses: []
     } as Senses;
 }
-
-export function EmptySense() {
-    return {
-        name: '',
-        value: 0
-    };
-}

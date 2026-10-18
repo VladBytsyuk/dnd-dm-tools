@@ -15,18 +15,12 @@ src/ui/
 │   ├── modals/            # Obsidian modal dialogs (editing, confirmation)
 │   ├── command/           # Editor commands
 │   └── suggest/           # Autocomplete/suggest components
+├── design-system/         # Domain adapters for shared design-system cards
 ├── layout/                # Svelte components
-│   ├── monster/           # Monster statblock components
-│   ├── spell/             # Spell components
-│   ├── weapon/            # Weapon components
-│   ├── armor/             # Armor components
 │   ├── tracker/           # Initiative tracker UI
 │   ├── omni/              # Assistant workspace, tabs, search, and tile layout
 │   ├── sidepanel/         # Feature panel layout components
-│   ├── race/              # Race components
 │   └── uikit/             # Shared UI kit and browser shell
-│       ├── atoms/         # Small reusable visual primitives
-│       ├── molecules/     # Composed reusable sections
 │       └── organisms/     # Shared high-level UI blocks
 └── theme.ts               # Theme change listener
 ```
@@ -110,12 +104,11 @@ Avoid these warning-prone patterns:
 
 | Pattern | Usage | Example |
 |---------|-------|---------|
-| `XxxSmallUi.svelte` | List item component | `RaceSmallUi.svelte` |
-| `XxxFullUi.svelte` | Full detail/statblock component | `RaceFullUi.svelte` |
-| `XxxHeaderFullUi.svelte` | Extended header variant | `RaceHeaderFullUi.svelte` |
+| `XxxSmallUi.svelte` | Specialized list item component | `CharacterSheetSmallUi.svelte` |
+| `XxxFullUi.svelte` | Specialized full detail component | `CharacterSheetFullUi.svelte` |
 | `XxxUi.svelte` | General component | `InitiativeTracker.svelte` |
 
-Feature folders still use `XxxSmallUi.svelte` and `XxxFullUi.svelte`, but shared header/list/detail chrome should default to UIKit components instead of feature-local wrappers.
+Standard entity cards use `RedesignedSmallItem` and `RedesignedFullItem` from `src/ui/design-system/`. Character sheets and the DM screen retain specialized components.
 
 ## UIKit Structure
 
@@ -123,19 +116,9 @@ The current shared UI system lives in `src/ui/layout/uikit/`:
 
 ```
 src/ui/layout/uikit/
-├── atoms/
-│   ├── UiCopyableText.svelte
-│   └── UiSourceBadge.svelte
-├── molecules/
-│   ├── UiContentSection.svelte
-│   ├── UiImageGallery.svelte
-│   ├── UiItemMetaRow.svelte
-│   └── UiPropertyGrid.svelte
 ├── organisms/
-│   ├── UiDetailCard.svelte
-│   ├── UiDetailHeader.svelte
+│   ├── UiCollapsibleGroup.svelte
 │   ├── UiEmptyState.svelte
-│   ├── UiItemCard.svelte
 │   ├── UiItemGroup.svelte
 │   └── UiSearchToolbar.svelte
 ├── BaseSidePanelUi.svelte
@@ -143,16 +126,13 @@ src/ui/layout/uikit/
 ├── FilterBlock.svelte
 ├── HtmlBlock.svelte
 ├── AutocompleteInput.svelte
-└── IconButton.svelte
+└── PanelTypeTint.svelte
 ```
 
 The shared browser/detail composition now looks like this:
 
-- `UiItemCard` renders the reusable small-item/list card.
 - `UiItemGroup` renders grouped lists in collapsible sections.
 - `UiSearchToolbar` renders the shared feature-panel search/action row.
-- `UiDetailHeader` renders the shared detail header, copy actions, source row, and image gallery.
-- `UiDetailCard`, `UiPropertyGrid`, and `UiContentSection` render the standard detail-body structure.
 - `BaseSidePanelUi` is the generic browser shell used by most data-backed Assistant panels.
 
 ## Assistant Panel System
@@ -187,8 +167,7 @@ Features provide the domain-specific parts through props:
 - repository
 - filter configuration
 - group-title builder
-- small-item slot
-- full-item slot
+- panel key, used by the shared domain adapters to choose the entity card
 - optional filter display/apply transforms
 
 `CharacterSheetSidePanelUi.svelte` remains a custom browser implementation because it has feature-specific controller-driven behavior. `DmScreenSidePanelUi.svelte` also remains feature-specific.

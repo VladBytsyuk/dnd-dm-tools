@@ -1,4 +1,5 @@
-import { App, Notice } from "obsidian";
+import { App } from "obsidian";
+import { PluginNotice as Notice } from "src/ui/PluginNotice";
 import type { IUiEventListener } from "src/domain/listeners/ui_event_listener";
 import { getImageSource } from "src/domain/utils/image_utils";
 import type { BestiaryFeature } from "src/ui/components/feature/BestiaryFeature";

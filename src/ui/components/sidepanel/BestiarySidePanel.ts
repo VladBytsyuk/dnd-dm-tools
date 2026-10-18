@@ -4,8 +4,6 @@ import type { BestiaryFilters } from "src/domain/models/monster/BestiaryFilters"
 import { BaseSidePanel } from "./BaseSidePanel";
 import type { SmallMonster } from "src/domain/models/monster/SmallMonster";
 import BaseSidePanelUi from "src/ui/layout/uikit/BaseSidePanelUi.svelte";
-import MonsterFullUi from "src/ui/layout/monster/MonsterFullUi.svelte";
-import MonsterSmallUi from "src/ui/layout/monster/MonsterSmallUi.svelte";
 import { emptyFilters } from "src/domain/models/common/Filters";
 import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
@@ -26,15 +24,12 @@ export class BestiarySidePanel extends BaseSidePanel<SmallMonster, FullMonster, 
             target: element,
             props: {
                 panelKey: this.getKey(),
-                redesignEnabled: this.plugin.getSettings().redesignEnabled,
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<BestiaryFilters>(['types', 'challengeRatings', 'sources']),
                 repository: this.repository,
                 uiEventListener: this.uiEventListener,
                 filterConfig,
                 groupTitleBuilder: (group: { sort: string }) => `Опасность ${group.sort}`,
-                FullItemSlot: MonsterFullUi,
-                SmallItemSlot: MonsterSmallUi,
                 paginated: true,
                 pageSize: 50,
             },

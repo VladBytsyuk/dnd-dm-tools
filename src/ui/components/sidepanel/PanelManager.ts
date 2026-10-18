@@ -15,6 +15,7 @@ import type { PanelHost, PanelSearchResult } from "./PanelHost";
 import { sortPanelResultsBySearchRelevance } from "./OmniSearchRanking";
 import { PanelSessionCache } from "./PanelSessionCache";
 import { detachLegacyPanelViews } from "./LegacyPanelViews";
+import type { MediaPlaybackService } from "src/data/services/MediaPlaybackService";
 
 export const OMNI_VIEW_ID = "dnd-dm-tools-omni";
 const OMNI_ICON_ID = "dnd-dm-tools-omni";
@@ -69,9 +70,7 @@ export class PanelManager {
 	}
 
 	getPanelSummaries() {
-		const keys = this.isRedesignEnabled()
-			? ["initiative-tracker" as const, ...PANEL_KEYS.filter((key) => key !== "initiative-tracker")]
-			: PANEL_KEYS;
+		const keys = ["initiative-tracker" as const, ...PANEL_KEYS.filter((key) => key !== "initiative-tracker")];
 		return keys.map((key) => this.panels.get(key))
 			.filter((panel): panel is PanelHost => panel !== undefined && this.isPanelAvailable(panel.getKey()))
 			.map((panel) => ({
@@ -86,15 +85,15 @@ export class PanelManager {
 		return this.getPersistedWorkspace();
 	}
 
-	isRedesignEnabled(): boolean { return this.plugin.getSettings().redesignEnabled; }
+	getMediaPlayback(): MediaPlaybackService { return this.plugin.getMediaPlayback(); }
+	setMusicVolume(volume: number): Promise<void> { return this.plugin.updateMedia((media) => { media.musicVolume = volume; }); }
 
 	private isPanelAvailable(key: PanelKey): boolean {
-		return key !== "classes" || !this.isRedesignEnabled();
+		return key !== "classes";
 	}
 
 	getVisibleWorkspace(): AssistantWorkspaceState {
 		const workspace = createAssistantWorkspaceSnapshot(this.getWorkspace());
-		if (!this.isRedesignEnabled()) return workspace;
 		for (const tile of workspace.tiles) {
 			const index = tile.tabs.indexOf("classes");
 			if (index >= 0) {
@@ -121,8 +120,13 @@ export class PanelManager {
 	async openItem(key: PanelKey, item?: BaseItem): Promise<void> {
 		if (!this.isPanelAvailable(key)) return;
 		if (item) {
-			this.panelSessions.discard(key);
-			this.currentItems.set(key, item);
+			const panel = this.panels.get(key);
+			if (panel?.openItem) {
+				if (!(await panel.openItem(item))) return;
+			} else {
+				this.panelSessions.discard(key);
+				this.currentItems.set(key, item);
+			}
 		}
 		await this.openPanel(key);
 	}
@@ -131,6 +135,14 @@ export class PanelManager {
 		if (!this.isPanelAvailable(key)) return;
 		const item = await this.panels.get(key)?.resolveItem(url);
 		if (item) await this.openItem(key, item);
+	}
+
+	async resolveEntity(url: string): Promise<PanelSearchResult | null> {
+		const prefixes: [string, PanelKey][] = [["/items/magic/", "artifactory"], ["/items/", "equipment"], ["/bestiary/", "bestiary"], ["/spells/", "spellbook"], ["/weapons/", "arsenal"], ["/armors/", "armory"], ["/backgrounds/", "backgrounds"], ["/feats/", "feats"], ["/races/", "races"], ["/classes/", "classes"], ["/screens/", "dm-screen"], ["/character-sheets/", "character-sheets"], ["/track/", "player"], ["/playlist/", "player"], ["/scene/", "adventures"], ["/adventure/", "adventures"]];
+		const panelKey = prefixes.find(([prefix]) => url.startsWith(prefix))?.[1];
+		if (!panelKey || !this.isPanelAvailable(panelKey)) return null;
+		const item = await this.panels.get(panelKey)?.resolveItem(url);
+		return item ? { panelKey, url: item.url, title: item.name.rus || item.name.eng, subtitle: "", item } : null;
 	}
 
 	async search(query: string): Promise<PanelSearchResult[]> {
@@ -245,7 +257,8 @@ class AssistantItemView extends ItemView {
 			props: {
 				panels: this.manager.getPanelSummaries(),
 				initialWorkspace: this.manager.getVisibleWorkspace(),
-				redesignEnabled: this.manager.isRedesignEnabled(),
+				mediaPlayback: this.manager.getMediaPlayback(),
+				onMusicVolumeChange: (volume: number) => this.manager.setMusicVolume(volume),
 				search: (query: string) => this.manager.search(query),
 				openResult: (result: PanelSearchResult) => this.manager.openSearchResult(result),
 				mountPanel: (key: PanelKey, element: Element) => this.manager.mountPanel(key, element),

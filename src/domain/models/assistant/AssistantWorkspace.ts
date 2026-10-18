@@ -12,6 +12,8 @@ export const PANEL_KEYS = [
 	"classes",
 	"character-sheets",
 	"initiative-tracker",
+	"player",
+	"adventures",
 	"owlbear-preview",
 ] as const;
 

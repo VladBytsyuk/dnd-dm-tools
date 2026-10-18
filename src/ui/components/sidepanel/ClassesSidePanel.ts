@@ -4,8 +4,6 @@ import type { ClassesFilters } from "src/domain/models/class/ClassesFilters";
 import { BaseSidePanel } from "./BaseSidePanel";
 import type { SmallClass } from "src/domain/models/class/SmallClass";
 import BaseSidePanelUi from "src/ui/layout/uikit/BaseSidePanelUi.svelte";
-import ClassFullUi from "src/ui/layout/class/ClassFullUi.svelte";
-import ClassSmallUi from "src/ui/layout/class/ClassSmallUi.svelte";
 import { emptyFilters } from "src/domain/models/common/Filters";
 import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
@@ -25,15 +23,12 @@ export class ClassesSidePanel extends BaseSidePanel<SmallClass, FullClass, Class
             target: element,
             props: {
                 panelKey: this.getKey(),
-                redesignEnabled: this.plugin.getSettings().redesignEnabled,
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<ClassesFilters>(['diceTypes', 'sources']),
                 repository: this.repository,
                 uiEventListener: this.uiEventListener,
                 filterConfig,
                 groupTitleBuilder: (group: { sort: string }) => group.sort,
-                FullItemSlot: ClassFullUi,
-                SmallItemSlot: ClassSmallUi,
             },
         });
     }

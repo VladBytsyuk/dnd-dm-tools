@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/svelte-vite";
 import IconsGallery from "./IconsGallery.svelte";
 
-const meta = {
+const meta: Meta<typeof IconsGallery> = {
 	title: "Icons/Gallery",
 	component: IconsGallery,
 	tags: ["autodocs"],
-} satisfies Meta<typeof IconsGallery>;
+};
 
 export default meta;
 

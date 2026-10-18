@@ -2,6 +2,19 @@ import { describe, expect, it } from "vitest";
 import { loadPluginSettings } from "src/domain/models/settings/PluginSettings";
 
 describe("PluginSettings", () => {
+	it.each([true, false, undefined])("ignores the obsolete design toggle (%s) and preserves supported settings", (redesignEnabled) => {
+		const settings = loadPluginSettings(null).settings;
+		settings.workspace.tiles[0].tabs = ["bestiary", "player"];
+		settings.workspace.tiles[0].activeTab = "player";
+		settings.media.musicVolume = 0.4;
+		settings.owlbearSync = { enabled: true, port: 43125, authToken: "a".repeat(43) };
+		const result = loadPluginSettings({ ...settings, redesignEnabled });
+
+		expect(result.settings).toEqual(settings);
+		expect(result.settings).not.toHaveProperty("redesignEnabled");
+		expect(JSON.parse(JSON.stringify(result.settings))).not.toHaveProperty("redesignEnabled");
+	});
+
 	it("migrates legacy assistant workspace data into the settings envelope", () => {
 		const result = loadPluginSettings({
 			layout: "vertical-split",
@@ -13,8 +26,9 @@ describe("PluginSettings", () => {
 			],
 		});
 
-		expect(result.settings.schemaVersion).toBe(4);
-		expect(result.settings.redesignEnabled).toBe(false);
+		expect(result.settings.schemaVersion).toBe(6);
+		expect(result.settings.media.playlists).toEqual([]);
+		expect(result.settings).not.toHaveProperty("redesignEnabled");
 		expect(result.settings.workspace.layout).toBe("vertical-split");
 		expect(result.settings.workspace.tiles[0].tabs).toEqual(["bestiary"]);
 		expect(result.settings.workspace.tiles[1].tabs).toEqual(["spellbook"]);
@@ -94,4 +108,31 @@ describe("PluginSettings", () => {
 		const result = loadPluginSettings({ owlbearSync: { enabled: true, port: 80, authToken: "short" } });
 		expect(result.settings.owlbearSync).toMatchObject({ enabled: true, port: null, authToken: null });
 	});
+
+	it("restores media and the new panel tabs after a restart", () => {
+		const result = loadPluginSettings({
+			schemaVersion: 5,
+			workspace: { layout: "single", focusedTile: 0, splitRatio: 0.5, tiles: [
+				{ tabs: ["player", "adventures"], activeTab: "adventures" },
+				{ tabs: [], activeTab: null },
+			] },
+			media: {
+				audioFiles: [{ id: "audio", path: "Music/scene.mp3", alias: "Сцена" }],
+				playlists: [{ id: "list", name: "Сессия", items: [{ id: "item", normalAudioId: "audio", combatAudioId: null, loop: true }] }],
+				adventures: [], musicVolume: 0.5, effectsVolume: 0.75,
+				activeAdventureId: null, activeSceneId: null,
+			},
+		});
+		expect(result.settings.workspace.tiles[0]).toEqual({ tabs: ["player", "adventures"], activeTab: "adventures" });
+		expect(result.settings.media.tracks[0].loop).toBe(true);
+		expect(result.settings.media.musicVolume).toBe(0.5);
+	});
+	it("requests a raw media backup once when migrating settings version five", () => {
+		const raw = { audioFiles: [], playlists: [], adventures: [], musicVolume: 0.2, effectsVolume: 0.4 };
+		const migrated = loadPluginSettings({ schemaVersion: 5, media: raw });
+		expect(migrated.legacyMediaBackup).toEqual(raw);
+		expect(loadPluginSettings(migrated.settings).legacyMediaBackup).toBeUndefined();
+		expect(migrated.settings.schemaVersion).toBe(6);
+	});
+
 });

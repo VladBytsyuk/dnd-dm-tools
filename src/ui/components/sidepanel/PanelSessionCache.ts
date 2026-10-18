@@ -49,7 +49,7 @@ export class PanelSessionCache {
 
 	private createSession(key: PanelKey): PanelSession {
 		const container = document.createElement("div");
-		container.className = "omni-panel-session";
+		container.className = key === "character-sheets" ? "omni-panel-session" : "omni-panel-session dnd-ui";
 		container.style.display = "flex";
 		container.style.flex = "1 1 auto";
 		container.style.flexDirection = "column";

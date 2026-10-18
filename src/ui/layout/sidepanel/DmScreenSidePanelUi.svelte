@@ -4,20 +4,18 @@
 	import DmScreenItemUi from "../screen/DmScreenItemUi.svelte";
 	import UiSearchToolbar from "../uikit/organisms/UiSearchToolbar.svelte";
 	import UiEmptyState from "../uikit/organisms/UiEmptyState.svelte";
-	import PanelTypeTint from "../uikit/PanelTypeTint.svelte";
 	import HtmlBlock from "../uikit/HtmlBlock.svelte";
 	import { TextBlock } from "@dnd-dm-tools/design-system";
 	import { theme as appTheme, Theme } from "src/ui/theme";
 	import { copyDmScreenItem } from "src/data/clipboard";
-	import { Notice } from "obsidian";
+	import { PluginNotice as Notice } from "src/ui/PluginNotice";
 	import { onMount } from "svelte";
 	import type { FavoriteAccess } from "src/domain/repositories/Repository";
 
     // ---- Props ----
-    let { item, children, redesignEnabled = false, uiEventListener, getFilteredItems, getChildrenCount, getChildren, getFullItem, favorites, getFavoriteArticles } = $props<{
+    let { item, children, uiEventListener, getFilteredItems, getChildrenCount, getChildren, getFullItem, favorites, getFavoriteArticles } = $props<{
 		item?: DmScreenItem;
 		children: DmScreenItem[];
-		redesignEnabled?: boolean;
 		uiEventListener: any;
 		getFilteredItems: (name: string) => Promise<DmScreenItem[]>;
 		getChildrenCount: (item: DmScreenItem) => Promise<number>;
@@ -47,7 +45,7 @@
 	let favoriteArticles = $state<DmScreenItem[]>([]);
 	let favoriteBusy = $state(false);
 
-	onMount(() => { if (redesignEnabled) void reloadFavorites(); });
+	onMount(() => { void reloadFavorites(); });
 
 	async function reloadFavorites() {
 		const nextUrls = new Set<string>(favorites?.listUrls("dm-screen") ?? []);
@@ -95,7 +93,7 @@
             const lastItem = itemsStack.last();
             currentChildren = lastItem ? await getChildren(lastItem) : children;
             currentItem = lastItem;
-			if (!lastItem && redesignEnabled) void reloadFavorites();
+			if (!lastItem) void reloadFavorites();
         }
     }
 
@@ -140,20 +138,18 @@
     }
 </script>
 
-<div class="side-panel-container" class:redesigned={redesignEnabled} data-theme={dsTheme}>
+<div class="side-panel-container redesigned" data-theme={dsTheme}>
     <UiSearchToolbar
         onbackclick={itemsStack.length > 0 ? onSearchBarBackClick : undefined}
         onvaluechange={onSearchBarValueChanged}
         isvaluechangable={() => !currentItem}
         onclearclick={undefined}
         onfiltersclick={undefined}
-        isfiltersapplied={undefined}
         onaddclick={undefined}
         oncopyclick={currentItem && currentChildren.length === 0 && currentItem.description ? copyCurrentItem : undefined}
-		onfavoriteclick={redesignEnabled && favorites && currentItem?.description && currentChildren.length === 0 ? toggleFavorite : undefined}
+		onfavoriteclick={favorites && currentItem?.description && currentChildren.length === 0 ? toggleFavorite : undefined}
 		isfavorite={Boolean(currentItem?.url && favoriteUrls.has(currentItem.url))}
 		{favoriteBusy}
-        {redesignEnabled}
     />
     <div class="side-panel-spacer"></div>
     <div class="side-panel-content">
@@ -161,7 +157,6 @@
             <DmScreenItemUi
                 currentItem={currentItem}
                 uiEventListener={uiEventListener}
-                redesigned={redesignEnabled}
                 theme={dsTheme}
                 sectionName={itemsStack.length > 1 ? itemsStack.at(-2)?.name.rus : currentItem.group}
             />
@@ -169,41 +164,29 @@
             {#if filteredItems.length === 0}
                 <UiEmptyState title="Результаты поиска" message="Ничего не найдено" />
             {:else}
-				{#if redesignEnabled && filteredItems.some((entry) => favoriteUrls.has(entry.url))}
+				{#if filteredItems.some((entry) => favoriteUrls.has(entry.url))}
 					<TextBlock title="Избранное" theme={dsTheme} />
-					<div class="content dm-screen-grid" class:redesigned={redesignEnabled}>
+					<div class="content dm-screen-grid redesigned">
 						{#each filteredItems.filter((entry) => favoriteUrls.has(entry.url)) as favoriteItem (favoriteItem.url)}
-							<DmScreenGroupUi icon={favoriteItem.icon} name={favoriteItem.name} source={favoriteItem.source.shortName} onclick={onItemClick(favoriteItem)} redesigned theme={dsTheme} favorite />
+							<DmScreenGroupUi icon={favoriteItem.icon} name={favoriteItem.name} source={favoriteItem.source.shortName} onclick={onItemClick(favoriteItem)} theme={dsTheme} favorite />
 						{/each}
 					</div>
 				{/if}
-                <div class="content dm-screen-grid" class:redesigned={redesignEnabled}>
+                <div class="content dm-screen-grid redesigned">
                     {#each filteredItems as item}
-                        {#if redesignEnabled}
-                            <DmScreenGroupUi
-                                icon={item.icon}
-                                name={item.name}
-                                source={item.source.shortName}
-                                onclick={onItemClick(item)}
-                                redesigned
-                                theme={dsTheme}
-								favorite={favoriteUrls.has(item.url)}
-                            />
-                        {:else}
-                            <PanelTypeTint panelKey="dm-screen">
-                                <DmScreenGroupUi
-                                    icon={item.icon}
-                                    name={item.name}
-                                    source={item.source.shortName}
-                                    onclick={onItemClick(item)}
-                                />
-                            </PanelTypeTint>
-                        {/if}
+                        <DmScreenGroupUi
+                            icon={item.icon}
+                            name={item.name}
+                            source={item.source.shortName}
+                            onclick={onItemClick(item)}
+                            theme={dsTheme}
+                            favorite={favoriteUrls.has(item.url)}
+                        />
                     {/each}
                 </div>
             {/if}
         {:else}
-            {#if currentItem && redesignEnabled}
+            {#if currentItem}
                 <header class="dm-screen-section-header redesigned-header">
                     <TextBlock title={currentItem.name.rus} theme={dsTheme} />
                     {#if currentItem.description}
@@ -212,51 +195,30 @@
                         </div>
                     {/if}
                 </header>
-            {:else if currentItem}
-                <h2>{currentItem.name.rus}</h2>
             {/if}
-            {#if !redesignEnabled && currentItem && currentItem.description}
-                <div class="group-description"><HtmlBlock htmlContent={currentItem.description} {uiEventListener} /></div>
-            {/if}
-            <div class:dm-screen-browser={redesignEnabled}>
-				{#if !currentItem && redesignEnabled && favoriteArticles.length > 0}
+            <div class="dm-screen-browser">
+				{#if !currentItem && favoriteArticles.length > 0}
 					<TextBlock title="Избранное" theme={dsTheme} />
 					<div class="content dm-screen-grid redesigned">
 						{#each favoriteArticles as favoriteItem (favoriteItem.url)}
-							<DmScreenGroupUi icon={favoriteItem.icon} name={favoriteItem.name} source={favoriteItem.source.shortName} onclick={onItemClick(favoriteItem)} redesigned theme={dsTheme} favorite />
+							<DmScreenGroupUi icon={favoriteItem.icon} name={favoriteItem.name} source={favoriteItem.source.shortName} onclick={onItemClick(favoriteItem)} theme={dsTheme} favorite />
 						{/each}
 					</div>
 				{/if}
                 {#each (groupedChildren()) as childGroup}
                     {#if childGroup.subgroupName}
-                        {#if redesignEnabled}
-                            <TextBlock title={childGroup.subgroupName} theme={dsTheme} />
-                        {:else}
-                            <div class="group-header">{@html childGroup.subgroupName}</div>
-                        {/if}
+                        <TextBlock title={childGroup.subgroupName} theme={dsTheme} />
                     {/if}
-                    <div class="content dm-screen-grid" class:redesigned={redesignEnabled}>
+                    <div class="content dm-screen-grid redesigned">
                         {#each childGroup.group as group}
-                            {#if redesignEnabled}
-                                <DmScreenGroupUi
-                                    icon={group.icon}
-                                    name={group.name}
-                                    source={group.source.shortName}
-                                    onclick={onItemClick(group)}
-                                    redesigned
-                                    theme={dsTheme}
-									favorite={favoriteUrls.has(group.url)}
-                                />
-                            {:else}
-                                <PanelTypeTint panelKey="dm-screen">
-                                    <DmScreenGroupUi
-                                        icon={group.icon}
-                                        name={group.name}
-                                        source={group.source.shortName}
-                                        onclick={onItemClick(group)}
-                                    />
-                                </PanelTypeTint>
-                            {/if}
+                            <DmScreenGroupUi
+                                icon={group.icon}
+                                name={group.name}
+                                source={group.source.shortName}
+                                onclick={onItemClick(group)}
+                                theme={dsTheme}
+                                favorite={favoriteUrls.has(group.url)}
+                            />
                         {/each}
                     </div>
                 {/each}
@@ -293,18 +255,6 @@
             minmax(min(20rem, 100%), 1fr)
         );
         gap: var(--dnd-ui-space-4);
-    }
-
-    .group-description {
-        font-size: 0.875rem;
-        color: var(--dnd-ui-text-secondary);
-    }
-
-    .group-header {
-        font-weight: var(--dnd-ui-font-weight-semibold);
-        color: var(--dnd-ui-text-secondary);
-        margin-top: var(--dnd-ui-space-16);
-        margin-bottom: var(--dnd-ui-space-8);
     }
 
     .side-panel-container.redesigned .side-panel-content {

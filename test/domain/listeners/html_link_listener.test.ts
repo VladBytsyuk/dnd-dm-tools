@@ -24,6 +24,15 @@ describe('html_link_listener', () => {
         document.body.removeChild(mockNode);
     });
 
+    it('opens media links when a media handler is registered', async () => {
+        const onMediaClick = vi.fn(async () => {});
+        mockHtmlLinkListener.onMediaClick = onMediaClick;
+        for (const url of ['/track/music', '/playlist/list', '/scene/start', '/adventure/quest']) {
+            await resolveDndEntityLink(mockHtmlLinkListener, url);
+            expect(onMediaClick).toHaveBeenLastCalledWith(url);
+        }
+    });
+
     it('should register click listeners for beasts', () => {
         const link = document.createElement('a');
         link.setAttribute('href', '/bestiary/goblin');
