@@ -22,16 +22,16 @@
 {#if editable}
 <Panel position="top-left">
 	<div class="toolbar">
-		{#if showAddScene}<button type="button" class="add-scene" onclick={(event) => onAdd(event.currentTarget)}><Plus size="calc(14 * var(--ds-media-unit, 1px))" aria-hidden={true} />Добавить сцену</button>{/if}
-		<button type="button" aria-label="Удалить выделенное" title="Удалить выделенное" disabled={!canDelete} onclick={onDelete}><Trash size="calc(14 * var(--ds-media-unit, 1px))" aria-hidden={true} /></button>
+		{#if showAddScene}<button type="button" class="add-scene" onclick={(event) => onAdd(event.currentTarget)}><Plus size={14} style="width: calc(14 * var(--ds-media-unit, 1px)); height: calc(14 * var(--ds-media-unit, 1px))" aria-hidden={true} />Добавить сцену</button>{/if}
+		<button type="button" aria-label="Удалить выделенное" title="Удалить выделенное" disabled={!canDelete} onclick={onDelete}><Trash size={14} style="width: calc(14 * var(--ds-media-unit, 1px)); height: calc(14 * var(--ds-media-unit, 1px))" aria-hidden={true} /></button>
 	</div>
 </Panel>
 {/if}
 <Panel position="bottom-left">
 	<div class="toolbar">
-		<button type="button" aria-label="Увеличить масштаб" title="Увеличить масштаб" onclick={() => flow.zoomIn()}><Plus size="calc(14 * var(--ds-media-unit, 1px))" aria-hidden={true} /></button>
-		<button type="button" aria-label="Уменьшить масштаб" title="Уменьшить масштаб" onclick={() => flow.zoomOut()}><Minus size="calc(14 * var(--ds-media-unit, 1px))" aria-hidden={true} /></button>
-		<button type="button" aria-label="Показать весь граф" title="Показать весь граф" onclick={() => flow.fitView({ padding: 0.2, maxZoom: 1 })}><Maximize size="calc(14 * var(--ds-media-unit, 1px))" aria-hidden={true} /></button>
+		<button type="button" aria-label="Увеличить масштаб" title="Увеличить масштаб" onclick={() => flow.zoomIn()}><Plus size={14} style="width: calc(14 * var(--ds-media-unit, 1px)); height: calc(14 * var(--ds-media-unit, 1px))" aria-hidden={true} /></button>
+		<button type="button" aria-label="Уменьшить масштаб" title="Уменьшить масштаб" onclick={() => flow.zoomOut()}><Minus size={14} style="width: calc(14 * var(--ds-media-unit, 1px)); height: calc(14 * var(--ds-media-unit, 1px))" aria-hidden={true} /></button>
+		<button type="button" aria-label="Показать весь граф" title="Показать весь граф" onclick={() => flow.fitView({ padding: 0.2, maxZoom: 1 })}><Maximize size={14} style="width: calc(14 * var(--ds-media-unit, 1px)); height: calc(14 * var(--ds-media-unit, 1px))" aria-hidden={true} /></button>
 	</div>
 </Panel>
 

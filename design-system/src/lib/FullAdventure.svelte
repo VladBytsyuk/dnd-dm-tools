@@ -79,7 +79,7 @@
 	{/if}
 	<h2>Сцены</h2>
 	<SceneGraph {nodes} {links} availableNotes={availableSceneNotes} height={graphHeight} onChange={changeGraph} {onSceneSelect} {onSceneOpen} showAddScene={!onCreateScene} {editable} {theme} />
-	{#if editable && onCreateScene}<button class="create-scene" type="button" disabled={createSceneDisabled} onclick={onCreateScene}><Plus size="calc(14 * var(--ds-media-unit, 1px))" aria-hidden={true} />Создать сцену</button>{/if}
+	{#if editable && onCreateScene}<button class="create-scene" type="button" disabled={createSceneDisabled} onclick={onCreateScene}><Plus size={14} style="width: calc(14 * var(--ds-media-unit, 1px)); height: calc(14 * var(--ds-media-unit, 1px))" aria-hidden={true} />Создать сцену</button>{/if}
 	<h2>Контент приключения</h2>
 	{#if uniqueEntities.length}
 		<ul class="adventure-content">

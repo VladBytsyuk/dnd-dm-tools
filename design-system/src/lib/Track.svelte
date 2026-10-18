@@ -109,7 +109,7 @@
 </article>
 
 {#snippet headerActions()}
-	{#if editable}<button class="header-action" type="button" aria-label="Повторять трек" title="Повторять трек" aria-pressed={loop} onclick={toggleLoop}><Repeat size="calc(16 * var(--ds-media-unit, 1px))" aria-hidden={true} /></button>{/if}
+	{#if editable}<button class="header-action" type="button" aria-label="Повторять трек" title="Повторять трек" aria-pressed={loop} onclick={toggleLoop}><Repeat size={16} style="width: calc(16 * var(--ds-media-unit, 1px)); height: calc(16 * var(--ds-media-unit, 1px))" aria-hidden={true} /></button>{/if}
 {/snippet}
 
 <style>

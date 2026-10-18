@@ -4,7 +4,6 @@
 		StepForward,
 		ClipboardCopy,
 		ClipboardPlus,
-		Download,
 		Replace,
 		ArrowUpDown,
 		Skull,
@@ -20,6 +19,8 @@
 		getEncounterParticipantFromClipboard,
 	} from "src/data/clipboard";
 	import { PluginNotice as Notice } from "src/ui/PluginNotice";
+	import { OwlbearLogo } from "@dnd-dm-tools/design-system";
+	import { theme as appTheme, Theme } from "src/ui/theme";
 	import { onDestroy } from "svelte";
 	import {
 		assertOwlbearImageDataUrlSize,
@@ -71,6 +72,7 @@
 		canUndo: encounterManager.canUndo,
 		canRedo: encounterManager.canRedo,
 	});
+	const theme = $derived($appTheme === Theme.Dark ? "dark" : "light");
 	function getInitialOwlbearIntegrationState(): boolean {
 		return isOwlbearIntegrationEnabled();
 	}
@@ -350,7 +352,7 @@
 						aria-label="Отправить столкновение в Owlbear"
 						title="Отправить столкновение в Owlbear"
 					>
-						<Download size={16} />
+						<OwlbearLogo {theme} size={16} />
 					</button>
 				{/if}
 

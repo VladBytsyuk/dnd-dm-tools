@@ -17,7 +17,7 @@
 	import SquareDashed from "lucide-svelte/icons/square-dashed";
 	import Plus from "lucide-svelte/icons/plus";
 	import X from "lucide-svelte/icons/x";
-	import Send from "lucide-svelte/icons/send";
+	import OwlbearLogo from "./OwlbearLogo.svelte";
 	import { tick } from "svelte";
 	import ActionsBlock, { type ActionsBlockItem } from "./ActionsBlock.svelte";
 	import ChipsList, { type ChipsListItem } from "./ChipsList.svelte";
@@ -347,7 +347,7 @@
 				</button>
 				{#if onSendImageToOwlbear}
 					<button bind:this={sendImageButton} class="send-image-button" type="button" aria-label="Отправить в Owlbear" title="Отправить в Owlbear" disabled={sendingImage} onclick={() => { void sendExpandedImage(); }}>
-						<Send size={20} strokeWidth={1.5} aria-hidden={true} />
+						<OwlbearLogo {theme} size={20} />
 					</button>
 				{/if}
 				<img class="expanded-image" src={expandedImage.url} alt={statblock.imageAlt ?? statblock.russianName} />
@@ -419,6 +419,9 @@
 	}
 	.close-image-button { left: 8px; }
 	.send-image-button { right: 8px; }
+	.full-statblock[data-theme="light"] .send-image-button { border-color: #1f2937; background: rgb(255 255 255 / 85%); }
+	.full-statblock[data-theme="light"] .send-image-button:hover, .full-statblock[data-theme="light"] .send-image-button:focus-visible { background: #fff; }
+	.full-statblock[data-theme="light"] .send-image-button:focus-visible { outline-color: #1f2937; }
 	.close-image-button:hover, .close-image-button:focus-visible, .send-image-button:hover, .send-image-button:focus-visible { background: rgb(0 0 0 / 70%); }
 	.close-image-button:focus-visible, .send-image-button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 	.send-image-button:disabled { opacity: 0.5; cursor: wait; }

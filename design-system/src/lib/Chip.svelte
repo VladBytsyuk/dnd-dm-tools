@@ -107,21 +107,21 @@
 	{#if Icon}
 		{#if toggle && editable}
 			<button type="button" class="icon-wrapper" aria-label={iconTooltip} aria-pressed={active} onclick={onToggle} use:keepTooltipInBounds>
-				<Icon size="calc(15 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} />
+				<Icon size={15} style="width: calc(15 * var(--ds-media-unit, 1px)); height: calc(15 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} />
 				<span class="chip-tooltip" role="tooltip">{iconTooltip}</span>
 			</button>
 		{:else if toggle}
 			<span class="icon-wrapper" use:keepTooltipInBounds>
-				<Icon size="calc(15 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} />
+				<Icon size={15} style="width: calc(15 * var(--ds-media-unit, 1px)); height: calc(15 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} />
 				<span class="chip-tooltip" role="tooltip">{iconTooltip}</span>
 			</span>
 		{:else if iconTooltip}
 			<button type="button" class="icon-wrapper" aria-label={iconTooltip} use:keepTooltipInBounds>
-				<Icon size="calc(15 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} />
+				<Icon size={15} style="width: calc(15 * var(--ds-media-unit, 1px)); height: calc(15 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} />
 				<span class="chip-tooltip" role="tooltip">{iconTooltip}</span>
 			</button>
 		{:else}
-			<span class="icon-wrapper"><Icon size="calc(15 * var(--ds-media-unit, 1px))" strokeWidth={1.5} /></span>
+			<span class="icon-wrapper"><Icon size={15} style="width: calc(15 * var(--ds-media-unit, 1px)); height: calc(15 * var(--ds-media-unit, 1px))" strokeWidth={1.5} /></span>
 		{/if}
 	{/if}
 	{#if imageSrc}<img class="image" src={imageSrc} alt={imageAlt} />{/if}

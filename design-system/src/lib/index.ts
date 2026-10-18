@@ -185,3 +185,4 @@ export type { SceneGraphNote, SceneGraphNode, SceneGraphLink, SceneGraphSide, Sc
 export { default as EyeDashed } from "./icons/EyeDashed.svelte";
 export { default as HandFist } from "./icons/HandFist.svelte";
 export { default as One } from "./icons/One.svelte";
+export { default as OwlbearLogo } from "./OwlbearLogo.svelte";

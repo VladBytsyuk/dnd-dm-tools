@@ -63,7 +63,7 @@
 		<span class="title">{title}</span>
 		{#if fileName}
 			<button class="icon-button" type="button" aria-label={`Удалить файл: ${fileName}`} title="Удалить файл" disabled={disabled || !onRemove} onclick={onRemove}>
-				<Trash size="calc(20 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} />
+				<Trash size={20} style="width: calc(20 * var(--ds-media-unit, 1px)); height: calc(20 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} />
 			</button>
 		{/if}
 	</header>
@@ -71,7 +71,7 @@
 		<div class="content">
 			<div class="file-row">
 				<button class="icon-button" type="button" aria-label={`${playing ? "Остановить" : "Воспроизвести"}: ${fileName}`} title={playing ? "Остановить" : "Воспроизвести"} disabled={disabled || playbackDisabled} onclick={togglePlayback}>
-					{#if playing}<Square size="calc(20 * var(--ds-media-unit, 1px))" strokeWidth={2} aria-hidden={true} />{:else}<Play size="calc(20 * var(--ds-media-unit, 1px))" strokeWidth={2} aria-hidden={true} />{/if}
+					{#if playing}<Square size={20} style="width: calc(20 * var(--ds-media-unit, 1px)); height: calc(20 * var(--ds-media-unit, 1px))" strokeWidth={2} aria-hidden={true} />{:else}<Play size={20} style="width: calc(20 * var(--ds-media-unit, 1px)); height: calc(20 * var(--ds-media-unit, 1px))" strokeWidth={2} aria-hidden={true} />{/if}
 				</button>
 				<span class="file-name" title={fileName}>{fileName}</span>
 				<span class="time">{formatTime(elapsed)} / {formatTime(total)}</span>
@@ -82,7 +82,7 @@
 		</div>
 	{:else}
 		<button class="icon-button add" type="button" aria-label={`Добавить аудиофайл: ${title}`} title="Добавить аудиофайл" disabled={disabled || !onAdd} onclick={onAdd}>
-			<Plus size="calc(24 * var(--ds-media-unit, 1px))" strokeWidth={2} aria-hidden={true} />
+			<Plus size={24} style="width: calc(24 * var(--ds-media-unit, 1px)); height: calc(24 * var(--ds-media-unit, 1px))" strokeWidth={2} aria-hidden={true} />
 		</button>
 	{/if}
 </section>
