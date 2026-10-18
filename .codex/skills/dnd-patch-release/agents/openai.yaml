@@ -1,0 +1,4 @@
+interface:
+  display_name: "DnD Patch Release"
+  short_description: "Patch version, changelog and PR to main"
+  default_prompt: "Use $dnd-patch-release to bump the patch version, update CHANGELOG.md and open a PR to main."
