@@ -1,6 +1,8 @@
-import { FileSystemAdapter, Platform, Plugin, TFile, type Menu } from 'obsidian';
+import { addIcon, FileSystemAdapter, Platform, Plugin, TFile, type Menu } from 'obsidian';
 import { PluginNotice as Notice } from "src/ui/PluginNotice";
-import { registerThemeChangeListener } from './ui/theme';
+import { getCurrentTheme, registerThemeChangeListener, Theme } from './ui/theme';
+import owlbearBlackLogo from 'logo/owlbear_logo_black.svg';
+import owlbearWhiteLogo from 'logo/owlbear_logo_white.svg';
 import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor/encounter_md_code_block_processor';
 import { registerMediaMdCodeBlockProcessors } from './ui/components/processor/media_md_code_block_processor';
 import { registerNoteLinkProcessor } from './ui/components/processor/note_link_processor';
@@ -591,6 +593,10 @@ export default class DndStatblockPlugin extends Plugin {
 	}
 
 	private registerOwlbearPreviewContextMenus(): void {
+		for (const [variant, svg] of Object.entries({ black: owlbearBlackLogo, white: owlbearWhiteLogo })) {
+			const content = svg.slice(svg.indexOf(">") + 1, svg.lastIndexOf("</svg>"));
+			addIcon(`dnd-dm-tools-owlbear-${variant}`, `<g fill="none" transform="scale(${100 / 512})">${content}</g>`);
+		}
 		this.registerEvent(this.app.workspace.on("file-menu", (menu, file) => {
 			if (!(file instanceof TFile) || !isSupportedOwlbearPreviewFile(file)) return;
 			this.addOwlbearPreviewMenuItem(menu, () => this.publishOwlbearPreviewFromFile(file));
@@ -614,7 +620,7 @@ export default class DndStatblockPlugin extends Plugin {
 		if (!this.settings.owlbearSync.enabled) return;
 		menu.addItem((item) => item
 			.setTitle("Отправить в Owlbear")
-			.setIcon("send")
+			.setIcon(getCurrentTheme() === Theme.Light ? "dnd-dm-tools-owlbear-black" : "dnd-dm-tools-owlbear-white")
 			.onClick(() => void action().then(async () => {
 				this.panelManager.discardPanel("owlbear-preview");
 				await this.panelManager.openPanel("owlbear-preview");
