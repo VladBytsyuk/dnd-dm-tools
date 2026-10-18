@@ -1,8 +1,10 @@
 import type { App } from 'obsidian';
 import type { AudioAsset, MediaState, MediaTrack, Playlist, PlaylistItem } from '../../domain/models/media/MediaState';
+import { BufferedMusic } from './BufferedMusic';
 
 type Variant = 'normal' | 'combat';
 type Selection = { playlistId: string | null; itemId: string | null; trackId: string | null };
+type MusicSource = { asset: AudioAsset; loop: boolean; variant: Variant };
 
 export interface PlaybackSnapshot {
 	playlistId: string | null;
@@ -27,13 +29,13 @@ export interface PlaybackSnapshot {
 
 const FADE_MS = 500;
 
-/** Owns every audio element created during a plugin instance's lifetime. */
+/** Owns music buffers and effect audio elements for the plugin instance's lifetime. */
 export class MediaPlaybackService {
 	private readonly listeners = new Set<() => void>();
 	private readonly effects = new Set<HTMLAudioElement>();
-	private readonly musicListeners = new Map<HTMLAudioElement, Array<[string, EventListener]>>();
-	private music: HTMLAudioElement | null = null;
-	private outgoing: HTMLAudioElement | null = null;
+	private readonly musicListeners = new Map<BufferedMusic, Array<[string, EventListener]>>();
+	private music: BufferedMusic | null = null;
+	private outgoing: BufferedMusic | null = null;
 	private sourceAudioId: string | null = null;
 	private sourcePath: string | null = null;
 	private selection: Selection = { playlistId: null, itemId: null, trackId: null };
@@ -300,22 +302,30 @@ export class MediaPlaybackService {
 
 	private async replaceMusic(selection: Selection, startPaused: boolean, preservePosition: boolean): Promise<void> {
 		const source = this.resolveSource(selection);
-		const audio = new Audio(this.resourcePath(source.asset));
+		const revision = ++this.revision;
+		const file = this.app.vault.getFileByPath(source.asset.path);
+		if (!file) throw new Error(`Аудиофайл отсутствует в хранилище: ${source.asset.path}`);
+		let audio: BufferedMusic;
+		try {
+			const data = await this.app.vault.readBinary(file);
+			if (revision !== this.revision || this.disposed) return;
+			audio = await BufferedMusic.load(data);
+		} catch (error) {
+			if (revision !== this.revision || this.disposed) return;
+			throw new Error(`Не удалось загрузить музыку: ${this.errorMessage(error)}`);
+		}
+		if (revision !== this.revision || this.disposed) { audio.dispose(); return; }
 		audio.loop = source.loop;
 		audio.muted = this.muted;
 		audio.volume = startPaused ? this.effectiveMusicVolume() : 0;
 		if (preservePosition && this.music) {
 			const oldTime = this.finiteTime(this.music.currentTime);
 			const oldDuration = this.finiteTime(this.music.duration);
-			const applyPosition = () => {
-				const newDuration = this.finiteTime(audio.duration);
-				audio.currentTime = oldDuration && newDuration
-					? Math.min(newDuration, oldTime / oldDuration * newDuration)
-					: oldTime;
-			};
-			try { applyPosition(); } catch { audio.addEventListener('loadedmetadata', applyPosition, { once: true }); }
+			const newDuration = this.finiteTime(audio.duration);
+			audio.currentTime = oldDuration && newDuration
+				? Math.min(newDuration, oldTime / oldDuration * newDuration)
+				: oldTime;
 		}
-		const revision = ++this.revision;
 		if (!startPaused) {
 			try { await audio.play(); }
 			catch (error) {
@@ -324,6 +334,15 @@ export class MediaPlaybackService {
 			}
 		}
 		if (revision !== this.revision || this.disposed) { this.releaseMusic(audio); return; }
+		let currentSource: MusicSource;
+		try { currentSource = this.resolveSource(selection); }
+		catch (error) { this.releaseMusic(audio); throw error; }
+		if (currentSource.asset.id !== source.asset.id || currentSource.asset.path !== source.asset.path || currentSource.variant !== source.variant) {
+			this.releaseMusic(audio);
+			await this.replaceMusic(selection, startPaused, preservePosition);
+			return;
+		}
+		audio.loop = currentSource.loop;
 		this.finishFade();
 		const old = this.music;
 		this.music = audio;
@@ -339,11 +358,9 @@ export class MediaPlaybackService {
 		this.emit();
 	}
 
-	private bindMusicListeners(audio: HTMLAudioElement): void {
+	private bindMusicListeners(audio: BufferedMusic): void {
 		const events: Array<[string, EventListener]> = [
 			['timeupdate', () => { if (this.music === audio) this.emit(); }],
-			['loadedmetadata', () => { if (this.music === audio) this.emit(); }],
-			['durationchange', () => { if (this.music === audio) this.emit(); }],
 			['ended', () => {
 				if (this.music !== audio || audio.loop) return;
 				const playlist = this.getSelectedPlaylist();
@@ -357,7 +374,7 @@ export class MediaPlaybackService {
 		this.musicListeners.set(audio, events);
 	}
 
-	private fadeBetween(old: HTMLAudioElement | null, current: HTMLAudioElement): void {
+	private fadeBetween(old: BufferedMusic | null, current: BufferedMusic): void {
 		this.outgoing = old;
 		const started = Date.now();
 		this.fadeTimer = setInterval(() => {
@@ -376,13 +393,11 @@ export class MediaPlaybackService {
 		if (this.music) this.music.volume = this.effectiveMusicVolume();
 	}
 
-	private releaseMusic(audio: HTMLAudioElement | null): void {
+	private releaseMusic(audio: BufferedMusic | null): void {
 		if (!audio) return;
 		for (const [name, listener] of this.musicListeners.get(audio) ?? []) audio.removeEventListener(name, listener);
 		this.musicListeners.delete(audio);
-		audio.pause();
-		audio.removeAttribute('src');
-		audio.load();
+		audio.dispose();
 	}
 
 	private releaseEffect(audio: HTMLAudioElement): void {
@@ -408,7 +423,7 @@ export class MediaPlaybackService {
 		try { return this.resolveSource(this.selection).asset; } catch { return undefined; }
 	}
 
-	private resolveSource(selection: Selection): { asset: AudioAsset; loop: boolean; variant: Variant } {
+	private resolveSource(selection: Selection): MusicSource {
 		const item = selection.playlistId
 			? this.getMediaState().playlists.find((playlist) => playlist.id === selection.playlistId)?.items.find((entry) => entry.id === selection.itemId)
 			: undefined;

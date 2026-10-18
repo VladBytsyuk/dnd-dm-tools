@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MediaPlaybackService } from 'src/data/services/MediaPlaybackService';
+import { BufferedMusic } from 'src/data/services/BufferedMusic';
 import { createDefaultMediaState, createMediaAdventure, createMediaScene, type MediaState } from 'src/domain/models/media/MediaState';
+
+vi.mock('src/data/services/BufferedMusic', () => ({
+	BufferedMusic: { load: vi.fn() },
+}));
 
 class FakeAudio {
 	static instances: FakeAudio[] = [];
@@ -32,6 +37,12 @@ class FakeAudio {
 
 	removeAttribute(name: string): void {
 		if (name === 'src') this.src = '';
+	}
+
+	dispose(): void {
+		this.pause();
+		this.removeAttribute('src');
+		this.load();
 	}
 
 	end(): void {
@@ -72,6 +83,7 @@ function makeService(state: MediaState): MediaPlaybackService {
 		vault: {
 			getFileByPath: (path: string) => state.audioFiles.some((asset) => asset.path === path) ? { path } : null,
 			getResourcePath: (file: { path: string }) => `app://vault/${file.path}`,
+			readBinary: vi.fn(async (file: { path: string }) => new TextEncoder().encode(`app://vault/${file.path}`).buffer),
 		},
 	};
 	return new MediaPlaybackService(app as any, () => state);
@@ -81,12 +93,14 @@ describe('MediaPlaybackService', () => {
 	beforeEach(() => {
 		FakeAudio.instances = [];
 		vi.stubGlobal('Audio', FakeAudio);
+		vi.mocked(BufferedMusic.load).mockReset().mockImplementation(async (data) => new FakeAudio(new TextDecoder().decode(data)) as unknown as BufferedMusic);
 		vi.useFakeTimers();
 	});
 
 	afterEach(() => {
 		vi.useRealTimers();
 		vi.unstubAllGlobals();
+		vi.clearAllMocks();
 	});
 
 	it('plays one looping item, pauses and changes to the next item', async () => {
@@ -180,8 +194,7 @@ describe('MediaPlaybackService', () => {
 
 	it('seeks, mutes, sets volume, and retains selection after stop', async () => {
 		const state = makeNonLoopingState();
-		const app = { vault: { getFileByPath: (path: string) => ({ path }), getResourcePath: (file: { path: string }) => file.path } };
-		const service = new MediaPlaybackService(app as any, () => state);
+		const service = makeService(state);
 		await service.playTrack('track-one');
 		service.seek(200);
 		expect(service.getSnapshot().currentTime).toBe(120);
@@ -197,8 +210,7 @@ describe('MediaPlaybackService', () => {
 
 	it('lets manual mode override combat until tracker changes and preserves position on variant switch', async () => {
 		const state = makeNonLoopingState();
-		const app = { vault: { getFileByPath: (path: string) => ({ path }), getResourcePath: (file: { path: string }) => file.path } };
-		const service = new MediaPlaybackService(app as any, () => state);
+		const service = makeService(state);
 		await service.playTrack('track-one', 'combat');
 		FakeAudio.instances[0].currentTime = 60;
 		await service.setTrackerCombat(true);
@@ -215,8 +227,7 @@ describe('MediaPlaybackService', () => {
 		const adventure = createMediaAdventure("Поход", "quest"); adventure.playlistId = "list";
 		adventure.scenes = [createMediaScene("Первая", "first"), createMediaScene("Следующая", "second"), createMediaScene("Тихая", "silent")];
 		adventure.scenes[0].trackId = "track-one"; adventure.scenes[1].trackId = "track-two"; state.adventures = [adventure];
-		const app = { vault: { getFileByPath: (path: string) => ({ path }), getResourcePath: (file: { path: string }) => file.path } };
-		const service = new MediaPlaybackService(app as any, () => state);
+		const service = makeService(state);
 		await service.followScene("quest", "first"); expect(FakeAudio.instances).toHaveLength(0);
 		await service.playTrack("track-one"); service.pause();
 		await service.followScene("quest", "second"); expect(FakeAudio.instances).toHaveLength(1);
@@ -228,8 +239,7 @@ describe('MediaPlaybackService', () => {
 	});
 	it('plays a combat-only file explicitly and keeps the previous mode when another play fails', async () => {
 		const state = makeNonLoopingState(); state.tracks[0].normalAudioId = null; state.tracks[1].normalAudioId = null;
-		const app = { vault: { getFileByPath: (path: string) => ({ path }), getResourcePath: (file: { path: string }) => file.path } };
-		const service = new MediaPlaybackService(app as any, () => state);
+		const service = makeService(state);
 		await service.playTrack("track-one", "combat");
 		expect(service.getSnapshot()).toMatchObject({ playing: true, playingVariant: "combat", combatMode: true });
 		await expect(service.playTrack("track-two", "normal")).rejects.toThrow();
@@ -432,6 +442,97 @@ describe('MediaPlaybackService', () => {
 		state.tracks[0].combatAudioId = 'battle';
 		service.onMediaChanged();
 		await vi.waitFor(() => expect(service.getSnapshot()).toMatchObject({ combatMode: true, combatModeLocked: false, playingVariant: 'combat' }));
+		service.dispose();
+	});
+
+	it('disposes decoded music if the player is cleared while loading', async () => {
+		const service = makeService(makeState());
+		let finish!: () => void;
+		vi.mocked(BufferedMusic.load).mockImplementationOnce((data) => new Promise((resolve) => {
+			finish = () => resolve(new FakeAudio(new TextDecoder().decode(data)) as unknown as BufferedMusic);
+		}));
+		const pending = service.playTrack('track-one');
+		await vi.waitFor(() => expect(finish).toBeTypeOf('function'));
+		service.clear();
+		finish();
+		await pending;
+		expect(service.getSnapshot()).toMatchObject({ trackId: null, playing: false });
+		expect(FakeAudio.instances[0].src).toBe('');
+		expect(FakeAudio.instances[0].play).not.toHaveBeenCalled();
+		service.dispose();
+	});
+
+	it('does not let a slower decoded track replace a newer selection', async () => {
+		const service = makeService(makeState());
+		let finish!: () => void;
+		vi.mocked(BufferedMusic.load).mockImplementationOnce((data) => new Promise((resolve) => {
+			finish = () => resolve(new FakeAudio(new TextDecoder().decode(data)) as unknown as BufferedMusic);
+		}));
+		const pending = service.playTrack('track-one');
+		await vi.waitFor(() => expect(finish).toBeTypeOf('function'));
+		await service.playTrack('track-two');
+		finish();
+		await pending;
+		expect(service.getSnapshot()).toMatchObject({ trackId: 'track-two', playing: true });
+		expect(FakeAudio.instances[1].src).toBe('');
+		service.dispose();
+	});
+
+	it('does not restart music after a pause during decoding of another track', async () => {
+		const service = makeService(makeState());
+		await service.playTrack('track-one');
+		let finish!: () => void;
+		vi.mocked(BufferedMusic.load).mockImplementationOnce((data) => new Promise((resolve) => {
+			finish = () => resolve(new FakeAudio(new TextDecoder().decode(data)) as unknown as BufferedMusic);
+		}));
+		const pending = service.playTrack('track-two');
+		await vi.waitFor(() => expect(finish).toBeTypeOf('function'));
+		service.pause();
+		finish();
+		await pending;
+		expect(service.getSnapshot()).toMatchObject({ trackId: 'track-one', playing: false, paused: true });
+		expect(FakeAudio.instances[1].src).toBe('');
+		service.dispose();
+	});
+
+	it('keeps current music playing if decoding the next track fails', async () => {
+		const service = makeService(makeState());
+		await service.play('list');
+		vi.mocked(BufferedMusic.load).mockRejectedValueOnce(new Error('Unsupported audio'));
+		await expect(service.next()).rejects.toThrow('Unsupported audio');
+		expect(service.getSnapshot()).toMatchObject({ trackId: 'track-one', playing: true });
+		expect(FakeAudio.instances[0].src).toContain('calm.mp3');
+		service.dispose();
+	});
+
+	it('uses the latest combat mode when it changes during initial decoding', async () => {
+		const service = makeService(makeState());
+		let finish!: () => void;
+		vi.mocked(BufferedMusic.load).mockImplementationOnce((data) => new Promise((resolve) => {
+			finish = () => resolve(new FakeAudio(new TextDecoder().decode(data)) as unknown as BufferedMusic);
+		}));
+		const pending = service.playTrack('track-one');
+		await vi.waitFor(() => expect(finish).toBeTypeOf('function'));
+		await service.setManualCombat(true);
+		finish();
+		await pending;
+		expect(service.getSnapshot()).toMatchObject({ trackId: 'track-one', playing: true, combatMode: true, playingVariant: 'combat' });
+		expect(FakeAudio.instances[0].src).toBe('');
+		expect(FakeAudio.instances[1].src).toContain('battle.mp3');
+		service.dispose();
+	});
+
+	it('changes looping on loaded music without decoding it again', async () => {
+		const state = makeState();
+		const service = makeService(state);
+		await service.playTrack('track-one');
+		state.tracks[0].loop = false;
+		service.onMediaChanged();
+		expect(FakeAudio.instances[0].loop).toBe(false);
+		state.tracks[0].loop = true;
+		service.onMediaChanged();
+		expect(FakeAudio.instances[0].loop).toBe(true);
+		expect(BufferedMusic.load).toHaveBeenCalledOnce();
 		service.dispose();
 	});
 
