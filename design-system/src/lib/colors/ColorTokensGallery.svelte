@@ -6,6 +6,12 @@
 
 	const groups = [
 		["Разделы", [["DsBestiary", "--ds-bestiary", "#B91C1C"], ["DsBestiarySub", "--ds-bestiary-sub", "#FB7185"], ["DsSpell", "--ds-spell", "#6D28D9"], ["DsSpellSub", "--ds-spell-sub", "#67E8F9"], ["DsWeapon", "--ds-weapon", "#B7791F"], ["DsWeaponSub", "--ds-weapon-sub", "#F2C14E"], ["DsArmor", "--ds-armor", "#64748B"], ["DsArmorSub", "--ds-armor-sub", "#B8C4D6"], ["DsEquipment", "--ds-equipment", "#0F766E"], ["DsEquipmentSub", "--ds-equipment-sub", "#5EEAD4"], ["DsArtifacts", "--ds-artifacts", "#7C3AED"], ["DsArtifactsSub", "--ds-artifacts-sub", "#E879F9"], ["DsFeat", "--ds-feat", "#C2410C"], ["DsFeatSub", "--ds-feat-sub", "#FDBA74"], ["DsBackground", "--ds-background", "#854D0E"], ["DsBackgroundSub", "--ds-background-sub", "#D6A86A"], ["DsRace", "--ds-race", "#15803D"], ["DsRaceSub", "--ds-race-sub", "#86EFAC"], ["DsClass", "--ds-class", "#1D4ED8"], ["DsClassSub", "--ds-class-sub", "#60A5FA"]]],
+		["Музыка и приключения", [
+			["DsTrack", "--ds-track", "#0284C7"], ["DsTrackSub", "--ds-track-sub", "#7DD3FC"],
+			["DsPlaylist", "--ds-playlist", "#9333EA"], ["DsPlaylistSub", "--ds-playlist-sub", "#D8B4FE"],
+			["DsScene", "--ds-scene", "#C46A3A"], ["DsSceneSub", "--ds-scene-sub", "#F3B483"],
+			["DsAdventure", "--ds-adventure", "#D97706"], ["DsAdventureSub", "--ds-adventure-sub", "#FCD34D"],
+		]],
 		["Классы", [
 			["DsArtificer", "--ds-artificer", "#A8B3C2"], ["DsArtificerSub", "--ds-artificer-sub", "#F1C75B"], ["DsBarbarian", "--ds-barbarian", "#B91C1C"], ["DsBarbarianSub", "--ds-barbarian-sub", "#F5E6C8"],
 			["DsBard", "--ds-bard", "#C026D3"], ["DsBardSub", "--ds-bard-sub", "#F9A8D4"], ["DsCleric", "--ds-cleric", "#D4A017"], ["DsClericSub", "--ds-cleric-sub", "#FFF4C2"],

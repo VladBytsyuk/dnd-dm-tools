@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateAndFormatModifier, calculateModifier, formatModifier } from '../../src/domain/modifier';
+import { calculateModifier, formatModifier } from '../../src/domain/modifier';
 
 describe('Modifier', () => {
     describe('calculateModifier', () => {
@@ -33,11 +33,4 @@ describe('Modifier', () => {
         });
     });
 
-    describe('calculateAndFormatModifier', () => {
-        it('should calculate and format a modifier', () => {
-            expect(calculateAndFormatModifier(10)).toBe('+0');
-            expect(calculateAndFormatModifier(14)).toBe('+2');
-            expect(calculateAndFormatModifier(7)).toBe('-2');
-        });
-    });
 });

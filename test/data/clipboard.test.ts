@@ -1,4 +1,4 @@
-import { getActionEntityFromClipboard, getEncounterFromClipboard, getEncounterParticipantFromClipboard, getMonsterFromClipboard, copyMonsterToClipboard, copyTextToClipboard, copyEncounterToClipboard, copySpellToClipboard, copyDmScreenItem, copyWeaponToClipboard, copyArmorToClipboard, copyEquipmentToClipboard, copyArtifactToClipboard, copyBackgroundToClipboard, getMarkdownCodeBlockFromClipboard } from "src/data/clipboard";
+import { getActionEntityFromClipboard, getEncounterFromClipboard, getEncounterParticipantFromClipboard, copyMonsterToClipboard, copyTextToClipboard, copyEncounterToClipboard, copySpellToClipboard, copyDmScreenItem, copyWeaponToClipboard, copyArmorToClipboard, copyEquipmentToClipboard, copyArtifactToClipboard, copyBackgroundToClipboard, getMarkdownCodeBlockFromClipboard } from "src/data/clipboard";
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mockMonster, mockEncounter, mockSpell, mockDmScreenItem, mockWeapon, mockArmor, mockEquipment, mockArtifact, mockBackground } from "../__mocks__/data";
 import * as obsidian from "obsidian";
@@ -239,7 +239,7 @@ ${yaml}
         });
 
         // Act
-        const monster = await getMonsterFromClipboard(true);
+        const monster = await getMarkdownCodeBlockFromClipboard("statblock");
 
         // Assert
         expect(monster).toEqual(mockMonster);
@@ -284,7 +284,7 @@ ${yaml}
             writable: true,
         });
 
-        const monster = await getMonsterFromClipboard(true);
+        const monster = await getMarkdownCodeBlockFromClipboard("statblock");
 
         expect(monster).toEqual(mockMonster);
     });

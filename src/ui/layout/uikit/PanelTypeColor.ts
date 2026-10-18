@@ -13,6 +13,8 @@ export const PANEL_TYPE_COLORS = {
 	races: "#2A9D8F",
 	classes: "#3B82C4",
 	"character-sheets": "#6366F1",
+	player: "#A855F7",
+	adventures: "#D97706",
 } satisfies Partial<Record<PanelKey, string>>;
 
 export function getPanelTypeColor(panelKey: PanelKey): string {
@@ -35,6 +37,8 @@ const PANEL_TYPE_DESIGN_TOKENS = {
 	races: "--ds-race",
 	classes: "--ds-class",
 	"character-sheets": "--ds-paladin",
+	player: "--ds-playlist",
+	adventures: "--ds-adventure",
 } satisfies Partial<Record<PanelKey, string>>;
 
 export function getRedesignPanelTypeColor(panelKey: PanelKey): string {

@@ -221,7 +221,7 @@
 		if (portalRoot) return portalRoot;
 
 		portalRoot = document.createElement("div");
-		portalRoot.className = "dnd-dm-conditions-popover-root";
+		portalRoot.className = "dnd-dm-conditions-popover-root dnd-ui";
 		document.body.appendChild(portalRoot);
 
 		return portalRoot;

@@ -4,8 +4,6 @@ import type { RaceFilters } from "src/domain/models/race/RaceFilters";
 import { BaseSidePanel } from "./BaseSidePanel";
 import type { SmallRace } from "src/domain/models/race/SmallRace";
 import BaseSidePanelUi from "src/ui/layout/uikit/BaseSidePanelUi.svelte";
-import RaceFullUi from "src/ui/layout/race/RaceFullUi.svelte";
-import RaceSmallUi from "src/ui/layout/race/RaceSmallUi.svelte";
 import { emptyFilters } from "src/domain/models/common/Filters";
 import type { FilterConfig } from "src/domain/utils/FilterConfig";
 
@@ -74,15 +72,12 @@ export class RaceSidePanel extends BaseSidePanel<SmallRace, FullRace, RaceFilter
             target: element,
             props: {
                 panelKey: this.getKey(),
-                redesignEnabled: this.plugin.getSettings().redesignEnabled,
                 initialFullItem: this.fullItem,
                 initialFilters: emptyFilters<RaceFilters>(['abilities', 'types', 'sources']),
                 repository: this.repository,
                 uiEventListener: this.uiEventListener,
                 filterConfig,
                 groupTitleBuilder: (group: { sort: string }) => group.sort,
-                FullItemSlot: RaceFullUi,
-                SmallItemSlot: RaceSmallUi,
                 filterDisplayTransform,
                 filterApplyTransform,
             },

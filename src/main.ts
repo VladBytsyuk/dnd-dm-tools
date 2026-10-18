@@ -1,6 +1,8 @@
-import { FileSystemAdapter, Notice, Platform, Plugin, TFile, type Menu } from 'obsidian';
+import { FileSystemAdapter, Platform, Plugin, TFile, type Menu } from 'obsidian';
+import { PluginNotice as Notice } from "src/ui/PluginNotice";
 import { registerThemeChangeListener } from './ui/theme';
 import { registerEncounterMdCodeBlockProcessor } from './ui/components/processor/encounter_md_code_block_processor';
+import { registerMediaMdCodeBlockProcessors } from './ui/components/processor/media_md_code_block_processor';
 import { registerNoteLinkProcessor } from './ui/components/processor/note_link_processor';
 import { registerAddEncounterCommand } from './ui/components/command/add_encounter_command';
 import { UiEventListener } from './data/ui_event_listener';
@@ -57,6 +59,10 @@ import { clearActiveOwlbearPreview } from './data/owlbear/OwlbearPreviewLifecycl
 import { createOwlbearPairingCode } from './data/owlbear/OwlbearPairing';
 import { ManualEntityArchiveService, type ManualEntityImportReport } from './data/services';
 import { PluginUpdateService } from './data/services/PluginUpdateService';
+import { MediaPlaybackService } from './data/services/MediaPlaybackService';
+import { updateVaultFilePath, type MediaState } from './domain/models/media/MediaState';
+import { PlayerPanel, AdventuresPanel } from './ui/components/sidepanel/MediaPanels';
+import { mediaItems, mediaPanel } from './domain/models/media/MediaLibrary';
 
 export type OwlbearRuntimeStatus = {
 	cloudflared: CloudflaredInstallStatus;
@@ -100,14 +106,32 @@ export default class DndStatblockPlugin extends Plugin {
 	};
 	private readonly owlbearRuntimeListeners = new Set<() => void>();
 	private pluginUpdateService: PluginUpdateService;
+	private mediaPlayback: MediaPlaybackService;
+	private readonly mediaListeners = new Set<() => void>();
+	private settingsSaveQueue: Promise<void> = Promise.resolve();
+	private mediaUpdateQueue: Promise<void> = Promise.resolve();
 
 	#uiEventListener: IUiEventListener;
 
 	// ---- callbacks ----
 	async onload() {
 		const loadResult = loadPluginSettings(await this.loadData());
+		if (loadResult.legacyMediaBackup !== undefined) {
+			const backupPath = `${this.manifest.dir ?? `${this.app.vault.configDir}/plugins/${this.manifest.id}`}/media-v5-backup.json`;
+			if (!(await this.app.vault.adapter.exists(backupPath))) await this.app.vault.adapter.write(backupPath, JSON.stringify(loadResult.legacyMediaBackup, null, 2));
+		}
 		this.settings = loadResult.settings;
+		this.mediaPlayback = new MediaPlaybackService(this.app, () => this.settings.media, (error) => new Notice(error.message));
 		this.assistantWorkspace = this.settings.workspace;
+		this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
+			const tracked = this.settings.media.audioFiles.some((audio) => audio.path === oldPath || audio.path.startsWith(`${oldPath}/`))
+				|| this.settings.media.adventures.some((adventure) => [adventure.notePath, ...adventure.scenes.map((scene) => scene.notePath)].some((path) => path && (path === oldPath || path.startsWith(`${oldPath}/`))));
+			if (!tracked) return;
+			void this.updateMedia((media) => Object.assign(media, updateVaultFilePath(media, oldPath, file.path))).catch((error) => {
+				new Notice(error instanceof Error ? error.message : "Не удалось обновить путь файла.");
+			});
+		}));
+		this.registerEvent(this.app.vault.on("delete", () => this.notifyMedia()));
 		this.removeStaleOwlbearPreviewTab();
 		this.shouldResetLegacyViews = loadResult.shouldResetLegacyViews;
 		await this.resetOwlbearSnapshotForNewSession();
@@ -125,6 +149,7 @@ export default class DndStatblockPlugin extends Plugin {
 				this.dmScreenFeature.repository!,
 				this.#uiEventListener,
 			);
+			registerMediaMdCodeBlockProcessors(this);
 			registerNoteLinkProcessor(this, this.#uiEventListener);
 			registerAddEncounterCommand(this);
 			registerThemeChangeListener();
@@ -135,6 +160,7 @@ export default class DndStatblockPlugin extends Plugin {
 	}
 
 	onunload() {
+		this.mediaPlayback.dispose();
 		this.cloudflaredInstaller?.dispose();
 		void this.stopOwlbearIntegration();
 		this.#dispose();
@@ -148,6 +174,54 @@ export default class DndStatblockPlugin extends Plugin {
 
 	getSettings(): PluginSettingsState {
 		return this.settings;
+	}
+
+	getMediaState(): MediaState { return this.settings.media; }
+	getMediaPlayback(): MediaPlaybackService { return this.mediaPlayback; }
+	subscribeMedia(listener: () => void): () => void {
+		this.mediaListeners.add(listener);
+		return () => this.mediaListeners.delete(listener);
+	}
+	private notifyMedia(): void {
+		this.mediaPlayback.onMediaChanged();
+		for (const listener of this.mediaListeners) listener();
+	}
+	updateMedia(change: (media: MediaState) => void): Promise<void> {
+		const operation = this.mediaUpdateQueue.catch(() => {}).then(async () => {
+			const previous = this.settings.media;
+			const media = structuredClone(previous);
+			change(media);
+			this.settings = { ...this.settings, media };
+			try { await this.persistSettings(); }
+			catch (error) { if (this.settings.media === media) this.settings = { ...this.settings, media: previous }; throw error; }
+			this.notifyMedia();
+		});
+		this.mediaUpdateQueue = operation;
+		return operation;
+	}
+	private persistSettings(): Promise<void> {
+		this.settingsSaveQueue = this.settingsSaveQueue.catch(() => {}).then(() => this.saveData(this.settings));
+		return this.settingsSaveQueue;
+	}
+	async activateScene(adventureId: string, sceneId: string): Promise<void> {
+		const adventure = this.settings.media.adventures.find((item) => item.id === adventureId);
+		const scene = adventure?.scenes.find((item) => item.id === sceneId);
+		if (!adventure || !scene) throw new Error("Сцена не найдена.");
+		await this.updateMedia((media) => {
+			media.activeAdventureId = adventureId;
+			media.activeSceneId = sceneId;
+		});
+		await this.mediaPlayback.followScene(adventureId, sceneId);
+	}
+
+	async openMediaUrl(url: string): Promise<void> {
+		const item = mediaItems(this.settings.media).find((entry) => entry.url === url);
+		if (item) await this.panelManager.openItem(mediaPanel(item.mediaRoute.kind), item);
+	}
+	async openMediaNote(path: string): Promise<void> {
+		const file = this.app.vault.getFileByPath(path);
+		if (!file) throw new Error(`Заметка не найдена: ${path}`);
+		await this.app.workspace.getLeaf("tab").openFile(file);
 	}
 
 	getPluginUpdateService(): PluginUpdateService { return this.pluginUpdateService; }
@@ -165,10 +239,10 @@ export default class DndStatblockPlugin extends Plugin {
 		this.settings = {
 			...this.settings,
 			...patch,
-			schemaVersion: 4,
+			schemaVersion: 6,
 		};
 		this.assistantWorkspace = this.settings.workspace;
-		await this.saveData(this.settings);
+		await this.persistSettings();
 	}
 
 	async persistLatestOwlbearSnapshot(snapshot: OwlbearEncounterSnapshot): Promise<void> {
@@ -573,6 +647,7 @@ export default class DndStatblockPlugin extends Plugin {
 			() => this.dmScreenFeature,
 			(source, name) => this.publishOwlbearPreviewFromImage(source, name),
 		);
+		this.#uiEventListener.onMediaClick = (url) => this.openMediaUrl(url);
 
 		this.bestiaryFeature = new BestiaryFeature(this, this.#database, this.#uiEventListener);
 		this.spellbookFeature = new SpellbookFeature(this, this.#database, this.#uiEventListener);
@@ -611,6 +686,8 @@ export default class DndStatblockPlugin extends Plugin {
 			.map((feature) => feature.sidePanel)
 			.filter((panel): panel is NonNullable<typeof panel> => Boolean(panel));
 		panels.push(new InitiativeTrackerPanel(this, this.#uiEventListener));
+		panels.push(new PlayerPanel(this));
+		panels.push(new AdventuresPanel(this));
 		panels.push(new OwlbearPreviewPanel(this));
 		await this.panelManager.register(panels, this.shouldResetLegacyViews);
 		await this.persistAssistantWorkspace(this.assistantWorkspace);

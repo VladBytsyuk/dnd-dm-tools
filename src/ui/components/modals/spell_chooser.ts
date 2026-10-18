@@ -13,6 +13,7 @@ export class SpellChooser extends Modal {
         onSubmit: (spell: FullSpell) => void,
     ) {
         super(app);
+        this.modalEl.classList.add("dnd-ui");
 
         let spell: FullSpell | null = null;
 

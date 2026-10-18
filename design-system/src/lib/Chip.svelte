@@ -107,21 +107,21 @@
 	{#if Icon}
 		{#if toggle && editable}
 			<button type="button" class="icon-wrapper" aria-label={iconTooltip} aria-pressed={active} onclick={onToggle} use:keepTooltipInBounds>
-				<Icon size={15} strokeWidth={1.5} aria-hidden={true} />
+				<Icon size="calc(15 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} />
 				<span class="chip-tooltip" role="tooltip">{iconTooltip}</span>
 			</button>
 		{:else if toggle}
 			<span class="icon-wrapper" use:keepTooltipInBounds>
-				<Icon size={15} strokeWidth={1.5} aria-hidden={true} />
+				<Icon size="calc(15 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} />
 				<span class="chip-tooltip" role="tooltip">{iconTooltip}</span>
 			</span>
 		{:else if iconTooltip}
 			<button type="button" class="icon-wrapper" aria-label={iconTooltip} use:keepTooltipInBounds>
-				<Icon size={15} strokeWidth={1.5} aria-hidden={true} />
+				<Icon size="calc(15 * var(--ds-media-unit, 1px))" strokeWidth={1.5} aria-hidden={true} />
 				<span class="chip-tooltip" role="tooltip">{iconTooltip}</span>
 			</button>
 		{:else}
-			<span class="icon-wrapper"><Icon size={15} strokeWidth={1.5} /></span>
+			<span class="icon-wrapper"><Icon size="calc(15 * var(--ds-media-unit, 1px))" strokeWidth={1.5} /></span>
 		{/if}
 	{/if}
 	{#if imageSrc}<img class="image" src={imageSrc} alt={imageAlt} />{/if}
@@ -145,19 +145,19 @@
 	.chip {
 		display: inline-flex;
 		align-items: center;
-		gap: 2px;
+		gap: calc(2 * var(--ds-media-unit, 1px));
 		width: fit-content;
 		max-width: 100%;
 		min-width: 0;
-		padding: 2px;
-		border-radius: 4px;
+		padding: calc(2 * var(--ds-media-unit, 1px));
+		border-radius: calc(4 * var(--ds-media-unit, 1px));
 		background: color-mix(in srgb, var(--chip-background) 40%, transparent);
-		box-shadow: 0 2px 2px rgb(0 0 0 / 25%);
+		box-shadow: 0 calc(2 * var(--ds-media-unit, 1px)) calc(2 * var(--ds-media-unit, 1px)) rgb(0 0 0 / 25%);
 		color: #fff;
 		font-family: "Golos Text", sans-serif;
-		font-size: 12px;
+		font-size: calc(12 * var(--ds-media-unit, 1px));
 		font-weight: 400;
-		line-height: 15px;
+		line-height: calc(15 * var(--ds-media-unit, 1px));
 		transition: background-color 120ms ease, box-shadow 120ms ease;
 	}
 
@@ -166,12 +166,12 @@
 
 	.chip:hover {
 		background: linear-gradient(rgb(48 48 48 / 20%), rgb(48 48 48 / 20%)), color-mix(in srgb, var(--chip-background) 40%, transparent);
-		box-shadow: 0 6px 6px rgb(0 0 0 / 25%);
+		box-shadow: 0 calc(6 * var(--ds-media-unit, 1px)) calc(6 * var(--ds-media-unit, 1px)) rgb(0 0 0 / 25%);
 	}
 
 	.chip:active {
 		background: linear-gradient(rgb(0 0 0 / 40%), rgb(0 0 0 / 40%)), color-mix(in srgb, var(--chip-background) 40%, transparent);
-		box-shadow: 0 1px 1px rgb(0 0 0 / 25%);
+		box-shadow: 0 calc(1 * var(--ds-media-unit, 1px)) calc(1 * var(--ds-media-unit, 1px)) rgb(0 0 0 / 25%);
 	}
 
 	.chip[data-theme="light"] { color: #1f2937; }
@@ -182,8 +182,8 @@
 	.icon-wrapper { all: unset; box-sizing: border-box; position: relative; align-self: flex-start; display: inline-flex; flex: 0 0 auto; padding: 0; border: 0; background: transparent; color: inherit; outline: none; }
 	.chip button.icon-wrapper { appearance: none; min-height: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; padding: 0; }
 	.chip button.icon-wrapper { cursor: pointer; }
-	.icon-wrapper:focus-visible { outline: 1px solid currentcolor; border-radius: 2px; }
-	.image { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 2px; object-fit: cover; }
+	.icon-wrapper:focus-visible { outline: calc(1 * var(--ds-media-unit, 1px)) solid currentcolor; border-radius: calc(2 * var(--ds-media-unit, 1px)); }
+	.image { flex: 0 0 auto; width: calc(10 * var(--ds-media-unit, 1px)); height: calc(10 * var(--ds-media-unit, 1px)); border-radius: calc(2 * var(--ds-media-unit, 1px)); object-fit: cover; }
 	.text { min-width: 0; overflow-wrap: anywhere; }
 	.html { min-width: 0; overflow-wrap: anywhere; }
 	.html :global(p) { display: inline; margin: 0; }
@@ -204,22 +204,22 @@
 	.chip input::placeholder { color: currentcolor; opacity: 0.65; }
 	.chip-tooltip {
 		position: absolute;
-		bottom: calc(100% + 6px);
+		bottom: calc(100% + calc(6 * var(--ds-media-unit, 1px)));
 		left: 50%;
 		z-index: 1;
 		width: max-content;
-		max-width: 200px;
-		padding: 6px 8px;
-		border-radius: 4px;
+		max-width: calc(200 * var(--ds-media-unit, 1px));
+		padding: calc(6 * var(--ds-media-unit, 1px)) calc(8 * var(--ds-media-unit, 1px));
+		border-radius: calc(4 * var(--ds-media-unit, 1px));
 		background: #18181b;
-		box-shadow: 0 2px 6px rgb(0 0 0 / 25%);
+		box-shadow: 0 calc(2 * var(--ds-media-unit, 1px)) calc(6 * var(--ds-media-unit, 1px)) rgb(0 0 0 / 25%);
 		color: #fff;
-		font-size: 15px;
-		line-height: 18px;
+		font-size: calc(15 * var(--ds-media-unit, 1px));
+		line-height: calc(18 * var(--ds-media-unit, 1px));
 		visibility: hidden;
 		opacity: 0;
 		pointer-events: none;
-		transform: translate(calc(-50% + var(--tooltip-shift-x, 0px)), 2px);
+		transform: translate(calc(-50% + var(--tooltip-shift-x, 0px)), calc(2 * var(--ds-media-unit, 1px)));
 		transition: opacity 120ms ease, transform 120ms ease, visibility 120ms ease;
 	}
 	.chip button.icon-wrapper:hover .chip-tooltip,

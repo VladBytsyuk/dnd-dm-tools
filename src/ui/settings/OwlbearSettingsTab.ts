@@ -17,15 +17,6 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 		this.renderPluginVersion(containerEl);
-		containerEl.createEl("h2", { text: "Интерфейс" });
-		new Setting(containerEl)
-			.setName("Новый интерфейс справочников")
-			.setDesc("Обновлённые карточки, избранное и редактирование сущностей. Изменение применяется после перезагрузки плагина.")
-			.addToggle((toggle) => toggle
-				.setValue(this.plugin.getSettings().redesignEnabled)
-				.onChange(async (redesignEnabled) => {
-					await this.plugin.updateSettings({ redesignEnabled });
-				}));
 		containerEl.createEl("h2", { text: "Ручные сущности" });
 		new Setting(containerEl)
 			.setName("Экспортировать ручные сущности")

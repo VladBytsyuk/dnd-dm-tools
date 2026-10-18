@@ -5,7 +5,7 @@ import {
 	PANEL_TYPE_COLORS,
 } from "src/ui/layout/uikit/PanelTypeColor";
 
-const SEARCHABLE_PANEL_KEYS: PanelKey[] = [
+const COLORED_PANEL_KEYS: PanelKey[] = [
 	"bestiary",
 	"spellbook",
 	"dm-screen",
@@ -18,16 +18,18 @@ const SEARCHABLE_PANEL_KEYS: PanelKey[] = [
 	"races",
 	"classes",
 	"character-sheets",
+	"player",
+	"adventures",
 ];
 
 describe("PanelTypeColor", () => {
-	it("defines a distinct color for every searchable panel type", () => {
-		const colors = SEARCHABLE_PANEL_KEYS.map(getPanelTypeColor);
+	it("defines a distinct color for every colored panel type", () => {
+		const colors = COLORED_PANEL_KEYS.map(getPanelTypeColor);
 
 		expect(Object.keys(PANEL_TYPE_COLORS)).toHaveLength(
-			SEARCHABLE_PANEL_KEYS.length,
+			COLORED_PANEL_KEYS.length,
 		);
-		expect(new Set(colors).size).toBe(SEARCHABLE_PANEL_KEYS.length);
+		expect(new Set(colors).size).toBe(COLORED_PANEL_KEYS.length);
 	});
 
 	it("uses the neutral reference color for a panel without search results", () => {

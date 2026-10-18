@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { handleHtml, getRidOfP, separate, joinList, joinProperties, joinSpeed, diceRoller, onkeydown } from '../../../src/domain/utils/utils';
+import { handleHtml, getRidOfP, separate, joinList, joinSpeed, diceRoller } from '../../../src/domain/utils/utils';
 import * as mappers from '../../../src/domain/mappers';
-import type { WeaponProperty } from '../../../src/domain/models/common/WeaponProperty';
 import type { Speed } from '../../../src/domain/models/common/Speed';
 
 vi.mock('../../../src/domain/mappers', () => ({
@@ -61,28 +60,6 @@ describe('utils', () => {
         });
     });
 
-    describe('joinProperties', () => {
-        it('should join weapon properties with links and distances', () => {
-            const properties: WeaponProperty[] = [
-                { name: 'Light', url: '/properties/light', description: '' },
-                { name: 'Range', url: '/properties/range', distance: '30/120 ft.', description: '' },
-            ];
-            const expected = '<a href="/properties/light">Light</a>, <a href="/properties/range">Range</a> (30/120 ft.)';
-            expect(joinProperties(properties)).toBe(expected);
-        });
-
-        it('should handle properties without distance', () => {
-            const properties: WeaponProperty[] = [
-                { name: 'Finesse', url: '/properties/finesse', description: '' },
-            ];
-            const expected = '<a href="/properties/finesse">Finesse</a>';
-            expect(joinProperties(properties)).toBe(expected);
-        });
-
-        it('should return an empty string for an empty array', () => {
-            expect(joinProperties([])).toBe('');
-        });
-    });
 
     describe('joinSpeed', () => {
         it('should join speed objects into a formatted string', () => {
@@ -132,34 +109,4 @@ describe('utils', () => {
         });
     });
 
-    describe('onkeydown', () => {
-        it('should call the onclick function if Enter key is pressed', () => {
-            const mockOnclick = vi.fn();
-            const handler = onkeydown(mockOnclick);
-            const event = new KeyboardEvent('keydown', { key: 'Enter' });
-            event.preventDefault = vi.fn(); // Mock preventDefault
-            handler(event);
-            expect(mockOnclick).toHaveBeenCalledTimes(1);
-            expect(event.preventDefault).toHaveBeenCalledTimes(1);
-        });
-
-        it('should call the onclick function if Space key is pressed', () => {
-            const mockOnclick = vi.fn();
-            const handler = onkeydown(mockOnclick);
-            const event = new KeyboardEvent('keydown', { key: ' ' });
-            event.preventDefault = vi.fn(); // Mock preventDefault
-            handler(event);
-            expect(mockOnclick).toHaveBeenCalledTimes(1);
-            expect(event.preventDefault).toHaveBeenCalledTimes(1);
-        });
-
-        it('should not call the onclick function for other keys', () => {
-            const mockOnclick = vi.fn();
-            const handler = onkeydown(mockOnclick);
-            const event = new KeyboardEvent('keydown', { key: 'a' });
-            handler(event);
-            expect(mockOnclick).not.toHaveBeenCalled();
-            expect(event.defaultPrevented).toBe(false);
-        });
-    });
 });

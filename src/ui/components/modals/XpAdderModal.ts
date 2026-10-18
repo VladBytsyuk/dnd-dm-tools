@@ -12,6 +12,7 @@ export class XpAdderModal extends Modal {
 		private onSubmit: (additionalXp: number) => void
 	) {
 		super(app);
+		this.modalEl.classList.add("dnd-ui");
 	}
 
 	onOpen() {

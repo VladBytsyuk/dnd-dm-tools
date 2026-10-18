@@ -4,6 +4,7 @@ import type { OwlbearEncounterSnapshot } from "src/domain/models/owlbear/Owlbear
 import type DndStatblockPlugin from "src/main";
 import InitiativeTracker from "src/ui/layout/tracker/InitiativeTracker.svelte";
 import { mount } from "svelte";
+import { PluginNotice as Notice } from "src/ui/PluginNotice";
 import type { PanelHost, PanelSearchResult } from "./PanelHost";
 
 export const INITIATIVE_TRACKER_DETACH_EVENT = "dnd-dm-tools:initiative-tracker-detach";
@@ -36,6 +37,12 @@ export class InitiativeTrackerPanel implements PanelHost {
 				onImageRequested: async (url: string) => this.uiEventListener.onImageRequested(url),
 				onOwlbearSnapshotCreated: async (snapshot: OwlbearEncounterSnapshot) => this.plugin.publishOwlbearSnapshot(snapshot),
 				onOwlbearTurnChanged: async (snapshot: OwlbearEncounterSnapshot) => this.plugin.publishOwlbearTurnSnapshot(snapshot),
+				onCombatChanged: (active: boolean) => {
+					void this.plugin.getMediaPlayback().setTrackerCombat(active).catch((error) => {
+						if (error instanceof Error && error.message === "Плеер уже выгружен") return;
+						new Notice(error instanceof Error ? error.message : "Не удалось сменить музыку боя.");
+					});
+				},
 			},
 		});
 	}

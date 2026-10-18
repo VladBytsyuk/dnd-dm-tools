@@ -29,6 +29,7 @@ export class DiceRollersManager {
             if (this.#diceRollers.has(element)) return;
             const formula = element.getAttribute('formula') || "";
             const content = element.innerHTML.trim() || formula;
+            element.classList.add("dnd-ui");
             element.empty();
             const component = mount(DiceRoller, {
                 target: element,
