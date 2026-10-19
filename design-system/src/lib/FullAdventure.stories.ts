@@ -12,6 +12,7 @@ const meta = {
 		russianName: "Дорога в Подземье",
 		entityLink: "/adventure/road_to_underdark",
 		campaignName: "Культ Вазрона",
+		availableCampaigns: ["Культ Вазрона", "Хроники Подземья"],
 		notePath: "Культ Вазрона/Дорога в Подземье.md",
 		playlist: { id: "underdark", title: "Дорога в Подземье", atmosphere: "напряженное", source: "PHB", trackCount: 3 },
 		source: { shortName: "PHB", name: "Player's Handbook", group: { shortName: "D&D 5e", name: "Dungeons & Dragons, 5-я редакция" } },
@@ -28,7 +29,7 @@ export const Empty: Story = { args: { editable: true, campaignName: "", notePath
 export const EmptyContent: Story = { args: { demoContent: "empty" } };
 export const WithoutNote: Story = { args: { notePath: null } };
 export const WithoutPlaylist: Story = { args: { playlist: null } };
-export const EmptyPickers: Story = { args: { editable: true, notePath: null, playlist: null, nodes: [], links: [], availableNotes: [], availablePlaylists: [], availableSceneNotes: [] } };
+export const EmptyPickers: Story = { args: { editable: true, notePath: null, playlist: null, nodes: [], links: [], availableNotes: [], availablePlaylists: [], availableSceneNotes: [], availableScenes: [] } };
 export const Duplicates: Story = { args: { demoContent: "duplicates" } };
 export const ParallelLinks: Story = { args: { links: [
 	{ fromSceneId: "tunnel", toSceneId: "spider" },

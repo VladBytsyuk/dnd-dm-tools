@@ -132,7 +132,8 @@ export class MediaPlaybackService {
 		if (!before.playing) return;
 		const state = this.getMediaState();
 		const adventure = state.adventures.find((entry) => entry.id === adventureId);
-		const scene = (adventureId === null ? state.standaloneScenes : adventure?.scenes)?.find((entry) => entry.id === sceneId);
+		const scene = state.scenes.find((entry) => entry.id === sceneId);
+		if (adventureId !== null && !adventure?.scenes.some((entry) => entry.id === sceneId)) return;
 		if (!scene?.trackId || (before.sourceId === null && before.trackId === scene.trackId)) return;
 		const playlist = state.playlists.find((entry) => entry.id === adventure?.playlistId);
 		const item = playlist?.items.find((entry) => entry.trackId === scene.trackId);

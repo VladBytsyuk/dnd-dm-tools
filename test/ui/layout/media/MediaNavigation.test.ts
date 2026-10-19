@@ -22,4 +22,13 @@ describe("media history", () => {
 		await nav.back();
 		expect(get(nav.routes)).toEqual([{ kind: "adventure", id: "quest" }]);
 	});
+	it("retains separate adventure contexts for the same shared scene", async () => {
+		const nav = new MediaNavigation();
+		await nav.open({ kind: "scene", id: "shared", adventureId: "first" });
+		await nav.open({ kind: "scene", id: "shared", adventureId: "second" });
+		await nav.open({ kind: "scene", id: "shared", adventureId: "second" });
+		expect(get(nav.routes)).toHaveLength(2);
+		await nav.back();
+		expect(get(nav.routes)).toEqual([{ kind: "scene", id: "shared", adventureId: "first" }]);
+	});
 });

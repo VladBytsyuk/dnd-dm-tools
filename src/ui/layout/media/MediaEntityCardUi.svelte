@@ -2,7 +2,7 @@
 	import { SmallTrack, SmallPlaylist, SmallAdventure, SmallScene } from "@dnd-dm-tools/design-system";
 	import type { PanelSearchResult } from "src/ui/components/sidepanel/PanelHost";
 	import type { MediaItem } from "src/domain/models/media/MediaLibrary";
-	import type { Adventure, AdventureScene, MediaTrack, Playlist } from "src/domain/models/media/MediaState";
+	import type { Adventure, MediaScene, MediaTrack, Playlist } from "src/domain/models/media/MediaState";
 	import RedesignedSmallItem from "src/ui/design-system/RedesignedSmallItem.svelte";
 	let { result, theme }: { result: PanelSearchResult; theme: "dark" | "light" } = $props();
 	const media = $derived(result.item as MediaItem);
@@ -15,7 +15,7 @@
 {:else if media.mediaRoute?.kind === "adventure"}
 	{@const record = media.record as Adventure}<SmallAdventure title={record.name} sceneCount={record.scenes.length} source={record.source?.shortName} {theme} />
 {:else if media.mediaRoute?.kind === "scene"}
-	{@const record = media.record as AdventureScene}<SmallScene title={record.name} adventureName={media.parent?.name} source={record.source?.shortName} {theme} />
+	{@const record = media.record as MediaScene}<SmallScene title={record.name} adventureName={media.adventures?.map((adventure) => adventure.name).join(", ")} source={record.source?.shortName} {theme} />
 {:else if result.panelKey === "dm-screen" || result.panelKey === "character-sheets"}
 	<div class="fallback"><strong>{result.title}</strong><small>{result.panelKey === "dm-screen" ? "Правило" : "Лист персонажа"}</small></div>
 {:else}<RedesignedSmallItem panelKey={result.panelKey} smallItem={result.item} />{/if}

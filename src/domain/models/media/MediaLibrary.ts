@@ -1,27 +1,28 @@
 import type { BaseItem } from "../common/BaseItem";
 import type { PanelKey } from "../assistant/AssistantWorkspace";
-import type { Adventure, AdventureScene, MediaState, MediaTrack, Playlist } from "./MediaState";
+import type { Adventure, AdventureScene, MediaScene, MediaState, MediaTrack, Playlist } from "./MediaState";
 
 export type MediaKind = "track" | "playlist" | "adventure" | "scene";
 export type MediaRoute = { kind: MediaKind; id: string; adventureId?: string };
-export type MediaRecord = MediaTrack | Playlist | Adventure | AdventureScene;
-export type MediaItem = BaseItem & { mediaRoute: MediaRoute; record: MediaRecord; parent?: Adventure };
+export type MediaRecord = MediaTrack | Playlist | Adventure | MediaScene;
+export type MediaItem = BaseItem & { mediaRoute: MediaRoute; record: MediaRecord; adventures?: Adventure[] };
 
 export function mediaItems(state: MediaState): MediaItem[] {
-	const item = (kind: MediaKind, record: MediaRecord, parent?: Adventure): MediaItem => ({
-		name: { rus: record.name, eng: "" }, url: record.url, origin: "manual", record, parent,
-		mediaRoute: { kind, id: record.id, ...(parent ? { adventureId: parent.id } : {}) },
+	const item = (kind: MediaKind, record: MediaRecord): MediaItem => ({
+		name: { rus: record.name, eng: "" }, url: record.url, origin: "manual", record,
+		adventures: kind === "scene" ? state.adventures.filter((adventure) => adventure.scenes.some((scene) => scene.id === record.id)) : undefined,
+		mediaRoute: { kind, id: record.id },
 	});
 	return [
 		...state.playlists.map((record) => item("playlist", record)),
 		...state.tracks.map((record) => item("track", record)),
-		...state.standaloneScenes.map((record) => item("scene", record)),
-		...state.adventures.flatMap((record) => [item("adventure", record), ...record.scenes.map((scene) => item("scene", scene, record))]),
+		...state.scenes.map((record) => item("scene", record)),
+		...state.adventures.map((record) => item("adventure", record)),
 	];
 }
 
 export function mediaCampaignName(item: MediaItem): string {
-	return item.parent?.campaignName ?? ("campaignName" in item.record ? item.record.campaignName : "");
+	return "campaignName" in item.record ? item.record.campaignName : "";
 }
 
 export function mediaPanel(kind: MediaKind): PanelKey { return kind === "track" || kind === "playlist" ? "player" : "adventures"; }
@@ -37,7 +38,7 @@ export function validateMediaRecord(state: MediaState, kind: MediaKind, record: 
 	return null;
 }
 
-/** Saving a scene moves its one owning record and removes arrows from its previous adventure. */
+/** Scene records are shared; adventures own only their graph references. */
 export function saveMediaRecord(state: MediaState, kind: MediaKind, record: MediaRecord, adventureId?: string): void {
 	const error = validateMediaRecord(state, kind, record);
 	if (error) throw new Error(error);
@@ -46,27 +47,18 @@ export function saveMediaRecord(state: MediaState, kind: MediaKind, record: Medi
 	if (kind === "scene") {
 		const parent = state.adventures.find((entry) => entry.id === adventureId);
 		if (adventureId && !parent) throw new Error("Приключение не найдено.");
-		const old = state.adventures.find((entry) => entry.scenes.some((scene) => scene.id === next.id));
-		if (old && old !== parent) {
-			old.scenes = old.scenes.filter((scene) => scene.id !== next.id);
-			old.links = old.links.filter((link) => link.fromSceneId !== next.id && link.toSceneId !== next.id);
-		}
-		if (parent) state.standaloneScenes = state.standaloneScenes.filter((scene) => scene.id !== next.id);
-		const scenes = parent?.scenes ?? state.standaloneScenes;
-		const index = scenes.findIndex((scene) => scene.id === next.id);
-		if (index >= 0) scenes[index] = next as AdventureScene;
-		else {
-			if (parent) (next as AdventureScene).position = freeScenePosition(scenes);
-			scenes.push(next as AdventureScene);
-		}
-		if (state.activeSceneId === next.id) state.activeAdventureId = parent?.id ?? null;
-		return;
+		if (parent && !parent.scenes.some((scene) => scene.id === next.id)) parent.scenes.push({ id: next.id, position: freeScenePosition(parent.scenes) });
 	}
-	const list = kind === "track" ? state.tracks : kind === "playlist" ? state.playlists : state.adventures;
+	if (kind === "adventure") {
+		const sceneIds = new Set((next as Adventure).scenes.map((scene) => scene.id));
+		if ((next as Adventure).scenes.length !== sceneIds.size || [...sceneIds].some((id) => !state.scenes.some((scene) => scene.id === id))) throw new Error("Некорректные ссылки на сцены.");
+		if ((next as Adventure).links.some((link) => !sceneIds.has(link.fromSceneId) || !sceneIds.has(link.toSceneId))) throw new Error("Некорректные связи сцен.");
+	}
+	const list = kind === "track" ? state.tracks : kind === "playlist" ? state.playlists : kind === "scene" ? state.scenes : state.adventures;
 	const index = list.findIndex((entry) => entry.id === next.id);
 	if (index >= 0) (list as MediaRecord[])[index] = next;
 	else (list as MediaRecord[]).push(next);
-	if (kind === "adventure" && state.activeAdventureId === next.id && !(next as Adventure).scenes.some((scene) => scene.id === state.activeSceneId)) state.activeSceneId = null;
+	if (kind === "adventure" && state.activeSceneId && state.activeAdventureId === next.id && !(next as Adventure).scenes.some((scene) => scene.id === state.activeSceneId)) state.activeAdventureId = null;
 }
 
 export function freeScenePosition(scenes: AdventureScene[]): { x: number; y: number } {
@@ -83,16 +75,15 @@ export function removeMediaRecord(state: MediaState, route: MediaRoute): void {
 	if (route.kind === "track") {
 		state.tracks = state.tracks.filter((track) => track.id !== route.id);
 		for (const playlist of state.playlists) playlist.items = playlist.items.filter((item) => item.trackId !== route.id);
-		for (const adventure of state.adventures) for (const scene of adventure.scenes) if (scene.trackId === route.id) scene.trackId = null;
-		for (const scene of state.standaloneScenes) if (scene.trackId === route.id) scene.trackId = null;
+		for (const scene of state.scenes) if (scene.trackId === route.id) scene.trackId = null;
 	} else if (route.kind === "playlist") {
 		state.playlists = state.playlists.filter((playlist) => playlist.id !== route.id);
 		for (const adventure of state.adventures) if (adventure.playlistId === route.id) adventure.playlistId = null;
 	} else if (route.kind === "adventure") {
 		state.adventures = state.adventures.filter((adventure) => adventure.id !== route.id);
-		if (state.activeAdventureId === route.id) { state.activeAdventureId = null; state.activeSceneId = null; }
+		if (state.activeAdventureId === route.id) state.activeAdventureId = null;
 	} else {
-		state.standaloneScenes = state.standaloneScenes.filter((scene) => scene.id !== route.id);
+		state.scenes = state.scenes.filter((scene) => scene.id !== route.id);
 		for (const adventure of state.adventures) {
 			adventure.scenes = adventure.scenes.filter((scene) => scene.id !== route.id);
 			adventure.links = adventure.links.filter((link) => link.fromSceneId !== route.id && link.toSceneId !== route.id);

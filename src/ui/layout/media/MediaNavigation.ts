@@ -10,7 +10,7 @@ export class MediaNavigation {
 		if (this.beforeLeave && !(await this.beforeLeave())) return false;
 		const routes = get(this.routes);
 		const current = routes.at(-1);
-		if (current?.kind === route.kind && current.id === route.id) return true;
+		if (current?.kind === route.kind && current.id === route.id && (route.kind !== "scene" || current.adventureId === route.adventureId)) return true;
 		this.routes.set([...routes, route]);
 		return true;
 	}

@@ -7,7 +7,7 @@ import type { OwlbearEncounterSnapshot } from "../owlbear/OwlbearSync";
 import { createDefaultMediaState, loadMediaState, type MediaState } from "../media/MediaState";
 
 export interface PluginSettingsState {
-	schemaVersion: 6;
+	schemaVersion: 7;
 	workspace: AssistantWorkspaceState;
 	owlbearSync: OwlbearSyncSettings;
 	media: MediaState;
@@ -30,7 +30,7 @@ export interface PluginSettingsLoadResult {
 
 export function createDefaultPluginSettings(): PluginSettingsState {
 	return {
-		schemaVersion: 6,
+		schemaVersion: 7,
 		workspace: createDefaultAssistantWorkspace(),
 		owlbearSync: { enabled: false, port: null, authToken: null },
 		media: createDefaultMediaState(),
@@ -45,12 +45,12 @@ export function loadPluginSettings(value: unknown): PluginSettingsLoadResult {
 
 	const stored = value as Record<string, any>;
 	const workspaceResult = loadAssistantWorkspace(
-			(stored.schemaVersion === 2 || stored.schemaVersion === 3 || stored.schemaVersion === 4 || stored.schemaVersion === 5 || stored.schemaVersion === 6) ? stored.workspace : stored,
+			(stored.schemaVersion === 2 || stored.schemaVersion === 3 || stored.schemaVersion === 4 || stored.schemaVersion === 5 || stored.schemaVersion === 6 || stored.schemaVersion === 7) ? stored.workspace : stored,
 	);
 
 	return {
 		settings: {
-			schemaVersion: 6,
+			schemaVersion: 7,
 			workspace: workspaceResult.workspace,
 			owlbearSync: loadOwlbearSyncSettings(stored.owlbearSync),
 			media: loadMediaState(stored.media),

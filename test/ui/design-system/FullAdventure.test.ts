@@ -43,6 +43,20 @@ describe("FullAdventure", () => {
 		expect(onEntityClick.mock.calls).toEqual([["/bestiary/ogremoch"], ["/items/bolts"]]);
 	});
 
+	it.each(["dark", "light"] as const)("shows only note and playlist pickers in the %s editor and restores their cards in view mode", async (theme) => {
+		const playlist = { id: "music", title: "Подземье", trackCount: 3 };
+		const { rerender } = render(FullAdventure, { ...names, theme, editable: true, notePath: "Тоннель.md", playlist, availableNotes: ["Тоннель.md"], availablePlaylists: [playlist], onPlaylistClick: vi.fn() });
+		expect(screen.getByRole("button", { name: "Заметка", exact: true }).textContent).toBe("Тоннель.md");
+		expect(screen.getByRole("button", { name: "Плейлист", exact: true }).textContent).toBe("Подземье");
+		expect(screen.queryByRole("link", { name: "Тоннель.md" })).toBeNull();
+		expect(screen.queryByRole("button", { name: "Подземье", exact: true })).toBeNull();
+		await rerender({ editable: false });
+		expect(screen.getByRole("link", { name: "Тоннель.md" })).toBeTruthy();
+		expect(screen.getByRole("button", { name: "Подземье", exact: true })).toBeTruthy();
+		expect(screen.queryByRole("button", { name: "Заметка", exact: true })).toBeNull();
+		expect(screen.queryByRole("button", { name: "Плейлист", exact: true })).toBeNull();
+	});
+
 	it("edits metadata and selects, replaces and removes each reference", async () => {
 		const onNoteChange = vi.fn();
 		const onPlaylistChange = vi.fn();
@@ -81,15 +95,15 @@ describe("FullAdventure", () => {
 		const trigger = screen.getByRole("button", { name: "Заметка", exact: true });
 		await fireEvent.click(trigger);
 		await fireEvent.input(screen.getByRole("combobox", { name: "Поиск: Заметка" }), { target: { value: "Произвольная заметка" } });
-		await fireEvent.keyDown(screen.getByRole("combobox"), { key: "Enter" });
+		await fireEvent.keyDown(screen.getByRole("combobox", { name: "Поиск: Заметка" }), { key: "Enter" });
 		expect(onNoteChange).not.toHaveBeenCalled();
 		expect(screen.getByText("Ничего не найдено")).toBeTruthy();
-		await fireEvent.keyDown(screen.getByRole("combobox"), { key: "Escape" });
+		await fireEvent.keyDown(screen.getByRole("combobox", { name: "Поиск: Заметка" }), { key: "Escape" });
 		expect(document.activeElement).toBe(trigger);
-		expect(screen.getByRole("link", { name: "Тоннель.md" })).toBeTruthy();
+		expect(trigger.textContent).toBe("Тоннель.md");
 		await fireEvent.keyDown(trigger, { key: "ArrowDown" });
-		await fireEvent.keyDown(screen.getByRole("combobox"), { key: "ArrowDown" });
-		await fireEvent.keyDown(screen.getByRole("combobox"), { key: "Enter" });
+		await fireEvent.keyDown(screen.getByRole("combobox", { name: "Поиск: Заметка" }), { key: "ArrowDown" });
+		await fireEvent.keyDown(screen.getByRole("combobox", { name: "Поиск: Заметка" }), { key: "Enter" });
 		expect(onNoteChange).toHaveBeenLastCalledWith("Храм.md");
 	});
 
@@ -152,7 +166,7 @@ describe("FullAdventure", () => {
 		expect(onSceneOpen).toHaveBeenCalledWith("a");
 		await rerender({ editable: true });
 		const createButton = screen.getByRole("button", { name: "Создать сцену" }) as HTMLButtonElement;
-		expect(graph.nextElementSibling).toBe(createButton);
+		expect(graph.nextElementSibling?.contains(createButton)).toBe(true);
 		expect(createButton.disabled).toBe(false);
 		await fireEvent.click(container.querySelector('.svelte-flow__node[data-id="b"]')!);
 		expect(onSceneOpen).toHaveBeenCalledTimes(1);
@@ -161,6 +175,34 @@ describe("FullAdventure", () => {
 		expect(onCreateScene).toHaveBeenCalledOnce();
 		await rerender({ editable: false });
 		expect(screen.queryByRole("button", { name: "Создать сцену" })).toBeNull();
+	});
+	it("offers adding an existing scene only in edit mode and respects the disabled state", async () => {
+		const onAddScene = vi.fn(), onCreateScene = vi.fn();
+		const { rerender } = render(FullAdventure, { ...names, onCreateScene, onAddScene, availableScenes: [{ value: "hall", label: "Затопленный зал" }] });
+		expect(screen.queryByRole("combobox", { name: "Добавить существующую сцену" })).toBeNull();
+		await rerender({ editable: true });
+		const add = screen.getByRole("combobox", { name: "Добавить существующую сцену" }) as HTMLInputElement;
+		expect(add.placeholder).toBe("Добавить сцену");
+		await fireEvent.input(add, { target: { value: "ЗАЛ" } });
+		await fireEvent.keyDown(add, { key: "ArrowDown" });
+		await fireEvent.keyDown(add, { key: "Enter" });
+		expect(onAddScene).toHaveBeenCalledOnce();
+		expect(onAddScene).toHaveBeenCalledWith("hall");
+		expect(add.value).toBe("");
+		expect(onCreateScene).not.toHaveBeenCalled();
+		const create = screen.getByRole("button", { name: "Создать сцену" });
+		expect(add.closest(".scene-actions")).toBe(create.parentElement);
+		expect(create.textContent?.trim()).toBe("");
+		expect(screen.queryByRole("button", { name: "Добавить сцену", exact: true })).toBeNull();
+		await fireEvent.click(add);
+		await rerender({ nodes: [{ id: "hall", note: { title: "Затопленный зал" }, position: { x: 0, y: 0 } }] });
+		expect(screen.queryByRole("option", { name: "Затопленный зал" })).toBeNull();
+		await rerender({ addSceneDisabled: true, createSceneDisabled: true });
+		expect(add.disabled).toBe(true);
+		expect((create as HTMLButtonElement).disabled).toBe(true);
+		expect(screen.queryByRole("listbox")).toBeNull();
+		await rerender({ editable: false });
+		expect(screen.queryByRole("combobox", { name: "Добавить существующую сцену" })).toBeNull();
 	});
 
 });

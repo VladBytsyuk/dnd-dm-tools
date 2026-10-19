@@ -35,18 +35,21 @@ describe("FullScene", () => {
 	});
 
 	it("edits the name and URL and selects, replaces and removes each reference", async () => {
-		const onAdventureChange = vi.fn();
 		const onNoteChange = vi.fn();
 		const onTrackChange = vi.fn();
 		const adventures = [{ id: "a", title: "Культ Вазрона" }, { id: "b", title: "Дорога в Шамат" }];
 		const tracks = [{ id: "t", title: "Подземье" }, { id: "s", title: "Храм" }];
-		const { rerender } = render(FullScene, { ...names, editable: true, availableAdventures: adventures, availableNotes: ["Тоннель.md", "Храм.md"], availableTracks: tracks, onAdventureChange, onNoteChange, onTrackChange });
+		const { rerender } = render(FullScene, { ...names, editable: true, adventures, availableNotes: ["Тоннель.md", "Храм.md"], availableTracks: tracks, onNoteChange, onTrackChange });
 		expect(screen.queryByLabelText("Английское название")).toBeNull();
 		expect(screen.queryByLabelText("Описание")).toBeNull();
+		expect(screen.getByLabelText("Приключения сцены").textContent).toBe("Культ Вазрона, Дорога в Шамат");
+		expect(screen.queryByRole("combobox", { name: "Приключения" })).toBeNull();
+		expect(screen.queryByRole("button", { name: /^Убрать приключение:/ })).toBeNull();
+		expect(screen.queryByRole("button", { name: "Приключение", exact: true })).toBeNull();
+		await fireEvent.input(screen.getByRole("combobox", { name: "Кампания" }), { target: { value: "Своя кампания" } });
 		await fireEvent.input(screen.getByLabelText("Русское название"), { target: { value: "Забытый храм" } });
 		await fireEvent.input(screen.getByLabelText("Ссылка на сущность"), { target: { value: "/scene/temple" } });
 		for (const [label, first, second, callback, values] of [
-			["Приключение", "Культ Вазрона", "Дорога в Шамат", onAdventureChange, adventures],
 			["Заметка", "Тоннель.md", "Храм.md", onNoteChange, ["Тоннель.md", "Храм.md"]],
 			["Трек", "Подземье", "Храм", onTrackChange, tracks],
 		] as const) {
@@ -62,8 +65,25 @@ describe("FullScene", () => {
 		await rerender({ editable: false });
 		expect(screen.getByRole("article").getAttribute("aria-label")).toBe("Забытый храм");
 		expect(screen.getByText("/scene/temple")).toBeTruthy();
+		expect(screen.getByLabelText("Кампания").textContent).toBe("Своя кампания");
 		expect(screen.queryByRole("link")).toBeNull();
 		expect(screen.getByText("В заметке нет ссылок на сущности плагина")).toBeTruthy();
+	});
+
+	it.each(["dark", "light"] as const)("shows read-only adventures and only pickers for note and track in the %s editor", async (theme) => {
+		const { rerender } = render(FullScene, { ...names, theme, editable: true, adventures: [{ id: "cult", title: "Культ Вазрона" }], notePath: "Тоннель.md", track: { id: "music", title: "Подземье" }, availableNotes: ["Тоннель.md"], availableTracks: [{ id: "music", title: "Подземье" }], onTrackClick: vi.fn() });
+		expect(screen.getByLabelText("Приключения сцены").textContent).toBe("Культ Вазрона");
+		expect(screen.queryByRole("combobox", { name: "Приключения" })).toBeNull();
+		expect(screen.queryByRole("button", { name: /^Убрать приключение:/ })).toBeNull();
+		expect(screen.getByRole("button", { name: "Заметка", exact: true }).textContent).toBe("Тоннель.md");
+		expect(screen.getByRole("button", { name: "Трек", exact: true }).textContent).toBe("Подземье");
+		expect(screen.queryByRole("link", { name: "Тоннель.md" })).toBeNull();
+		expect(screen.queryByRole("button", { name: "Подземье", exact: true })).toBeNull();
+		await rerender({ editable: false });
+		expect(screen.getByRole("link", { name: "Тоннель.md" })).toBeTruthy();
+		expect(screen.getByRole("button", { name: "Подземье", exact: true })).toBeTruthy();
+		expect(screen.queryByRole("button", { name: "Заметка", exact: true })).toBeNull();
+		expect(screen.queryByRole("button", { name: "Трек", exact: true })).toBeNull();
 	});
 
 	it("demonstrates replacing a note and its externally prepared content", async () => {

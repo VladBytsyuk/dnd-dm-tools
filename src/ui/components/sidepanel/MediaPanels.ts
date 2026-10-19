@@ -8,7 +8,7 @@ import { mediaItems, mediaPanel, mediaCampaignName, type MediaItem } from "src/d
 
 function searchMedia(plugin: DndStatblockPlugin, key: "player" | "adventures", query: string): PanelSearchResult[] {
 	const normalized = query.toLocaleLowerCase("ru");
-	return mediaItems(plugin.getMediaState()).filter((item) => mediaPanel(item.mediaRoute.kind) === key && `${item.name.rus} ${item.url} ${item.parent?.name ?? ""} ${mediaCampaignName(item)}`.toLocaleLowerCase("ru").includes(normalized)).map((item) => ({ panelKey: key, url: item.url, title: item.name.rus, subtitle: item.mediaRoute.kind === "track" ? "Трек" : item.mediaRoute.kind === "playlist" ? "Плейлист" : item.mediaRoute.kind === "scene" ? ["Сцена", item.parent?.name].filter(Boolean).join(" · ") : "Приключение", item }));
+	return mediaItems(plugin.getMediaState()).filter((item) => mediaPanel(item.mediaRoute.kind) === key && `${item.name.rus} ${item.url} ${item.adventures?.map((adventure) => adventure.name).join(" ") ?? ""} ${mediaCampaignName(item)}`.toLocaleLowerCase("ru").includes(normalized)).map((item) => ({ panelKey: key, url: item.url, title: item.name.rus, subtitle: item.mediaRoute.kind === "track" ? "Трек" : item.mediaRoute.kind === "playlist" ? "Плейлист" : item.mediaRoute.kind === "scene" ? ["Сцена", item.adventures?.map((adventure) => adventure.name).join(", ")].filter(Boolean).join(" · ") : "Приключение", item }));
 }
 
 export class PlayerPanel implements PanelHost {

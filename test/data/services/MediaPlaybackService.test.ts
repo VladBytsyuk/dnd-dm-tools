@@ -195,7 +195,8 @@ describe('MediaPlaybackService', () => {
 		const adventure = createMediaAdventure('Поход', 'quest');
 		const scene = createMediaScene('Первая', 'first');
 		scene.trackId = 'track-one';
-		adventure.scenes = [scene];
+		state.scenes = [scene];
+		adventure.scenes = [{ id: scene.id, position: { x: 0, y: 0 } }];
 		state.adventures = [adventure];
 		const service = makeService(state);
 		await service.playTrackSnapshot(state.tracks[0], state.audioFiles, 'note-one');
@@ -327,8 +328,9 @@ describe('MediaPlaybackService', () => {
 	it('follows scene music only while playing, retains playlist context and does not restart the same track', async () => {
 		const state = makeNonLoopingState();
 		const adventure = createMediaAdventure("Поход", "quest"); adventure.playlistId = "list";
-		adventure.scenes = [createMediaScene("Первая", "first"), createMediaScene("Следующая", "second"), createMediaScene("Тихая", "silent")];
-		adventure.scenes[0].trackId = "track-one"; adventure.scenes[1].trackId = "track-two"; state.adventures = [adventure];
+		state.scenes = [createMediaScene("Первая", "first"), createMediaScene("Следующая", "second"), createMediaScene("Тихая", "silent")];
+		state.scenes[0].trackId = "track-one"; state.scenes[1].trackId = "track-two";
+		adventure.scenes = state.scenes.map((scene) => ({ id: scene.id, position: { x: 0, y: 0 } })); state.adventures = [adventure];
 		const service = makeService(state);
 		await service.followScene("quest", "first"); expect(FakeAudio.instances).toHaveLength(0);
 		await service.playTrack("track-one"); service.pause();
@@ -341,7 +343,7 @@ describe('MediaPlaybackService', () => {
 	});
 	it('follows standalone scene tracks only while playing without playlist context', async () => {
 		const state = makeNonLoopingState(), scene = createMediaScene("Засада", "solo");
-		scene.trackId = "track-two"; state.standaloneScenes.push(scene);
+		scene.trackId = "track-two"; state.scenes.push(scene);
 		const service = makeService(state);
 		await service.followScene(null, scene.id); expect(FakeAudio.instances).toHaveLength(0);
 		await service.play("list", "one"); service.pause();
@@ -351,6 +353,22 @@ describe('MediaPlaybackService', () => {
 		await service.followScene(null, scene.id); expect(FakeAudio.instances).toHaveLength(2);
 		service.stop(); scene.trackId = "track-one";
 		await service.followScene(null, scene.id); expect(FakeAudio.instances).toHaveLength(2);
+		service.dispose();
+	});
+	it('resolves the shared scene track with the playlist of the current adventure', async () => {
+		const state = makeNonLoopingState(), scene = createMediaScene("Общая", "shared");
+		scene.trackId = "track-two"; state.scenes.push(scene);
+		const first = createMediaAdventure("Первое", "first"), second = createMediaAdventure("Второе", "second");
+		first.playlistId = "list"; second.playlistId = "other-list";
+		first.scenes = [{ id: scene.id, position: { x: 0, y: 0 } }];
+		second.scenes = [{ id: scene.id, position: { x: 800, y: 500 } }];
+		state.adventures.push(first, second);
+		state.playlists.push({ ...structuredClone(state.playlists[0]), id: "other-list", url: "/playlist/other-list" });
+		const service = makeService(state);
+		await service.playTrack("track-one"); await service.followScene("first", scene.id);
+		expect(service.getSnapshot()).toMatchObject({ playlistId: "list", trackId: "track-two" });
+		await service.playTrack("track-one"); await service.followScene("second", scene.id);
+		expect(service.getSnapshot()).toMatchObject({ playlistId: "other-list", trackId: "track-two" });
 		service.dispose();
 	});
 	it('plays a combat-only file explicitly and keeps the previous mode when another play fails', async () => {

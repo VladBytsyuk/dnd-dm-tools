@@ -4,7 +4,7 @@
 	import { Track, Playlist as PlaylistCard, FullAdventure, FullScene, type FullSceneEntity } from "@dnd-dm-tools/design-system";
 	import type DndStatblockPlugin from "src/main";
 	import { mediaCampaignName, type MediaItem } from "src/domain/models/media/MediaLibrary";
-	import type { Adventure, AdventureScene, MediaState, MediaTrack, Playlist } from "src/domain/models/media/MediaState";
+	import type { Adventure, MediaScene, MediaState, MediaTrack, Playlist } from "src/domain/models/media/MediaState";
 	import { cloneDesignData } from "src/ui/design-system/adapters";
 	import NoteEncountersUi from "./NoteEncountersUi.svelte";
 
@@ -27,7 +27,7 @@
 	const track = $derived(displayed as MediaTrack);
 	const playlist = $derived(displayed as Playlist);
 	const adventure = $derived(displayed as Adventure);
-	const scene = $derived(displayed as AdventureScene);
+	const scene = $derived(displayed as MediaScene);
 	const activeTrack = $derived(playback.sourceId === playbackSourceId && playback.trackId === track.id);
 	const trackOptions = $derived(media.tracks.map((value) => ({ id: value.id, title: value.name, atmosphere: value.atmosphere, source: value.source?.shortName, hasCombat: !!value.combatAudioId })));
 	const playlistOptions = $derived(media.playlists.map((value) => ({ id: value.id, title: value.name, atmosphere: value.atmosphere, source: value.source?.shortName, trackCount: value.items.length })));
@@ -37,7 +37,7 @@
 	function openPlaylist(id: string) { const value = media.playlists.find((value) => value.id === id); if (value) void openMedia(value.url); }
 	function openScene(id: string) {
 		if (onSceneOpen) { onSceneOpen(id); return; }
-		const value = adventure.scenes.find((value) => value.id === id); if (value) void openMedia(value.url);
+		const value = media.scenes.find((value) => value.id === id); if (value) void openMedia(value.url);
 	}
 	function openEntity(url: string) { return action(async () => { const entity = await plugin.panelManager.resolveEntity(url); if (entity) await plugin.panelManager.openItem(entity.panelKey, entity.item); }); }
 	function audioView(id: string | null, variant: "normal" | "combat") {
@@ -65,12 +65,15 @@
 {:else if item.mediaRoute.kind === "adventure"}
 	<FullAdventure russianName={adventure.name} entityLink={adventure.url} campaignName={adventure.campaignName} source={adventure.source} notePath={adventure.notePath}
 		playlist={playlistOptions.find((value) => value.id === adventure.playlistId) ?? null} {theme} {entities} afterContent={encounters.length ? encounterContent : undefined}
-		nodes={adventure.scenes.map((value) => ({ id: value.id, position: value.position, note: { path: value.notePath ?? undefined, title: value.name, source: value.source?.shortName, adventureName: adventure.name, info: adventure.campaignName, musicName: media.tracks.find((track) => track.id === value.trackId)?.name } }))}
+		nodes={adventure.scenes.flatMap((reference) => {
+			const value = media.scenes.find((scene) => scene.id === reference.id);
+			return value ? [{ id: value.id, position: reference.position, note: { path: value.notePath ?? undefined, title: value.name, source: value.source?.shortName, adventureName: adventure.name, info: value.campaignName, musicName: media.tracks.find((track) => track.id === value.trackId)?.name } }] : [];
+		})}
 		links={adventure.links} onSceneOpen={openScene} onOpenNote={(path) => action(() => plugin.openMediaNote(path))} onPlaylistClick={openPlaylist} onEntityClick={openEntity} />
 {:else}
 	<FullScene russianName={scene.name} entityLink={scene.url} source={scene.source} notePath={scene.notePath}
 		campaignName={mediaCampaignName(item)}
-		adventure={item.parent ? { id: item.parent.id, title: item.parent.name } : null} track={trackOptions.find((value) => value.id === scene.trackId) ?? null}
+		adventures={item.adventures?.map((value) => ({ id: value.id, title: value.name })) ?? []} track={trackOptions.find((value) => value.id === scene.trackId) ?? null}
 		{theme} {entities} afterContent={encounters.length ? encounterContent : undefined} onOpenNote={(path) => action(() => plugin.openMediaNote(path))} onTrackClick={openTrack} onEntityClick={openEntity} />
 {/if}
 
