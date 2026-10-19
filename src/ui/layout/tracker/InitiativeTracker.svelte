@@ -2,9 +2,10 @@
 	import {
 		Play,
 		StepForward,
-		ClipboardCopy,
-		ClipboardPlus,
-		Replace,
+		Copy,
+		UserRoundPlus,
+		ListPlus,
+		ClipboardPaste,
 		ArrowUpDown,
 		Skull,
 		Plus,
@@ -45,10 +46,11 @@
 	import { OwlbearSyncScheduler } from "./OwlbearSyncScheduler";
 	import ParticipantItem from "./ParticipantItem.svelte";
 
-	let { app, encounter, isEditable, isOwlbearIntegrationEnabled = () => false, subscribeOwlbearRuntimeStatus = () => () => {}, onPortraitClick, onConditionClick, onImageRequested, onOwlbearSnapshotCreated, onOwlbearTurnChanged, onCombatChanged } =
+	let { app, encounter, manager, isEditable, isOwlbearIntegrationEnabled = () => false, subscribeOwlbearRuntimeStatus = () => () => {}, onPortraitClick, onConditionClick, onImageRequested, onOwlbearSnapshotCreated, onOwlbearTurnChanged, onCombatChanged, onAddToTracker } =
 		$props<{
 			app: any;
 			encounter: Encounter;
+			manager?: EncounterManager;
 			isEditable: boolean;
 			isOwlbearIntegrationEnabled?: () => boolean;
 			subscribeOwlbearRuntimeStatus?: (listener: () => void) => () => void;
@@ -58,14 +60,16 @@
 			onOwlbearSnapshotCreated: (snapshot: OwlbearEncounterSnapshot) => Promise<void>;
 			onOwlbearTurnChanged: (snapshot: OwlbearEncounterSnapshot) => Promise<void>;
 			onCombatChanged?: (active: boolean) => void;
+			onAddToTracker?: (encounter: Encounter) => void | Promise<void>;
 		}>();
 
-	function createEncounterManager() {
-		return new EncounterManager(encounter);
+	function createEncounterManager(): EncounterManager {
+		return manager ?? new EncounterManager(encounter);
 	}
 
 	const encounterManager = createEncounterManager();
 	const owlbearEncounterId = createEncounterId();
+	let addingToTracker = $state(false);
 
 	let trackerState = $state({
 		current: encounterManager.current,
@@ -96,6 +100,7 @@
 		if (trackerState.current.activeParticipantIndex != null) onCombatChanged?.(false);
 		owlbearSyncScheduler.dispose();
 		unsubscribeOwlbearRuntimeStatus();
+		encounterManager.setOnUpdate(() => {});
 	});
 
 	encounterManager.setOnUpdate(() => {
@@ -167,6 +172,13 @@
 
 	const copyEncounter = async () => {
 		await copyEncounterToClipboard(trackerState.current.encounter);
+	};
+	const addToTracker = async () => {
+		if (isEditable || !onAddToTracker || addingToTracker) return;
+		addingToTracker = true;
+		try { await onAddToTracker(trackerState.current.encounter); }
+		catch (error) { new Notice(error instanceof Error ? error.message : "Не удалось добавить столкновение в трекер."); }
+		finally { addingToTracker = false; }
 	};
 
 	const sendOwlbearSnapshot = async () => {
@@ -340,9 +352,13 @@
 				class="btn ghost"
 				onclick={copyEncounter}
 				aria-label="Копировать столкновение"
+				title="Копировать столкновение"
 			>
-				<ClipboardCopy size={16} />
+				<Copy size={16} />
 			</button>
+			{#if !isEditable && onAddToTracker}
+				<button class="btn ghost" onclick={addToTracker} disabled={addingToTracker} aria-label="Добавить в трекер" title="Добавить в трекер"><ListPlus size={16} /></button>
+			{/if}
 
 			{#if isEditable}
 				{#if owlbearIntegrationEnabled}
@@ -362,7 +378,7 @@
 					aria-label="Заменить столкновение данными из буфера обмена"
 					title="Заменить столкновение данными из буфера обмена"
 				>
-					<Replace size={16} />
+					<ClipboardPaste size={16} />
 				</button>
 
 				<button
@@ -458,7 +474,7 @@
 					aria-label="Добавить участника или столкновение из буфера обмена"
 					title="Добавить участника или столкновение из буфера обмена"
 				>
-					<ClipboardPlus size={16} />
+					<UserRoundPlus size={16} />
 				</button>
 			</footer>
 		{/if}

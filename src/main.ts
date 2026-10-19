@@ -11,6 +11,8 @@ import { UiEventListener } from './data/ui_event_listener';
 import type { IUiEventListener } from './domain/listeners/ui_event_listener';
 import DB from './data/database/DB';
 import { InitiativeTrackerPanel } from './ui/components/sidepanel/side_panel_initiative_tracker';
+import { EncounterManager } from './domain/models/encounter/EncounterManager';
+import type { Encounter } from './domain/models/encounter/Encounter';
 import { ArsenalFeature } from './ui/components/feature/ArsenalFeature';
 import type { BaseFeature } from './ui/components/feature/BaseFeature';
 import { BestiaryFeature } from './ui/components/feature/BestiaryFeature';
@@ -109,6 +111,7 @@ export default class DndStatblockPlugin extends Plugin {
 	private readonly owlbearRuntimeListeners = new Set<() => void>();
 	private pluginUpdateService: PluginUpdateService;
 	private mediaPlayback: MediaPlaybackService;
+	private readonly encounterManager = new EncounterManager({ name: "", participants: [] });
 	private readonly mediaListeners = new Set<() => void>();
 	private settingsSaveQueue: Promise<void> = Promise.resolve();
 	private mediaUpdateQueue: Promise<void> = Promise.resolve();
@@ -180,6 +183,11 @@ export default class DndStatblockPlugin extends Plugin {
 
 	getMediaState(): MediaState { return this.settings.media; }
 	getMediaPlayback(): MediaPlaybackService { return this.mediaPlayback; }
+	getEncounterManager(): EncounterManager { return this.encounterManager; }
+	async addEncounterToTracker(encounter: Encounter): Promise<void> {
+		this.encounterManager.addEncounter(encounter);
+		await this.panelManager.openPanel("initiative-tracker");
+	}
 	subscribeMedia(listener: () => void): () => void {
 		this.mediaListeners.add(listener);
 		return () => this.mediaListeners.delete(listener);
