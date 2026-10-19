@@ -652,6 +652,8 @@ export default class DndStatblockPlugin extends Plugin {
 			() => this.characterSheetFeature,
 			() => this.dmScreenFeature,
 			(source, name) => this.publishOwlbearPreviewFromImage(source, name),
+			() => this.isOwlbearIntegrationEnabled(),
+			(listener) => this.subscribeOwlbearRuntimeStatus(listener),
 		);
 		this.#uiEventListener.onMediaClick = (url) => this.openMediaUrl(url);
 

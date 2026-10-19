@@ -34,6 +34,8 @@ export class UiEventListener implements IUiEventListener {
         private characterSheetFeatureProvider: () => CharacterSheetFeature | null,
         private dmScreenFeatureProvider: () => DmScreenFeature,
         private sendOwlbearPreview?: (source: string, name: string) => Promise<void>,
+        public isOwlbearIntegrationEnabled: () => boolean = () => false,
+        public subscribeOwlbearRuntimeStatus: (listener: () => void) => () => void = () => () => {},
     ) {
         this.onBeastClick = this.onBeastClick.bind(this);
         this.onSpellClick = this.onSpellClick.bind(this);
