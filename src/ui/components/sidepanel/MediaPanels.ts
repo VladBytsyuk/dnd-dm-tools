@@ -4,11 +4,11 @@ import type DndStatblockPlugin from "src/main";
 import type { PanelHost, PanelSearchResult } from "./PanelHost";
 import MediaLibraryUi from "src/ui/layout/media/MediaLibraryUi.svelte";
 import { MediaNavigation } from "src/ui/layout/media/MediaNavigation";
-import { mediaItems, mediaPanel, type MediaItem } from "src/domain/models/media/MediaLibrary";
+import { mediaItems, mediaPanel, mediaCampaignName, type MediaItem } from "src/domain/models/media/MediaLibrary";
 
 function searchMedia(plugin: DndStatblockPlugin, key: "player" | "adventures", query: string): PanelSearchResult[] {
 	const normalized = query.toLocaleLowerCase("ru");
-	return mediaItems(plugin.getMediaState()).filter((item) => mediaPanel(item.mediaRoute.kind) === key && `${item.name.rus} ${item.url} ${item.parent?.name ?? ""}`.toLocaleLowerCase("ru").includes(normalized)).map((item) => ({ panelKey: key, url: item.url, title: item.name.rus, subtitle: item.mediaRoute.kind === "track" ? "Трек" : item.mediaRoute.kind === "playlist" ? "Плейлист" : item.mediaRoute.kind === "scene" ? `Сцена · ${item.parent?.name ?? ""}` : "Приключение", item }));
+	return mediaItems(plugin.getMediaState()).filter((item) => mediaPanel(item.mediaRoute.kind) === key && `${item.name.rus} ${item.url} ${item.parent?.name ?? ""} ${mediaCampaignName(item)}`.toLocaleLowerCase("ru").includes(normalized)).map((item) => ({ panelKey: key, url: item.url, title: item.name.rus, subtitle: item.mediaRoute.kind === "track" ? "Трек" : item.mediaRoute.kind === "playlist" ? "Плейлист" : item.mediaRoute.kind === "scene" ? ["Сцена", item.parent?.name].filter(Boolean).join(" · ") : "Приключение", item }));
 }
 
 export class PlayerPanel implements PanelHost {

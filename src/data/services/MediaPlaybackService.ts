@@ -127,12 +127,12 @@ export class MediaPlaybackService {
 	}
 
 	/** Following a scene never starts a paused, stopped or empty player. */
-	async followScene(adventureId: string, sceneId: string): Promise<void> {
+	async followScene(adventureId: string | null, sceneId: string): Promise<void> {
 		const before = this.getSnapshot();
 		if (!before.playing) return;
 		const state = this.getMediaState();
 		const adventure = state.adventures.find((entry) => entry.id === adventureId);
-		const scene = adventure?.scenes.find((entry) => entry.id === sceneId);
+		const scene = (adventureId === null ? state.standaloneScenes : adventure?.scenes)?.find((entry) => entry.id === sceneId);
 		if (!scene?.trackId || (before.sourceId === null && before.trackId === scene.trackId)) return;
 		const playlist = state.playlists.find((entry) => entry.id === adventure?.playlistId);
 		const item = playlist?.items.find((entry) => entry.trackId === scene.trackId);

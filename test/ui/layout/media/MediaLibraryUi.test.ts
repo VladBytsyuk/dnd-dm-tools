@@ -10,6 +10,8 @@ import { Component, MarkdownRenderer } from "obsidian";
 import { exportAdventureSnapshot, exportPlaylistSnapshot, exportMediaMarkdownBlock, parseMediaSnapshot } from "src/domain/models/media/MediaSnapshot";
 import { getMarkdownCodeBlockFromClipboard, writeTextToClipboard } from "src/data/clipboard";
 import MediaMarkdownCardUi from "src/ui/layout/media/MediaMarkdownCardUi.svelte";
+import { createMediaScene, loadMediaState } from "src/domain/models/media/MediaState";
+import { AdventuresPanel } from "src/ui/components/sidepanel/MediaPanels";
 
 vi.mock("src/data/clipboard", () => ({ getMarkdownCodeBlockFromClipboard: vi.fn(), writeTextToClipboard: vi.fn() }));
 
@@ -246,7 +248,7 @@ describe("integrated media screens", () => {
 		expect(await screen.findByRole("button", { name: "Город", exact: true })).toBeTruthy();
 		expect(test.state().playlists[0].name).toBe("Город");
 	});
-	it("groups campaigns and creates a scene with a required parent but without a note", async () => {
+	it("groups campaigns and creates a scene inside an adventure without a note", async () => {
 		const test = setup("adventures"); test.state().adventures[0].campaignName = "Культ"; test.render();
 		expect(screen.getByText("Культ", { selector: "summary" })).toBeTruthy();
 		await fireEvent.click(screen.getByRole("button", { name: "Поход", exact: true }));
@@ -259,6 +261,96 @@ describe("integrated media screens", () => {
 		await fireEvent.click(screen.getByRole("button", { name: "Сохранить", exact: true }));
 		await waitFor(() => expect(test.state().adventures[0].scenes.find((scene) => scene.name === "Засада")?.notePath).toBeNull());
 		expect(test.state().adventures[0].scenes).toHaveLength(3);
+	});
+	it("lists all scenes by campaign, searches inherited metadata and remembers the selected tab", async () => {
+		const test = setup("adventures"); test.state().adventures[0].campaignName = "Культ";
+		const solo = createMediaScene("Таверна", "solo"); solo.campaignName = "Альфа";
+		test.state().standaloneScenes.push(solo, createMediaScene("Пустошь", "empty"));
+		const view = test.render();
+		expect(screen.getByRole("tab", { name: "Приключения" }).getAttribute("aria-selected")).toBe("true");
+		expect(screen.queryByRole("button", { name: "Таверна", exact: true })).toBeNull();
+		await fireEvent.keyDown(screen.getByRole("tab", { name: "Приключения" }), { key: "ArrowRight" });
+		expect([...view.container.querySelectorAll("summary")].map((item) => item.textContent?.trim())).toEqual(["Альфа", "Культ", "Без кампании"]);
+		for (const name of ["Start", "End", "Таверна", "Пустошь"]) expect(screen.getByRole("button", { name, exact: true })).toBeTruthy();
+		expect(view.container.querySelectorAll(".small-scene")).toHaveLength(4);
+		await fireEvent.input(screen.getByRole("textbox", { name: "Поиск в справочнике" }), { target: { value: "Культ" } });
+		await waitFor(() => expect(view.container.querySelectorAll(".small-scene")).toHaveLength(2));
+		await fireEvent.click(screen.getByRole("button", { name: "Очистить поиск", exact: true }));
+		await fireEvent.click(screen.getByRole("button", { name: "Таверна", exact: true }));
+		await waitFor(() => expect(test.plugin.activateScene).toHaveBeenCalledWith(null, "solo"));
+		await fireEvent.click(screen.getByRole("button", { name: "Назад", exact: true }));
+		expect(screen.getByRole("tab", { name: "Сцены" }).getAttribute("aria-selected")).toBe("true");
+		view.unmount(); test.render();
+		expect(screen.getByRole("tab", { name: "Сцены" }).getAttribute("aria-selected")).toBe("true");
+	});
+	it("creates, edits, reloads and deletes a standalone scene and cancels a new draft", async () => {
+		const test = setup("adventures"); test.render();
+		await fireEvent.click(screen.getByRole("tab", { name: "Сцены" }));
+		await fireEvent.click(screen.getByRole("button", { name: "Добавить", exact: true }));
+		await fireEvent.input(screen.getByRole("textbox", { name: "Русское название" }), { target: { value: "Засада" } });
+		await fireEvent.input(screen.getByRole("textbox", { name: "Кампания" }), { target: { value: "Культ" } });
+		await fireEvent.click(screen.getByRole("button", { name: "Сохранить", exact: true }));
+		await waitFor(() => expect(test.state().standaloneScenes).toHaveLength(1));
+		expect(test.state().standaloneScenes[0]).toMatchObject({ name: "Засада", campaignName: "Культ", notePath: null });
+		expect(loadMediaState(JSON.parse(JSON.stringify(test.state())))).toEqual(test.state());
+		await fireEvent.click(screen.getByRole("button", { name: "Редактировать", exact: true }));
+		await fireEvent.input(screen.getByRole("textbox", { name: "Русское название" }), { target: { value: "Погоня" } });
+		await fireEvent.click(screen.getByRole("button", { name: "Сохранить", exact: true }));
+		await waitFor(() => expect(test.state().standaloneScenes[0].name).toBe("Погоня"));
+		await fireEvent.click(screen.getByRole("button", { name: "Удалить", exact: true }));
+		await waitFor(() => expect(test.state().standaloneScenes).toEqual([]));
+		expect(screen.getByRole("tab", { name: "Сцены" }).getAttribute("aria-selected")).toBe("true");
+		await fireEvent.click(screen.getByRole("button", { name: "Добавить", exact: true }));
+		await fireEvent.click(screen.getByRole("button", { name: "Отмена", exact: true }));
+		expect(test.state().standaloneScenes).toEqual([]);
+		expect(get(test.navigation.routes)).toEqual([]);
+	});
+	it("detaches a scene with its campaign, allows changing it and attaches it again", async () => {
+		const test = setup("adventures"); test.state().adventures[0].campaignName = "Культ";
+		const original = structuredClone(test.state().adventures[0].scenes[0]);
+		await test.navigation.open({ kind: "scene", id: "start", adventureId: "quest" }); test.render();
+		await fireEvent.click(screen.getByRole("button", { name: "Редактировать", exact: true }));
+		expect(screen.queryByRole("textbox", { name: "Кампания" })).toBeNull();
+		await fireEvent.click(screen.getByRole("button", { name: "Убрать: Приключение", exact: true }));
+		expect((screen.getByRole("textbox", { name: "Кампания" }) as HTMLInputElement).value).toBe("Культ");
+		await fireEvent.click(screen.getByRole("button", { name: "Сохранить", exact: true }));
+		await waitFor(() => expect(test.state().standaloneScenes[0]).toMatchObject({ ...original, campaignName: "Культ" }));
+		expect(test.state().adventures[0].links).toEqual([]);
+		await fireEvent.click(screen.getByRole("button", { name: "Назад", exact: true }));
+		await act(() => test.navigation.open({ kind: "scene", id: "start", adventureId: "quest" }));
+		await waitFor(() => expect(test.plugin.activateScene).toHaveBeenLastCalledWith(null, "start"));
+		await fireEvent.click(screen.getByRole("button", { name: "Редактировать", exact: true }));
+		await fireEvent.input(screen.getByRole("textbox", { name: "Кампания" }), { target: { value: "Своя" } });
+		await fireEvent.click(screen.getByRole("button", { name: "Сохранить", exact: true }));
+		await waitFor(() => expect(test.state().standaloneScenes[0].campaignName).toBe("Своя"));
+		await fireEvent.click(screen.getByRole("button", { name: "Редактировать", exact: true }));
+		await fireEvent.click(screen.getByRole("button", { name: "Приключение", exact: true }));
+		await fireEvent.click(screen.getByRole("option", { name: "Поход", exact: true }));
+		expect(screen.queryByRole("textbox", { name: "Кампания" })).toBeNull();
+		expect(screen.getByLabelText("Кампания").textContent).toBe("Культ");
+		await fireEvent.click(screen.getByRole("button", { name: "Сохранить", exact: true }));
+		await waitFor(() => expect(test.state().standaloneScenes).toEqual([]));
+		expect(test.state().adventures[0].scenes.filter((scene) => scene.id === "start")).toHaveLength(1);
+	});
+	it("resolves standalone scene URLs and campaigns and renders their copied Markdown cards", async () => {
+		const test = setup("adventures"), scene = createMediaScene("Засада", "solo");
+		scene.campaignName = "Культ"; scene.notePath = "Scenes/Start.md";
+		test.state().standaloneScenes.push(scene);
+		const panel = new AdventuresPanel(test.plugin as any);
+		expect(await panel.resolveItem(scene.url)).toMatchObject({ record: scene });
+		expect((await panel.search("Культ")).map((item) => item.url)).toContain(scene.url);
+		await test.navigation.open({ kind: "scene", id: scene.id });
+		const view = test.render();
+		await fireEvent.click(screen.getByRole("button", { name: "Копировать в буфер обмена", exact: true }));
+		await waitFor(() => expect(writeTextToClipboard).toHaveBeenCalled());
+		const block = vi.mocked(writeTextToClipboard).mock.lastCall![0];
+		view.unmount(); test.plugin.activateScene.mockClear();
+		render(MediaMarkdownCardUi, { plugin: test.plugin as any, snapshot: parseMediaSnapshot(block.split("\n").slice(1, -1).join("\n")) });
+		expect(screen.getByRole("article", { name: "Засада" })).toBeTruthy();
+		expect(screen.getByLabelText("Кампания").textContent).toBe("Культ");
+		await fireEvent.click(screen.getByRole("link", { name: "Scenes/Start.md" }));
+		expect(test.plugin.openMediaNote).toHaveBeenCalledWith("Scenes/Start.md");
+		expect(test.plugin.activateScene).not.toHaveBeenCalled();
 	});
 	it("opens note chips through the Obsidian callback and keeps graph mutation disabled in view", async () => {
 		const test = setup("adventures"); await test.navigation.open({ kind: "scene", id: "start", adventureId: "quest" }); test.render();

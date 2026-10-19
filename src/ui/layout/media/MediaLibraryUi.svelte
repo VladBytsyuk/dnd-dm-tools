@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { onMount, tick } from "svelte";
 	import { PluginNotice as Notice } from "src/ui/PluginNotice";
-	import { Track, Playlist as PlaylistCard, FullScene, FullAdventure, SmallTrack, SmallPlaylist, SmallAdventure, ReferencePicker, type FullSceneEntity, type SceneGraphData, type SceneGraphNode, type PlaylistTrack } from "@dnd-dm-tools/design-system";
+	import { Track, Playlist as PlaylistCard, FullScene, FullAdventure, SmallTrack, SmallPlaylist, SmallAdventure, SmallScene, ReferencePicker, type FullSceneEntity, type SceneGraphData, type SceneGraphNode, type PlaylistTrack } from "@dnd-dm-tools/design-system";
 	import type DndStatblockPlugin from "src/main";
 	import { createMediaTrack, createMediaPlaylist, createMediaAdventure, createMediaScene, type MediaState, type MediaTrack, type Playlist, type Adventure, type AdventureScene, type AudioAsset } from "src/domain/models/media/MediaState";
-	import { findMediaItem, mediaItems, mediaPanel, saveMediaRecord, removeMediaRecord, type MediaKind, type MediaItem, type MediaRecord, type MediaRoute } from "src/domain/models/media/MediaLibrary";
+	import { findMediaItem, mediaItems, mediaPanel, mediaCampaignName, saveMediaRecord, removeMediaRecord, type MediaKind, type MediaItem, type MediaRecord, type MediaRoute } from "src/domain/models/media/MediaLibrary";
 	import { EmptySource } from "src/domain/models/common/Source";
 	import type { BaseItem } from "src/domain/models/common/BaseItem";
 	import { cloneDesignData } from "src/ui/design-system/adapters";
@@ -19,8 +19,11 @@
 	import { writeTextToClipboard, getMarkdownCodeBlockFromClipboard } from "src/data/clipboard";
 
 	let { plugin, navigation, panel }: { plugin: DndStatblockPlugin; navigation: MediaNavigation; panel: "player" | "adventures" } = $props();
+	const tabsId = $props.id();
 	function getHistory() { return navigation.routes; }
 	const history = getHistory();
+	function getListTab() { return navigation.adventuresTab; }
+	const listTab = getListTab();
 	function initialMedia() { return plugin.getMediaState(); }
 	function initialPlayback() { return plugin.getMediaPlayback().getSnapshot(); }
 	let media = $state<MediaState>(initialMedia());
@@ -59,12 +62,13 @@
 	const playlist = $derived(record as Playlist | undefined);
 	const adventure = $derived(record as Adventure | undefined);
 	const scene = $derived(record as AdventureScene | undefined);
+	const sceneAdventure = $derived(media.adventures.find((item) => item.id === sceneParentId));
 	const libraryItems = $derived(mediaItems(media));
-	const matching = $derived(libraryItems.filter((item) => `${item.name.rus} ${item.url} ${item.parent?.name ?? ""} ${"campaignName" in item.record ? item.record.campaignName : ""}`.toLocaleLowerCase("ru").includes(query.trim().toLocaleLowerCase("ru"))));
+	const matching = $derived(libraryItems.filter((item) => `${item.name.rus} ${item.url} ${item.parent?.name ?? ""} ${mediaCampaignName(item)}`.toLocaleLowerCase("ru").includes(query.trim().toLocaleLowerCase("ru"))));
 	const campaigns = $derived.by(() => {
 		const groups = new Map<string, MediaItem[]>();
-		for (const item of matching.filter((item) => item.mediaRoute.kind === "adventure")) {
-			const campaign = (item.record as Adventure).campaignName.trim();
+		for (const item of matching.filter((item) => item.mediaRoute.kind === $listTab)) {
+			const campaign = mediaCampaignName(item).trim();
 			groups.set(campaign, [...groups.get(campaign) ?? [], item]);
 		}
 		return [...groups].sort(([a], [b]) => !a ? 1 : !b ? -1 : a.localeCompare(b, "ru"));
@@ -86,9 +90,9 @@
 		draft = pending ? cloneDesignData(pending) : null;
 		editing = !!pending;
 		baseline = "";
-		sceneParentId = entry?.parent?.id ?? route?.adventureId ?? null;
+		sceneParentId = entry ? entry.parent?.id ?? null : route?.adventureId ?? null;
 		baselineParent = sceneParentId;
-		if (route?.kind === "scene" && !pending && sceneParentId) void action(() => plugin.activateScene(sceneParentId!, route.id));
+		if (route?.kind === "scene" && !pending && entry) void action(() => plugin.activateScene(sceneParentId, route.id));
 		void tick().then(() => { if (content) content.scrollTop = route ? 0 : listScroll; });
 	});
 
@@ -153,7 +157,8 @@
 	function beginEdit() {
 		if (!record) return;
 		draft = cloneDesignData(record); draft.source ??= EmptySource();
-		sceneParentId = entry?.parent?.id ?? route?.adventureId ?? null;
+		sceneParentId = entry?.parent?.id ?? null;
+		if (route?.kind === "scene" && entry) (draft as AdventureScene).campaignName = mediaCampaignName(entry);
 		baselineParent = sceneParentId; baseline = JSON.stringify(draft); editing = true; error = "";
 	}
 	function discard(goBack = true) {
@@ -199,6 +204,23 @@
 		const value = kind === "track" ? createMediaTrack() : kind === "playlist" ? createMediaPlaylist() : kind === "adventure" ? createMediaAdventure() : createMediaScene();
 		newRecords[value.id] = value;
 		await navigation.open({ kind, id: value.id, adventureId: parentId });
+	}
+	function changeSceneParent(id: string | null) {
+		if (!id && scene && sceneAdventure) scene.campaignName = sceneAdventure.campaignName;
+		sceneParentId = id;
+	}
+	function switchTab(kind: "adventure" | "scene") {
+		listTab.set(kind);
+		listScroll = 0;
+		if (content) content.scrollTop = 0;
+	}
+	function tabKey(event: KeyboardEvent) {
+		if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+		event.preventDefault();
+		const buttons = Array.from((event.currentTarget as HTMLElement).parentElement!.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+		const current = buttons.indexOf(event.currentTarget as HTMLButtonElement);
+		const next = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : (current + (event.key === "ArrowRight" ? 1 : -1) + buttons.length) % buttons.length;
+		buttons[next].click(); buttons[next].focus();
 	}
 	async function remove() {
 		if (!route) return;
@@ -268,21 +290,27 @@
 
 <div class="media-library" data-theme={theme}>
 	<UiSearchToolbar onbackclick={route ? () => void navigation.back() : undefined} onvaluechange={(value) => query = value} isvaluechangable={() => !route}
-		onaddclick={!route && panel === "adventures" ? () => void create("adventure") : undefined}
+		onaddclick={!route && panel === "adventures" ? () => void create($listTab) : undefined}
 		onplayclick={record && route?.kind === "track" ? () => void action(() => plugin.getMediaPlayback().playTrack(record!.id)) : record && route?.kind === "playlist" ? () => void action(() => plugin.getMediaPlayback().play(record!.id)) : undefined}
 		playDisabled={editing || (route?.kind === "track" ? !track?.normalAudioId && !track?.combatAudioId : route?.kind === "playlist" ? !playlist?.items.length : false)}
 		oneditclick={route && record && !editing ? beginEdit : undefined} onsaveclick={editing ? () => void save() : undefined} oncancelclick={editing ? () => discard() : undefined}
 		onpasteclick={editing && (route?.kind === "playlist" || route?.kind === "adventure") ? () => void importRecord() : undefined}
 		ondeleteclick={route && record && !editing ? () => void remove() : undefined} oncopyclick={route && record && !editing ? () => void copyRecord() : undefined} actionBusy={saving} />
-	<div class="content" bind:this={content} onscroll={() => { if (!route) listScroll = content.scrollTop; }}>
+	{#if !route && panel === "adventures"}
+		<div class="adventures-tabs" role="tablist" aria-label="Приключения и сцены">
+			<button id={`${tabsId}-adventure`} type="button" role="tab" aria-controls={`${tabsId}-list`} aria-selected={$listTab === "adventure"} tabindex={$listTab === "adventure" ? 0 : -1} onclick={() => switchTab("adventure")} onkeydown={tabKey}>Приключения</button>
+			<button id={`${tabsId}-scene`} type="button" role="tab" aria-controls={`${tabsId}-list`} aria-selected={$listTab === "scene"} tabindex={$listTab === "scene" ? 0 : -1} onclick={() => switchTab("scene")} onkeydown={tabKey}>Сцены</button>
+		</div>
+	{/if}
+	<div class="content" id={`${tabsId}-list`} role={!route && panel === "adventures" ? "tabpanel" : undefined} aria-labelledby={!route && panel === "adventures" ? `${tabsId}-${$listTab}` : undefined} bind:this={content} onscroll={() => { if (!route) listScroll = content.scrollTop; }}>
 		{#if error}<p class="error" role="alert">{error}</p>{/if}
 		{#if !route}
 			{#if panel === "player"}
 				<UiItemGroup panelKey="player" groupTitle="Плейлисты" items={matching.filter((item) => item.mediaRoute.kind === "playlist")} onItemClick={(item) => void open(item as MediaItem)} itemContent={listCard} onAdd={() => void create("playlist")} color="var(--ds-playlist)" isOpen={groupsOpen.playlists ?? true} onOpenChange={(value) => groupsOpen.playlists = value} />
 				<UiItemGroup panelKey="player" groupTitle="Треки" items={matching.filter((item) => item.mediaRoute.kind === "track")} onItemClick={(item) => void open(item as MediaItem)} itemContent={listCard} onAdd={() => void create("track")} color="var(--ds-track)" isOpen={groupsOpen.tracks ?? true} onOpenChange={(value) => groupsOpen.tracks = value} />
 			{:else}
-				{#each campaigns as [campaign, items] (campaign)}<UiItemGroup panelKey="adventures" groupTitle={campaign || "Без кампании"} {items} onItemClick={(item) => void open(item as MediaItem)} itemContent={listCard} color="var(--ds-adventure)" isOpen={groupsOpen[campaign] ?? true} onOpenChange={(value) => groupsOpen[campaign] = value} />{/each}
-				{#if !campaigns.length}<p class="empty">{query ? "Ничего не найдено" : "Приключения пока не добавлены"}</p>{/if}
+				{#each campaigns as [campaign, items] (campaign)}<UiItemGroup panelKey="adventures" groupTitle={campaign || "Без кампании"} {items} onItemClick={(item) => void open(item as MediaItem)} itemContent={listCard} color={$listTab === "scene" ? "var(--ds-scene)" : "var(--ds-adventure)"} isOpen={groupsOpen[`${$listTab}:${campaign}`] ?? true} onOpenChange={(value) => groupsOpen[`${$listTab}:${campaign}`] = value} />{/each}
+				{#if !campaigns.length}<p class="empty">{query ? "Ничего не найдено" : $listTab === "scene" ? "Сцены пока не добавлены" : "Приключения пока не добавлены"}</p>{/if}
 			{/if}
 		{:else if !record}<p class="empty">Запись не найдена</p>
 		{:else if !editing && entry}
@@ -308,8 +336,9 @@
 				{entities} afterContent={encounters.length ? encounterContent : undefined} editable={editing} {theme} onOpenNote={(path) => action(() => plugin.openMediaNote(path))} onPlaylistClick={openPlaylist} onEntityClick={openEntity} />
 		{:else if route.kind === "scene" && scene}
 			<FullScene bind:russianName={scene.name} bind:entityLink={scene.url} bind:source={scene.source} bind:notePath={scene.notePath}
-				adventure={media.adventures.find((item) => item.id === (editing ? sceneParentId : entry?.parent?.id)) ? { id: (editing ? sceneParentId : entry?.parent?.id)!, title: media.adventures.find((item) => item.id === (editing ? sceneParentId : entry?.parent?.id))!.name } : null}
-				availableAdventures={media.adventures.map((item) => ({ id: item.id, title: item.name }))} onAdventureChange={(value) => sceneParentId = value?.id ?? null}
+				adventure={sceneAdventure ? { id: sceneAdventure.id, title: sceneAdventure.name } : null}
+				campaignName={sceneAdventure?.campaignName ?? scene.campaignName} onCampaignChange={(value) => scene!.campaignName = value}
+				availableAdventures={media.adventures.map((item) => ({ id: item.id, title: item.name }))} onAdventureChange={(value) => changeSceneParent(value?.id ?? null)}
 				track={trackOptions.find((item) => item.id === scene!.trackId) ?? null} availableTracks={trackOptions} onTrackChange={(value) => scene!.trackId = value?.id ?? null}
 				{availableNotes} {entities} afterContent={encounters.length ? encounterContent : undefined} editable={editing} {theme} onOpenNote={(path) => action(() => plugin.openMediaNote(path))} onTrackClick={openTrack} onEntityClick={openEntity} />
 		{/if}
@@ -339,6 +368,8 @@
 		{@const value = item.record as MediaTrack}<SmallTrack {...trackProps(value)} {theme} onclick={() => void open(item)} />
 	{:else if item.mediaRoute.kind === "playlist"}
 		{@const value = item.record as Playlist}<SmallPlaylist {...playlistProps(value)} {theme} onclick={() => void open(item)} />
+	{:else if item.mediaRoute.kind === "scene"}
+		{@const value = item.record as AdventureScene}<SmallScene title={value.name} adventureName={item.parent?.name} musicName={media.tracks.find((track) => track.id === value.trackId)?.name} source={value.source?.shortName} {theme} onclick={() => void open(item)} />
 	{:else}
 		{@const value = item.record as Adventure}<SmallAdventure title={value.name} sceneCount={value.scenes.length} playlistName={media.playlists.find((item) => item.id === value.playlistId)?.name} source={value.source?.shortName} {theme} onclick={() => void open(item)} />
 	{/if}
@@ -346,6 +377,9 @@
 
 <style>
 	.media-library { display: flex; flex-direction: column; height: 100%; min-height: 0; min-width: 0; position: relative; }
+	.adventures-tabs { display: flex; gap: 4px; padding: 6px 8px; }
+	.adventures-tabs button { flex: 1; margin: 0; }
+	.adventures-tabs button[aria-selected="true"] { background: var(--interactive-accent); color: var(--text-on-accent); }
 	.content { overflow: auto; flex: 1; min-height: 0; padding: 6px 0; display: flex; flex-direction: column; gap: 6px; }
 	.content > :global(*) { flex-shrink: 0; }
 	.error { color: var(--text-error); font-size: 12px; margin: 4px 8px; overflow-wrap: anywhere; }

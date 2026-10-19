@@ -12,6 +12,7 @@ const meta = {
 		russianName: "Дорога в Подземье",
 		entityLink: "/scene/road_to_underdark",
 		adventure: { id: "cult", title: "Культ Вазрона" },
+		campaignName: "Хроники Подземья",
 		notePath: "Культ Вазрона/Дорога в Подземье.md",
 		track: { id: "underdark", title: "Подземье", atmosphere: "напряженное", source: "PHB", hasCombat: true },
 		source: { shortName: "PHB", name: "Player's Handbook", group: { shortName: "D&D 5e", name: "Dungeons & Dragons, 5-я редакция" } },
@@ -24,6 +25,8 @@ type Story = StoryObj<FullScenePreviewProps>;
 export const Dark: Story = {};
 export const Light: Story = { globals: { backgrounds: { value: "light" } }, args: { theme: "light" } };
 export const Editable: Story = { args: { editable: true } };
+export const Standalone: Story = { args: { adventure: null } };
+export const StandaloneEditable: Story = { args: { adventure: null, editable: true } };
 export const LightEditable: Story = { globals: { backgrounds: { value: "light" } }, args: { theme: "light", editable: true } };
 export const Empty: Story = { args: { editable: true, adventure: null, notePath: null, track: null } };
 export const EmptyContent: Story = { args: { demoContent: "empty" } };

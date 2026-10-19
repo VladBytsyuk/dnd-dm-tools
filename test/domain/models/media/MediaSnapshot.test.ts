@@ -29,6 +29,31 @@ describe("media Markdown snapshots", () => {
 		expect(result.state.tracks.find((track) => track.id === copied.items[0].trackId)).toMatchObject({ normalAudioId: "calm", combatAudioId: "battle", loop: true, atmosphere: "тихая" });
 		expect(result.missingPaths).toEqual([]);
 	});
+	it("roundtrips a standalone scene with its campaign and dependencies without an adventure", () => {
+		const state = sampleMedia(), scene = createMediaScene("Засада", "solo");
+		scene.campaignName = "Культ"; scene.notePath = "Scenes/Start.md"; scene.trackId = state.tracks[0].id;
+		state.standaloneScenes.push(scene);
+		const block = exportMediaMarkdownBlock(state, { kind: "scene", id: scene.id });
+		const snapshot = parseMediaSnapshot(block.split("\n").slice(1, -1).join("\n"));
+		expect(snapshot).toMatchObject({ kind: "scene", adventure: null, scene });
+		const restored = mediaSnapshotState(snapshot);
+		expect(restored.media.adventures).toEqual([]);
+		expect(restored.media.standaloneScenes).toEqual([scene]);
+		expect(restored.media.tracks.map((track) => track.id)).toEqual([scene.trackId]);
+		expect(findMediaItem(restored.media, restored.route)?.parent).toBeUndefined();
+		const bad = JSON.parse(block.split("\n").slice(1, -1).join("\n")); bad.scene.trackId = "missing";
+		expect(() => parseMediaSnapshot(JSON.stringify(bad))).toThrow();
+	});
+	it("preserves inherited campaigns and reads older version two scene blocks", () => {
+		const state = sampleMedia(); state.adventures[0].campaignName = "Культ";
+		const block = exportMediaMarkdownBlock(state, { kind: "scene", id: "start" });
+		const raw = JSON.parse(block.split("\n").slice(1, -1).join("\n"));
+		expect(mediaSnapshotState(parseMediaSnapshot(JSON.stringify(raw))).media.adventures[0].campaignName).toBe("Культ");
+		delete raw.adventure.campaignName; delete raw.scene.campaignName;
+		const restored = mediaSnapshotState(parseMediaSnapshot(JSON.stringify(raw)));
+		expect(restored.media.adventures[0].name).toBe("Поход");
+		expect(restored.media.adventures[0].scenes[0].campaignName).toBe("");
+	});
 	it("roundtrips adventure metadata, scene-only tracks, no-note scenes, positions and parallel arrows", () => {
 		const original = sampleMedia(), adventure = original.adventures[0]; adventure.campaignName = "Культ";
 		adventure.scenes.push(createMediaScene("Пустая", "blank"));

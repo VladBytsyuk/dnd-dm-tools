@@ -15,8 +15,13 @@ export function mediaItems(state: MediaState): MediaItem[] {
 	return [
 		...state.playlists.map((record) => item("playlist", record)),
 		...state.tracks.map((record) => item("track", record)),
+		...state.standaloneScenes.map((record) => item("scene", record)),
 		...state.adventures.flatMap((record) => [item("adventure", record), ...record.scenes.map((scene) => item("scene", scene, record))]),
 	];
+}
+
+export function mediaCampaignName(item: MediaItem): string {
+	return item.parent?.campaignName ?? ("campaignName" in item.record ? item.record.campaignName : "");
 }
 
 export function mediaPanel(kind: MediaKind): PanelKey { return kind === "track" || kind === "playlist" ? "player" : "adventures"; }
@@ -40,17 +45,21 @@ export function saveMediaRecord(state: MediaState, kind: MediaKind, record: Medi
 	next.name = next.name.trim();
 	if (kind === "scene") {
 		const parent = state.adventures.find((entry) => entry.id === adventureId);
-		if (!parent) throw new Error("Выберите родительское приключение.");
+		if (adventureId && !parent) throw new Error("Приключение не найдено.");
 		const old = state.adventures.find((entry) => entry.scenes.some((scene) => scene.id === next.id));
 		if (old && old !== parent) {
 			old.scenes = old.scenes.filter((scene) => scene.id !== next.id);
 			old.links = old.links.filter((link) => link.fromSceneId !== next.id && link.toSceneId !== next.id);
-			(next as AdventureScene).position = freeScenePosition(parent.scenes);
 		}
-		const index = parent.scenes.findIndex((scene) => scene.id === next.id);
-		if (index >= 0) parent.scenes[index] = next as AdventureScene;
-		else { (next as AdventureScene).position = freeScenePosition(parent.scenes); parent.scenes.push(next as AdventureScene); }
-		if (state.activeSceneId === next.id) state.activeAdventureId = parent.id;
+		if (parent) state.standaloneScenes = state.standaloneScenes.filter((scene) => scene.id !== next.id);
+		const scenes = parent?.scenes ?? state.standaloneScenes;
+		const index = scenes.findIndex((scene) => scene.id === next.id);
+		if (index >= 0) scenes[index] = next as AdventureScene;
+		else {
+			if (parent) (next as AdventureScene).position = freeScenePosition(scenes);
+			scenes.push(next as AdventureScene);
+		}
+		if (state.activeSceneId === next.id) state.activeAdventureId = parent?.id ?? null;
 		return;
 	}
 	const list = kind === "track" ? state.tracks : kind === "playlist" ? state.playlists : state.adventures;
@@ -75,6 +84,7 @@ export function removeMediaRecord(state: MediaState, route: MediaRoute): void {
 		state.tracks = state.tracks.filter((track) => track.id !== route.id);
 		for (const playlist of state.playlists) playlist.items = playlist.items.filter((item) => item.trackId !== route.id);
 		for (const adventure of state.adventures) for (const scene of adventure.scenes) if (scene.trackId === route.id) scene.trackId = null;
+		for (const scene of state.standaloneScenes) if (scene.trackId === route.id) scene.trackId = null;
 	} else if (route.kind === "playlist") {
 		state.playlists = state.playlists.filter((playlist) => playlist.id !== route.id);
 		for (const adventure of state.adventures) if (adventure.playlistId === route.id) adventure.playlistId = null;
@@ -82,6 +92,7 @@ export function removeMediaRecord(state: MediaState, route: MediaRoute): void {
 		state.adventures = state.adventures.filter((adventure) => adventure.id !== route.id);
 		if (state.activeAdventureId === route.id) { state.activeAdventureId = null; state.activeSceneId = null; }
 	} else {
+		state.standaloneScenes = state.standaloneScenes.filter((scene) => scene.id !== route.id);
 		for (const adventure of state.adventures) {
 			adventure.scenes = adventure.scenes.filter((scene) => scene.id !== route.id);
 			adventure.links = adventure.links.filter((link) => link.fromSceneId !== route.id && link.toSceneId !== route.id);

@@ -14,6 +14,7 @@
 		russianName: string;
 		entityLink: string;
 		adventure?: FullSceneAdventure | null;
+		campaignName?: string;
 		notePath?: string | null;
 		track?: FullSceneTrack | null;
 		availableAdventures?: FullSceneAdventure[];
@@ -28,6 +29,7 @@
 		onTrackClick?: (id: string) => void;
 		onEntityClick?: (url: string) => void | Promise<void>;
 		onAdventureChange?: (adventure: FullSceneAdventure | null) => void;
+		onCampaignChange?: (campaignName: string) => void;
 		onNoteChange?: (path: string | null) => void;
 		onTrackChange?: (track: FullSceneTrack | null) => void;
 		onCopyText?: (text: string) => void;
@@ -35,8 +37,9 @@
 	let {
 		russianName = $bindable(""), entityLink = $bindable(""),
 		adventure = $bindable<FullSceneAdventure | null>(null), notePath = $bindable<string | null>(null), track = $bindable<FullSceneTrack | null>(null),
+		campaignName = $bindable(""),
 		availableAdventures = [], availableNotes = [], availableTracks = [], entities = [], afterContent, source = $bindable<FullItemSource | undefined>(),
-		editable = false, theme = "dark", onOpenNote, onTrackClick, onEntityClick, onAdventureChange, onNoteChange, onTrackChange, onCopyText,
+		editable = false, theme = "dark", onOpenNote, onTrackClick, onEntityClick, onAdventureChange, onCampaignChange, onNoteChange, onTrackChange, onCopyText,
 	}: Props = $props();
 	let uniqueEntities = $derived.by(() => {
 		const seen = new Set<string>();
@@ -54,7 +57,7 @@
 </script>
 
 <article class="full-scene" data-theme={theme} aria-label={russianName}>
-	<FullItemHeader bind:russianName bind:entityLink englishName="" showEnglishName={false} info={adventure?.title} bind:source infoContent={editable ? adventurePicker : undefined} onCopy={onCopyText} {editable} {theme} />
+	<FullItemHeader bind:russianName bind:entityLink englishName="" showEnglishName={false} bind:source infoContent={editable || adventure || campaignName ? sceneInfo : undefined} onCopy={onCopyText} {editable} {theme} />
 	{#if editable}
 		<div class="note-picker"><ReferencePicker label="Заметка" placeholder="Выбрать заметку" value={notePath} options={availableNotes.map((path) => ({ value: path, label: path }))} onChange={changeNote} {theme} /></div>
 	{/if}
@@ -84,8 +87,13 @@
 	{@render afterContent?.()}
 </article>
 
-{#snippet adventurePicker()}
-	<ReferencePicker label="Приключение" placeholder="Выбрать приключение" value={adventure?.id ?? null} selectedLabel={adventure?.title} options={availableAdventures.map((item) => ({ value: item.id, label: item.title }))} onChange={changeAdventure} align="end" {theme} />
+{#snippet sceneInfo()}
+	{#if editable}
+		<ReferencePicker label="Приключение" placeholder="Выбрать приключение" value={adventure?.id ?? null} selectedLabel={adventure?.title} options={availableAdventures.map((item) => ({ value: item.id, label: item.title }))} onChange={changeAdventure} align="end" {theme} />
+	{:else if adventure}<span class="info">{adventure.title}</span>{/if}
+	{#if editable && !adventure}
+		<input class="info" aria-label="Кампания" placeholder="Кампания" bind:value={campaignName} oninput={(event) => onCampaignChange?.(event.currentTarget.value)} />
+	{:else if campaignName}<span class="info" aria-label="Кампания">{campaignName}</span>{/if}
 {/snippet}
 
 <style>

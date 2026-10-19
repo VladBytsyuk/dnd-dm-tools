@@ -339,6 +339,20 @@ describe('MediaPlaybackService', () => {
 		service.stop(); await service.followScene("quest", "first"); expect(FakeAudio.instances).toHaveLength(2);
 		service.clear(); expect(service.getSnapshot()).toMatchObject({ trackId: null, playlistId: null }); service.dispose();
 	});
+	it('follows standalone scene tracks only while playing without playlist context', async () => {
+		const state = makeNonLoopingState(), scene = createMediaScene("Засада", "solo");
+		scene.trackId = "track-two"; state.standaloneScenes.push(scene);
+		const service = makeService(state);
+		await service.followScene(null, scene.id); expect(FakeAudio.instances).toHaveLength(0);
+		await service.play("list", "one"); service.pause();
+		await service.followScene(null, scene.id); expect(FakeAudio.instances).toHaveLength(1);
+		await service.resume(); await service.followScene(null, scene.id);
+		expect(service.getSnapshot()).toMatchObject({ playlistId: null, itemId: null, trackId: "track-two", playing: true });
+		await service.followScene(null, scene.id); expect(FakeAudio.instances).toHaveLength(2);
+		service.stop(); scene.trackId = "track-one";
+		await service.followScene(null, scene.id); expect(FakeAudio.instances).toHaveLength(2);
+		service.dispose();
+	});
 	it('plays a combat-only file explicitly and keeps the previous mode when another play fails', async () => {
 		const state = makeNonLoopingState(); state.tracks[0].normalAudioId = null; state.tracks[1].normalAudioId = null;
 		const service = makeService(state);

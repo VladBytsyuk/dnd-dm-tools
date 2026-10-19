@@ -127,6 +127,7 @@ export default class DndStatblockPlugin extends Plugin {
 		this.assistantWorkspace = this.settings.workspace;
 		this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
 			const tracked = this.settings.media.audioFiles.some((audio) => audio.path === oldPath || audio.path.startsWith(`${oldPath}/`))
+				|| this.settings.media.standaloneScenes.some((scene) => scene.notePath && (scene.notePath === oldPath || scene.notePath.startsWith(`${oldPath}/`)))
 				|| this.settings.media.adventures.some((adventure) => [adventure.notePath, ...adventure.scenes.map((scene) => scene.notePath)].some((path) => path && (path === oldPath || path.startsWith(`${oldPath}/`))));
 			if (!tracked) return;
 			void this.updateMedia((media) => Object.assign(media, updateVaultFilePath(media, oldPath, file.path))).catch((error) => {
@@ -205,10 +206,10 @@ export default class DndStatblockPlugin extends Plugin {
 		this.settingsSaveQueue = this.settingsSaveQueue.catch(() => {}).then(() => this.saveData(this.settings));
 		return this.settingsSaveQueue;
 	}
-	async activateScene(adventureId: string, sceneId: string): Promise<void> {
+	async activateScene(adventureId: string | null, sceneId: string): Promise<void> {
 		const adventure = this.settings.media.adventures.find((item) => item.id === adventureId);
-		const scene = adventure?.scenes.find((item) => item.id === sceneId);
-		if (!adventure || !scene) throw new Error("Сцена не найдена.");
+		const scene = (adventureId === null ? this.settings.media.standaloneScenes : adventure?.scenes)?.find((item) => item.id === sceneId);
+		if (!scene) throw new Error("Сцена не найдена.");
 		await this.updateMedia((media) => {
 			media.activeAdventureId = adventureId;
 			media.activeSceneId = sceneId;

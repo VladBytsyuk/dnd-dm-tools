@@ -3,7 +3,7 @@
 	import { PluginNotice as Notice } from "src/ui/PluginNotice";
 	import { Track, Playlist as PlaylistCard, FullAdventure, FullScene, type FullSceneEntity } from "@dnd-dm-tools/design-system";
 	import type DndStatblockPlugin from "src/main";
-	import type { MediaItem } from "src/domain/models/media/MediaLibrary";
+	import { mediaCampaignName, type MediaItem } from "src/domain/models/media/MediaLibrary";
 	import type { Adventure, AdventureScene, MediaState, MediaTrack, Playlist } from "src/domain/models/media/MediaState";
 	import { cloneDesignData } from "src/ui/design-system/adapters";
 	import NoteEncountersUi from "./NoteEncountersUi.svelte";
@@ -69,6 +69,7 @@
 		links={adventure.links} onSceneOpen={openScene} onOpenNote={(path) => action(() => plugin.openMediaNote(path))} onPlaylistClick={openPlaylist} onEntityClick={openEntity} />
 {:else}
 	<FullScene russianName={scene.name} entityLink={scene.url} source={scene.source} notePath={scene.notePath}
+		campaignName={mediaCampaignName(item)}
 		adventure={item.parent ? { id: item.parent.id, title: item.parent.name } : null} track={trackOptions.find((value) => value.id === scene.trackId) ?? null}
 		{theme} {entities} afterContent={encounters.length ? encounterContent : undefined} onOpenNote={(path) => action(() => plugin.openMediaNote(path))} onTrackClick={openTrack} onEntityClick={openEntity} />
 {/if}

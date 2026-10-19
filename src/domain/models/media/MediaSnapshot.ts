@@ -5,7 +5,7 @@ export interface MediaSnapshotImportResult { state: MediaState; importedId: stri
 export interface PlaylistSnapshot { schemaVersion: 2; kind: "playlist"; playlist: Playlist; tracks: MediaTrack[]; audioFiles: AudioAsset[] }
 export interface AdventureSnapshot { schemaVersion: 2; kind: "adventure"; adventure: Adventure; playlists: Playlist[]; tracks: MediaTrack[]; audioFiles: AudioAsset[] }
 export interface TrackSnapshot { schemaVersion: 2; kind: "track"; track: MediaTrack; audioFiles: AudioAsset[] }
-export interface SceneSnapshot { schemaVersion: 2; kind: "scene"; scene: AdventureScene; adventure: Pick<Adventure, "id" | "name" | "url">; tracks: MediaTrack[]; audioFiles: AudioAsset[] }
+export interface SceneSnapshot { schemaVersion: 2; kind: "scene"; scene: AdventureScene; adventure: (Pick<Adventure, "id" | "name" | "url"> & { campaignName?: string }) | null; tracks: MediaTrack[]; audioFiles: AudioAsset[] }
 export type MediaSnapshot = PlaylistSnapshot | AdventureSnapshot | TrackSnapshot | SceneSnapshot;
 const fail = (): never => { throw new Error("Некорректный блок музыки или приключения."); };
 function object(value: unknown): Record<string, any> { return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, any> : fail(); }
@@ -44,10 +44,19 @@ export function parseMediaSnapshot(json: string): MediaSnapshot {
 		}
 	}
 	const adventures = data.kind === "adventure" ? [object(data.adventure)] : [];
-	if (data.kind === "scene") {
+	const standaloneScenes = data.kind === "scene" && data.adventure === null ? [object(data.scene)] : [];
+	function validateScene(value: unknown) {
+		const scene = object(value);
+		text(scene.id); text(scene.name); text(scene.url);
+		if (scene.notePath !== null) text(scene.notePath);
+		if (scene.trackId !== null && !trackIds.has(scene.trackId)) fail();
+		const pos = object(scene.position); if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) fail();
+	}
+	standaloneScenes.forEach(validateScene);
+	if (data.kind === "scene" && data.adventure !== null) {
 		const parent = object(data.adventure);
 		text(parent.url);
-		adventures.push({ ...createMediaAdventure(text(parent.name), text(parent.id)), url: parent.url, scenes: [object(data.scene)] });
+		adventures.push({ ...createMediaAdventure(text(parent.name), text(parent.id)), url: parent.url, campaignName: typeof parent.campaignName === "string" ? parent.campaignName : "", scenes: [object(data.scene)] });
 	}
 	for (const adventure of adventures) {
 		text(adventure.id); text(adventure.name);
@@ -61,22 +70,17 @@ export function parseMediaSnapshot(json: string): MediaSnapshot {
 				text(scene.path);
 				if ((scene.playlistId === null) !== (scene.itemId === null)) fail();
 				if (scene.playlistId && !playlists.find((list) => list.id === scene.playlistId)?.items.some((item: any) => item.id === scene.itemId)) fail();
-			} else {
-				text(scene.name); text(scene.url);
-				if (scene.notePath !== null) text(scene.notePath);
-				if (scene.trackId !== null && !trackIds.has(scene.trackId)) fail();
-				const pos = object(scene.position); if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) fail();
-			}
+			} else validateScene(scene);
 		}
 		const links = array(adventure.links);
 		for (const link of links) if (!sceneIds.has(link.fromSceneId) || !sceneIds.has(link.toSceneId)) fail();
 		if (data.schemaVersion === 2) unique(links.map((link) => text(link.id)));
 	}
-	const state = loadMediaState({ audioFiles: files, ...(data.schemaVersion === 2 ? { tracks } : {}), playlists, adventures });
+	const state = loadMediaState({ audioFiles: files, ...(data.schemaVersion === 2 ? { tracks } : {}), playlists, adventures, standaloneScenes });
 	if (data.kind === "track") return { schemaVersion: 2, kind: "track", track: state.tracks[0], audioFiles: state.audioFiles };
 	if (data.kind === "scene") {
-		const { id, name, url } = state.adventures[0];
-		return { schemaVersion: 2, kind: "scene", scene: state.adventures[0].scenes[0], adventure: { id, name, url }, tracks: state.tracks, audioFiles: state.audioFiles };
+		const parent = state.adventures[0];
+		return { schemaVersion: 2, kind: "scene", scene: parent?.scenes[0] ?? state.standaloneScenes[0], adventure: parent ? { id: parent.id, name: parent.name, url: parent.url, campaignName: parent.campaignName } : null, tracks: state.tracks, audioFiles: state.audioFiles };
 	}
 	return data.kind === "playlist" ? { schemaVersion: 2, kind: "playlist", playlist: state.playlists[0], tracks: state.tracks, audioFiles: state.audioFiles }
 		: { schemaVersion: 2, kind: "adventure", adventure: state.adventures[0], playlists: state.playlists, tracks: state.tracks, audioFiles: state.audioFiles };
@@ -109,9 +113,9 @@ export function exportTrackSnapshot(state: MediaState, id: string): string {
 }
 export function exportSceneSnapshot(state: MediaState, id: string): string {
 	const parent = state.adventures.find((entry) => entry.scenes.some((scene) => scene.id === id));
-	const scene = parent?.scenes.find((entry) => entry.id === id);
-	if (!parent || !scene) throw new Error("Сцена не найдена.");
-	return JSON.stringify({ schemaVersion: 2, kind: "scene", scene, adventure: { id: parent.id, name: parent.name, url: parent.url }, ...dependencies(state, [], [scene.trackId]) }, null, 2);
+	const scene = parent?.scenes.find((entry) => entry.id === id) ?? state.standaloneScenes.find((entry) => entry.id === id);
+	if (!scene) throw new Error("Сцена не найдена.");
+	return JSON.stringify({ schemaVersion: 2, kind: "scene", scene, adventure: parent ? { id: parent.id, name: parent.name, url: parent.url, campaignName: parent.campaignName } : null, ...dependencies(state, [], [scene.trackId]) }, null, 2);
 }
 export function exportMediaMarkdownBlock(state: MediaState, route: MediaRoute): string {
 	const exporters = { track: exportTrackSnapshot, playlist: exportPlaylistSnapshot, scene: exportSceneSnapshot, adventure: exportAdventureSnapshot };
@@ -121,15 +125,16 @@ export function exportMediaMarkdownBlock(state: MediaState, route: MediaRoute): 
 export function mediaSnapshotState(snapshot: MediaSnapshot): { media: MediaState; route: MediaRoute } {
 	const tracks = snapshot.kind === "track" ? [snapshot.track] : snapshot.tracks;
 	const playlists = snapshot.kind === "playlist" ? [snapshot.playlist] : snapshot.kind === "adventure" ? snapshot.playlists : [];
-	const adventures = snapshot.kind === "adventure" ? [snapshot.adventure] : snapshot.kind === "scene" ? [{ ...createMediaAdventure(snapshot.adventure.name, snapshot.adventure.id), url: snapshot.adventure.url, scenes: [snapshot.scene] }] : [];
+	const adventures = snapshot.kind === "adventure" ? [snapshot.adventure] : snapshot.kind === "scene" && snapshot.adventure ? [{ ...createMediaAdventure(snapshot.adventure.name, snapshot.adventure.id), ...snapshot.adventure, scenes: [snapshot.scene] }] : [];
+	const standaloneScenes = snapshot.kind === "scene" && !snapshot.adventure ? [snapshot.scene] : [];
 	const id = snapshot.kind === "track" ? snapshot.track.id : snapshot.kind === "playlist" ? snapshot.playlist.id : snapshot.kind === "scene" ? snapshot.scene.id : snapshot.adventure.id;
-	return { media: loadMediaState({ audioFiles: snapshot.audioFiles, tracks, playlists, adventures }), route: { kind: snapshot.kind, id } };
+	return { media: loadMediaState({ audioFiles: snapshot.audioFiles, tracks, playlists, adventures, standaloneScenes }), route: { kind: snapshot.kind, id } };
 }
 function importSnapshot(state: MediaState, snapshot: PlaylistSnapshot | AdventureSnapshot, newId: () => string, pathExists: (path: string) => boolean): MediaSnapshotImportResult {
 	const next = structuredClone(state);
-	const usedIds = new Set([...next.audioFiles, ...next.tracks, ...next.playlists, ...next.playlists.flatMap((list) => list.items), ...next.adventures, ...next.adventures.flatMap((adventure) => [...adventure.scenes, ...adventure.links])].map((item) => item.id));
+	const usedIds = new Set([...next.audioFiles, ...next.tracks, ...next.playlists, ...next.playlists.flatMap((list) => list.items), ...next.adventures, ...next.standaloneScenes, ...next.adventures.flatMap((adventure) => [...adventure.scenes, ...adventure.links])].map((item) => item.id));
 	function fresh(): string { for (let i = 0; i < 100; i++) { const id = newId(); if (id.trim() && !usedIds.has(id)) { usedIds.add(id); return id; } } throw new Error("Не удалось создать уникальный ID."); }
-	const urls = new Set([...next.tracks, ...next.playlists, ...next.adventures, ...next.adventures.flatMap((adventure) => adventure.scenes)].map((record) => record.url));
+	const urls = new Set([...next.tracks, ...next.playlists, ...next.adventures, ...next.standaloneScenes, ...next.adventures.flatMap((adventure) => adventure.scenes)].map((record) => record.url));
 	function copyUrl(url: string, kind: string, id: string): string { const value = urls.has(url) ? `/${kind}/${encodeURIComponent(id)}` : url; urls.add(value); return value; }
 	const missing = new Set<string>();
 	const audioMap = new Map<string, string>();

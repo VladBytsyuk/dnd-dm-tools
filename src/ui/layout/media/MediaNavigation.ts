@@ -4,6 +4,7 @@ import type { MediaRoute } from "src/domain/models/media/MediaLibrary";
 /** One history per panel; it survives attaching the panel to another tile. */
 export class MediaNavigation {
 	readonly routes = writable<MediaRoute[]>([]);
+	readonly adventuresTab = writable<"adventure" | "scene">("adventure");
 	beforeLeave: (() => Promise<boolean>) | undefined;
 	async open(route: MediaRoute): Promise<boolean> {
 		if (this.beforeLeave && !(await this.beforeLeave())) return false;
