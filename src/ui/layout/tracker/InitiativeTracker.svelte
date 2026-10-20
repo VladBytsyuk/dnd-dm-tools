@@ -22,7 +22,7 @@
 	import { PluginNotice as Notice } from "src/ui/PluginNotice";
 	import { OwlbearLogo } from "@dnd-dm-tools/design-system";
 	import { theme as appTheme, Theme } from "src/ui/theme";
-	import { onDestroy } from "svelte";
+	import { onDestroy, onMount } from "svelte";
 	import {
 		assertOwlbearImageDataUrlSize,
 		assertOwlbearImageSize,
@@ -95,6 +95,9 @@
 	}
 	const owlbearSyncScheduler = createOwlbearSyncScheduler();
 	const unsubscribeOwlbearRuntimeStatus = subscribeToOwlbearRuntimeStatus();
+	onMount(() => {
+		if (isEditable) onCombatChanged?.(encounterManager.current.activeParticipantIndex != null);
+	});
 
 	onDestroy(() => {
 		if (trackerState.current.activeParticipantIndex != null) onCombatChanged?.(false);

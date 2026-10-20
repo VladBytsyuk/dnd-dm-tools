@@ -134,9 +134,17 @@ export class MediaPlaybackService {
 		const adventure = state.adventures.find((entry) => entry.id === adventureId);
 		const scene = state.scenes.find((entry) => entry.id === sceneId);
 		if (adventureId !== null && !adventure?.scenes.some((entry) => entry.id === sceneId)) return;
-		if (!scene?.trackId || (before.sourceId === null && before.trackId === scene.trackId)) return;
+		if (!scene?.trackId) return;
 		const playlist = state.playlists.find((entry) => entry.id === adventure?.playlistId);
 		const item = playlist?.items.find((entry) => entry.trackId === scene.trackId);
+		if (before.sourceId === null && before.trackId === scene.trackId) {
+			const selection: Selection = { playlistId: playlist && item ? playlist.id : null, itemId: item?.id ?? null, trackId: scene.trackId };
+			if (before.playlistId !== selection.playlistId || before.itemId !== selection.itemId) {
+				this.selection = selection;
+				this.emit();
+			}
+			return;
+		}
 		if (playlist && item) await this.play(playlist.id, item.id);
 		else await this.playTrack(scene.trackId);
 	}
