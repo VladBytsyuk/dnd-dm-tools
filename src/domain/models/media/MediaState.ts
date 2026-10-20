@@ -10,9 +10,12 @@ export interface Playlist {
 	id: string; name: string; url: string; atmosphere: string; source?: Source;
 	items: PlaylistItem[];
 }
+export interface MediaScene {
+	id: string; name: string; url: string; campaignName: string; source?: Source; notePath: string | null;
+	trackId: string | null;
+}
 export interface AdventureScene {
-	id: string; name: string; url: string; source?: Source; notePath: string | null;
-	trackId: string | null; position: { x: number; y: number };
+	id: string; position: { x: number; y: number };
 }
 export type SceneSide = "left" | "right" | "top" | "bottom";
 export interface SceneLink {
@@ -26,6 +29,7 @@ export interface Adventure {
 }
 export interface MediaState {
 	audioFiles: AudioAsset[]; tracks: MediaTrack[]; playlists: Playlist[]; adventures: Adventure[];
+	scenes: MediaScene[];
 	musicVolume: number; effectsVolume: number;
 	activeAdventureId: string | null; activeSceneId: string | null;
 }
@@ -62,12 +66,12 @@ export function createMediaAdventure(name = "Приключение", id?: strin
 	const key = idOrUuid(id);
 	return { id: key, name, url: urlFor("adventure", key), campaignName: "", source: EmptySource(), notePath: null, playlistId: null, scenes: [], links: [] };
 }
-export function createMediaScene(name = "Сцена", id?: string): AdventureScene {
+export function createMediaScene(name = "Сцена", id?: string): MediaScene {
 	const key = idOrUuid(id);
-	return { id: key, name, url: urlFor("scene", key), source: EmptySource(), notePath: null, trackId: null, position: { x: 0, y: 0 } };
+	return { id: key, name, url: urlFor("scene", key), campaignName: "", source: EmptySource(), notePath: null, trackId: null };
 }
 export function createDefaultMediaState(): MediaState {
-	return { audioFiles: [], tracks: [], playlists: [], adventures: [], musicVolume: 1, effectsVolume: 1,
+	return { audioFiles: [], tracks: [], playlists: [], adventures: [], scenes: [], musicVolume: 1, effectsVolume: 1,
 		activeAdventureId: null, activeSceneId: null };
 }
 
@@ -102,21 +106,27 @@ function loadPlaylists(value: unknown, trackIds: Set<string>): Playlist[] {
 			atmosphere: typeof item?.atmosphere === "string" ? item.atmosphere : "", source: validSource(item?.source) ?? EmptySource() }];
 	}));
 }
-function loadAdventures(value: unknown, playlistIds: Set<string>, trackIds: Set<string>): Adventure[] {
+function loadScenes(value: unknown, trackIds: Set<string>): MediaScene[] {
+	return distinct(asArray(value).flatMap((raw): MediaScene[] => {
+		const entry = asRecord(raw), sceneId = asString(entry?.id);
+		if (!sceneId) return [];
+		const scene = createMediaScene(asString(entry?.name) ?? "Сцена", sceneId);
+		const trackId = asString(entry?.trackId);
+		return [{ ...scene, url: asString(entry?.url) ?? scene.url,
+			campaignName: typeof entry?.campaignName === "string" ? entry.campaignName : "",
+			source: validSource(entry?.source) ?? EmptySource(), notePath: asString(entry?.notePath),
+			trackId: trackId && trackIds.has(trackId) ? trackId : null }];
+	}));
+}
+function loadAdventures(value: unknown, playlistIds: Set<string>, availableSceneIds: Set<string>): Adventure[] {
 	return distinct(asArray(value).flatMap((raw): Adventure[] => {
 		const item = asRecord(raw), id = asString(item?.id);
 		if (!id) return [];
 		const adventure = createMediaAdventure(asString(item?.name) ?? "Приключение", id);
 		const playlistId = asString(item?.playlistId);
-		adventure.scenes = distinct(asArray(item?.scenes).flatMap((rawScene): AdventureScene[] => {
-			const entry = asRecord(rawScene), sceneId = asString(entry?.id);
-			if (!sceneId) return [];
-			const scene = createMediaScene(asString(entry?.name) ?? "Сцена", sceneId);
-			const trackId = asString(entry?.trackId), position = asRecord(entry?.position);
-			return [{ ...scene, url: asString(entry?.url) ?? scene.url,
-				source: validSource(entry?.source) ?? EmptySource(), notePath: asString(entry?.notePath),
-				trackId: trackId && trackIds.has(trackId) ? trackId : null,
-				position: { x: asNumber(position?.x, 0), y: asNumber(position?.y, 0) } }];
+		adventure.scenes = distinct(asArray(item?.scenes).flatMap((raw): AdventureScene[] => {
+			const entry = asRecord(raw), sceneId = asString(entry?.id), position = asRecord(entry?.position);
+			return sceneId && availableSceneIds.has(sceneId) ? [{ id: sceneId, position: { x: asNumber(position?.x, 0), y: asNumber(position?.y, 0) } }] : [];
 		}));
 		const sceneIds = new Set(adventure.scenes.map((scene) => scene.id));
 		const side = (value: unknown): SceneSide | undefined => value === "left" || value === "right" || value === "top" || value === "bottom" ? value : undefined;
@@ -132,13 +142,14 @@ function loadAdventures(value: unknown, playlistIds: Set<string>, trackIds: Set<
 			playlistId: playlistId && playlistIds.has(playlistId) ? playlistId : null }];
 	}));
 }
-function finishState(raw: Record<string, unknown>, audioFiles: AudioAsset[], tracks: MediaTrack[], playlists: Playlist[], adventures: Adventure[]): MediaState {
+function finishState(raw: Record<string, unknown>, audioFiles: AudioAsset[], tracks: MediaTrack[], playlists: Playlist[], adventures: Adventure[], scenes: MediaScene[]): MediaState {
 	const activeAdventure = adventures.find((adventure) => adventure.id === asString(raw.activeAdventureId));
-	return { audioFiles, tracks, playlists, adventures,
+	const activeScene = scenes.find((scene) => scene.id === asString(raw.activeSceneId));
+	return { audioFiles, tracks, playlists, adventures, scenes,
 		musicVolume: Math.max(0, Math.min(1, asNumber(raw.musicVolume, 1))),
 		effectsVolume: Math.max(0, Math.min(1, asNumber(raw.effectsVolume, 1))),
-		activeAdventureId: activeAdventure?.id ?? null,
-		activeSceneId: activeAdventure?.scenes.find((scene) => scene.id === asString(raw.activeSceneId))?.id ?? null };
+		activeAdventureId: activeAdventure && (!activeScene || activeAdventure.scenes.some((scene) => scene.id === activeScene.id)) ? activeAdventure.id : null,
+		activeSceneId: activeScene?.id ?? null };
 }
 
 /** Deterministic v5 migration: one reusable track per playlist entry plus orphan audio tracks. */
@@ -172,17 +183,17 @@ export function migrateLegacyMediaState(value: unknown): MediaState {
 		tracks.push(track);
 	}
 	const playlistById = new Map(playlists.map((playlist) => [playlist.id, playlist]));
-	const adventures = distinct(asArray(raw.adventures).flatMap((candidate): Adventure[] => {
+	type LegacyAdventure = Omit<Adventure, "scenes"> & { scenes: Array<MediaScene & { position: { x: number; y: number } }> };
+	const adventures = distinct(asArray(raw.adventures).flatMap((candidate): LegacyAdventure[] => {
 		const old = asRecord(candidate), id = asString(old?.id);
 		if (!id) return [];
-		const adventure = createMediaAdventure(asString(old?.name) ?? "Приключение", id);
+		const adventure: LegacyAdventure = { ...createMediaAdventure(asString(old?.name) ?? "Приключение", id), scenes: [] };
 		adventure.playlistId = asArray(old?.playlistIds).find((entry): entry is string => typeof entry === "string" && playlistById.has(entry)) ?? null;
-		adventure.scenes = distinct(asArray(old?.scenes).flatMap((candidateScene, index): AdventureScene[] => {
+		adventure.scenes = distinct(asArray(old?.scenes).flatMap((candidateScene, index): LegacyAdventure["scenes"] => {
 			const oldScene = asRecord(candidateScene), sceneId = asString(oldScene?.id), path = asString(oldScene?.path);
 			if (!sceneId || !path) return [];
-			const scene = createMediaScene(basename(path), sceneId);
+			const scene = { ...createMediaScene(basename(path), sceneId), position: { x: (index % 4) * 240, y: Math.floor(index / 4) * 140 } };
 			scene.notePath = path;
-			scene.position = { x: (index % 4) * 240, y: Math.floor(index / 4) * 140 };
 			const oldPlaylistId = asString(oldScene?.playlistId), oldItemId = asString(oldScene?.itemId);
 			scene.trackId = oldPlaylistId && oldItemId ? itemToTrack.get(`${oldPlaylistId}\u0000${oldItemId}`) ?? null : null;
 			return [scene];
@@ -195,7 +206,7 @@ export function migrateLegacyMediaState(value: unknown): MediaState {
 		});
 		return [adventure];
 	}));
-	return finishState(raw, audioFiles, distinct(tracks), playlists, adventures);
+	return loadMediaState({ ...raw, audioFiles, tracks: distinct(tracks), playlists, adventures });
 }
 
 export function loadMediaState(value: unknown): MediaState {
@@ -205,8 +216,17 @@ export function loadMediaState(value: unknown): MediaState {
 	const audioFiles = loadAudioFiles(raw.audioFiles), audioIds = new Set(audioFiles.map((audio) => audio.id));
 	const tracks = loadTracks(raw.tracks, audioIds), trackIds = new Set(tracks.map((track) => track.id));
 	const playlists = loadPlaylists(raw.playlists, trackIds), playlistIds = new Set(playlists.map((playlist) => playlist.id));
-	const adventures = loadAdventures(raw.adventures, playlistIds, trackIds);
-	return finishState(raw, audioFiles, tracks, playlists, adventures);
+	// Older states stored scene records inside adventures and in standaloneScenes.
+	const sceneData = Array.isArray(raw.scenes) ? raw.scenes : [
+		...asArray(raw.standaloneScenes),
+		...asArray(raw.adventures).flatMap((candidate) => {
+			const adventure = asRecord(candidate);
+			return asArray(adventure?.scenes).map((scene) => ({ ...asRecord(scene), campaignName: typeof adventure?.campaignName === "string" ? adventure.campaignName : "" }));
+		}),
+	];
+	const scenes = loadScenes(sceneData, trackIds);
+	const adventures = loadAdventures(raw.adventures, playlistIds, new Set(scenes.map((scene) => scene.id)));
+	return finishState(raw, audioFiles, tracks, playlists, adventures, scenes);
 }
 
 export function addAudioAsset(state: MediaState, asset: AudioAsset): MediaState {
@@ -220,9 +240,9 @@ export function renameAudioAsset(state: MediaState, id: string, alias: string): 
 export function updateVaultFilePath(state: MediaState, oldPath: string, newPath: string): MediaState {
 	const moved = (path: string) => path === oldPath || path.startsWith(`${oldPath}/`) ? newPath + path.slice(oldPath.length) : path;
 	return { ...state, audioFiles: state.audioFiles.map((asset) => ({ ...asset, path: moved(asset.path) })),
+		scenes: state.scenes.map((scene) => ({ ...scene, notePath: scene.notePath ? moved(scene.notePath) : null })),
 		adventures: state.adventures.map((adventure) => ({ ...adventure,
-			notePath: adventure.notePath ? moved(adventure.notePath) : null,
-			scenes: adventure.scenes.map((scene) => ({ ...scene, notePath: scene.notePath ? moved(scene.notePath) : null })) })) };
+			notePath: adventure.notePath ? moved(adventure.notePath) : null })) };
 }
 export function addPlaylist(state: MediaState, playlist: Playlist): MediaState {
 	if (!playlist.name.trim() || state.playlists.some((entry) => entry.id === playlist.id)) throw new Error("Некорректный плейлист.");
@@ -259,9 +279,8 @@ export function movePlaylistItem(state: MediaState, playlistId: string, itemId: 
 }
 export function removeMediaTrack(state: MediaState, id: string): MediaState {
 	return { ...state, tracks: state.tracks.filter((track) => track.id !== id),
-		playlists: state.playlists.map((playlist) => ({ ...playlist, items: playlist.items.filter((item) => item.trackId !== id) })),
-		adventures: state.adventures.map((adventure) => ({ ...adventure,
-			scenes: adventure.scenes.map((scene) => scene.trackId === id ? { ...scene, trackId: null } : scene) })) };
+		scenes: state.scenes.map((scene) => scene.trackId === id ? { ...scene, trackId: null } : scene),
+		playlists: state.playlists.map((playlist) => ({ ...playlist, items: playlist.items.filter((item) => item.trackId !== id) })) };
 }
 export function addAdventure(state: MediaState, adventure: Adventure): MediaState {
 	if (!adventure.name.trim() || state.adventures.some((entry) => entry.id === adventure.id)) throw new Error("Некорректное приключение.");
@@ -273,12 +292,11 @@ export function renameAdventure(state: MediaState, id: string, name: string): Me
 }
 export function removeAdventure(state: MediaState, id: string): MediaState {
 	return { ...state, adventures: state.adventures.filter((adventure) => adventure.id !== id),
-		activeAdventureId: state.activeAdventureId === id ? null : state.activeAdventureId,
-		activeSceneId: state.activeAdventureId === id ? null : state.activeSceneId };
+		activeAdventureId: state.activeAdventureId === id ? null : state.activeAdventureId };
 }
 export function removeAdventureScene(state: MediaState, adventureId: string, sceneId: string): MediaState {
 	return { ...state, adventures: state.adventures.map((adventure) => adventure.id === adventureId ? { ...adventure,
 		scenes: adventure.scenes.filter((scene) => scene.id !== sceneId),
 		links: adventure.links.filter((link) => link.fromSceneId !== sceneId && link.toSceneId !== sceneId) } : adventure),
-		activeSceneId: state.activeAdventureId === adventureId && state.activeSceneId === sceneId ? null : state.activeSceneId };
+		activeAdventureId: state.activeAdventureId === adventureId && state.activeSceneId === sceneId ? null : state.activeAdventureId };
 }

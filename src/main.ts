@@ -11,6 +11,8 @@ import { UiEventListener } from './data/ui_event_listener';
 import type { IUiEventListener } from './domain/listeners/ui_event_listener';
 import DB from './data/database/DB';
 import { InitiativeTrackerPanel } from './ui/components/sidepanel/side_panel_initiative_tracker';
+import { EncounterManager } from './domain/models/encounter/EncounterManager';
+import type { Encounter } from './domain/models/encounter/Encounter';
 import { ArsenalFeature } from './ui/components/feature/ArsenalFeature';
 import type { BaseFeature } from './ui/components/feature/BaseFeature';
 import { BestiaryFeature } from './ui/components/feature/BestiaryFeature';
@@ -109,6 +111,7 @@ export default class DndStatblockPlugin extends Plugin {
 	private readonly owlbearRuntimeListeners = new Set<() => void>();
 	private pluginUpdateService: PluginUpdateService;
 	private mediaPlayback: MediaPlaybackService;
+	private readonly encounterManager = new EncounterManager({ name: "", participants: [] });
 	private readonly mediaListeners = new Set<() => void>();
 	private settingsSaveQueue: Promise<void> = Promise.resolve();
 	private mediaUpdateQueue: Promise<void> = Promise.resolve();
@@ -127,7 +130,7 @@ export default class DndStatblockPlugin extends Plugin {
 		this.assistantWorkspace = this.settings.workspace;
 		this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
 			const tracked = this.settings.media.audioFiles.some((audio) => audio.path === oldPath || audio.path.startsWith(`${oldPath}/`))
-				|| this.settings.media.adventures.some((adventure) => [adventure.notePath, ...adventure.scenes.map((scene) => scene.notePath)].some((path) => path && (path === oldPath || path.startsWith(`${oldPath}/`))));
+				|| [...this.settings.media.scenes, ...this.settings.media.adventures].some((item) => item.notePath && (item.notePath === oldPath || item.notePath.startsWith(`${oldPath}/`)));
 			if (!tracked) return;
 			void this.updateMedia((media) => Object.assign(media, updateVaultFilePath(media, oldPath, file.path))).catch((error) => {
 				new Notice(error instanceof Error ? error.message : "Не удалось обновить путь файла.");
@@ -180,6 +183,11 @@ export default class DndStatblockPlugin extends Plugin {
 
 	getMediaState(): MediaState { return this.settings.media; }
 	getMediaPlayback(): MediaPlaybackService { return this.mediaPlayback; }
+	getEncounterManager(): EncounterManager { return this.encounterManager; }
+	async addEncounterToTracker(encounter: Encounter): Promise<void> {
+		this.encounterManager.addEncounter(encounter);
+		await this.panelManager.openPanel("initiative-tracker");
+	}
 	subscribeMedia(listener: () => void): () => void {
 		this.mediaListeners.add(listener);
 		return () => this.mediaListeners.delete(listener);
@@ -205,10 +213,10 @@ export default class DndStatblockPlugin extends Plugin {
 		this.settingsSaveQueue = this.settingsSaveQueue.catch(() => {}).then(() => this.saveData(this.settings));
 		return this.settingsSaveQueue;
 	}
-	async activateScene(adventureId: string, sceneId: string): Promise<void> {
+	async activateScene(adventureId: string | null, sceneId: string): Promise<void> {
 		const adventure = this.settings.media.adventures.find((item) => item.id === adventureId);
-		const scene = adventure?.scenes.find((item) => item.id === sceneId);
-		if (!adventure || !scene) throw new Error("Сцена не найдена.");
+		const scene = this.settings.media.scenes.find((item) => item.id === sceneId);
+		if (!scene || (adventureId !== null && !adventure?.scenes.some((item) => item.id === sceneId))) throw new Error("Сцена не найдена.");
 		await this.updateMedia((media) => {
 			media.activeAdventureId = adventureId;
 			media.activeSceneId = sceneId;
@@ -241,7 +249,7 @@ export default class DndStatblockPlugin extends Plugin {
 		this.settings = {
 			...this.settings,
 			...patch,
-			schemaVersion: 6,
+			schemaVersion: 7,
 		};
 		this.assistantWorkspace = this.settings.workspace;
 		await this.persistSettings();
@@ -652,6 +660,8 @@ export default class DndStatblockPlugin extends Plugin {
 			() => this.characterSheetFeature,
 			() => this.dmScreenFeature,
 			(source, name) => this.publishOwlbearPreviewFromImage(source, name),
+			() => this.isOwlbearIntegrationEnabled(),
+			(listener) => this.subscribeOwlbearRuntimeStatus(listener),
 		);
 		this.#uiEventListener.onMediaClick = (url) => this.openMediaUrl(url);
 

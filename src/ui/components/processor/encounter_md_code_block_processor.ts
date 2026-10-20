@@ -56,6 +56,7 @@ async function encounterMdCodeBlockProcessor(
                 app: plugin.app,
                 encounter: encounter,
                 isEditable: false,
+                onAddToTracker: (value: Encounter) => plugin.addEncounterToTracker(value),
                 onPortraitClick: openBestiary,
                 onConditionClick: openCondition,
                 onImageRequested: async (it: string) => await uiEventListener.onImageRequested(it),

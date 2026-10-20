@@ -9,9 +9,8 @@
 	export type FullScenePreviewProps = ComponentProps<typeof FullScene> & { demoContent?: "mixed" | "duplicates" | "empty" };
 	let {
 		russianName = $bindable(""), entityLink = $bindable(""),
-		adventure = $bindable(null), notePath = $bindable(null), track = $bindable(null), entities,
+		adventures = [], notePath = $bindable(null), track = $bindable(null), entities,
 		demoContent = "mixed",
-		availableAdventures = [{ id: "cult", title: "Культ Вазрона" }, { id: "shamat", title: "Дорога в Шамат" }],
 		availableNotes = ["Культ Вазрона/Дорога в Подземье.md", "Культ Вазрона/Забытый храм.md"],
 		availableTracks = [{ id: "underdark", title: "Подземье", atmosphere: "напряженное", source: "PHB", hasCombat: true }, { id: "temple", title: "Забытый храм", atmosphere: "таинственное", source: "PHB" }],
 		...props
@@ -26,7 +25,7 @@
 	let shownEntities = $derived(entities ?? (demoContent === "empty" || !notePath ? [] : notePath === availableNotes[1] ? [cards[1]] : demoContent === "duplicates" ? [cards[0], cards[0], cards[1], cards[2], cards[2], cards[3]] : cards));
 </script>
 
-<FullScene {...props} bind:russianName bind:entityLink bind:adventure bind:notePath bind:track {availableAdventures} {availableNotes} {availableTracks} entities={shownEntities} onOpenNote={(path) => { lastAction = `Открыть заметку: ${path}`; void props.onOpenNote?.(path); }} onEntityClick={(url) => { lastAction = `Открыть сущность: ${url}`; void props.onEntityClick?.(url); }} onTrackClick={(id) => { lastAction = `Открыть трек: ${id}`; props.onTrackClick?.(id); }} />
+<FullScene {...props} bind:russianName bind:entityLink {adventures} bind:notePath bind:track {availableNotes} {availableTracks} entities={shownEntities} onOpenNote={(path) => { lastAction = `Открыть заметку: ${path}`; void props.onOpenNote?.(path); }} onEntityClick={(url) => { lastAction = `Открыть сущность: ${url}`; void props.onEntityClick?.(url); }} onTrackClick={(id) => { lastAction = `Открыть трек: ${id}`; props.onTrackClick?.(id); }} />
 {#if lastAction}<p class="last-action" role="status">{lastAction}</p>{/if}
 
 {#snippet monsterCard(theme: "dark" | "light")}
