@@ -5,6 +5,7 @@
 	import Chip from "./Chip.svelte";
 	import SmallTrack from "./SmallTrack.svelte";
 	import ReferencePicker from "./ReferencePicker.svelte";
+	import Autocomplete from "./Autocomplete.svelte";
 
 	export type FullSceneAdventure = { id: string; title: string };
 	export type FullSceneTrack = { id: string } & Omit<ComponentProps<typeof SmallTrack>, "theme" | "onclick">;
@@ -13,10 +14,11 @@
 	type Props = {
 		russianName: string;
 		entityLink: string;
-		adventure?: FullSceneAdventure | null;
+		adventures?: FullSceneAdventure[];
+		campaignName?: string;
+		availableCampaigns?: string[];
 		notePath?: string | null;
 		track?: FullSceneTrack | null;
-		availableAdventures?: FullSceneAdventure[];
 		availableNotes?: string[];
 		availableTracks?: FullSceneTrack[];
 		entities?: FullSceneEntity[];
@@ -27,25 +29,22 @@
 		onOpenNote?: (path: string) => void | Promise<void>;
 		onTrackClick?: (id: string) => void;
 		onEntityClick?: (url: string) => void | Promise<void>;
-		onAdventureChange?: (adventure: FullSceneAdventure | null) => void;
+		onCampaignChange?: (campaignName: string) => void;
 		onNoteChange?: (path: string | null) => void;
 		onTrackChange?: (track: FullSceneTrack | null) => void;
 		onCopyText?: (text: string) => void;
 	};
 	let {
 		russianName = $bindable(""), entityLink = $bindable(""),
-		adventure = $bindable<FullSceneAdventure | null>(null), notePath = $bindable<string | null>(null), track = $bindable<FullSceneTrack | null>(null),
-		availableAdventures = [], availableNotes = [], availableTracks = [], entities = [], afterContent, source = $bindable<FullItemSource | undefined>(),
-		editable = false, theme = "dark", onOpenNote, onTrackClick, onEntityClick, onAdventureChange, onNoteChange, onTrackChange, onCopyText,
+		adventures = [], notePath = $bindable<string | null>(null), track = $bindable<FullSceneTrack | null>(null),
+		campaignName = $bindable(""),
+		availableNotes = [], availableTracks = [], availableCampaigns = [], entities = [], afterContent, source = $bindable<FullItemSource | undefined>(),
+		editable = false, theme = "dark", onOpenNote, onTrackClick, onEntityClick, onCampaignChange, onNoteChange, onTrackChange, onCopyText,
 	}: Props = $props();
 	let uniqueEntities = $derived.by(() => {
 		const seen = new Set<string>();
 		return entities.filter((entity) => { if (seen.has(entity.url)) return false; seen.add(entity.url); return true; });
 	});
-	function changeAdventure(id: string | null) {
-		adventure = availableAdventures.find((item) => item.id === id) ?? null;
-		onAdventureChange?.(adventure);
-	}
 	function changeNote(path: string | null) { notePath = path; onNoteChange?.(path); }
 	function changeTrack(id: string | null) {
 		track = availableTracks.find((item) => item.id === id) ?? null;
@@ -54,17 +53,17 @@
 </script>
 
 <article class="full-scene" data-theme={theme} aria-label={russianName}>
-	<FullItemHeader bind:russianName bind:entityLink englishName="" showEnglishName={false} info={adventure?.title} bind:source infoContent={editable ? adventurePicker : undefined} onCopy={onCopyText} {editable} {theme} />
+	<FullItemHeader bind:russianName bind:entityLink englishName="" showEnglishName={false} bind:source infoContent={editable || adventures.length || campaignName ? sceneInfo : undefined} onCopy={onCopyText} {editable} {theme} />
 	{#if editable}
 		<div class="note-picker"><ReferencePicker label="Заметка" placeholder="Выбрать заметку" value={notePath} options={availableNotes.map((path) => ({ value: path, label: path }))} onChange={changeNote} {theme} /></div>
 	{/if}
-	{#if notePath}
+	{#if !editable && notePath}
 		<div class="note-link"><Chip text={notePath} href={notePath} onLinkClick={({ href }) => onOpenNote?.(href)} background="var(--ds-scene-sub)" {theme} /></div>
 	{/if}
 	{#if editable}
 		<div class="track-picker"><ReferencePicker label="Трек" placeholder="Выбрать трек" value={track?.id ?? null} selectedLabel={track?.title} options={availableTracks.map((item) => ({ value: item.id, label: item.title }))} onChange={changeTrack} {theme} /></div>
 	{/if}
-	{#if track}
+	{#if !editable && track}
 		<div class="scene-track"><SmallTrack {...track} {theme} onclick={onTrackClick ? () => onTrackClick?.(track!.id) : undefined} /></div>
 	{/if}
 	<h2>Контент сцены</h2>
@@ -84,12 +83,16 @@
 	{@render afterContent?.()}
 </article>
 
-{#snippet adventurePicker()}
-	<ReferencePicker label="Приключение" placeholder="Выбрать приключение" value={adventure?.id ?? null} selectedLabel={adventure?.title} options={availableAdventures.map((item) => ({ value: item.id, label: item.title }))} onChange={changeAdventure} align="end" {theme} />
+{#snippet sceneInfo()}
+	{#if adventures.length}<span class="info" aria-label="Приключения сцены">{adventures.map((adventure) => adventure.title).join(", ")}</span>{/if}
+	{#if editable}
+		<div class="info"><Autocomplete label="Кампания" placeholder="Кампания" bind:value={campaignName} options={availableCampaigns.map((name) => ({ value: name, label: name }))} onValueChange={onCampaignChange} {theme} /></div>
+	{:else if campaignName}<span class="info" aria-label="Кампания">{campaignName}</span>{/if}
 {/snippet}
 
 <style>
 	.full-scene { --ds-media-unit: 1.5px; container: full-scene / inline-size; }
+	.full-scene { border-radius: var(--dnd-ui-radius-lg, 8px); }
 	.full-scene { --scene-primary: var(--ds-scene); --scene-secondary: var(--ds-scene-sub); box-sizing: border-box; display: flex; flex-direction: column; gap: calc(6 * var(--ds-media-unit, 1px)); width: 100%; min-width: 0; padding: calc(8 * var(--ds-media-unit, 1px)); background: linear-gradient(to top right, color-mix(in srgb, var(--scene-primary) var(--ds-gradient-strength, 20%), transparent), color-mix(in srgb, var(--scene-secondary) var(--ds-gradient-strength, 20%), transparent)), var(--ds-full-surface); color: #fff; font-family: "Golos Text", sans-serif; }
 	.full-scene[data-theme="light"] { --scene-primary: var(--ds-scene-light); --scene-secondary: var(--ds-scene-sub-light); color: #1f2937; }
 	.full-scene :global(.full-item-header) { min-height: calc(36 * var(--ds-media-unit, 1px)); gap: calc(4 * var(--ds-media-unit, 1px)); }

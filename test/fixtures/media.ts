@@ -8,3 +8,10 @@ export function legacyMedia() {
 	};
 }
 export function sampleMedia() { return loadMediaState(legacyMedia()); }
+/** Settings version six embedded each scene in its owning adventure. */
+export function ownedMedia() {
+	const { scenes, ...media } = sampleMedia();
+	return { ...media, standaloneScenes: [], adventures: media.adventures.map((adventure) => ({ ...adventure,
+		scenes: adventure.scenes.map((reference) => ({ ...scenes.find((scene) => scene.id === reference.id)!, position: reference.position })),
+	})) };
+}

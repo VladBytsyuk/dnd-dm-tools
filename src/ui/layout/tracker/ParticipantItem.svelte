@@ -154,6 +154,10 @@
 	const canMakeDeathSave = () => {
 		return isEditable && getIsDown(participant) && deathSavesFail < 3 && deathSavesSuccess < 3;
 	};
+	const rollInitiative = () => {
+		if (!isEditable) return;
+		onSetValue(participant.id, "initiative", roll(d20()(Number(participant.initiativeModifier ?? 0))));
+	};
 
 	const doDeathSave = () => {
 		if (!isEditable || !canMakeDeathSave()) return;
@@ -404,9 +408,14 @@
 
 		<div class="line2">
 			<div class="field">
-				<div class="field-icon" aria-label="Инициатива"><Dices size={16} /></div>
+				{#if isEditable}
+					<button class="field-icon initiative-roll" type="button" aria-label="Бросить инициативу" title={`Бросить инициативу: 1к20${formatModifier(participant.initiativeModifier)}`} onclick={rollInitiative}><Dices size={16} aria-hidden={true} /></button>
+				{:else}
+					<div class="field-icon" aria-label="Инициатива"><Dices size={16} /></div>
+				{/if}
 				<input
 					class="num inputlike input-centered"
+					aria-label="Инициатива"
 					value={String(participant.initiative ?? 0)}
 					inputmode="numeric"
 					placeholder={formatModifier(participant.initiativeModifier)}
@@ -710,6 +719,9 @@
         align-items: center;
         align-content: center;
     }
+	.field-icon.initiative-roll { all: unset; display: flex; align-items: center; padding: 2px; margin: -2px; border-radius: 4px; cursor: pointer; }
+	.initiative-roll:hover { color: var(--interactive-accent); }
+	.initiative-roll:focus-visible { outline: 2px solid var(--interactive-accent); outline-offset: 2px; }
 
 	.concentration-toggle {
 		display: grid;

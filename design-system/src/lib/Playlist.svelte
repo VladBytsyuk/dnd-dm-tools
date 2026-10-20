@@ -197,6 +197,7 @@
 		gap: calc(6 * var(--ds-media-unit, 1px));
 		width: 100%;
 		min-width: 0;
+		border-radius: var(--dnd-ui-radius-lg, 8px);
 		padding: calc(8 * var(--ds-media-unit, 1px));
 		background:
 			linear-gradient(to top right,

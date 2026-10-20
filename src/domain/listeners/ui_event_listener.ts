@@ -4,4 +4,6 @@ import type { IImageLoadingListener } from "./image_loading_listener";
 
 export interface IUiEventListener extends HtmlLinkListener, IDiceRollListener, IImageLoadingListener {
 	onOwlbearPreviewRequested?: (source: string, name: string) => Promise<void>;
+	isOwlbearIntegrationEnabled?: () => boolean;
+	subscribeOwlbearRuntimeStatus?: (listener: () => void) => () => void;
 }

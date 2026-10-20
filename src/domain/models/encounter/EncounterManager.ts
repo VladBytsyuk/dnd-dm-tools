@@ -279,6 +279,23 @@ export class EncounterManager {
         });
     }
 
+    addEncounter(encounter: Encounter) {
+        const incoming = deepCopy(encounter);
+        this.update(state => {
+            state.encounter.name = incoming.name;
+            state.encounter.participants.forEach(participant => { participant.initiative = 0; });
+            const usedIds = new Set(state.encounter.participants.map(participant => participant.id));
+            let nextId = 0;
+            for (const participant of incoming.participants) {
+                while (usedIds.has(nextId)) nextId++;
+                state.encounter.participants.push({ ...participant, id: nextId });
+                usedIds.add(nextId++);
+            }
+            state.activeParticipantIndex = null;
+            state.round = 1;
+        });
+    }
+
     setCondition(participantId: number, condition: EncounterParticipantCondition) {
         this.update(state => {
             state.encounter.participants = state.encounter.participants.map((p) => {

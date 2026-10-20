@@ -13,6 +13,7 @@
 		{ path: "Культ Вазрона/Выход.md", title: "Выход из подземелья", adventureName: "Дорога в Подземье", source: "PHB" },
 		{ path: "Культ Вазрона/Затопленный зал.md", title: "Затопленный зал", adventureName: "Дорога в Подземье", source: "PHB" },
 	];
+	const sceneIds = ["tunnel", "spider", "temple", "exit", "hall"];
 	export type FullAdventurePreviewProps = ComponentProps<typeof FullAdventure> & { demoContent?: "mixed" | "duplicates" | "empty" };
 	let {
 		russianName = $bindable(""), entityLink = $bindable(""), campaignName = $bindable(""), source = $bindable(),
@@ -29,7 +30,7 @@
 		]),
 		availableNotes = ["Культ Вазрона/Дорога в Подземье.md", "Культ Вазрона/Забытые святилища.md"],
 		availablePlaylists = [{ id: "underdark", title: "Дорога в Подземье", atmosphere: "напряженное", source: "PHB", trackCount: 3 }, { id: "temple", title: "Забытые святилища", atmosphere: "таинственное", source: "PHB", trackCount: 2 }],
-		availableSceneNotes = sceneNotes, entities, demoContent = "mixed", ...props
+		availableSceneNotes = sceneNotes, availableScenes = sceneNotes.map((note, index) => ({ value: sceneIds[index], label: note.title })), entities, demoContent = "mixed", ...props
 	}: FullAdventurePreviewProps = $props();
 	let lastAction = $state("");
 	let graphChanges = $state(0);
@@ -42,7 +43,9 @@
 </script>
 
 <div class="preview">
-	<FullAdventure {...props} bind:russianName bind:entityLink bind:campaignName bind:source bind:notePath bind:playlist bind:nodes bind:links {availableNotes} {availablePlaylists} {availableSceneNotes} entities={shownEntities}
+	<FullAdventure {...props} bind:russianName bind:entityLink bind:campaignName bind:source bind:notePath bind:playlist bind:nodes bind:links {availableNotes} {availablePlaylists} {availableSceneNotes} {availableScenes} entities={shownEntities}
+		onCreateScene={() => { lastAction = "Создать новую сцену"; props.onCreateScene?.(); }}
+		onAddScene={(id) => { const note = sceneNotes[sceneIds.indexOf(id)]; if (note) nodes = [...nodes, { id, note, position: { x: 0, y: (nodes.length + 1) * 180 } }]; props.onAddScene?.(id); }}
 		onOpenNote={(path) => { lastAction = `Открыть заметку: ${path}`; void props.onOpenNote?.(path); }}
 		onPlaylistClick={(id) => { lastAction = `Открыть плейлист: ${id}`; props.onPlaylistClick?.(id); }}
 		onEntityClick={(url) => { lastAction = `Открыть сущность: ${url}`; void props.onEntityClick?.(url); }}

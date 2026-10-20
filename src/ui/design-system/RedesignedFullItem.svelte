@@ -48,6 +48,14 @@
 	const theme = $derived($appTheme === Theme.Dark ? "dark" : "light");
 	let editing = $state(false);
 	let saving = $state(false);
+	let owlbearIntegrationEnabled = $state(false);
+	$effect(() => {
+		if (panelKey !== "bestiary") return;
+		const listener = uiEventListener;
+		const refresh = () => { owlbearIntegrationEnabled = listener.isOwlbearIntegrationEnabled?.() ?? false; };
+		refresh();
+		return listener.subscribeOwlbearRuntimeStatus?.(refresh);
+	});
 	function createDraft() { return toFullViewModel(panelKey, currentItem); }
 	let draft = $state<FullViewModel>(createDraft());
 	let pastedEntityBase: Record<string, any> | undefined = $state();
@@ -223,7 +231,7 @@
 <div class="redesigned-full-item" bind:this={container}>
 	{#if validationError}<p class="error" role="alert">{validationError}</p>{/if}
 	{#if panelKey === "bestiary"}
-		<FullStatblock bind:statblock={draft as FullStatblockViewModel} onCopyStatblock={copyFullItem} onCopyText={showCopyNotice} onCopySpellLink={entityLinkHandler} onEntityLinkClick={entityLinkHandler} onPasteAction={pasteAction} onImageRequested={imageResolver} onSendImageToOwlbear={uiEventListener.onOwlbearPreviewRequested ? sendImageToOwlbear : undefined} editable={editing} {theme} />
+		<FullStatblock bind:statblock={draft as FullStatblockViewModel} onCopyStatblock={copyFullItem} onCopyText={showCopyNotice} onCopySpellLink={entityLinkHandler} onEntityLinkClick={entityLinkHandler} onPasteAction={pasteAction} onImageRequested={imageResolver} onSendImageToOwlbear={owlbearIntegrationEnabled && uiEventListener.onOwlbearPreviewRequested ? sendImageToOwlbear : undefined} editable={editing} {theme} />
 	{:else if panelKey === "spellbook"}
 		<FullSpell bind:spell={draft as FullSpellViewModel} onCopySpell={copyFullItem} onCopyText={showCopyNotice} onEntityLinkClick={entityLinkHandler} editable={editing} {theme} />
 	{:else if panelKey === "arsenal"}

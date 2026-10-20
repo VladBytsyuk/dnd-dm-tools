@@ -1,7 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { loadPluginSettings } from "src/domain/models/settings/PluginSettings";
+import { ownedMedia } from "../../../fixtures/media";
 
 describe("PluginSettings", () => {
+	it("upgrades version six scenes while retaining workspace and active context", () => {
+		const settings = loadPluginSettings(null).settings, media = ownedMedia();
+		settings.workspace.tiles[0].tabs = ["adventures"];
+		settings.workspace.tiles[0].activeTab = "adventures";
+		media.adventures[0].campaignName = "Культ";
+		const result = loadPluginSettings({ ...settings, schemaVersion: 6, media });
+		expect(result.settings.schemaVersion).toBe(7);
+		expect(result.settings.workspace).toEqual(settings.workspace);
+		expect(result.settings.media.scenes).toHaveLength(2);
+		expect(result.settings.media.scenes[0]).toMatchObject({ id: "start", campaignName: "Культ", notePath: "Scenes/Start.md" });
+		expect(result.settings.media.activeAdventureId).toBe("quest");
+		expect(result.settings.media.activeSceneId).toBe("start");
+		expect(loadPluginSettings(result.settings).settings).toEqual(result.settings);
+	});
 	it.each([true, false, undefined])("ignores the obsolete design toggle (%s) and preserves supported settings", (redesignEnabled) => {
 		const settings = loadPluginSettings(null).settings;
 		settings.workspace.tiles[0].tabs = ["bestiary", "player"];
@@ -26,7 +41,7 @@ describe("PluginSettings", () => {
 			],
 		});
 
-		expect(result.settings.schemaVersion).toBe(6);
+		expect(result.settings.schemaVersion).toBe(7);
 		expect(result.settings.media.playlists).toEqual([]);
 		expect(result.settings).not.toHaveProperty("redesignEnabled");
 		expect(result.settings.workspace.layout).toBe("vertical-split");
@@ -132,7 +147,7 @@ describe("PluginSettings", () => {
 		const migrated = loadPluginSettings({ schemaVersion: 5, media: raw });
 		expect(migrated.legacyMediaBackup).toEqual(raw);
 		expect(loadPluginSettings(migrated.settings).legacyMediaBackup).toBeUndefined();
-		expect(migrated.settings.schemaVersion).toBe(6);
+		expect(migrated.settings.schemaVersion).toBe(7);
 	});
 
 });
