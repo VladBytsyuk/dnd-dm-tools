@@ -118,6 +118,7 @@ export default class DB implements Initializable {
                 this.smallArmorDao.ensureWeightColumn();
                 this.fullRaceDao.ensureAdditionalSectionsColumn();
                 this.fullBackgroundDao.ensureDetailColumns();
+                this.fullMonsterDao.ensureDescriptionColumn();
             });
 
             await this.createSeedOrchestrator().seedAll();

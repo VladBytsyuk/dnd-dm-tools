@@ -6,11 +6,16 @@ import { EmptyFullMonster } from "src/domain/models/monster/FullMonster";
 describe("statblock description editing", () => {
 	afterEach(() => { delete (HTMLElement.prototype as any).empty; });
 
-	it.each([undefined, "", "<p>Исходное описание</p>"])("saves an edited description starting from %s", async (description) => {
+	it.each([
+		["", undefined],
+		["/bestiary/monster", undefined],
+		["/bestiary/monster", ""],
+		["/bestiary/monster", "<p>Исходное описание</p>"],
+	])("saves the description for URL '%s' starting from %s", async (url, description) => {
 		(HTMLElement.prototype as any).empty = function () { this.replaceChildren(); };
 		const monster = {
 			...EmptyFullMonster(), name: { rus: "Монстр", eng: "Monster" },
-			url: "/bestiary/monster", origin: "manual", description,
+			url, origin: "manual", description,
 		};
 		const onItemSave = vi.fn(async (_item: any) => ({ ok: true }));
 		const props = {
@@ -20,6 +25,7 @@ describe("statblock description editing", () => {
 		};
 		const { container, rerender } = render(RedesignedFullItem, props);
 		await screen.findByDisplayValue("Описание");
+		if (!url) await fireEvent.input(screen.getByLabelText("Ссылка на сущность"), { target: { value: "/bestiary/new-monster" } });
 		const descriptionBlock = Array.from(container.querySelectorAll(".filled-text-block"))
 			.find(block => block.querySelector<HTMLInputElement>("input")?.value === "Описание")!;
 		const input = descriptionBlock.querySelector("textarea")!;
