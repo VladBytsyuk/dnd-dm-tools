@@ -70,6 +70,14 @@
 			const campaign = mediaCampaignName(item).trim();
 			groups.set(campaign, [...groups.get(campaign) ?? [], item]);
 		}
+		for (const items of groups.values()) {
+			items.sort((a, b) => {
+				const firstAdventure = (item: MediaItem) => item.adventures?.map((adventure) => adventure.name).sort((a, b) => a.localeCompare(b, "ru"))[0] ?? "";
+				const aAdventure = firstAdventure(a), bAdventure = firstAdventure(b);
+				const adventureOrder = !aAdventure !== !bAdventure ? (aAdventure ? -1 : 1) : aAdventure.localeCompare(bAdventure, "ru");
+				return adventureOrder || a.name.rus.localeCompare(b.name.rus, "ru");
+			});
+		}
 		return [...groups].sort(([a], [b]) => !a ? 1 : !b ? -1 : a.localeCompare(b, "ru"));
 	});
 	const notePath = $derived(record && (route?.kind === "scene" || route?.kind === "adventure") ? (record as Adventure | MediaScene).notePath : null);

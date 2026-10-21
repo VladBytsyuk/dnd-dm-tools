@@ -364,6 +364,36 @@ describe("integrated media screens", () => {
 		if (choice === "Остаться") expect(screen.getByRole("button", { name: "Создать сцену" })).toBeTruthy();
 		else expect(get(test.navigation.routes)).toEqual([]);
 	});
+	it("sorts adventures alphabetically within each campaign and updates after renaming", async () => {
+		const test = setup("adventures");
+		test.state().adventures = ["Кампания", ""].flatMap((campaignName, group) => ["Ярмарка", "Аванпост", "Болото"].map((name, index) => ({ ...createMediaAdventure(name, `${group}-${index}`), campaignName })));
+		const before = structuredClone(test.state().adventures);
+		const view = test.render();
+		const titles = () => [...view.container.querySelectorAll("details")].map((group) => [...group.querySelectorAll(".small-adventure [role=button]")].map((card) => card.getAttribute("aria-label")));
+		expect(titles()).toEqual([["Аванпост", "Болото", "Ярмарка"], ["Аванпост", "Болото", "Ярмарка"]]);
+		expect(test.state().adventures).toEqual(before);
+		await act(() => test.plugin.updateMedia((state) => { state.adventures[0].name = "Аа"; }));
+		expect(titles()[0]).toEqual(["Аа", "Аванпост", "Болото"]);
+	});
+	it.each(["Кампания", ""])("sorts scenes by adventure then scene name in campaign '%s'", async (campaignName) => {
+		const test = setup("adventures");
+		test.state().scenes = ["Яма", "Брод", "Засада", "Арка", "Храм", "Башня", "Алтарь"].map((name, index) => ({ ...createMediaScene(name, `scene-${index}`), campaignName }));
+		const later = createMediaAdventure("Ярмарка", "later"), earlier = createMediaAdventure("Аванпост", "earlier");
+		later.scenes = [0, 1, 4].map((index) => ({ id: `scene-${index}`, position: { x: 0, y: 0 } }));
+		earlier.scenes = [2, 3, 4].map((index) => ({ id: `scene-${index}`, position: { x: 0, y: 0 } }));
+		test.state().adventures = [later, earlier];
+		const before = structuredClone(test.state());
+		const view = test.render();
+		await fireEvent.click(screen.getByRole("tab", { name: "Сцены" }));
+		const titles = () => [...view.container.querySelectorAll(".small-scene [role=button]")].map((card) => card.getAttribute("aria-label"));
+		expect(titles()).toEqual(["Арка", "Засада", "Храм", "Брод", "Яма", "Алтарь", "Башня"]);
+		expect(test.state()).toEqual(before);
+		await fireEvent.input(screen.getByRole("textbox", { name: "Поиск в справочнике" }), { target: { value: "Аванпост" } });
+		await waitFor(() => expect(titles()).toEqual(["Арка", "Засада", "Храм"]));
+		await fireEvent.click(screen.getByRole("button", { name: "Очистить поиск", exact: true }));
+		await act(() => test.plugin.updateMedia((state) => { state.adventures[0].name = "Аа"; }));
+		expect(titles()).toEqual(["Брод", "Храм", "Яма", "Арка", "Засада", "Алтарь", "Башня"]);
+	});
 	it("lists shared scenes once, groups by their own campaigns and remembers the selected tab", async () => {
 		const test = setup("adventures"); test.state().scenes.forEach((scene) => scene.campaignName = "Культ");
 		const solo = createMediaScene("Таверна", "solo"); solo.campaignName = "Альфа";
