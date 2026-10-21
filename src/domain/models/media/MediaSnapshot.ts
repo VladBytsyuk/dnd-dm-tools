@@ -137,7 +137,7 @@ export function mediaSnapshotState(snapshot: MediaSnapshot): { media: MediaState
 	const id = snapshot.kind === "track" ? snapshot.track.id : snapshot.kind === "playlist" ? snapshot.playlist.id : snapshot.kind === "scene" ? snapshot.scene.id : snapshot.adventure.id;
 	return { media: loadMediaState({ audioFiles: snapshot.audioFiles, tracks, playlists, adventures, scenes }), route: { kind: snapshot.kind, id } };
 }
-function importSnapshot(state: MediaState, snapshot: PlaylistSnapshot | AdventureSnapshot, newId: () => string, pathExists: (path: string) => boolean): MediaSnapshotImportResult {
+function importSnapshot(state: MediaState, snapshot: MediaSnapshot, newId: () => string, pathExists: (path: string) => boolean): MediaSnapshotImportResult {
 	const next = structuredClone(state);
 	const usedIds = new Set([...next.audioFiles, ...next.tracks, ...next.playlists, ...next.playlists.flatMap((list) => list.items), ...next.adventures, ...next.scenes, ...next.adventures.flatMap((adventure) => [...adventure.scenes, ...adventure.links])].map((item) => item.id));
 	function fresh(): string { for (let i = 0; i < 100; i++) { const id = newId(); if (id.trim() && !usedIds.has(id)) { usedIds.add(id); return id; } } throw new Error("Не удалось создать уникальный ID."); }
@@ -151,12 +151,12 @@ function importSnapshot(state: MediaState, snapshot: PlaylistSnapshot | Adventur
 		audioMap.set(file.id, target.id); if (!pathExists(file.path)) missing.add(file.path);
 	}
 	const trackMap = new Map<string, string>();
-	for (const track of snapshot.tracks) {
+	for (const track of snapshot.kind === "track" ? [snapshot.track] : snapshot.tracks) {
 		const id = fresh(); trackMap.set(track.id, id);
 		next.tracks.push({ ...track, id, url: copyUrl(track.url, "track", id), normalAudioId: track.normalAudioId ? audioMap.get(track.normalAudioId)! : null, combatAudioId: track.combatAudioId ? audioMap.get(track.combatAudioId)! : null });
 	}
 	const playlistMap = new Map<string, string>();
-	for (const playlist of snapshot.kind === "playlist" ? [snapshot.playlist] : snapshot.playlists) {
+	for (const playlist of snapshot.kind === "playlist" ? [snapshot.playlist] : snapshot.kind === "adventure" ? snapshot.playlists : []) {
 		const id = fresh(); playlistMap.set(playlist.id, id);
 		next.playlists.push({ ...playlist, id, url: copyUrl(playlist.url, "playlist", id), items: playlist.items.map((item) => ({ id: fresh(), trackId: trackMap.get(item.trackId)! })) });
 	}
@@ -168,7 +168,13 @@ function importSnapshot(state: MediaState, snapshot: PlaylistSnapshot | Adventur
 		if (source.notePath && !pathExists(source.notePath)) missing.add(source.notePath);
 		next.adventures.push({ ...source, id, url: copyUrl(source.url, "adventure", id), playlistId: source.playlistId ? playlistMap.get(source.playlistId)! : null, scenes: source.scenes.map((scene) => ({ ...scene, id: sceneMap.get(scene.id)! })), links: source.links.map((link) => ({ ...link, id: fresh(), fromSceneId: sceneMap.get(link.fromSceneId)!, toSceneId: sceneMap.get(link.toSceneId)! })) });
 		importedId = id;
-	} else importedId = playlistMap.get(snapshot.playlist.id)!;
+	} else if (snapshot.kind === "scene") {
+		const scene = snapshot.scene, id = fresh();
+		if (scene.notePath && !pathExists(scene.notePath)) missing.add(scene.notePath);
+		next.scenes.push({ ...scene, id, url: copyUrl(scene.url, "scene", id), trackId: scene.trackId ? trackMap.get(scene.trackId)! : null });
+		importedId = id;
+	} else if (snapshot.kind === "track") importedId = trackMap.get(snapshot.track.id)!;
+	else importedId = playlistMap.get(snapshot.playlist.id)!;
 	return { state: next, importedId, missingPaths: [...missing] };
 }
 export function importPlaylistSnapshot(state: MediaState, json: string, newId: () => string, pathExists: (path: string) => boolean): MediaSnapshotImportResult {
@@ -177,5 +183,13 @@ export function importPlaylistSnapshot(state: MediaState, json: string, newId: (
 }
 export function importAdventureSnapshot(state: MediaState, json: string, newId: () => string, pathExists: (path: string) => boolean): MediaSnapshotImportResult {
 	const snapshot = parseMediaSnapshot(json); if (snapshot.kind !== "adventure") return fail();
+	return importSnapshot(state, snapshot, newId, pathExists);
+}
+export function importTrackSnapshot(state: MediaState, json: string, newId: () => string, pathExists: (path: string) => boolean): MediaSnapshotImportResult {
+	const snapshot = parseMediaSnapshot(json); if (snapshot.kind !== "track") return fail();
+	return importSnapshot(state, snapshot, newId, pathExists);
+}
+export function importSceneSnapshot(state: MediaState, json: string, newId: () => string, pathExists: (path: string) => boolean): MediaSnapshotImportResult {
+	const snapshot = parseMediaSnapshot(json); if (snapshot.kind !== "scene") return fail();
 	return importSnapshot(state, snapshot, newId, pathExists);
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createDefaultMediaState, createMediaScene, createMediaAdventure } from "src/domain/models/media/MediaState";
-import { exportAdventureSnapshot, exportPlaylistSnapshot, exportMediaMarkdownBlock, importAdventureSnapshot, importPlaylistSnapshot, mediaSnapshotState, parseMediaSnapshot } from "src/domain/models/media/MediaSnapshot";
+import { exportAdventureSnapshot, exportPlaylistSnapshot, exportMediaMarkdownBlock, importAdventureSnapshot, importPlaylistSnapshot, importTrackSnapshot, importSceneSnapshot, mediaSnapshotState, parseMediaSnapshot } from "src/domain/models/media/MediaSnapshot";
 import { findMediaItem } from "src/domain/models/media/MediaLibrary";
 import { sampleMedia, legacyMedia, ownedMedia } from "../../../fixtures/media";
 function ids() { let id = 0; return () => `new-${++id}`; }
@@ -38,6 +38,31 @@ describe("media Markdown snapshots", () => {
 		expect(restored.media.adventures).toEqual([]);
 		expect(restored.media.scenes).toEqual([scene]);
 		expect(restored.media.tracks.map((track) => track.id)).toEqual([scene.trackId]);
+	});
+	it.each(["track", "scene"] as const)("imports a %s with remapped dependencies and reports missing files", (kind) => {
+		const source = sampleMedia();
+		source.scenes[0].trackId = source.tracks[0].id;
+		source.scenes[0].campaignName = "Культ";
+		const route = { kind, id: kind === "track" ? source.tracks[0].id : "start" };
+		const json = exportMediaMarkdownBlock(source, route).split("\n").slice(1, -1).join("\n");
+		const target = createDefaultMediaState(), before = structuredClone(target);
+		const importer = kind === "track" ? importTrackSnapshot : importSceneSnapshot;
+		const result = importer(target, json, ids(), () => false);
+		const copied = findMediaItem(result.state, { kind, id: result.importedId })!.record;
+		expect(copied).toMatchObject({ name: findMediaItem(source, route)!.record.name });
+		expect(copied.id).not.toBe(route.id);
+		expect(result.state.tracks).toHaveLength(1);
+		const track = result.state.tracks[0];
+		expect(track).toMatchObject({ loop: true, atmosphere: source.tracks[0].atmosphere });
+		expect(result.state.audioFiles.find((file) => file.id === track.normalAudioId)?.path).toBe("Audio/calm.mp3");
+		expect(result.state.audioFiles.find((file) => file.id === track.combatAudioId)?.path).toBe("Audio/battle.mp3");
+		expect(result.missingPaths).toEqual(kind === "track" ? ["Audio/calm.mp3", "Audio/battle.mp3"] : ["Audio/calm.mp3", "Audio/battle.mp3", "Scenes/Start.md"]);
+		if (kind === "scene") expect(result.state.scenes[0]).toMatchObject({ trackId: track.id, campaignName: "Культ", notePath: "Scenes/Start.md" });
+		expect(result.state.scenes).toHaveLength(kind === "scene" ? 1 : 0);
+		expect(result.state.playlists).toEqual([]);
+		expect(result.state.adventures).toEqual([]);
+		expect(target).toEqual(before);
+		expect(() => importer(target, exportAdventureSnapshot(source, "quest"), ids(), () => true)).toThrow();
 	});
 	it.each([null, { id: "quest", name: "Поход", url: "/adventure/quest", campaignName: "Культ" }])("reads version two scene snapshots with parent %j", (adventure) => {
 		const state = ownedMedia();
