@@ -15,7 +15,7 @@
 	import { extractNoteEntityUrls, extractNoteEncounterBlocks, noteEntityCard } from "./noteContent";
 	import MediaFullCardUi from "./MediaFullCardUi.svelte";
 	import NoteEncountersUi from "./NoteEncountersUi.svelte";
-	import { exportMediaMarkdownBlock, importPlaylistSnapshot, importAdventureSnapshot } from "src/domain/models/media/MediaSnapshot";
+	import { exportMediaMarkdownBlock, importPlaylistSnapshot, importAdventureSnapshot, importTrackSnapshot, importSceneSnapshot } from "src/domain/models/media/MediaSnapshot";
 	import { writeTextToClipboard, getMarkdownCodeBlockFromClipboard } from "src/data/clipboard";
 
 	let { plugin, navigation, panel }: { plugin: DndStatblockPlugin; navigation: MediaNavigation; panel: "player" | "adventures" } = $props();
@@ -286,17 +286,18 @@
 		});
 	}
 	async function importRecord() {
-		if (!editing || !draft || (route?.kind !== "playlist" && route?.kind !== "adventure") || saving) return;
+		if (!editing || !draft || !route || saving) return;
 		const kind = route.kind, target = draft;
 		saving = true;
 		await action(async () => {
 			const block = await getMarkdownCodeBlockFromClipboard<unknown>(kind); if (!block) throw new Error(`В буфере обмена нет блока ${kind}.`);
 			if (!editing || draft !== target) return;
-			const imported = (kind === "playlist" ? importPlaylistSnapshot : importAdventureSnapshot)(cloneDesignData(media), JSON.stringify(block), () => crypto.randomUUID(), (path) => !!plugin.app.vault.getFileByPath(path));
-			const value = (kind === "playlist" ? imported.state.playlists : imported.state.adventures).find((item) => item.id === imported.importedId)!;
+			const importers = { track: importTrackSnapshot, scene: importSceneSnapshot, playlist: importPlaylistSnapshot, adventure: importAdventureSnapshot };
+			const imported = importers[kind](cloneDesignData(media), JSON.stringify(block), () => crypto.randomUUID(), (path) => !!plugin.app.vault.getFileByPath(path));
+			const value = findMediaItem(imported.state, { kind, id: imported.importedId })!.record;
 			pendingFiles = imported.state.audioFiles.filter((item) => !media.audioFiles.some((existing) => existing.id === item.id));
-			pendingTracks = imported.state.tracks.filter((item) => !media.tracks.some((existing) => existing.id === item.id));
-			pendingScenes = imported.state.scenes.filter((item) => !media.scenes.some((existing) => existing.id === item.id));
+			pendingTracks = imported.state.tracks.filter((item) => item.id !== imported.importedId && !media.tracks.some((existing) => existing.id === item.id));
+			pendingScenes = imported.state.scenes.filter((item) => item.id !== imported.importedId && !media.scenes.some((existing) => existing.id === item.id));
 			pendingPlaylists = imported.state.playlists.filter((item) => item.id !== imported.importedId && !media.playlists.some((existing) => existing.id === item.id));
 			draft = { ...value, id: target.id, url: target.url };
 			error = "";
@@ -312,7 +313,7 @@
 		onplayclick={record && route?.kind === "track" ? () => void action(() => plugin.getMediaPlayback().playTrack(record!.id)) : record && route?.kind === "playlist" ? () => void action(() => plugin.getMediaPlayback().play(record!.id)) : undefined}
 		playDisabled={editing || (route?.kind === "track" ? !track?.normalAudioId && !track?.combatAudioId : route?.kind === "playlist" ? !playlist?.items.length : false)}
 		oneditclick={route && record && !editing ? beginEdit : undefined} onsaveclick={editing ? () => void save() : undefined} oncancelclick={editing ? () => discard() : undefined}
-		onpasteclick={editing && (route?.kind === "playlist" || route?.kind === "adventure") ? () => void importRecord() : undefined}
+		onpasteclick={editing && route ? () => void importRecord() : undefined}
 		ondeleteclick={route && record && !editing ? () => void remove() : undefined} oncopyclick={route && record && !editing ? () => void copyRecord() : undefined} actionBusy={saving} />
 	{#if !route && panel === "adventures"}
 		<div class="adventures-tabs">

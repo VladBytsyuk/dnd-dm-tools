@@ -7,11 +7,12 @@ import { MediaNavigation } from "src/ui/layout/media/MediaNavigation";
 import { sampleMedia } from "../../../fixtures/media";
 import { extractNoteEntityUrls, extractNoteEncounterBlocks } from "src/ui/layout/media/noteContent";
 import { Component, MarkdownRenderer } from "obsidian";
-import { exportAdventureSnapshot, exportPlaylistSnapshot, exportMediaMarkdownBlock, parseMediaSnapshot } from "src/domain/models/media/MediaSnapshot";
+import { exportMediaMarkdownBlock, parseMediaSnapshot } from "src/domain/models/media/MediaSnapshot";
 import { getMarkdownCodeBlockFromClipboard, writeTextToClipboard } from "src/data/clipboard";
 import MediaMarkdownCardUi from "src/ui/layout/media/MediaMarkdownCardUi.svelte";
 import { createMediaScene, createMediaAdventure, loadMediaState } from "src/domain/models/media/MediaState";
 import { AdventuresPanel } from "src/ui/components/sidepanel/MediaPanels";
+import { findMediaItem } from "src/domain/models/media/MediaLibrary";
 
 vi.mock("src/data/clipboard", () => ({ getMarkdownCodeBlockFromClipboard: vi.fn(), writeTextToClipboard: vi.fn() }));
 
@@ -150,16 +151,19 @@ describe("integrated media screens", () => {
 		expect(screen.getAllByRole("listitem")).toHaveLength(1);
 		expect(test.plugin.panelManager.openItem).toHaveBeenCalledWith("dm-screen", entity.item);
 	});
-	it.each(["playlist", "adventure"] as const)("pastes a %s only in the editor and saves imported dependencies with the draft", async (kind) => {
-		const test = setup(kind === "playlist" ? "player" : "adventures"); test.render();
+	it.each(["track", "scene", "playlist", "adventure"] as const)("pastes a %s only in the editor and saves imported dependencies with the draft", async (kind) => {
+		const test = setup(kind === "track" || kind === "playlist" ? "player" : "adventures");
 		const before = structuredClone(test.state());
 		const source = sampleMedia();
-		const value = kind === "playlist" ? source.playlists[0] : source.adventures[0];
+		const route = { kind, id: kind === "track" ? source.tracks[0].id : kind === "scene" ? "start" : kind === "playlist" ? "music" : "quest" };
+		const value = findMediaItem(source, route)!.record;
 		value.name = "Из буфера";
-		const exported = (kind === "playlist" ? exportPlaylistSnapshot : exportAdventureSnapshot)(source, value.id);
+		value.url = `/${kind}/from-clipboard`;
+		const exported = exportMediaMarkdownBlock(source, route).split("\n").slice(1, -1).join("\n");
 		vi.mocked(getMarkdownCodeBlockFromClipboard).mockResolvedValueOnce(JSON.parse(exported)).mockResolvedValueOnce(JSON.parse(exported));
+		test.render();
 		expect(screen.queryByRole("button", { name: /Импортировать|Вставить/ })).toBeNull();
-		await fireEvent.click(screen.getByRole("button", { name: kind === "playlist" ? "Город" : "Поход", exact: true }));
+		await act(() => test.navigation.open(route));
 		expect(screen.queryByRole("button", { name: "Вставить", exact: true })).toBeNull();
 		await fireEvent.click(await screen.findByRole("button", { name: "Редактировать", exact: true }));
 		const paste = screen.getByRole("button", { name: "Вставить", exact: true });
@@ -175,14 +179,22 @@ describe("integrated media screens", () => {
 		await fireEvent.click(screen.getByRole("button", { name: "Вставить", exact: true }));
 		await waitFor(() => expect((screen.getByRole("textbox", { name: "Русское название" }) as HTMLInputElement).value).toBe("Из буфера"));
 		await fireEvent.click(screen.getByRole("button", { name: "Сохранить", exact: true }));
-		await waitFor(() => expect((kind === "playlist" ? test.state().playlists[0] : test.state().adventures[0]).name).toBe("Из буфера"));
-		const saved = kind === "playlist" ? test.state().playlists[0] : test.state().adventures[0];
+		await waitFor(() => expect(findMediaItem(test.state(), route)?.record.name).toBe("Из буфера"));
+		const saved = findMediaItem(test.state(), route)!.record;
 		expect(saved.id).toBe(value.id);
-		expect(saved.url).toBe(value.url);
-		expect(test.state().tracks.length).toBeGreaterThan(before.tracks.length);
+		expect(saved.url).toBe(findMediaItem(before, route)!.record.url);
+		if (kind === "track") expect(test.state().tracks).toHaveLength(before.tracks.length);
+		else expect(test.state().tracks.length).toBeGreaterThan(before.tracks.length);
 		expect(test.state().adventures).toHaveLength(before.adventures.length);
-		if (kind === "playlist") expect(test.state().playlists).toHaveLength(before.playlists.length);
-		else {
+		if (kind !== "adventure") expect(test.state().playlists).toHaveLength(before.playlists.length);
+		if (kind === "scene") {
+			expect(test.state().scenes).toHaveLength(before.scenes.length);
+			expect(test.state().adventures).toEqual(before.adventures);
+			expect(test.state().scenes[0].trackId).not.toBe(source.scenes[0].trackId);
+			expect(test.state().tracks.find((track) => track.id === test.state().scenes[0].trackId)?.normalAudioId).toBe("calm");
+		}
+		if (kind === "track") expect(test.state().tracks[0]).toMatchObject({ normalAudioId: "calm", combatAudioId: "battle", loop: true });
+		if (kind === "adventure") {
 			expect(test.state().adventures[0].links).toHaveLength(1);
 			expect(test.state().scenes.find((scene) => scene.id === test.state().adventures[0].scenes[0].id)?.trackId).toBeTruthy();
 		}
