@@ -1,4 +1,7 @@
-import { expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import initSqlJs from 'sql.js';
+import { describe, expect, it } from 'vitest';
 import { FullMonsterSqlTableDao } from '../../../src/data/database/FullMonsterSqlTableDao';
 import type { FullMonster } from '../../../src/domain/models/monster/FullMonster';
 import type { BestiaryFilters } from '../../../src/domain/models/monster/BestiaryFilters';
@@ -120,7 +123,8 @@ runSqlDaoBaseTests<FullMonster, BestiaryFilters>({
             JSON.stringify(sampleMonster.mythic ?? {}),
             JSON.stringify(sampleMonster.lair ?? {}),
             JSON.stringify(sampleMonster.tags ?? []),
-            JSON.stringify(sampleMonster.images ?? [])
+            JSON.stringify(sampleMonster.images ?? []),
+            sampleMonster.description
         ],
         assert: (monster) => {
             expect(monster.name.rus).toStrictEqual(sampleMonster.name.rus);
@@ -169,6 +173,85 @@ runSqlDaoBaseTests<FullMonster, BestiaryFilters>({
             expect(monster.lair).toStrictEqual(sampleMonster.lair ?? {});
             expect(monster.tags).toStrictEqual(sampleMonster.tags ?? []);
             expect(monster.images).toStrictEqual(sampleMonster.images ?? []);
+            expect(monster.description).toBe(sampleMonster.description);
         }
     }
+});
+
+describe('FullMonsterSqlTableDao description persistence', () => {
+    const wasmBinary = readFileSync(resolve('node_modules/sql.js/dist/sql-wasm.wasm'));
+    const description = '<p>Описание с <strong>форматированием</strong></p>';
+
+    it('migrates the old table without losing statblocks and can run repeatedly', async () => {
+        const SQL = await initSqlJs({ wasmBinary });
+        const db = new SQL.Database();
+        const dao = new FullMonsterSqlTableDao(db);
+        await dao.createTable();
+        await dao.createItem(sampleMonster);
+        // Reproduce the schema shipped before descriptions were persisted.
+        db.exec('ALTER TABLE full_bestiary DROP COLUMN description;');
+
+        try {
+            dao.ensureDescriptionColumn();
+            dao.ensureDescriptionColumn();
+            const loaded = (await dao.readItemByUrl(sampleMonster.url))!;
+            expect(loaded).toMatchObject({ name: sampleMonster.name, actions: sampleMonster.actions, description: '' });
+            await dao.updateItem({ ...loaded, description });
+            await dao.createItem({ ...sampleMonster, url: '/bestiary/new', description });
+
+            const reopened = new SQL.Database(db.export());
+            try {
+                const savedDao = new FullMonsterSqlTableDao(reopened);
+                expect((await savedDao.readItemByUrl(sampleMonster.url))?.description).toBe(description);
+                expect((await savedDao.readItemByUrl('/bestiary/new'))?.description).toBe(description);
+            } finally {
+                reopened.close();
+            }
+        } finally {
+            db.close();
+        }
+    });
+
+    it('preserves the description of a new statblock after reopening the database', async () => {
+        const SQL = await initSqlJs({ wasmBinary });
+        const db = new SQL.Database();
+        const dao = new FullMonsterSqlTableDao(db);
+        await dao.initialize();
+        await dao.createItem({ ...sampleMonster, description });
+
+        const reopened = new SQL.Database(db.export());
+        try {
+            const saved = await new FullMonsterSqlTableDao(reopened).readItemByUrl(sampleMonster.url);
+            expect(saved?.description).toBe(description);
+        } finally {
+            reopened.close();
+            db.close();
+        }
+    });
+
+    it.each([undefined, '', '<p>Исходное описание</p>'])(
+        'persists an edited description starting from %s and allows clearing it',
+        async (initialDescription) => {
+            const SQL = await initSqlJs({ wasmBinary });
+            const db = new SQL.Database();
+            const dao = new FullMonsterSqlTableDao(db);
+            await dao.initialize();
+            await dao.createItem({ ...sampleMonster, description: initialDescription });
+            const loaded = (await dao.readItemByUrl(sampleMonster.url))!;
+            await dao.updateItem({ ...loaded, description });
+
+            const reopened = new SQL.Database(db.export());
+            try {
+                const savedDao = new FullMonsterSqlTableDao(reopened);
+                const saved = (await savedDao.readItemByUrl(sampleMonster.url))!;
+                expect(saved.description).toBe(description);
+                expect(saved.actions).toEqual(sampleMonster.actions);
+                await savedDao.updateItem({ ...saved, description: '' });
+                expect((await savedDao.readItemByUrl(sampleMonster.url))?.description).toBe('');
+            } finally {
+                reopened.close();
+                db.close();
+            }
+        },
+    );
 });

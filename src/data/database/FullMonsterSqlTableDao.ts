@@ -64,9 +64,16 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
                 mythic TEXT,
                 lair TEXT,
                 tags TEXT,
-                images TEXT
+                images TEXT,
+                description TEXT NOT NULL DEFAULT ''
             );
         `);
+    }
+
+    ensureDescriptionColumn(): void {
+        const result = this.database.exec(`PRAGMA table_info(${this.getTableName()});`);
+        if (!result.length || result[0].values.some(column => column[1] === 'description')) return;
+        this.database.exec(`ALTER TABLE ${this.getTableName()} ADD COLUMN description TEXT NOT NULL DEFAULT '';`);
     }
 
     // CRUD operations
@@ -81,8 +88,8 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
                     hits_average, hits_formula, hits_sign, hits_bonus, speed,
                     ability_str, ability_dex, ability_con, ability_int, ability_wiz, ability_cha,
                     saving_throws, skills, damage_vulnerabilities, damage_resistances, damage_immunities, condition_immunities,
-                    senses, languages, feats, actions, bonus_actions, reactions, legendary, mythic, lair, tags, images
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
+                    senses, languages, feats, actions, bonus_actions, reactions, legendary, mythic, lair, tags, images, description
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
                 [
                     item.name.rus,
                     item.name.eng,
@@ -129,7 +136,8 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
                     JSON.stringify(item.mythic ?? {}),
                     JSON.stringify(item.lair ?? {}),
                     JSON.stringify(item.tags ?? []),
-                    JSON.stringify(item.images ?? [])
+                    JSON.stringify(item.images ?? []),
+                    item.description ?? ''
                 ]
             );
         } catch (error) {
@@ -186,7 +194,8 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
                     mythic = ?,
                     lair = ?,
                     tags = ?,
-                    images = ?
+                    images = ?,
+                    description = ?
                 WHERE url = ?;`,
                 [
                     item.name.rus,
@@ -234,6 +243,7 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
                     JSON.stringify(item.lair ?? {}),
                     JSON.stringify(item.tags ?? []),
                     JSON.stringify(item.images ?? []),
+                    item.description ?? '',
                     item.url
                 ]
             );
@@ -306,7 +316,8 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
                 mythic: JSON.parse(sqlValues[43] as string || '{}'),
                 lair: JSON.parse(sqlValues[44] as string || '{}'),
                 tags: JSON.parse(sqlValues[45] as string || '[]'),
-                images: JSON.parse(sqlValues[46] as string || '[]')
+                images: JSON.parse(sqlValues[46] as string || '[]'),
+                description: sqlValues[47] as string ?? ''
             };
         } catch (error) {
             console.error('Error mapping SQL values for FullMonster:', error);
