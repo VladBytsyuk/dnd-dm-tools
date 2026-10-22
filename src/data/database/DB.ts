@@ -32,10 +32,16 @@ import type { Initializable } from 'src/domain/Initializable';
 import type { EntityKind } from 'src/domain/models/common/EntityOrigin';
 import { DatabaseSeedOrchestrator, bundledEntityUrlsByKind } from 'src/data/services';
 import { DbTransactionalStore, SeedStore } from 'src/data/stores';
+import { MediaSqlDao } from './MediaSqlDao';
+import { MediaStore } from 'src/data/stores/MediaStore';
 
 export default class DB implements Initializable {
 
     private database: Database | null = null;
+    private liveDatabase: Database | null = null;
+    private restoreDatabase: ((data: Uint8Array) => Database) | null = null;
+    private transactionQueue: Promise<void> = Promise.resolve();
+    private disposing = false;
     private databasePath: string;
     public smallMonsterDao: SmallMonsterSqlTableDao;
     public fullMonsterDao: FullMonsterSqlTableDao;
@@ -62,6 +68,8 @@ export default class DB implements Initializable {
     public entityOriginDao: EntityOriginDao;
     public favoritesDao: FavoritesDao;
     public favorites: FavoritesStore;
+    public mediaDao: MediaSqlDao;
+    public media: MediaStore;
 
     constructor(
         private app: App,
@@ -94,12 +102,23 @@ export default class DB implements Initializable {
                 databaseData = new Uint8Array(databaseContent);
             }
 
-            const database = new SQL.Database(databaseData);
+            this.restoreDatabase = (data) => new SQL.Database(data);
+            this.liveDatabase = new SQL.Database(databaseData);
+            // DAOs keep this stable reference when a failed disk write restores the database.
+            const database = new Proxy({} as Database, {
+                get: (_target, property) => {
+                    if (!this.liveDatabase) throw new Error('Database not initialized');
+                    const value = Reflect.get(this.liveDatabase, property);
+                    return typeof value === 'function' ? value.bind(this.liveDatabase) : value;
+                },
+            });
             this.database = database;
             const sqlTableDaos = this.initDaos(database);
             this.entityOriginDao = new EntityOriginDao(database);
             this.favoritesDao = new FavoritesDao(database);
             this.favorites = new FavoritesStore(this.favoritesDao, new DbTransactionalStore(this));
+            this.mediaDao = new MediaSqlDao(database);
+            this.media = new MediaStore(this.mediaDao, new DbTransactionalStore(this));
 
             // Check if classes migration needed
             const needsClassesMigration = await this.checkClassesMigration();
@@ -112,6 +131,7 @@ export default class DB implements Initializable {
             await this.transaction(async () => {
                 await this.entityOriginDao.initialize();
                 this.favoritesDao.initialize();
+                this.mediaDao.initialize();
                 await Promise.all(
                     sqlTableDaos.map(tableDao => tableDao.initialize())
                 );
@@ -127,26 +147,48 @@ export default class DB implements Initializable {
             console.log('Database initialized');
         } catch (error) {
             console.error('Database init error:', error);
+            this.liveDatabase?.close();
+            this.liveDatabase = null;
+            this.database = null;
+            throw error;
         }
     }
 
     async dispose() {
-        this.getDaos().forEach(dao => dao.dispose());
-        if (this.database) {
-            this.database.close();
-        }
+        this.disposing = true;
+        await this.transactionQueue;
+        await Promise.all(this.getDaos().filter(Boolean).map(dao => dao.dispose()));
+        this.liveDatabase?.close();
+        this.liveDatabase = null;
+        this.database = null;
     }
 
     async transaction(callback: (database: Database) => Promise<void>) {
+        if (this.disposing) throw new Error('Database is closing');
+        const pending = this.transactionQueue.then(() => this.runTransaction(callback));
+        this.transactionQueue = pending.catch(() => undefined);
+        await pending;
+    }
+
+    private async runTransaction(callback: (database: Database) => Promise<void>) {
         if (!this.database) throw new Error('Database not initialized');
-        
+        const snapshot = this.database.export();
+        let committed = false;
         try {
             this.database.exec('BEGIN TRANSACTION');
             await callback(this.database);
             this.database.exec('COMMIT');
+            committed = true;
             await this.saveDatabase();
         } catch (error) {
-            this.database.exec('ROLLBACK');
+            if (committed) {
+                // export() closes SQLite's transaction, so an ordinary ROLLBACK cannot
+                // undo a failed persistence after COMMIT. Restore all DAOs atomically.
+                this.liveDatabase!.close();
+                this.liveDatabase = this.restoreDatabase!(snapshot);
+            } else {
+                this.database.exec('ROLLBACK');
+            }
             console.error('Transaction error:', error);
             throw error;
         }
@@ -155,16 +197,12 @@ export default class DB implements Initializable {
     private async saveDatabase() {
         if (!this.database) return;
         
-        try {
-            const databaseData = this.database.export();
-            const buffer = Buffer.from(databaseData);
-            await this.app.vault.adapter.writeBinary(
-                this.databasePath, 
-                buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
-            );
-        } catch (error) {
-            console.error('Database save error:', error);
-        }
+        const databaseData = this.database.export();
+        const buffer = Buffer.from(databaseData);
+        await this.app.vault.adapter.writeBinary(
+            this.databasePath,
+            buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
+        );
     }
 
     private initDaos(database: Database): Dao<any, any>[] {

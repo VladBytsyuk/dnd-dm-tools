@@ -90,6 +90,7 @@ export abstract class SimpleRepository<
 > implements Repository<TSmall, TFull, TFilter> {
 	#smallItems?: TSmall[];
 	#filters?: TFilter;
+	readonly #externalListeners = new Set<(url: string) => void>();
 	readonly favorites: FavoriteAccess | undefined;
 
 	constructor(
@@ -104,6 +105,15 @@ export abstract class SimpleRepository<
 		return this.dependencies.readStore.readSmallItemsByUrls(urls, filter);
 	}
 
+	subscribeExternalChanges(listener: (url: string) => void): () => void {
+		this.#externalListeners.add(listener);
+		return () => this.#externalListeners.delete(listener);
+	}
+
+	notifyExternalChange(url: string): void {
+		for (const listener of this.#externalListeners) listener(url);
+	}
+
 	async initialize(): Promise<void> {
 		if (!this.shouldPreloadSmallItems()) return;
 		const allSmallItems = await this.dependencies.readStore.readAllSmallItems();
@@ -112,6 +122,7 @@ export abstract class SimpleRepository<
 	}
 
 	dispose(): void {
+		this.#externalListeners.clear();
 		this.#smallItems = undefined;
 		this.#filters = undefined;
 	}
@@ -226,7 +237,7 @@ export abstract class SimpleRepository<
 				return { ok: false, code: "url-occupied", message: "Этот URL уже занят в данном справочнике." };
 			}
 			const smallItem = this.dependencies.projector.project(fullItem);
-			await this.dependencies.writeStore.upsertUserItem(smallItem, fullItem);
+			await this.dependencies.writeStore.upsertUserItem(smallItem, fullItem, context.beforeWrite);
 			await this.reloadCaches();
 			return { ok: true };
 		} catch (error) {

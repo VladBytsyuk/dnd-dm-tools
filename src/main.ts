@@ -64,9 +64,12 @@ import { createOwlbearPairingCode } from './data/owlbear/OwlbearPairing';
 import { ManualEntityArchiveService, type ManualEntityImportReport } from './data/services';
 import { PluginUpdateService } from './data/services/PluginUpdateService';
 import { MediaPlaybackService } from './data/services/MediaPlaybackService';
-import { updateVaultFilePath, type MediaState } from './domain/models/media/MediaState';
+import { createDefaultMediaState, updateVaultFilePath, type MediaState } from './domain/models/media/MediaState';
 import { PlayerPanel, AdventuresPanel } from './ui/components/sidepanel/MediaPanels';
 import { mediaItems, mediaPanel } from './domain/models/media/MediaLibrary';
+import { McpEntities } from './data/mcp/McpEntities';
+import { McpIntegrationServer, type McpRuntimeStatus, mcpUnavailableReason } from './data/mcp/McpIntegrationServer';
+import { randomBytes } from 'crypto';
 
 export type OwlbearRuntimeStatus = {
 	cloudflared: CloudflaredInstallStatus;
@@ -115,22 +118,27 @@ export default class DndStatblockPlugin extends Plugin {
 	private readonly mediaListeners = new Set<() => void>();
 	private settingsSaveQueue: Promise<void> = Promise.resolve();
 	private mediaUpdateQueue: Promise<void> = Promise.resolve();
+	private mediaState: MediaState = createDefaultMediaState();
+	private mcpServer: McpIntegrationServer | null = null;
+	private mcpStatus: McpRuntimeStatus = { running: false, port: null };
+	private mcpQueue: Promise<void> = Promise.resolve();
+	private readonly mcpListeners = new Set<() => void>();
+	private unloading = false;
 
 	#uiEventListener: IUiEventListener;
 
 	// ---- callbacks ----
 	async onload() {
 		const loadResult = loadPluginSettings(await this.loadData());
-		if (loadResult.legacyMediaBackup !== undefined) {
-			const backupPath = `${this.manifest.dir ?? `${this.app.vault.configDir}/plugins/${this.manifest.id}`}/media-v5-backup.json`;
-			if (!(await this.app.vault.adapter.exists(backupPath))) await this.app.vault.adapter.write(backupPath, JSON.stringify(loadResult.legacyMediaBackup, null, 2));
-		}
 		this.settings = loadResult.settings;
-		this.mediaPlayback = new MediaPlaybackService(this.app, () => this.settings.media, (error) => new Notice(error.message));
+		this.#database = new DB(this.app, this.manifest);
+		await this.#database.initialize();
+		this.mediaState = this.#database.media.read();
+		this.mediaPlayback = new MediaPlaybackService(this.app, () => this.mediaState, (error) => new Notice(error.message));
 		this.assistantWorkspace = this.settings.workspace;
 		this.registerEvent(this.app.vault.on("rename", (file, oldPath) => {
-			const tracked = this.settings.media.audioFiles.some((audio) => audio.path === oldPath || audio.path.startsWith(`${oldPath}/`))
-				|| [...this.settings.media.scenes, ...this.settings.media.adventures].some((item) => item.notePath && (item.notePath === oldPath || item.notePath.startsWith(`${oldPath}/`)));
+			const tracked = this.mediaState.audioFiles.some((audio) => audio.path === oldPath || audio.path.startsWith(`${oldPath}/`))
+				|| [...this.mediaState.scenes, ...this.mediaState.adventures].some((item) => item.notePath && (item.notePath === oldPath || item.notePath.startsWith(`${oldPath}/`)));
 			if (!tracked) return;
 			void this.updateMedia((media) => Object.assign(media, updateVaultFilePath(media, oldPath, file.path))).catch((error) => {
 				new Notice(error instanceof Error ? error.message : "Не удалось обновить путь файла.");
@@ -162,10 +170,13 @@ export default class DndStatblockPlugin extends Plugin {
 			console.log("dnd-dm-tools has been loaded.");
 		});
 		if (this.settings.owlbearSync.enabled) void this.prepareCloudflared();
+		if (this.settings.mcp.enabled) void this.retryMcp();
 	}
 
 	onunload() {
-		this.mediaPlayback.dispose();
+		this.unloading = true;
+		void this.mcpServer?.stop();
+		this.mediaPlayback?.dispose();
 		this.cloudflaredInstaller?.dispose();
 		void this.stopOwlbearIntegration();
 		this.#dispose();
@@ -181,7 +192,7 @@ export default class DndStatblockPlugin extends Plugin {
 		return this.settings;
 	}
 
-	getMediaState(): MediaState { return this.settings.media; }
+	getMediaState(): MediaState { return this.mediaState; }
 	getMediaPlayback(): MediaPlaybackService { return this.mediaPlayback; }
 	getEncounterManager(): EncounterManager { return this.encounterManager; }
 	async addEncounterToTracker(encounter: Encounter): Promise<void> {
@@ -196,14 +207,13 @@ export default class DndStatblockPlugin extends Plugin {
 		this.mediaPlayback.onMediaChanged();
 		for (const listener of this.mediaListeners) listener();
 	}
-	updateMedia(change: (media: MediaState) => void): Promise<void> {
+	updateMedia(change: (media: MediaState) => void, beforeWrite?: () => void): Promise<void> {
 		const operation = this.mediaUpdateQueue.catch(() => {}).then(async () => {
-			const previous = this.settings.media;
-			const media = structuredClone(previous);
+			if (this.unloading) throw new Error("Плагин выгружается.");
+			const media = structuredClone(this.mediaState);
 			change(media);
-			this.settings = { ...this.settings, media };
-			try { await this.persistSettings(); }
-			catch (error) { if (this.settings.media === media) this.settings = { ...this.settings, media: previous }; throw error; }
+			await this.#database.media.save(media, beforeWrite);
+			this.mediaState = media;
 			this.notifyMedia();
 		});
 		this.mediaUpdateQueue = operation;
@@ -214,8 +224,8 @@ export default class DndStatblockPlugin extends Plugin {
 		return this.settingsSaveQueue;
 	}
 	async activateScene(adventureId: string | null, sceneId: string): Promise<void> {
-		const adventure = this.settings.media.adventures.find((item) => item.id === adventureId);
-		const scene = this.settings.media.scenes.find((item) => item.id === sceneId);
+		const adventure = this.mediaState.adventures.find((item) => item.id === adventureId);
+		const scene = this.mediaState.scenes.find((item) => item.id === sceneId);
 		if (!scene || (adventureId !== null && !adventure?.scenes.some((item) => item.id === sceneId))) throw new Error("Сцена не найдена.");
 		await this.updateMedia((media) => {
 			media.activeAdventureId = adventureId;
@@ -225,13 +235,85 @@ export default class DndStatblockPlugin extends Plugin {
 	}
 
 	async openMediaUrl(url: string): Promise<void> {
-		const item = mediaItems(this.settings.media).find((entry) => entry.url === url);
+		const item = mediaItems(this.mediaState).find((entry) => entry.url === url);
 		if (item) await this.panelManager.openItem(mediaPanel(item.mediaRoute.kind), item);
 	}
 	async openMediaNote(path: string): Promise<void> {
 		const file = this.app.vault.getFileByPath(path);
 		if (!file) throw new Error(`Заметка не найдена: ${path}`);
 		await this.app.workspace.getLeaf("tab").openFile(file);
+	}
+
+	getMcpRuntimeStatus(): McpRuntimeStatus { return this.mcpStatus; }
+	getMcpUnavailableReason(): string | null { return mcpUnavailableReason(Platform.isDesktopApp); }
+	subscribeMcpRuntimeStatus(listener: () => void): () => void {
+		this.mcpListeners.add(listener);
+		return () => this.mcpListeners.delete(listener);
+	}
+	private setMcpStatus(status: McpRuntimeStatus): void {
+		this.mcpStatus = status;
+		for (const listener of this.mcpListeners) listener();
+	}
+	async setMcpEnabled(enabled: boolean): Promise<void> {
+		if (enabled && this.getMcpUnavailableReason()) throw new Error(this.getMcpUnavailableReason()!);
+		if (!enabled) {
+			// Revoke access immediately, even while settings persistence is queued.
+			const server = this.mcpServer;
+			this.mcpServer = null;
+			const stopped = server?.stop();
+			this.mcpQueue = Promise.allSettled([this.mcpQueue, stopped]).then(() => {});
+		}
+		await this.updateSettings({ mcp: { ...this.settings.mcp, enabled } });
+		await this.retryMcp();
+	}
+	retryMcp(): Promise<void> {
+		const operation = this.mcpQueue.catch(() => {}).then(async () => {
+			await this.mcpServer?.stop();
+			this.mcpServer = null;
+			this.setMcpStatus({ running: false, port: this.settings.mcp.port });
+			if (this.unloading || !this.settings.mcp.enabled) return;
+			try {
+				const unavailable = this.getMcpUnavailableReason();
+				if (unavailable) throw new Error(unavailable);
+				if (!this.settings.mcp.authToken) {
+					await this.updateSettings({ mcp: { ...this.settings.mcp, authToken: randomBytes(32).toString("hex") } });
+				}
+				if (this.unloading || !this.settings.mcp.enabled) return;
+				const entities = new McpEntities({
+					repositories: {
+						bestiary: this.bestiaryFeature.repository!, spellbook: this.spellbookFeature.repository!,
+						arsenal: this.arsenalFeature.repository!, armory: this.armoryFeature.repository!,
+						equipment: this.equipmentFeature.repository!, artifactory: this.artifactoryFeature.repository!,
+						backgrounds: this.backgroundFeature.repository!, feats: this.featFeature.repository!, races: this.raceFeature.repository!,
+					},
+					getMediaState: () => this.getMediaState(),
+					getVaultAudioPaths: () => this.app.vault.getFiles().map((file) => file.path),
+					updateMedia: (change, beforeWrite) => this.updateMedia(change, beforeWrite),
+					onEntitySaved: (kind, url) => {
+						const repositories = {
+							bestiary: this.bestiaryFeature.repository, spellbook: this.spellbookFeature.repository,
+							arsenal: this.arsenalFeature.repository, armory: this.armoryFeature.repository,
+							equipment: this.equipmentFeature.repository, artifactory: this.artifactoryFeature.repository,
+							backgrounds: this.backgroundFeature.repository, feats: this.featFeature.repository, races: this.raceFeature.repository,
+						};
+						if (kind in repositories) repositories[kind as keyof typeof repositories]?.notifyExternalChange?.(url);
+					},
+				});
+				const server = new McpIntegrationServer(entities, this.manifest.version, this.settings.mcp.authToken!);
+				this.mcpServer = server;
+				const port = await server.start(this.settings.mcp.port ?? 0);
+				if (this.unloading || !this.settings.mcp.enabled) { await server.stop(); return; }
+				await this.updateSettings({ mcp: { ...this.settings.mcp, port } });
+				if (this.unloading || !this.settings.mcp.enabled) { await server.stop(); return; }
+				this.setMcpStatus({ running: true, port });
+			} catch (error) {
+				await this.mcpServer?.stop();
+				this.mcpServer = null;
+				this.setMcpStatus({ running: false, port: this.settings.mcp.port, error: formatOwlbearError(error) });
+			}
+		});
+		this.mcpQueue = operation;
+		return operation;
 	}
 
 	getPluginUpdateService(): PluginUpdateService { return this.pluginUpdateService; }
@@ -249,7 +331,7 @@ export default class DndStatblockPlugin extends Plugin {
 		this.settings = {
 			...this.settings,
 			...patch,
-			schemaVersion: 7,
+			schemaVersion: 8,
 		};
 		this.assistantWorkspace = this.settings.workspace;
 		await this.persistSettings();
@@ -642,9 +724,6 @@ export default class DndStatblockPlugin extends Plugin {
 	async #initialize(
 		callback: () => void,
 	) {
-		this.#database = new DB(this.app, this.manifest);
-		await this.#database.initialize();
-
 		this.#uiEventListener = new UiEventListener(
 			this.app,
 			() => this.bestiaryFeature,
@@ -712,8 +791,10 @@ export default class DndStatblockPlugin extends Plugin {
 	}
 
 	#dispose() {
-		this.panelManager.dispose();
-		this.features.forEach(feature => feature.dispose());
+		this.panelManager?.dispose();
+		const disposedFeatures = this.features?.map(feature => feature.dispose()) ?? [];
+		void Promise.allSettled([...disposedFeatures, this.mediaUpdateQueue, this.mcpQueue, this.mcpServer?.stop()])
+			.then(() => this.#database.dispose());
 	}
 }
 

@@ -132,6 +132,23 @@ describe("GenericSqlItemReadStore", () => {
 });
 
 describe("GenericSqlItemWriteStore", () => {
+	it("checks optimistic conditions inside the transaction before any DAO operation", async () => {
+		const smallDao = createSmallDao(), fullDao = createFullDao();
+		const transactions = new TransactionalStoreSpy();
+		const store = new GenericSqlItemWriteStore(smallDao, fullDao, transactions);
+		const guard = vi.fn(async () => {
+			expect(transactions.calls.map((call) => call.method)).toEqual(["begin"]);
+			throw new Error("Concurrent edit");
+		});
+		await expect(store.upsertUserItem(smallItem, fullItem, guard)).rejects.toThrow("Concurrent edit");
+		expect(guard).toHaveBeenCalledOnce();
+		expect(smallDao.readItemByUrl).not.toHaveBeenCalled();
+		expect(fullDao.readItemByUrl).not.toHaveBeenCalled();
+		expect(smallDao.createItem).not.toHaveBeenCalled();
+		expect(fullDao.updateItem).not.toHaveBeenCalled();
+		expect(transactions.calls.map((call) => call.method)).toEqual(["begin", "rollback"]);
+	});
+
 	it("saves fetched full items without writing small records", async () => {
 		const smallDao = createSmallDao();
 		const fullDao = createFullDao();

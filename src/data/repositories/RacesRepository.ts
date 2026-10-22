@@ -199,7 +199,7 @@ export class RacesRepository
 			if (remoteCollision) {
 				return { ok: false, code: "url-occupied", message: `URL ${remoteCollision} уже занят встроенной расой.` };
 			}
-			await this.#raceStore.saveManualRaceTree(fullItem, context.parentUrl ?? null);
+			await this.#raceStore.saveManualRaceTree(fullItem, context.parentUrl ?? null, context.beforeWrite);
 			await this.reloadCaches();
 			return { ok: true };
 		} catch {

@@ -63,6 +63,7 @@
     let currentItem: BaseItem | undefined = $state(getInitialFullItem() || undefined);
     let detailEditing = $state(false);
     let detailSaving = $state(false);
+    let pendingExternalUrl: string | null = null;
     let toolbarActionRequest = $state<{ id: number; command: "edit" | "save" | "cancel" | "copy" | "paste" }>({ id: 0, command: "edit" });
     let groups: Group<BaseItem>[] = $state([]);
     let favoriteGroupItems: BaseItem[] = $state([]);
@@ -90,7 +91,32 @@
     const revealingGroups = new Set<string>();
 
     // ---- Lifecycle ----  
-    onMount(() => updateGroups()); 
+    onMount(() => {
+        void updateGroups();
+        let active = true;
+        const unsubscribe = repository.subscribeExternalChanges?.((url: string) => {
+            void updateGroups();
+            if (currentItem?.url !== url) return;
+            pendingExternalUrl = url;
+            if (!detailEditing && !detailSaving) void refreshCurrentExternalItem(() => active);
+        });
+        return () => { active = false; unsubscribe?.(); };
+    });
+
+    async function refreshCurrentExternalItem(isActive: () => boolean = () => true) {
+        const url = currentItem?.url;
+        if (!url) return;
+        try {
+            const item = await repository.getFullItemByUrl(url);
+            if (isActive() && item && currentItem?.url === url && !detailEditing && !detailSaving) {
+                currentItem = item;
+                itemsStack = itemsStack.map((entry) => entry.url === url ? item : entry);
+                pendingExternalUrl = null;
+            }
+        } catch (error) {
+            loadError = error instanceof Error ? error.message : "Не удалось обновить карточку.";
+        }
+    }
 
     // ---- Event Handlers ----
     function onSearchBarBackClick() {
@@ -123,6 +149,7 @@
     function onRedesignedEditorStateChange(state: { editing: boolean; saving: boolean }) {
         detailEditing = state.editing;
         detailSaving = state.saving;
+        if (!state.editing && !state.saving && pendingExternalUrl === currentItem?.url) void refreshCurrentExternalItem();
     }
 
     async function onSearchBarFiltersClick() {

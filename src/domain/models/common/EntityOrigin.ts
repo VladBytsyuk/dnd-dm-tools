@@ -19,6 +19,8 @@ export interface ItemSaveContext {
 	originalUrl?: string;
 	originalOrigin?: EntityOrigin;
 	parentUrl?: string;
+	/** Revalidate optimistic conditions within the serialized write transaction. */
+	beforeWrite?: () => Promise<void>;
 }
 
 export type ItemSaveResult =

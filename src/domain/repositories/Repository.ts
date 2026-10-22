@@ -13,6 +13,9 @@ export interface Repository<SmallItem extends BaseItem, FullItem extends SmallIt
 	favorites?: FavoriteAccess;
 	getFavoriteSmallItems?(filter: Filter | null): Promise<SmallItem[]>;
 
+    subscribeExternalChanges?(listener: (url: string) => void): () => void;
+    notifyExternalChange?(url: string): void;
+
     getAllFilters(): Promise<Filter | null>;
 
     getAllSmallItems(): Promise<SmallItem[]>;
