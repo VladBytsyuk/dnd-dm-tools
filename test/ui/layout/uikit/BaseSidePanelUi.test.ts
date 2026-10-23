@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { tick } from "svelte";
 import BaseSidePanelUi from "src/ui/layout/uikit/BaseSidePanelUi.svelte";
 import { EmptyFullMonster } from "src/domain/models/monster/FullMonster";
+import { EmptyFullRace } from "src/domain/models/race/FullRace";
+import type { BaseItem } from "src/domain/models/common/BaseItem";
 
 let originalArrayLast: PropertyDescriptor | undefined;
 beforeEach(() => {
@@ -18,8 +20,8 @@ afterEach(() => {
 	vi.unstubAllGlobals();
 });
 
-function setup() {
-	const item = { ...EmptyFullMonster(), name: { rus: "Монстр", eng: "Monster" }, url: "/bestiary/monster", origin: "manual" as const };
+function setup(options: { panelKey?: "bestiary" | "races"; item?: BaseItem } = {}) {
+	const item = options.item ?? { ...EmptyFullMonster(), name: { rus: "Монстр", eng: "Monster" }, url: "/bestiary/monster", origin: "manual" as const };
 	let currentItem = item;
 	let items = [item];
 	const externalListeners = new Set<(url: string) => void>();
@@ -27,6 +29,7 @@ function setup() {
 	const favorites = new Set<string>();
 	const repository = {
 		createEmptyFullItem: () => undefined,
+		getAllSmallItems: vi.fn(async () => items),
 		getFilteredSmallItems: vi.fn(async () => items),
 		groupItems: vi.fn(async (items: unknown[]) => items.length ? [{ sort: "0", smallItems: items }] : []),
 		getFullItemBySmallItem: vi.fn(async () => currentItem),
@@ -43,7 +46,7 @@ function setup() {
 		},
 	};
 	const view = render(BaseSidePanelUi, {
-		panelKey: "bestiary", initialFilters: {}, repository,
+		panelKey: options.panelKey ?? "bestiary", initialFilters: {}, repository,
 		filterConfig: [], groupTitleBuilder: () => "Существа",
 		uiEventListener: { onImageRequested: vi.fn() },
 	});
@@ -52,6 +55,15 @@ function setup() {
 		externalChange(name: string, url = item.url) {
 			currentItem = { ...currentItem, name: { ...currentItem.name, rus: name } };
 			items = [currentItem];
+			for (const listener of externalListeners) listener(url);
+		},
+		externalUpdate<T extends BaseItem>(next: T, url = next.url) {
+			currentItem = next;
+			items = [next];
+			for (const listener of externalListeners) listener(url);
+		},
+		externalDelete(url = item.url) {
+			items = items.filter(entry => entry.url !== url);
 			for (const listener of externalListeners) listener(url);
 		},
 	};
@@ -162,5 +174,78 @@ describe("external entity changes", () => {
 		test.externalChange("Изменение после закрытия");
 		expect(test.repository.getFilteredSmallItems).toHaveBeenCalledOnce();
 		expect(test.repository.getFullItemByUrl).not.toHaveBeenCalled();
+	});
+
+	it("closes a deleted clean card without attempting a remote full-card load", async () => {
+		const test = setup();
+		await fireEvent.click(await screen.findByText("Монстр"));
+		test.externalDelete();
+		await waitFor(() => expect(test.container.querySelector(".redesigned-full-item")).toBeNull());
+		expect(screen.queryByText("Монстр")).toBeNull();
+		expect(test.repository.getAllSmallItems).toHaveBeenCalledOnce();
+		expect(test.repository.getFullItemByUrl).not.toHaveBeenCalled();
+		expect(test.repository.putItem).not.toHaveBeenCalled();
+	});
+
+	it("preserves a deleted card's unsaved draft until cancellation, then closes it locally", async () => {
+		const test = setup();
+		await fireEvent.click(await screen.findByText("Монстр"));
+		await fireEvent.click(screen.getByRole("button", { name: "Редактировать", exact: true }));
+		await fireEvent.input(await screen.findByDisplayValue("Монстр"), { target: { value: "Черновик удалённой карточки" } });
+		test.externalDelete();
+		await waitFor(() => expect(test.repository.getFilteredSmallItems).toHaveBeenCalledTimes(2));
+		expect(screen.getByDisplayValue("Черновик удалённой карточки")).toBeTruthy();
+		expect(test.repository.getAllSmallItems).not.toHaveBeenCalled();
+		expect(test.repository.getFullItemByUrl).not.toHaveBeenCalled();
+		await fireEvent.click(screen.getByRole("button", { name: "Отмена", exact: true }));
+		await waitFor(() => expect(test.container.querySelector(".redesigned-full-item")).toBeNull());
+		expect(test.repository.getFullItemByUrl).not.toHaveBeenCalled();
+		expect(test.repository.putItem).not.toHaveBeenCalled();
+	});
+});
+
+describe("external changes to open race trees", () => {
+	function races() {
+		const descendant = { ...EmptyFullRace(), name: { rus: "Дочерняя подраса", eng: "Descendant" }, url: "/races/descendant", origin: "manual" as const };
+		const child = { ...EmptyFullRace(), name: { rus: "Подраса", eng: "Child" }, url: "/races/child", origin: "manual" as const, subraces: [descendant] };
+		const parent = { ...EmptyFullRace(), name: { rus: "Родительская раса", eng: "Parent" }, url: "/races/parent", origin: "manual" as const, subraces: [child] };
+		return { parent, child, descendant };
+	}
+
+	it("refreshes an open parent when a nested descendant changes", async () => {
+		const { parent, descendant } = races();
+		const test = setup({ panelKey: "races", item: parent });
+		await fireEvent.click(await screen.findByText("Родительская раса"));
+		test.externalUpdate({ ...parent, description: "Обновлённая родительская карточка" }, descendant.url);
+		await screen.findByText("Обновлённая родительская карточка");
+		expect(test.repository.getFullItemByUrl).toHaveBeenCalledWith(parent.url);
+		expect(test.repository.getFullItemByUrl).not.toHaveBeenCalledWith(descendant.url);
+	});
+
+	it("keeps an edited parent draft until cancellation after a descendant changes", async () => {
+		const { parent, child } = races();
+		const test = setup({ panelKey: "races", item: parent });
+		await fireEvent.click(await screen.findByText("Родительская раса"));
+		await fireEvent.click(screen.getByRole("button", { name: "Редактировать", exact: true }));
+		await fireEvent.input(await screen.findByDisplayValue("Родительская раса"), { target: { value: "Несохранённая раса" } });
+		test.externalUpdate({ ...parent, description: "Обновление связанной подрасы" }, child.url);
+		await waitFor(() => expect(test.repository.getFilteredSmallItems).toHaveBeenCalledTimes(2));
+		expect(screen.getByDisplayValue("Несохранённая раса")).toBeTruthy();
+		expect(test.repository.getFullItemByUrl).not.toHaveBeenCalled();
+		await fireEvent.click(screen.getByRole("button", { name: "Отмена", exact: true }));
+		await screen.findByText("Обновление связанной подрасы");
+		expect(test.repository.getFullItemByUrl).toHaveBeenCalledWith(parent.url);
+		expect(test.repository.putItem).not.toHaveBeenCalled();
+	});
+
+	it("recognizes an open subrace in the local parent tree before refreshing it", async () => {
+		const { parent, child } = races();
+		const test = setup({ panelKey: "races", item: child });
+		test.repository.getAllSmallItems.mockResolvedValue([parent]);
+		await fireEvent.click(await screen.findByText("Подраса"));
+		test.externalUpdate({ ...child, description: "Обновлённая вложенная подраса" });
+		await screen.findByText("Обновлённая вложенная подраса");
+		expect(test.repository.getFullItemByUrl).toHaveBeenCalledWith(child.url);
+		expect(test.container.querySelector(".redesigned-full-item")).toBeTruthy();
 	});
 });

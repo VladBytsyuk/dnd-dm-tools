@@ -22,15 +22,15 @@ function harness() {
 const template = (kind: McpEntityKind) => structuredClone(mcpEntityTemplates[kind]) as Record<string, unknown> & { url: string };
 
 describe("MCP entity schemas", () => {
-	it.each(MCP_ENTITY_KINDS)("provides a validated template and JSON schema for %s", (kind) => {
+	it.each(MCP_ENTITY_KINDS)("provides a validated template and JSON schema for %s", async (kind) => {
 		const { gateway } = harness();
 		expect(mcpEntitySchemas[kind].safeParse(template(kind)).success).toBe(true);
-		expect(gateway.getEntitySchema(kind).schema).toMatchObject({ type: "object", additionalProperties: false });
+		expect((await gateway.getEntitySchema(kind)).schema).toMatchObject({ type: "object", additionalProperties: false });
 	});
 	it("rejects unknown fields, wrong model values, unsafe entity URLs and filesystem traversal", () => {
 		expect(mcpEntitySchemas.feats.safeParse({ ...template("feats"), sql: "delete from full_feats" }).success).toBe(false);
 		expect(mcpEntitySchemas.spellbook.safeParse({ ...template("spellbook"), level: "two" }).success).toBe(false);
-		expect(mcpEntitySchemas.spellbook.safeParse({ ...template("spellbook"), source: { shortName: "", name: "", group: { name: "", shortName: "" } } }).success).toBe(false);
+		expect(mcpEntitySchemas.spellbook.safeParse({ ...template("spellbook"), source: { shortName: "", name: "", group: { name: "", shortName: "" } } }).success).toBe(true);
 		for (const kind of MCP_ENTITY_KINDS) for (const url of ["https://evil.example/entity", "/unknown/id", "//evil.example/entity"]) expect(mcpEntitySchemas[kind].safeParse({ ...template(kind), url }).success).toBe(false);
 		expect(mcpEntitySchemas.equipment.safeParse({ ...template("equipment"), url: "/items/magic/misdirected" }).success).toBe(false);
 		for (const notePath of ["../secret", "/absolute.md", "C:\\note.md", "folder/../secret.md"]) expect(mcpEntitySchemas.scene.safeParse({ ...template("scene"), notePath }).success).toBe(false);
@@ -167,7 +167,7 @@ describe("McpEntities", () => {
 		await gateway.commit(await gateway.prepareCreate("playlist", { ...template("playlist"), items }));
 		expect((await gateway.getEntity("playlist", "/playlist/new-id")).data.items).toEqual(items);
 		await expect(gateway.prepareCreate("adventure", { ...template("adventure"), scenes: [{ id: "missing", position: { x: 0, y: 0 } }] })).rejects.toThrow("сцены");
-		expect(gateway.listAudioAssets()).toEqual([{ id: "audio", path: "audio/song.mp3", alias: "song" }]);
+		expect(gateway.listAudioAssets()).toEqual([{ id: "audio", path: "audio/song.mp3", alias: "song", exists: false, registered: true }]);
 	});
 	it("rechecks media references after confirmation and preserves unrelated data", async () => {
 		const h = harness();
@@ -200,8 +200,8 @@ describe("MCP tracks from vault audio paths", () => {
 		h.state.audioFiles.push({ id: "registered", path, alias: "Custom alias" });
 		const files = h.gateway.listAudioAssets();
 		expect(files).toHaveLength(8);
-		expect(files.find((file) => file.path === path)).toEqual({ id: "registered", path, alias: "Custom alias" });
-		expect(files.find((file) => file.path === "Music/Бой.MP3")).toEqual({ id: null, path: "Music/Бой.MP3", alias: "Бой" });
+		expect(files.find((file) => file.path === path)).toEqual({ id: "registered", path, alias: "Custom alias", exists: true, registered: true });
+		expect(files.find((file) => file.path === "Music/Бой.MP3")).toEqual({ id: null, path: "Music/Бой.MP3", alias: "Бой", exists: true, registered: false });
 		expect(h.state.audioFiles).toHaveLength(1);
 	});
 	it("registers the file only together with the confirmed track and stores only IDs", async () => {

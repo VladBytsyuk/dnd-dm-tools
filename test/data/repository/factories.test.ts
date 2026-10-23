@@ -34,12 +34,13 @@ import { fullRace1, fullRace1Subrace } from "../../__mocks__/domain/models/race/
 import type { DmScreenItem } from "src/domain/models/dm_screen/DmScreenItem";
 
 function createDao(overrides: Record<string, unknown> = {}) {
+	const persisted = new Map<string, any>();
 	return {
 		readAllItems: vi.fn(async () => []),
 		readAllItemsNames: vi.fn(async () => []),
 		readItemByName: vi.fn(async () => null),
-		readItemByUrl: vi.fn(async () => null),
-		createItem: vi.fn(async () => undefined),
+		readItemByUrl: vi.fn(async (url: string) => persisted.get(url) ?? null),
+		createItem: vi.fn(async (item: any) => { persisted.set(item.url, item); }),
 		updateItem: vi.fn(async () => undefined),
 		deleteItemByUrl: vi.fn(async () => undefined),
 		...overrides,

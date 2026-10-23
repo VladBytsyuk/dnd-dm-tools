@@ -33,6 +33,7 @@ import type { EntityKind } from 'src/domain/models/common/EntityOrigin';
 import { DatabaseSeedOrchestrator, bundledEntityUrlsByKind } from 'src/data/services';
 import { DbTransactionalStore, SeedStore } from 'src/data/stores';
 import { MediaSqlDao } from './MediaSqlDao';
+import { McpOperationsDao } from './McpOperationsDao';
 import { MediaStore } from 'src/data/stores/MediaStore';
 
 export default class DB implements Initializable {
@@ -70,6 +71,7 @@ export default class DB implements Initializable {
     public favorites: FavoritesStore;
     public mediaDao: MediaSqlDao;
     public media: MediaStore;
+    public mcpOperationsDao: McpOperationsDao;
 
     constructor(
         private app: App,
@@ -117,6 +119,7 @@ export default class DB implements Initializable {
             this.entityOriginDao = new EntityOriginDao(database);
             this.favoritesDao = new FavoritesDao(database);
             this.favorites = new FavoritesStore(this.favoritesDao, new DbTransactionalStore(this));
+            this.mcpOperationsDao = new McpOperationsDao(database);
             this.mediaDao = new MediaSqlDao(database);
             this.media = new MediaStore(this.mediaDao, new DbTransactionalStore(this));
 
@@ -132,13 +135,15 @@ export default class DB implements Initializable {
                 await this.entityOriginDao.initialize();
                 this.favoritesDao.initialize();
                 this.mediaDao.initialize();
+                this.mcpOperationsDao.initialize();
+                this.mcpOperationsDao.interruptPending();
                 await Promise.all(
                     sqlTableDaos.map(tableDao => tableDao.initialize())
                 );
                 this.smallArmorDao.ensureWeightColumn();
                 this.fullRaceDao.ensureAdditionalSectionsColumn();
                 this.fullBackgroundDao.ensureDetailColumns();
-                this.fullMonsterDao.ensureDescriptionColumn();
+                this.fullMonsterDao.ensureDetailColumns();
             });
 
             await this.createSeedOrchestrator().seedAll();
@@ -161,6 +166,10 @@ export default class DB implements Initializable {
         this.liveDatabase?.close();
         this.liveDatabase = null;
         this.database = null;
+    }
+
+    async whenIdle(): Promise<void> {
+        await this.transactionQueue;
     }
 
     async transaction(callback: (database: Database) => Promise<void>) {
@@ -199,10 +208,31 @@ export default class DB implements Initializable {
         
         const databaseData = this.database.export();
         const buffer = Buffer.from(databaseData);
-        await this.app.vault.adapter.writeBinary(
-            this.databasePath,
-            buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
-        );
+        const adapter = this.app.vault.adapter;
+        if (typeof FileSystemAdapter !== 'undefined' && adapter instanceof FileSystemAdapter) {
+            const target = this.pluginFile('database.db', true);
+            const temporary = `${target}.tmp`;
+            try {
+                // Same-directory rename keeps the previous database intact until the
+                // complete replacement has been flushed successfully.
+                const file = await fs.promises.open(temporary, 'w', 0o600);
+                try {
+                    await file.writeFile(buffer);
+                    await file.sync();
+                } finally {
+                    await file.close();
+                }
+                await fs.promises.rename(temporary, target);
+            } catch (error) {
+                await fs.promises.unlink(temporary).catch(() => undefined);
+                throw error;
+            }
+        } else {
+            await adapter.writeBinary(
+                this.databasePath,
+                buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
+            );
+        }
     }
 
     private initDaos(database: Database): Dao<any, any>[] {

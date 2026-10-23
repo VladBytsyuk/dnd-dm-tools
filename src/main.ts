@@ -67,7 +67,8 @@ import { MediaPlaybackService } from './data/services/MediaPlaybackService';
 import { createDefaultMediaState, updateVaultFilePath, type MediaState } from './domain/models/media/MediaState';
 import { PlayerPanel, AdventuresPanel } from './ui/components/sidepanel/MediaPanels';
 import { mediaItems, mediaPanel } from './domain/models/media/MediaLibrary';
-import { McpEntities } from './data/mcp/McpEntities';
+import { McpEntities, mcpEntityRevision, type McpEntitiesDependencies } from './data/mcp/McpEntities';
+import { createMcpPersistence } from './data/mcp/McpPersistence';
 import { McpIntegrationServer, type McpRuntimeStatus, mcpUnavailableReason } from './data/mcp/McpIntegrationServer';
 import { randomBytes } from 'crypto';
 
@@ -120,6 +121,8 @@ export default class DndStatblockPlugin extends Plugin {
 	private mediaUpdateQueue: Promise<void> = Promise.resolve();
 	private mediaState: MediaState = createDefaultMediaState();
 	private mcpServer: McpIntegrationServer | null = null;
+	private mcpEntities: McpEntities | null = null;
+	private mcpGeneration = 0;
 	private mcpStatus: McpRuntimeStatus = { running: false, port: null };
 	private mcpQueue: Promise<void> = Promise.resolve();
 	private readonly mcpListeners = new Set<() => void>();
@@ -256,64 +259,122 @@ export default class DndStatblockPlugin extends Plugin {
 	}
 	async setMcpEnabled(enabled: boolean): Promise<void> {
 		if (enabled && this.getMcpUnavailableReason()) throw new Error(this.getMcpUnavailableReason()!);
-		if (!enabled) {
-			// Revoke access immediately, even while settings persistence is queued.
-			const server = this.mcpServer;
-			this.mcpServer = null;
-			const stopped = server?.stop();
-			this.mcpQueue = Promise.allSettled([this.mcpQueue, stopped]).then(() => {});
-		}
-		await this.updateSettings({ mcp: { ...this.settings.mcp, enabled } });
-		await this.retryMcp();
+		await this.configureMcp({ enabled });
 	}
-	retryMcp(): Promise<void> {
-		const operation = this.mcpQueue.catch(() => {}).then(async () => {
-			await this.mcpServer?.stop();
-			this.mcpServer = null;
-			this.setMcpStatus({ running: false, port: this.settings.mcp.port });
-			if (this.unloading || !this.settings.mcp.enabled) return;
-			try {
-				const unavailable = this.getMcpUnavailableReason();
-				if (unavailable) throw new Error(unavailable);
-				if (!this.settings.mcp.authToken) {
-					await this.updateSettings({ mcp: { ...this.settings.mcp, authToken: randomBytes(32).toString("hex") } });
-				}
-				if (this.unloading || !this.settings.mcp.enabled) return;
-				const entities = new McpEntities({
-					repositories: {
-						bestiary: this.bestiaryFeature.repository!, spellbook: this.spellbookFeature.repository!,
-						arsenal: this.arsenalFeature.repository!, armory: this.armoryFeature.repository!,
-						equipment: this.equipmentFeature.repository!, artifactory: this.artifactoryFeature.repository!,
-						backgrounds: this.backgroundFeature.repository!, feats: this.featFeature.repository!, races: this.raceFeature.repository!,
-					},
-					getMediaState: () => this.getMediaState(),
-					getVaultAudioPaths: () => this.app.vault.getFiles().map((file) => file.path),
-					updateMedia: (change, beforeWrite) => this.updateMedia(change, beforeWrite),
-					onEntitySaved: (kind, url) => {
-						const repositories = {
-							bestiary: this.bestiaryFeature.repository, spellbook: this.spellbookFeature.repository,
-							arsenal: this.arsenalFeature.repository, armory: this.armoryFeature.repository,
-							equipment: this.equipmentFeature.repository, artifactory: this.artifactoryFeature.repository,
-							backgrounds: this.backgroundFeature.repository, feats: this.featFeature.repository, races: this.raceFeature.repository,
-						};
-						if (kind in repositories) repositories[kind as keyof typeof repositories]?.notifyExternalChange?.(url);
-					},
-				});
-				const server = new McpIntegrationServer(entities, this.manifest.version, this.settings.mcp.authToken!);
-				this.mcpServer = server;
-				const port = await server.start(this.settings.mcp.port ?? 0);
-				if (this.unloading || !this.settings.mcp.enabled) { await server.stop(); return; }
-				await this.updateSettings({ mcp: { ...this.settings.mcp, port } });
-				if (this.unloading || !this.settings.mcp.enabled) { await server.stop(); return; }
-				this.setMcpStatus({ running: true, port });
-			} catch (error) {
-				await this.mcpServer?.stop();
-				this.mcpServer = null;
-				this.setMcpStatus({ running: false, port: this.settings.mcp.port, error: formatOwlbearError(error) });
-			}
+	async setMcpPort(port: number | null): Promise<void> {
+		if (port !== null && (!Number.isInteger(port) || port < 1024 || port > 65535)) throw new Error("Порт MCP должен быть целым числом от 1024 до 65535.");
+		await this.configureMcp({ port });
+	}
+	async setMcpReadOnly(readOnly: boolean): Promise<void> {
+		await this.configureMcp({ readOnly });
+	}
+	async rotateMcpToken(): Promise<void> {
+		await this.configureMcp({ authToken: randomBytes(32).toString("hex") });
+	}
+	private configureMcp(patch: Partial<PluginSettingsState["mcp"]>): Promise<void> {
+		return this.queueMcpRestart(async () => {
+			await this.updateSettings({ mcp: { ...this.settings.mcp, ...patch } });
+		});
+	}
+	retryMcp(): Promise<void> { return this.queueMcpRestart(); }
+	private queueMcpRestart(persist?: () => Promise<void>): Promise<void> {
+		const generation = ++this.mcpGeneration;
+		// Revocation starts synchronously: old clients and pending confirmations lose access
+		// before any queued settings save or startup can finish.
+		const server = this.mcpServer;
+		this.mcpServer = null;
+		const stopped = server?.stop();
+		this.setMcpStatus({ running: false, port: this.settings.mcp.port });
+		const settled = Promise.allSettled([this.mcpQueue, stopped]);
+		const operation = settled.then(async ([, stopResult]) => {
+			if (stopResult.status === "rejected") throw stopResult.reason;
+			await persist?.();
+			if (generation === this.mcpGeneration && !this.unloading) await this.startMcp(generation);
+		}).catch((error) => {
+			if (generation === this.mcpGeneration) this.setMcpStatus({ running: false, port: this.settings.mcp.port, error: formatOwlbearError(error) });
+			throw error;
 		});
 		this.mcpQueue = operation;
 		return operation;
+	}
+	private async startMcp(generation: number): Promise<void> {
+		const active = () => generation === this.mcpGeneration && !this.unloading && this.settings.mcp.enabled;
+		if (!active()) return;
+		let server: McpIntegrationServer | null = null;
+		try {
+			const unavailable = this.getMcpUnavailableReason();
+			if (unavailable) throw new Error(unavailable);
+			if (!this.settings.mcp.authToken) {
+				await this.updateSettings({ mcp: { ...this.settings.mcp, authToken: randomBytes(32).toString("hex") } });
+			}
+			if (!active()) return;
+			const entities = this.getMcpEntities();
+			server = new McpIntegrationServer(entities, this.manifest.version, this.settings.mcp.authToken!, this.settings.mcp.readOnly);
+			this.mcpServer = server;
+			const port = await server.start(this.settings.mcp.port ?? 0);
+			if (!active()) { await server.stop(); return; }
+			await this.updateSettings({ mcp: { ...this.settings.mcp, port } });
+			if (!active()) { await server.stop(); return; }
+			this.setMcpStatus({ running: true, port });
+		} catch (error) {
+			await server?.stop();
+			if (this.mcpServer === server) this.mcpServer = null;
+			if (generation === this.mcpGeneration) this.setMcpStatus({ running: false, port: this.settings.mcp.port, error: formatOwlbearError(error) });
+		}
+	}
+
+	private getMcpEntities(): McpEntities {
+		if (this.mcpEntities) return this.mcpEntities;
+		const repositories = {
+			bestiary: this.bestiaryFeature.repository!, spellbook: this.spellbookFeature.repository!,
+			arsenal: this.arsenalFeature.repository!, armory: this.armoryFeature.repository!,
+			equipment: this.equipmentFeature.repository!, artifactory: this.artifactoryFeature.repository!,
+			backgrounds: this.backgroundFeature.repository!, feats: this.featFeature.repository!, races: this.raceFeature.repository!,
+		};
+		const dependencies: McpEntitiesDependencies = {
+			repositories, getMediaState: () => this.getMediaState(),
+			readBarrier: () => this.#database.whenIdle(),
+			getVaultAudioPaths: () => this.app.vault.getFiles().map(file => file.path),
+			updateMedia: (change, beforeWrite) => this.updateMedia(change, beforeWrite),
+			assertRemovable: (kind, data) => {
+				if (this.encounterManager.current.encounter.participants.some(item => item.url === data.url)) throw new Error("Запись используется в текущем столкновении.");
+				const playback = this.mediaPlayback.getSnapshot();
+				if ((kind === "track" && playback.trackId === data.id) || (kind === "playlist" && playback.playlistId === data.id)) throw new Error("Запись выбрана в медиаплеере.");
+			},
+			onEntitySaved: (kind, url) => { if (kind in repositories) repositories[kind as keyof typeof repositories].notifyExternalChange?.(url); },
+		};
+		const persistence = createMcpPersistence(this.#database, dependencies, media => {
+			this.mediaState = media;
+			this.notifyMedia();
+		}, <T>(callback: () => Promise<T>): Promise<T> => {
+			const operation = this.mediaUpdateQueue.catch(() => {}).then(callback);
+			this.mediaUpdateQueue = operation.then(() => {});
+			return operation;
+		});
+		this.mcpEntities = new McpEntities({ ...dependencies, ...persistence });
+		return this.mcpEntities;
+	}
+	async listMcpOperations(offset = 0, limit = 20) {
+		await this.#database.whenIdle();
+		return this.getMcpEntities().listOperations(offset, limit);
+	}
+	async getMcpOperation(id: string, includeChanges = false) {
+		await this.#database.whenIdle();
+		return this.getMcpEntities().getOperation(id, includeChanges);
+	}
+	async undoMcpOperation(targetOperationId: string): Promise<void> {
+		const assertActive = () => { if (this.unloading || this.settings.mcp.readOnly) throw new Error("Изменения MCP запрещены."); };
+		assertActive();
+		const entities = this.getMcpEntities();
+		const operationId = randomBytes(16).toString("hex");
+		await entities.beginOperation(operationId, mcpEntityRevision({ undo: targetOperationId }));
+		try {
+			const prepared = await entities.prepareUndo(targetOperationId);
+			await entities.commitOperation(operationId, prepared, assertActive, targetOperationId);
+		} catch (error) {
+			await entities.finishOperation(operationId, "failed", { code: "undo_failed", message: error instanceof Error ? error.message : String(error) });
+			throw error;
+		}
 	}
 
 	getPluginUpdateService(): PluginUpdateService { return this.pluginUpdateService; }

@@ -11,7 +11,7 @@ import {
 	spellMapper,
 	weaponMapper,
 } from "src/data/mappers/sourceMappers";
-import type { FullItemMapper, FullItemReadService, ServiceResult } from "src/data/ports";
+import type { FullItemMapper, FullItemReadService, ServiceResult, TransactionalStore } from "src/data/ports";
 import { smallItemProjectors } from "src/data/projectors/smallItemProjectors";
 import type { TtgApiRequestOptions, TtgItemWithHtml, TtgJsonObject } from "src/data/services";
 import { TtgService } from "src/data/services";
@@ -125,6 +125,8 @@ class DmScreenDescriptionService implements FullItemReadService<TtgJsonObject> {
 
 export interface RepositoryFactoryServices {
 	ttgService?: TtgService;
+	/** Existing transaction owned by a unit of work; never opens a nested transaction. */
+	transactions?: TransactionalStore;
 }
 
 function serviceFrom(options: RepositoryFactoryServices = {}): TtgService {
@@ -139,8 +141,9 @@ function createSimpleDependencies<TSmall extends BaseItem, TFull extends TSmall,
 	projector: SimpleRepositoryDependencies<TSmall, TFull, TFilter, TResponse>["projector"],
 	service?: FullItemReadService<TResponse>,
 	entityKind?: EntityKind,
+	transactions?: TransactionalStore,
 ): SimpleRepositoryDependencies<TSmall, TFull, TFilter, TResponse> {
-	return createSimpleRepositoryDependencies(database, smallDao, fullDao, mapper, projector, service, entityKind, database.entityOriginDao, database.favorites, database.favoritesDao);
+	return createSimpleRepositoryDependencies(database, smallDao, fullDao, mapper, projector, service, entityKind, database.entityOriginDao, database.favorites, database.favoritesDao, transactions);
 }
 
 export function createBestiaryRepository(database: DB, options: RepositoryFactoryServices = {}): BestiaryRepository {
@@ -152,6 +155,7 @@ export function createBestiaryRepository(database: DB, options: RepositoryFactor
 		smallItemProjectors.monster,
 		serviceFrom(options),
 		"bestiary",
+		options.transactions,
 	));
 }
 
@@ -164,6 +168,7 @@ export function createSpellbookRepository(database: DB, options: RepositoryFacto
 		smallItemProjectors.spell,
 		serviceFrom(options),
 		"spellbook",
+		options.transactions,
 	));
 }
 
@@ -176,6 +181,7 @@ export function createArsenalRepository(database: DB, options: RepositoryFactory
 		smallItemProjectors.weapon,
 		serviceFrom(options),
 		"arsenal",
+		options.transactions,
 	));
 }
 
@@ -188,6 +194,7 @@ export function createArmoryRepository(database: DB, options: RepositoryFactoryS
 		smallItemProjectors.armor,
 		serviceFrom(options),
 		"armory",
+		options.transactions,
 	));
 }
 
@@ -200,6 +207,7 @@ export function createEquipmentRepository(database: DB, options: RepositoryFacto
 		smallItemProjectors.item,
 		serviceFrom(options),
 		"equipment",
+		options.transactions,
 	));
 }
 
@@ -212,6 +220,7 @@ export function createArtifactoryRepository(database: DB, options: RepositoryFac
 		smallItemProjectors.artifact,
 		serviceFrom(options),
 		"artifactory",
+		options.transactions,
 	));
 }
 
@@ -229,6 +238,7 @@ export function createBackgroundRepository(database: DB, options: RepositoryFact
 		smallItemProjectors.background,
 		new BackgroundWithHtmlService(serviceFrom(options)),
 		"backgrounds",
+		options.transactions,
 	));
 }
 
@@ -241,11 +251,12 @@ export function createFeatsRepository(database: DB, options: RepositoryFactorySe
 		smallItemProjectors.feat,
 		serviceFrom(options),
 		"feats",
+		options.transactions,
 	));
 }
 
 export function createClassesRepository(database: DB, options: RepositoryFactoryServices = {}): ClassesRepository {
-	const transactions = new DbTransactionalStore(database);
+	const transactions = options.transactions ?? new DbTransactionalStore(database);
 	const service = new ClassWithHtmlService(serviceFrom(options));
 	const mapper = new ClassWithHtmlMapper();
 	const dependencies: ClassesRepositoryDependencies = {
@@ -257,6 +268,7 @@ export function createClassesRepository(database: DB, options: RepositoryFactory
 			smallItemProjectors.class,
 			service,
 			"classes",
+			options.transactions,
 		),
 		classStore: new ClassStore(database.smallClassDao, database.fullClassDao, transactions, "classes", database.entityOriginDao),
 		service,
@@ -266,7 +278,7 @@ export function createClassesRepository(database: DB, options: RepositoryFactory
 }
 
 export function createRacesRepository(database: DB, options: RepositoryFactoryServices = {}): RacesRepository {
-	const transactions = new DbTransactionalStore(database);
+	const transactions = options.transactions ?? new DbTransactionalStore(database);
 	const service = new RaceTreeService(serviceFrom(options));
 	const mapper = new RaceMapper();
 	const dependencies: RacesRepositoryDependencies = {
@@ -278,6 +290,7 @@ export function createRacesRepository(database: DB, options: RepositoryFactorySe
 			smallItemProjectors.race,
 			service,
 			"races",
+			options.transactions,
 		),
 		raceStore: new RaceStore(database.smallRaceDao, database.fullRaceDao, transactions, "races", database.entityOriginDao),
 		service,

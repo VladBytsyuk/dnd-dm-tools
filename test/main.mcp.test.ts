@@ -35,7 +35,7 @@ beforeEach(() => {
 function pluginWithSettings() {
 	const plugin = new DndStatblockPlugin({} as any);
 	const saveData = vi.fn(async () => {});
-	Object.assign(plugin, { settings: createDefaultPluginSettings(), manifest: { version: "1.3.6" }, saveData });
+	Object.assign(plugin, { settings: createDefaultPluginSettings(), manifest: { version: "1.3.6" }, saveData, getMcpEntities: () => ({}) });
 	for (const key of ["bestiaryFeature", "spellbookFeature", "arsenalFeature", "armoryFeature", "equipmentFeature", "artifactoryFeature", "backgroundFeature", "featFeature", "raceFeature"]) {
 		Object.assign(plugin, { [key]: { repository: {} } });
 	}
@@ -110,7 +110,7 @@ describe("plugin MCP lifecycle", () => {
 		mocks.start.mockRejectedValueOnce(new Error("EADDRINUSE"));
 		await plugin.retryMcp();
 		expect(plugin.getMcpRuntimeStatus()).toEqual({ running: false, port: 43129, error: "EADDRINUSE" });
-		expect(plugin.getSettings().mcp).toEqual({ enabled: true, port: 43129, authToken: "saved-token" });
+		expect(plugin.getSettings().mcp).toEqual({ enabled: true, readOnly: false, port: 43129, authToken: "saved-token" });
 		mocks.start.mockResolvedValueOnce(43129);
 		await plugin.retryMcp();
 		expect(mocks.start.mock.calls).toEqual([[43129], [43129]]);
@@ -139,5 +139,87 @@ describe("plugin MCP lifecycle", () => {
 		expect(plugin.getMcpRuntimeStatus().running).toBe(false);
 		expect(mocks.stop).toHaveBeenCalled();
 		expect(mocks.createServer).toHaveBeenCalledOnce();
+	});
+
+	it("validates and applies a port change after revoking the old server", async () => {
+		const { plugin, saveData } = pluginWithSettings();
+		await plugin.setMcpEnabled(true);
+		await expect(plugin.setMcpPort(80)).rejects.toThrow("1024");
+		expect(mocks.stop).not.toHaveBeenCalled();
+		mocks.start.mockResolvedValueOnce(43128);
+		await plugin.setMcpPort(43128);
+		expect(mocks.start).toHaveBeenLastCalledWith(43128);
+		expect(mocks.stop).toHaveBeenCalledOnce();
+		expect(plugin.getSettings().mcp.port).toBe(43128);
+		const calls = saveData.mock.invocationCallOrder;
+		expect(mocks.stop.mock.invocationCallOrder[0]).toBeLessThan(calls[calls.length - 2]);
+		await plugin.setMcpPort(null);
+		expect(mocks.start).toHaveBeenLastCalledWith(0);
+	});
+
+	it("rotates credentials and restarts with read-only mode", async () => {
+		const { plugin } = pluginWithSettings();
+		await plugin.setMcpEnabled(true);
+		const token = plugin.getSettings().mcp.authToken;
+		await plugin.rotateMcpToken();
+		expect(plugin.getSettings().mcp.authToken).not.toBe(token);
+		expect(mocks.createServer.mock.calls[1][2]).toBe(plugin.getSettings().mcp.authToken);
+		await plugin.setMcpReadOnly(true);
+		expect(plugin.getSettings().mcp.readOnly).toBe(true);
+		expect(mocks.createServer.mock.calls[2][3]).toBe(true);
+		expect(mocks.stop).toHaveBeenCalledTimes(2);
+	});
+
+	it("fails closed when saving changed configuration fails", async () => {
+		const { plugin, saveData } = pluginWithSettings();
+		await plugin.setMcpEnabled(true);
+		saveData.mockRejectedValueOnce(new Error("Disk full"));
+		const change = plugin.rotateMcpToken();
+		expect(mocks.stop).toHaveBeenCalledOnce();
+		await expect(change).rejects.toThrow("Disk full");
+		expect(mocks.createServer).toHaveBeenCalledOnce();
+		expect(plugin.getMcpRuntimeStatus()).toMatchObject({ running: false, error: "Disk full" });
+	});
+
+	it("applies concurrent configuration changes serially and starts only the newest configuration", async () => {
+		const { plugin } = pluginWithSettings();
+		await plugin.setMcpEnabled(true);
+		const mode = plugin.setMcpReadOnly(true);
+		const port = plugin.setMcpPort(43130);
+		mocks.start.mockResolvedValueOnce(43130);
+		await Promise.all([mode, port]);
+		expect(plugin.getSettings().mcp).toMatchObject({ readOnly: true, port: 43130 });
+		expect(mocks.createServer).toHaveBeenCalledTimes(2);
+		expect(mocks.createServer.mock.calls[1][3]).toBe(true);
+		expect(mocks.start).toHaveBeenLastCalledWith(43130);
+	});
+
+	it("waits for revocation to finish before persisting a new configuration", async () => {
+		const { plugin, saveData } = pluginWithSettings();
+		await plugin.setMcpEnabled(true);
+		const savedBefore = saveData.mock.calls.length;
+		let finishStop!: () => void;
+		mocks.stop.mockImplementationOnce(() => new Promise(resolve => { finishStop = resolve; }));
+		const change = plugin.setMcpReadOnly(true);
+		expect(mocks.stop).toHaveBeenCalledOnce();
+		await Promise.resolve();
+		expect(saveData).toHaveBeenCalledTimes(savedBefore);
+		finishStop();
+		await change;
+		expect(plugin.getSettings().mcp.readOnly).toBe(true);
+	});
+
+	it("invalidates an in-flight startup before changing to read-only", async () => {
+		const { plugin } = pluginWithSettings();
+		let finishStart!: (port: number) => void;
+		mocks.start.mockImplementationOnce(() => new Promise(resolve => { finishStart = resolve; }));
+		const enabling = plugin.setMcpEnabled(true);
+		await waitFor(() => expect(mocks.start).toHaveBeenCalledOnce());
+		const change = plugin.setMcpReadOnly(true);
+		expect(mocks.stop).toHaveBeenCalledOnce();
+		finishStart(43128);
+		await Promise.all([enabling, change]);
+		expect(mocks.createServer.mock.calls.map(call => call[3])).toEqual([false, true]);
+		expect(plugin.getMcpRuntimeStatus()).toEqual({ running: true, port: 43127 });
 	});
 });

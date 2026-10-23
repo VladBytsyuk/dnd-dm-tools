@@ -29,6 +29,21 @@ async function fixture() {
 }
 
 describe("DB transactions", () => {
+	it("keeps the read barrier closed until committed data has been persisted", async () => {
+		const { db, adapter } = await fixture();
+		let release!: () => void;
+		const gate = new Promise<void>(resolveGate => { release = resolveGate; });
+		adapter.writeBinary.mockImplementationOnce(async () => { await gate; });
+		const saving = db.favorites.set("bestiary", "/persisting", true);
+		let idle = false;
+		const barrier = db.whenIdle().then(() => { idle = true; });
+		await Promise.resolve(); await Promise.resolve(); await Promise.resolve();
+		expect(idle).toBe(false);
+		release(); await Promise.all([saving, barrier]);
+		expect(idle).toBe(true);
+		await db.dispose();
+	});
+
 	it("cancels a queued media write before its transaction and preserves the persisted library", async () => {
 		const { db, persisted } = await fixture();
 		const initial = createDefaultMediaState();

@@ -14,6 +14,7 @@ export interface PluginSettingsState {
 
 export interface McpSettings {
 	enabled: boolean;
+	readOnly: boolean;
 	port: number | null;
 	authToken: string | null;
 }
@@ -36,7 +37,7 @@ export function createDefaultPluginSettings(): PluginSettingsState {
 		schemaVersion: 8,
 		workspace: createDefaultAssistantWorkspace(),
 		owlbearSync: { enabled: false, port: null, authToken: null },
-		mcp: { enabled: false, port: null, authToken: null },
+		mcp: { enabled: false, readOnly: false, port: null, authToken: null },
 	};
 }
 
@@ -66,6 +67,7 @@ function loadMcpSettings(value: unknown): McpSettings {
 	const stored = value && typeof value === "object" ? value as Record<string, unknown> : {};
 	return {
 		enabled: stored.enabled === true,
+		readOnly: stored.readOnly === true,
 		port: isPort(stored.port) ? stored.port : null,
 		authToken: typeof stored.authToken === "string" && stored.authToken.length >= 32 ? stored.authToken : null,
 	};

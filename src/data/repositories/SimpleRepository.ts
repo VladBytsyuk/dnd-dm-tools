@@ -3,6 +3,7 @@ import type {
 	FullItemReadService,
 	ItemReadStore,
 	ItemWriteStore,
+	TransactionalStore,
 	SmallItemProjector,
 } from "src/data/ports";
 import { TtgService } from "src/data/services/TtgService";
@@ -60,8 +61,9 @@ export function createSimpleRepositoryDependencies<
 	origins?: EntityOriginDao,
 	favorites?: FavoriteAccess,
 	favoritesDao?: FavoritesDao,
+	transactionScope?: TransactionalStore,
 ): SimpleRepositoryDependencies<TSmall, TFull, TFilter, TResponse> {
-	const transactions = new DbTransactionalStore(database);
+	const transactions = transactionScope ?? new DbTransactionalStore(database);
 
 	return {
 		readStore: new GenericSqlItemReadStore<TSmall, TFull, TFilter>(smallItemDao, fullItemDao, entityKind, origins),
@@ -111,6 +113,8 @@ export abstract class SimpleRepository<
 	}
 
 	notifyExternalChange(url: string): void {
+		this.#smallItems = undefined;
+		this.#filters = undefined;
 		for (const listener of this.#externalListeners) listener(url);
 	}
 
@@ -185,19 +189,19 @@ export abstract class SimpleRepository<
 			return null;
 		}
 
+		let fullItem: TFull;
 		try {
-			const fullItem = this.dependencies.mapper.map(response.value, url);
+			fullItem = this.dependencies.mapper.map(response.value, url);
 			if (!fullItem.url) {
 				fullItem.url = url;
 			}
-
-			await this.dependencies.writeStore.saveFetchedFull(fullItem);
-			console.log(`Put ${url} into local storage.`);
-			return fullItem;
 		} catch (error) {
 			console.error("Failed to load item from service response:", error);
 			return null;
 		}
+		await this.dependencies.writeStore.saveFetchedFull(fullItem);
+		console.log(`Put ${url} into local storage.`);
+		return await this.dependencies.readStore.readFullItemByUrl(url);
 	}
 
 	async getFullItemByName(name: string): Promise<TFull | null> {

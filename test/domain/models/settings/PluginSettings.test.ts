@@ -16,11 +16,13 @@ describe("PluginSettings", () => {
 		expect(loadPluginSettings(result.settings).settings).toEqual(result.settings);
 	});
 	it("defaults MCP to disabled and retains valid connection credentials", () => {
-		expect(loadPluginSettings(null).settings.mcp).toEqual({ enabled: false, port: null, authToken: null });
+		expect(loadPluginSettings(null).settings.mcp).toEqual({ enabled: false, readOnly: false, port: null, authToken: null });
 		const mcp = { enabled: true, port: 43126, authToken: "b".repeat(43) };
-		expect(loadPluginSettings({ schemaVersion: 8, mcp }).settings.mcp).toEqual(mcp);
+		expect(loadPluginSettings({ schemaVersion: 8, mcp }).settings.mcp).toEqual({ ...mcp, readOnly: false });
+		expect(loadPluginSettings({ mcp: { ...mcp, readOnly: true } }).settings.mcp.readOnly).toBe(true);
+		expect(loadPluginSettings({ mcp: { ...mcp, readOnly: "true" } }).settings.mcp.readOnly).toBe(false);
 		expect(loadPluginSettings({ mcp: { enabled: true, port: 80, authToken: "short" } }).settings.mcp)
-			.toEqual({ enabled: true, port: null, authToken: null });
+			.toEqual({ enabled: true, readOnly: false, port: null, authToken: null });
 	});
 	it.each([true, false, undefined])("ignores the obsolete design toggle (%s) and preserves supported settings", (redesignEnabled) => {
 		const settings = loadPluginSettings(null).settings;

@@ -2,6 +2,7 @@ import { Notice, Platform, PluginSettingTab, Setting } from "obsidian";
 import { writeTextToClipboard } from "src/data/clipboard";
 import type { PluginUpdateStatus } from "src/data/services/PluginUpdateService";
 import type DndStatblockPlugin from "src/main";
+import { McpHistoryModal } from "./McpHistoryModal";
 
 export class OwlbearSettingsTab extends PluginSettingTab {
 	private unsubscribeRuntime: (() => void) | null = null;
@@ -169,8 +170,22 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 				}
 				if (this.visible) this.display();
 			}));
+		new Setting(containerEl).setName("Журнал MCP")
+			.setDesc("История изменений и отмена выполненных операций доступны и при выключенном MCP.")
+			.addButton((button) => button.setButtonText("Открыть журнал MCP").onClick(() => new McpHistoryModal(this.plugin).open()));
 		this.mcpDetails = null;
 		if (!settings.enabled) return;
+		let pendingPort = settings.port?.toString() ?? "";
+		new Setting(containerEl).setName("Порт MCP").setDesc("Целое число от 1024 до 65535. После смены обновите адрес в MCP-клиенте.")
+			.addText((text) => text.setValue(pendingPort).setPlaceholder("Свободный порт").onChange((value) => { pendingPort = value; }))
+			.addButton((button) => button.setButtonText("Применить порт MCP").setDisabled(!!unavailableReason).onClick(() => this.performMcpAction(() => this.plugin.setMcpPort(pendingPort.trim() ? Number(pendingPort) : null))))
+			.addButton((button) => button.setButtonText("Выбрать свободный порт MCP").setDisabled(!!unavailableReason).onClick(() => this.performMcpAction(() => this.plugin.setMcpPort(null))));
+		new Setting(containerEl).setName("MCP: только чтение")
+			.setDesc("Разрешить агентам только поиск и чтение. Изменение режима прекращает текущие подключения и ожидающие подтверждения.")
+			.addToggle((toggle) => toggle.setValue(settings.readOnly).setDisabled(!!unavailableReason).onChange((readOnly) => this.performMcpAction(() => this.plugin.setMcpReadOnly(readOnly))));
+		new Setting(containerEl).setName("Токен доступа MCP")
+			.setDesc("Новый токен сразу закрывает старые подключения. После смены обновите токен в MCP-клиенте.")
+			.addButton((button) => button.setButtonText("Обновить токен MCP").setDisabled(!!unavailableReason).onClick(() => this.performMcpAction(() => this.plugin.rotateMcpToken())));
 		const status = this.plugin.getMcpRuntimeStatus();
 		containerEl.createEl("p", { text: `MCP: ${status.running ? "запущен" : "остановлен"}${status.error ? `. Ошибка: ${status.error}` : ""}` });
 		if (status.error && !unavailableReason) {
@@ -200,6 +215,12 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 		} else {
 			details.createEl("p", { text: "Адрес и токен появятся после первого успешного запуска MCP." });
 		}
+	}
+
+	private async performMcpAction(action: () => Promise<void>): Promise<void> {
+		try { await action(); }
+		catch (error) { new Notice(`Не удалось изменить настройки MCP: ${error instanceof Error ? error.message : String(error)}`); }
+		if (this.visible) this.display();
 	}
 
 	private renderPluginVersion(containerEl: HTMLElement): void {
