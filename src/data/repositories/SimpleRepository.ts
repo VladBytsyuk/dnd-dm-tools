@@ -3,6 +3,7 @@ import type {
 	FullItemReadService,
 	ItemReadStore,
 	ItemWriteStore,
+	TransactionalStore,
 	SmallItemProjector,
 } from "src/data/ports";
 import { TtgService } from "src/data/services/TtgService";
@@ -60,8 +61,9 @@ export function createSimpleRepositoryDependencies<
 	origins?: EntityOriginDao,
 	favorites?: FavoriteAccess,
 	favoritesDao?: FavoritesDao,
+	transactionScope?: TransactionalStore,
 ): SimpleRepositoryDependencies<TSmall, TFull, TFilter, TResponse> {
-	const transactions = new DbTransactionalStore(database);
+	const transactions = transactionScope ?? new DbTransactionalStore(database);
 
 	return {
 		readStore: new GenericSqlItemReadStore<TSmall, TFull, TFilter>(smallItemDao, fullItemDao, entityKind, origins),
@@ -90,6 +92,7 @@ export abstract class SimpleRepository<
 > implements Repository<TSmall, TFull, TFilter> {
 	#smallItems?: TSmall[];
 	#filters?: TFilter;
+	readonly #externalListeners = new Set<(url: string) => void>();
 	readonly favorites: FavoriteAccess | undefined;
 
 	constructor(
@@ -104,6 +107,17 @@ export abstract class SimpleRepository<
 		return this.dependencies.readStore.readSmallItemsByUrls(urls, filter);
 	}
 
+	subscribeExternalChanges(listener: (url: string) => void): () => void {
+		this.#externalListeners.add(listener);
+		return () => this.#externalListeners.delete(listener);
+	}
+
+	notifyExternalChange(url: string): void {
+		this.#smallItems = undefined;
+		this.#filters = undefined;
+		for (const listener of this.#externalListeners) listener(url);
+	}
+
 	async initialize(): Promise<void> {
 		if (!this.shouldPreloadSmallItems()) return;
 		const allSmallItems = await this.dependencies.readStore.readAllSmallItems();
@@ -112,6 +126,7 @@ export abstract class SimpleRepository<
 	}
 
 	dispose(): void {
+		this.#externalListeners.clear();
 		this.#smallItems = undefined;
 		this.#filters = undefined;
 	}
@@ -174,19 +189,19 @@ export abstract class SimpleRepository<
 			return null;
 		}
 
+		let fullItem: TFull;
 		try {
-			const fullItem = this.dependencies.mapper.map(response.value, url);
+			fullItem = this.dependencies.mapper.map(response.value, url);
 			if (!fullItem.url) {
 				fullItem.url = url;
 			}
-
-			await this.dependencies.writeStore.saveFetchedFull(fullItem);
-			console.log(`Put ${url} into local storage.`);
-			return fullItem;
 		} catch (error) {
 			console.error("Failed to load item from service response:", error);
 			return null;
 		}
+		await this.dependencies.writeStore.saveFetchedFull(fullItem);
+		console.log(`Put ${url} into local storage.`);
+		return await this.dependencies.readStore.readFullItemByUrl(url);
 	}
 
 	async getFullItemByName(name: string): Promise<TFull | null> {
@@ -226,7 +241,7 @@ export abstract class SimpleRepository<
 				return { ok: false, code: "url-occupied", message: "Этот URL уже занят в данном справочнике." };
 			}
 			const smallItem = this.dependencies.projector.project(fullItem);
-			await this.dependencies.writeStore.upsertUserItem(smallItem, fullItem);
+			await this.dependencies.writeStore.upsertUserItem(smallItem, fullItem, context.beforeWrite);
 			await this.reloadCaches();
 			return { ok: true };
 		} catch (error) {

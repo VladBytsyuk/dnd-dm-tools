@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { BackgroundRepository } from "../../../src/data/repositories/BackgroundRepository";
 import type { SmallBackground } from "../../../src/domain/models/background/SmallBackground";
 import type { FullBackground } from "../../../src/domain/models/background/FullBackground";
@@ -96,6 +96,10 @@ describe('BackgroundRepository - Associated HTML Characterization', () => {
         const readStore = new ItemReadStoreDouble<SmallBackground, FullBackground, BackgroundsFilters>();
         readStore.fullItemsByUrl.set("/backgrounds/occultist", null);
         const writeStore = new ItemWriteStoreDouble<SmallBackground, FullBackground>();
+        vi.spyOn(writeStore, 'saveFetchedFull').mockImplementation(async (item) => {
+            writeStore.calls.push({ target: 'itemWriteStore', method: 'saveFetchedFull', args: [item] });
+            readStore.fullItemsByUrl.set(item.url, item);
+        });
         const service = new FullItemReadServiceDouble<any>().succeed({
             item: remoteBackground,
             associatedUrl: "/backgrounds/fragment/199",

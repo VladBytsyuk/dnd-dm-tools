@@ -1,27 +1,33 @@
 import { describe, expect, it } from "vitest";
 import { loadPluginSettings } from "src/domain/models/settings/PluginSettings";
-import { ownedMedia } from "../../../fixtures/media";
 
 describe("PluginSettings", () => {
-	it("upgrades version six scenes while retaining workspace and active context", () => {
-		const settings = loadPluginSettings(null).settings, media = ownedMedia();
+	it.each([2, 3, 4, 5, 6, 7, 8])("loads v%s workspace and Owlbear without importing media", (schemaVersion) => {
+		const settings = loadPluginSettings(null).settings;
 		settings.workspace.tiles[0].tabs = ["adventures"];
 		settings.workspace.tiles[0].activeTab = "adventures";
-		media.adventures[0].campaignName = "Культ";
-		const result = loadPluginSettings({ ...settings, schemaVersion: 6, media });
-		expect(result.settings.schemaVersion).toBe(7);
+		settings.owlbearSync = { enabled: true, port: 43125, authToken: "a".repeat(43) };
+		const result = loadPluginSettings({ ...settings, schemaVersion, media: { tracks: [{ id: "old" }] } });
+		expect(result.settings.schemaVersion).toBe(8);
 		expect(result.settings.workspace).toEqual(settings.workspace);
-		expect(result.settings.media.scenes).toHaveLength(2);
-		expect(result.settings.media.scenes[0]).toMatchObject({ id: "start", campaignName: "Культ", notePath: "Scenes/Start.md" });
-		expect(result.settings.media.activeAdventureId).toBe("quest");
-		expect(result.settings.media.activeSceneId).toBe("start");
+		expect(result.settings.owlbearSync).toEqual(settings.owlbearSync);
+		expect(result.settings).not.toHaveProperty("media");
+		expect(result).not.toHaveProperty("legacyMediaBackup");
 		expect(loadPluginSettings(result.settings).settings).toEqual(result.settings);
+	});
+	it("defaults MCP to disabled and retains valid connection credentials", () => {
+		expect(loadPluginSettings(null).settings.mcp).toEqual({ enabled: false, readOnly: false, port: null, authToken: null });
+		const mcp = { enabled: true, port: 43126, authToken: "b".repeat(43) };
+		expect(loadPluginSettings({ schemaVersion: 8, mcp }).settings.mcp).toEqual({ ...mcp, readOnly: false });
+		expect(loadPluginSettings({ mcp: { ...mcp, readOnly: true } }).settings.mcp.readOnly).toBe(true);
+		expect(loadPluginSettings({ mcp: { ...mcp, readOnly: "true" } }).settings.mcp.readOnly).toBe(false);
+		expect(loadPluginSettings({ mcp: { enabled: true, port: 80, authToken: "short" } }).settings.mcp)
+			.toEqual({ enabled: true, readOnly: false, port: null, authToken: null });
 	});
 	it.each([true, false, undefined])("ignores the obsolete design toggle (%s) and preserves supported settings", (redesignEnabled) => {
 		const settings = loadPluginSettings(null).settings;
 		settings.workspace.tiles[0].tabs = ["bestiary", "player"];
 		settings.workspace.tiles[0].activeTab = "player";
-		settings.media.musicVolume = 0.4;
 		settings.owlbearSync = { enabled: true, port: 43125, authToken: "a".repeat(43) };
 		const result = loadPluginSettings({ ...settings, redesignEnabled });
 
@@ -41,8 +47,8 @@ describe("PluginSettings", () => {
 			],
 		});
 
-		expect(result.settings.schemaVersion).toBe(7);
-		expect(result.settings.media.playlists).toEqual([]);
+		expect(result.settings.schemaVersion).toBe(8);
+		expect(result.settings).not.toHaveProperty("media");
 		expect(result.settings).not.toHaveProperty("redesignEnabled");
 		expect(result.settings.workspace.layout).toBe("vertical-split");
 		expect(result.settings.workspace.tiles[0].tabs).toEqual(["bestiary"]);
@@ -122,32 +128,6 @@ describe("PluginSettings", () => {
 	it("rejects invalid persisted Owlbear ports and tokens", () => {
 		const result = loadPluginSettings({ owlbearSync: { enabled: true, port: 80, authToken: "short" } });
 		expect(result.settings.owlbearSync).toMatchObject({ enabled: true, port: null, authToken: null });
-	});
-
-	it("restores media and the new panel tabs after a restart", () => {
-		const result = loadPluginSettings({
-			schemaVersion: 5,
-			workspace: { layout: "single", focusedTile: 0, splitRatio: 0.5, tiles: [
-				{ tabs: ["player", "adventures"], activeTab: "adventures" },
-				{ tabs: [], activeTab: null },
-			] },
-			media: {
-				audioFiles: [{ id: "audio", path: "Music/scene.mp3", alias: "Сцена" }],
-				playlists: [{ id: "list", name: "Сессия", items: [{ id: "item", normalAudioId: "audio", combatAudioId: null, loop: true }] }],
-				adventures: [], musicVolume: 0.5, effectsVolume: 0.75,
-				activeAdventureId: null, activeSceneId: null,
-			},
-		});
-		expect(result.settings.workspace.tiles[0]).toEqual({ tabs: ["player", "adventures"], activeTab: "adventures" });
-		expect(result.settings.media.tracks[0].loop).toBe(true);
-		expect(result.settings.media.musicVolume).toBe(0.5);
-	});
-	it("requests a raw media backup once when migrating settings version five", () => {
-		const raw = { audioFiles: [], playlists: [], adventures: [], musicVolume: 0.2, effectsVolume: 0.4 };
-		const migrated = loadPluginSettings({ schemaVersion: 5, media: raw });
-		expect(migrated.legacyMediaBackup).toEqual(raw);
-		expect(loadPluginSettings(migrated.settings).legacyMediaBackup).toBeUndefined();
-		expect(migrated.settings.schemaVersion).toBe(7);
 	});
 
 });

@@ -49,8 +49,9 @@ export class RaceStore {
 		});
 	}
 
-	async saveManualRaceTree(race: FullRace, parentUrl: string | null = null): Promise<void> {
+	async saveManualRaceTree(race: FullRace, parentUrl: string | null = null, beforeWrite?: () => Promise<void>): Promise<void> {
 		await this.transactions.transaction(async () => {
+			await beforeWrite?.();
 			await this.saveManualRaceAndSubraces(race, parentUrl);
 		});
 	}

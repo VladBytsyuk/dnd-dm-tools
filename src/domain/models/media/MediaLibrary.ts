@@ -32,9 +32,27 @@ export function findMediaItem(state: MediaState, route: MediaRoute): MediaItem |
 }
 
 export function validateMediaRecord(state: MediaState, kind: MediaKind, record: MediaRecord): string | null {
+	if (!record.id.trim()) return "Укажите ID.";
 	if (!record.name.trim()) return "Укажите название.";
 	if (!record.url.startsWith(`/${kind}/`) || !record.url.slice(kind.length + 2).trim() || /\s/.test(record.url)) return `Укажите ссылку вида /${kind}/идентификатор без пробелов.`;
 	if (mediaItems(state).some((item) => item.url === record.url && (item.mediaRoute.kind !== kind || item.record.id !== record.id))) return "Такая ссылка уже используется.";
+	if ("notePath" in record && record.notePath !== null && (record.notePath.startsWith("/") || record.notePath.includes("\\") || record.notePath.includes(":") || record.notePath.split("/").some((part) => part === ".." || part === "."))) return "Укажите относительный путь заметки в vault.";
+	if (kind === "track") {
+		const track = record as MediaTrack;
+		if ([track.normalAudioId, track.combatAudioId].some((id) => id !== null && !state.audioFiles.some((audio) => audio.id === id))) return "Аудиофайл не найден.";
+	} else if (kind === "playlist") {
+		const playlist = record as Playlist;
+		if (new Set(playlist.items.map((item) => item.id)).size !== playlist.items.length) return "ID элементов плейлиста должны быть уникальными.";
+		if (playlist.items.some((item) => !item.id.trim() || !state.tracks.some((track) => track.id === item.trackId))) return "Трек элемента не найден.";
+	} else if (kind === "scene") {
+		const scene = record as MediaScene;
+		if (scene.trackId !== null && !state.tracks.some((track) => track.id === scene.trackId)) return "Трек сцены не найден.";
+	} else {
+		const adventure = record as Adventure;
+		if (adventure.playlistId !== null && !state.playlists.some((playlist) => playlist.id === adventure.playlistId)) return "Плейлист приключения не найден.";
+		if (new Set(adventure.links.map((link) => link.id)).size !== adventure.links.length || adventure.links.some((link) => !link.id.trim())) return "ID связей сцен должны быть уникальными.";
+		if (adventure.scenes.some((scene) => !Number.isFinite(scene.position.x) || !Number.isFinite(scene.position.y))) return "Некорректное положение сцены.";
+	}
 	return null;
 }
 

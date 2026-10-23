@@ -58,6 +58,9 @@
 	});
 	function createDraft() { return toFullViewModel(panelKey, currentItem); }
 	let draft = $state<FullViewModel>(createDraft());
+	$effect.pre(() => {
+		if (!editing && !saving) draft = cloneDesignData(toFullViewModel(panelKey, currentItem));
+	});
 	let pastedEntityBase: Record<string, any> | undefined = $state();
 	let validationError = $state("");
 	let handledActionRequest = 0;

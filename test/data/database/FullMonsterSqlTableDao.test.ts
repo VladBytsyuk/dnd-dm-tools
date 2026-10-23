@@ -30,7 +30,7 @@ const sampleMonster: FullMonster = {
         {"name":"кожаный доспех","type":"armor","url":"/armors/leather_armor"},
         {"name":"щит","type":"armor","url":"/armors/shield"}
     ],
-    "hits":{"average":7,"formula":"2к6",sign:"+","bonus":0},
+    "hits":{"average":7,"formula":"2к6",sign:"+","bonus":0,"text":"7 (2к6)"},
     "speed":[{"value":30}],
     "ability":{"str":8,"dex":14,"con":10,"int":10,"wiz":8,"cha":8},
     "skills":[{"name":"Скрытность","value":6}],
@@ -124,7 +124,9 @@ runSqlDaoBaseTests<FullMonster, BestiaryFilters>({
             JSON.stringify(sampleMonster.lair ?? {}),
             JSON.stringify(sampleMonster.tags ?? []),
             JSON.stringify(sampleMonster.images ?? []),
-            sampleMonster.description
+            sampleMonster.description,
+            sampleMonster.hits?.text ?? '',
+            JSON.stringify(sampleMonster.environment ?? [])
         ],
         assert: (monster) => {
             expect(monster.name.rus).toStrictEqual(sampleMonster.name.rus);
@@ -149,6 +151,8 @@ runSqlDaoBaseTests<FullMonster, BestiaryFilters>({
             expect(monster.hits?.formula).toStrictEqual(sampleMonster.hits?.formula);
             expect(monster.hits?.sign).toStrictEqual(sampleMonster.hits?.sign);
             expect(monster.hits?.bonus).toStrictEqual(sampleMonster.hits?.bonus);
+            expect(monster.hits?.text).toBe(sampleMonster.hits?.text);
+            expect(monster.environment).toEqual(sampleMonster.environment);
             expect(monster.speed).toStrictEqual(sampleMonster.speed ?? []);
             expect(monster.ability?.str).toStrictEqual(sampleMonster.ability?.str);
             expect(monster.ability?.dex).toStrictEqual(sampleMonster.ability?.dex);
@@ -189,11 +193,13 @@ describe('FullMonsterSqlTableDao description persistence', () => {
         await dao.createTable();
         await dao.createItem(sampleMonster);
         // Reproduce the schema shipped before descriptions were persisted.
+        db.exec('ALTER TABLE full_bestiary DROP COLUMN environment;');
+        db.exec('ALTER TABLE full_bestiary DROP COLUMN hits_text;');
         db.exec('ALTER TABLE full_bestiary DROP COLUMN description;');
 
         try {
-            dao.ensureDescriptionColumn();
-            dao.ensureDescriptionColumn();
+            dao.ensureDetailColumns();
+            dao.ensureDetailColumns();
             const loaded = (await dao.readItemByUrl(sampleMonster.url))!;
             expect(loaded).toMatchObject({ name: sampleMonster.name, actions: sampleMonster.actions, description: '' });
             await dao.updateItem({ ...loaded, description });
@@ -254,4 +260,31 @@ describe('FullMonsterSqlTableDao description persistence', () => {
             }
         },
     );
+});
+
+
+describe('FullMonsterSqlTableDao complete statblocks', () => {
+    it('migrates hits text and environments idempotently and preserves them on create, update and restart', async () => {
+        const SQL = await initSqlJs({ wasmBinary: readFileSync(resolve('node_modules/sql.js/dist/sql-wasm.wasm')) });
+        const sql = new SQL.Database();
+        const dao = new FullMonsterSqlTableDao(sql);
+        await dao.createTable();
+        await dao.createItem(sampleMonster);
+        sql.exec('ALTER TABLE full_bestiary DROP COLUMN environment;');
+        sql.exec('ALTER TABLE full_bestiary DROP COLUMN hits_text;');
+        dao.ensureDetailColumns(); dao.ensureDetailColumns();
+        expect(await dao.readItemByUrl(sampleMonster.url)).toMatchObject({ name: sampleMonster.name, description: sampleMonster.description, hits: { text: '' }, environment: [] });
+        await dao.updateItem(sampleMonster);
+        await dao.createItem({ ...sampleMonster, url: '/bestiary/new-monster' });
+        const reopened = new SQL.Database(sql.export());
+        try {
+            const saved = new FullMonsterSqlTableDao(reopened);
+            for (const url of [sampleMonster.url, '/bestiary/new-monster']) {
+                expect(await saved.readItemByUrl(url)).toMatchObject({ hits: sampleMonster.hits, environment: sampleMonster.environment });
+            }
+            const loaded = (await saved.readItemByUrl(sampleMonster.url))!;
+            await saved.updateItem({ ...loaded, hits: { ...loaded.hits!, text: '' }, environment: [] });
+            expect(await saved.readItemByUrl(sampleMonster.url)).toMatchObject({ hits: { text: '' }, environment: [] });
+        } finally { reopened.close(); sql.close(); }
+    });
 });

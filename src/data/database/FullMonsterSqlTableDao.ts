@@ -65,7 +65,9 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
                 lair TEXT,
                 tags TEXT,
                 images TEXT,
-                description TEXT NOT NULL DEFAULT ''
+                description TEXT NOT NULL DEFAULT '',
+                hits_text TEXT NOT NULL DEFAULT '',
+                environment TEXT NOT NULL DEFAULT '[]'
             );
         `);
     }
@@ -74,6 +76,17 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
         const result = this.database.exec(`PRAGMA table_info(${this.getTableName()});`);
         if (!result.length || result[0].values.some(column => column[1] === 'description')) return;
         this.database.exec(`ALTER TABLE ${this.getTableName()} ADD COLUMN description TEXT NOT NULL DEFAULT '';`);
+    }
+
+    ensureDetailColumns(): void {
+        this.ensureDescriptionColumn();
+        const columns = this.database.exec(`PRAGMA table_info(${this.getTableName()});`)[0]?.values ?? [];
+        if (!columns.some(column => column[1] === 'hits_text')) {
+            this.database.exec(`ALTER TABLE ${this.getTableName()} ADD COLUMN hits_text TEXT NOT NULL DEFAULT '';`);
+        }
+        if (!columns.some(column => column[1] === 'environment')) {
+            this.database.exec(`ALTER TABLE ${this.getTableName()} ADD COLUMN environment TEXT NOT NULL DEFAULT '[]';`);
+        }
     }
 
     // CRUD operations
@@ -88,8 +101,8 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
                     hits_average, hits_formula, hits_sign, hits_bonus, speed,
                     ability_str, ability_dex, ability_con, ability_int, ability_wiz, ability_cha,
                     saving_throws, skills, damage_vulnerabilities, damage_resistances, damage_immunities, condition_immunities,
-                    senses, languages, feats, actions, bonus_actions, reactions, legendary, mythic, lair, tags, images, description
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
+                    senses, languages, feats, actions, bonus_actions, reactions, legendary, mythic, lair, tags, images, description, hits_text, environment
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
                 [
                     item.name.rus,
                     item.name.eng,
@@ -137,7 +150,9 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
                     JSON.stringify(item.lair ?? {}),
                     JSON.stringify(item.tags ?? []),
                     JSON.stringify(item.images ?? []),
-                    item.description ?? ''
+                    item.description ?? '',
+                    item.hits?.text ?? '',
+                    JSON.stringify(item.environment ?? [])
                 ]
             );
         } catch (error) {
@@ -195,7 +210,9 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
                     lair = ?,
                     tags = ?,
                     images = ?,
-                    description = ?
+                    description = ?,
+                    hits_text = ?,
+                    environment = ?
                 WHERE url = ?;`,
                 [
                     item.name.rus,
@@ -244,6 +261,8 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
                     JSON.stringify(item.tags ?? []),
                     JSON.stringify(item.images ?? []),
                     item.description ?? '',
+                    item.hits?.text ?? '',
+                    JSON.stringify(item.environment ?? []),
                     item.url
                 ]
             );
@@ -290,6 +309,7 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
                     formula: sqlValues[20] as string,
                     sign: sqlValues[21] as string,
                     bonus: sqlValues[22] as number,
+                    text: sqlValues[48] as string ?? '',
                 },
                 speed: JSON.parse(sqlValues[23] as string || '[]'),
                 ability: {
@@ -317,7 +337,8 @@ export class FullMonsterSqlTableDao extends Dao<FullMonster, any> {
                 lair: JSON.parse(sqlValues[44] as string || '{}'),
                 tags: JSON.parse(sqlValues[45] as string || '[]'),
                 images: JSON.parse(sqlValues[46] as string || '[]'),
-                description: sqlValues[47] as string ?? ''
+                description: sqlValues[47] as string ?? '',
+                environment: JSON.parse(sqlValues[49] as string || '[]')
             };
         } catch (error) {
             console.error('Error mapping SQL values for FullMonster:', error);

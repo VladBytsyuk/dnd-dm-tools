@@ -100,3 +100,8 @@ export function stringifyYaml(obj: any): string {
 export function parseYaml(yaml: string): any {
   return parse(yaml);
 }
+
+export class FileSystemAdapter {
+  constructor(private readonly basePath: string) {}
+  getBasePath(): string { return this.basePath; }
+}

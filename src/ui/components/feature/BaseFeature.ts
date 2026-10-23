@@ -52,7 +52,7 @@ export abstract class BaseFeature<
     getCommands(): FeatureCommand[] { return []; }
 
     async initialize(): Promise<void> {
-        this.repository?.initialize();
+        await this.repository?.initialize();
         if (this.repository) this.codeBlockProcessor?.register(this.plugin, this.repository, this.uiEventListener);
         this.getCommands().forEach(command => {
             this.plugin.addCommand({

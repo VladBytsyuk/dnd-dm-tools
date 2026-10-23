@@ -55,6 +55,22 @@ function characterSheet(overrides: Partial<FullCharacterSheet> = {}): FullCharac
 }
 
 describe("RaceStore", () => {
+	it("rejects stale manual race writes before mutating the tree", async () => {
+		const smallRaceDao = { readItemByUrl: vi.fn(), createItemWithParent: vi.fn(), updateItem: vi.fn() };
+		const fullRaceDao = { readItemByUrl: vi.fn(), createItemWithParent: vi.fn(), updateItem: vi.fn() };
+		const transactions = new TransactionalStoreSpy();
+		const store = new RaceStore(smallRaceDao as any, fullRaceDao as any, transactions);
+		await expect(store.saveManualRaceTree(fullRace1, null, async () => {
+			expect(transactions.calls.map((call) => call.method)).toEqual(["begin"]);
+			throw new Error("Concurrent edit");
+		})).rejects.toThrow("Concurrent edit");
+		expect(smallRaceDao.readItemByUrl).not.toHaveBeenCalled();
+		expect(fullRaceDao.readItemByUrl).not.toHaveBeenCalled();
+		expect(smallRaceDao.createItemWithParent).not.toHaveBeenCalled();
+		expect(fullRaceDao.updateItem).not.toHaveBeenCalled();
+		expect(transactions.calls.map((call) => call.method)).toEqual(["begin", "rollback"]);
+	});
+
 	it("saves race trees with nested subraces inside one transaction", async () => {
 		const nestedSubrace: FullRace = {
 			...fullRace1Subrace,

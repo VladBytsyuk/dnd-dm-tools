@@ -94,8 +94,9 @@ export class GenericSqlItemWriteStore<
 		});
 	}
 
-	async upsertUserItem(smallItem: TSmall, fullItem: TFull): Promise<void> {
+	async upsertUserItem(smallItem: TSmall, fullItem: TFull, beforeWrite?: () => Promise<void>): Promise<void> {
 		await this.transactions.transaction(async () => {
+			await beforeWrite?.();
 			const existingSmallItem = await this.smallItemDao.readItemByUrl(smallItem.url);
 			if (existingSmallItem) {
 				await this.smallItemDao.updateItem(smallItem);
