@@ -18,6 +18,7 @@ vi.mock("obsidian", async () => {
 			this.nameEl = this.row.appendChild(document.createElement("label"));
 			this.descEl = this.row.appendChild(document.createElement("p"));
 		}
+		setClass(value: string) { this.row.classList.add(value); return this; }
 		setName(value: string) { this.nameEl.textContent = value; return this; }
 		setDesc(value: string) { this.descEl.textContent = value; return this; }
 		private addControl(type: "button" | "text" | "checkbox", configure: (control: any) => void) {

@@ -1,5 +1,6 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import { randomUUID, timingSafeEqual } from "node:crypto";
+import { clearInterval, setInterval } from "node:timers";
 import {
 	McpServer, createMcpHandler, inputRequired, inputResponse, acceptedContent,
 	isInitializeRequest, isLegacyRequest, CLIENT_CAPABILITIES_META_KEY, type ServerContext, type McpHttpHandler,

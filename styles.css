@@ -355,6 +355,38 @@ detail-tooltip a:hover {
     }
 }
 
+/* Native MCP port settings: keep labels readable before moving controls below them. */
+.dnd-mcp-port-setting.setting-item {
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.dnd-mcp-port-setting .setting-item-info {
+    flex: 1 1 220px;
+    min-width: min(100%, 220px);
+    margin-right: 0;
+}
+
+.dnd-mcp-port-setting .setting-item-control {
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    max-width: 100%;
+}
+
+.dnd-mcp-port-setting .setting-item-control input {
+    width: 7em;
+    max-width: 100%;
+}
+
+.dnd-mcp-port-setting .setting-item-control button {
+    white-space: normal;
+    height: auto;
+    min-height: var(--input-height, 30px);
+    max-width: 100%;
+}
+
 /* DND_DM_TOOLS_BUNDLED_CSS */
 /* design-system/dist/colors.css */
 :root {

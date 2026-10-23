@@ -176,9 +176,11 @@ export class OwlbearSettingsTab extends PluginSettingTab {
 		this.mcpDetails = null;
 		if (!settings.enabled) return;
 		let pendingPort = settings.port?.toString() ?? "";
-		new Setting(containerEl).setName("Порт MCP").setDesc("Целое число от 1024 до 65535. После смены обновите адрес в MCP-клиенте.")
+		new Setting(containerEl).setClass("dnd-mcp-port-setting").setName("Порт MCP").setDesc("Целое число от 1024 до 65535. После смены обновите адрес в MCP-клиенте.")
 			.addText((text) => text.setValue(pendingPort).setPlaceholder("Свободный порт").onChange((value) => { pendingPort = value; }))
-			.addButton((button) => button.setButtonText("Применить порт MCP").setDisabled(!!unavailableReason).onClick(() => this.performMcpAction(() => this.plugin.setMcpPort(pendingPort.trim() ? Number(pendingPort) : null))))
+			.addButton((button) => button.setButtonText("Применить порт MCP").setDisabled(!!unavailableReason).onClick(() => this.performMcpAction(() => this.plugin.setMcpPort(pendingPort.trim() ? Number(pendingPort) : null))));
+		new Setting(containerEl).setClass("dnd-mcp-port-setting").setName("Автоматический порт MCP")
+			.setDesc("Выбрать свободный порт и сохранить новый адрес подключения.")
 			.addButton((button) => button.setButtonText("Выбрать свободный порт MCP").setDisabled(!!unavailableReason).onClick(() => this.performMcpAction(() => this.plugin.setMcpPort(null))));
 		new Setting(containerEl).setName("MCP: только чтение")
 			.setDesc("Разрешить агентам только поиск и чтение. Изменение режима прекращает текущие подключения и ожидающие подтверждения.")
