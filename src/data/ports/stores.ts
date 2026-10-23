@@ -19,7 +19,7 @@ export interface ItemReadStore<
 
 export interface ItemWriteStore<TSmall extends BaseItem, TFull extends TSmall> {
 	saveFetchedFull(fullItem: TFull): Promise<void>;
-	upsertUserItem(smallItem: TSmall, fullItem: TFull): Promise<void>;
+	upsertUserItem(smallItem: TSmall, fullItem: TFull, beforeWrite?: () => Promise<void>): Promise<void>;
 	deleteByUrl(url: string): Promise<void>;
 }
 

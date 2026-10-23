@@ -168,15 +168,16 @@ export class RacesRepository
 			return null;
 		}
 
+		let fullRace: FullRace;
 		try {
-			const fullRace = this.#mapper.map(response.value, url);
-			await this.#raceStore.saveRaceTree(fullRace);
-			console.log(`Put ${url} into local storage.`);
-			return fullRace;
+			fullRace = this.#mapper.map(response.value, url);
 		} catch (error) {
 			console.error("Failed to load race from service response:", error);
 			return null;
 		}
+		await this.#raceStore.saveRaceTree(fullRace);
+		console.log(`Put ${url} into local storage.`);
+		return await this.#raceStore.readFullRaceByUrl(url);
 	}
 
 	override async putItem(fullItem: FullRace, context: ItemSaveContext = {}): Promise<ItemSaveResult> {
@@ -199,7 +200,7 @@ export class RacesRepository
 			if (remoteCollision) {
 				return { ok: false, code: "url-occupied", message: `URL ${remoteCollision} уже занят встроенной расой.` };
 			}
-			await this.#raceStore.saveManualRaceTree(fullItem, context.parentUrl ?? null);
+			await this.#raceStore.saveManualRaceTree(fullItem, context.parentUrl ?? null, context.beforeWrite);
 			await this.reloadCaches();
 			return { ok: true };
 		} catch {

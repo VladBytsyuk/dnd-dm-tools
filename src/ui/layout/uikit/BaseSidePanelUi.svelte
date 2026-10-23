@@ -63,6 +63,8 @@
     let currentItem: BaseItem | undefined = $state(getInitialFullItem() || undefined);
     let detailEditing = $state(false);
     let detailSaving = $state(false);
+    let pendingExternalUrl: string | null = null;
+    let externalChangesActive = false;
     let toolbarActionRequest = $state<{ id: number; command: "edit" | "save" | "cancel" | "copy" | "paste" }>({ id: 0, command: "edit" });
     let groups: Group<BaseItem>[] = $state([]);
     let favoriteGroupItems: BaseItem[] = $state([]);
@@ -90,7 +92,45 @@
     const revealingGroups = new Set<string>();
 
     // ---- Lifecycle ----  
-    onMount(() => updateGroups()); 
+    onMount(() => {
+        externalChangesActive = true;
+        void updateGroups();
+        const unsubscribe = repository.subscribeExternalChanges?.((url: string) => {
+            void updateGroups();
+            if (!currentItem || !itemTreeContains(currentItem, url)) return;
+            pendingExternalUrl = currentItem.url;
+            if (!detailEditing && !detailSaving) void refreshCurrentExternalItem();
+        });
+        return () => { externalChangesActive = false; unsubscribe?.(); };
+    });
+
+    async function refreshCurrentExternalItem() {
+        const url = currentItem?.url;
+        if (!url) return;
+        try {
+            const localItems = await repository.getAllSmallItems();
+            if (!externalChangesActive || currentItem?.url !== url || detailEditing || detailSaving) return;
+            if (!localItems.some((item: BaseItem) => itemTreeContains(item, url))) {
+                itemsStack = itemsStack.filter((entry) => entry.url !== url);
+                currentItem = itemsStack[itemsStack.length - 1];
+                pendingExternalUrl = null;
+                toolbarActionRequest = { id: toolbarActionRequest.id + 1, command: "cancel" };
+                return;
+            }
+            const item = await repository.getFullItemByUrl(url);
+            if (externalChangesActive && item && currentItem?.url === url && !detailEditing && !detailSaving) {
+                currentItem = item;
+                itemsStack = itemsStack.map((entry) => entry.url === url ? item : entry);
+                pendingExternalUrl = null;
+            }
+        } catch (error) {
+            loadError = error instanceof Error ? error.message : "Не удалось обновить карточку.";
+        }
+    }
+
+    function itemTreeContains(item: BaseItem, url: string): boolean {
+        return item.url === url || ((item as BaseItem & { subraces?: BaseItem[] }).subraces ?? []).some((child) => itemTreeContains(child, url));
+    }
 
     // ---- Event Handlers ----
     function onSearchBarBackClick() {
@@ -123,6 +163,7 @@
     function onRedesignedEditorStateChange(state: { editing: boolean; saving: boolean }) {
         detailEditing = state.editing;
         detailSaving = state.saving;
+        if (!state.editing && !state.saving && pendingExternalUrl === currentItem?.url) void refreshCurrentExternalItem();
     }
 
     async function onSearchBarFiltersClick() {

@@ -228,7 +228,7 @@ describe('RacesRepository - Subrace Persistence', () => {
 
         const createItemMock = vi.fn();
         const createItemWithParentMock = vi.fn();
-        const readItemByUrlMock = vi.fn().mockResolvedValue(null); // Not in cache
+        const readItemByUrlMock = vi.fn().mockResolvedValueOnce(null).mockResolvedValue(raceWithSubraces); // Becomes available after persistence
 
         const mockFullDao = {
             readAllItems: vi.fn().mockResolvedValue([]),

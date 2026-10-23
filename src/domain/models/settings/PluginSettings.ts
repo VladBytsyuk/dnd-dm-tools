@@ -4,13 +4,19 @@ import {
 	type AssistantWorkspaceState,
 } from "../assistant/AssistantWorkspace";
 import type { OwlbearEncounterSnapshot } from "../owlbear/OwlbearSync";
-import { createDefaultMediaState, loadMediaState, type MediaState } from "../media/MediaState";
 
 export interface PluginSettingsState {
-	schemaVersion: 7;
+	schemaVersion: 8;
 	workspace: AssistantWorkspaceState;
 	owlbearSync: OwlbearSyncSettings;
-	media: MediaState;
+	mcp: McpSettings;
+}
+
+export interface McpSettings {
+	enabled: boolean;
+	readOnly: boolean;
+	port: number | null;
+	authToken: string | null;
 }
 
 export interface OwlbearSyncSettings {
@@ -24,16 +30,14 @@ export interface OwlbearSyncSettings {
 export interface PluginSettingsLoadResult {
 	settings: PluginSettingsState;
 	shouldResetLegacyViews: boolean;
-	/** Raw v5 media data to persist before the first migrated settings write. */
-	legacyMediaBackup?: unknown;
 }
 
 export function createDefaultPluginSettings(): PluginSettingsState {
 	return {
-		schemaVersion: 7,
+		schemaVersion: 8,
 		workspace: createDefaultAssistantWorkspace(),
 		owlbearSync: { enabled: false, port: null, authToken: null },
-		media: createDefaultMediaState(),
+		mcp: { enabled: false, readOnly: false, port: null, authToken: null },
 	};
 }
 
@@ -45,19 +49,27 @@ export function loadPluginSettings(value: unknown): PluginSettingsLoadResult {
 
 	const stored = value as Record<string, any>;
 	const workspaceResult = loadAssistantWorkspace(
-			(stored.schemaVersion === 2 || stored.schemaVersion === 3 || stored.schemaVersion === 4 || stored.schemaVersion === 5 || stored.schemaVersion === 6 || stored.schemaVersion === 7) ? stored.workspace : stored,
+			(Number.isInteger(stored.schemaVersion) && stored.schemaVersion >= 2 && stored.schemaVersion <= 8) ? stored.workspace : stored,
 	);
 
 	return {
 		settings: {
-			schemaVersion: 7,
+			schemaVersion: 8,
 			workspace: workspaceResult.workspace,
 			owlbearSync: loadOwlbearSyncSettings(stored.owlbearSync),
-			media: loadMediaState(stored.media),
+			mcp: loadMcpSettings(stored.mcp),
 		},
 		shouldResetLegacyViews: workspaceResult.shouldResetLegacyViews,
-		...(stored.schemaVersion === 5 && stored.media && typeof stored.media === "object" && !Array.isArray(stored.media)
-			? { legacyMediaBackup: stored.media } : {}),
+	};
+}
+
+function loadMcpSettings(value: unknown): McpSettings {
+	const stored = value && typeof value === "object" ? value as Record<string, unknown> : {};
+	return {
+		enabled: stored.enabled === true,
+		readOnly: stored.readOnly === true,
+		port: isPort(stored.port) ? stored.port : null,
+		authToken: typeof stored.authToken === "string" && stored.authToken.length >= 32 ? stored.authToken : null,
 	};
 }
 
